@@ -6,6 +6,10 @@ const Clips = preload("res://pet/presentation/dark_pet_test_clips.gd")
 
 const Motion = preload("res://pet/presentation/motion/pet_motion_controller.gd")
 const RigProfile = preload("res://pet/presentation/motion/pet_rig_profile.gd")
+const Appearance = preload("res://pet/appearance/pet_appearance_3d.gd")
+const DEFAULT_APPEARANCE = preload("res://data/pet/appearance/moon_shadow.tres")
+var model: Node3D
+var appearance_profile: Resource = DEFAULT_APPEARANCE
 var motion: Node
 
 var skeleton: Skeleton3D
@@ -13,8 +17,9 @@ var player: AnimationPlayer
 var current_clip: String = "idle"
 
 func _ready() -> void:
-	var model := MODEL.instantiate()
+	model = MODEL.instantiate()
 	add_child(model)
+	Appearance.apply(model, appearance_profile)
 	skeleton = _find_skeleton(model)
 	if skeleton == null:
 		push_error("Pet 3D test: model has no Skeleton3D.")
@@ -89,3 +94,16 @@ func react_to_touch() -> void:
 	if motion != null and motion.has_method("react"):
 		motion.call("react")
 	notify_tapped()
+
+
+func set_appearance(profile: Resource) -> void:
+	if not profile is PetAppearanceProfile:
+		return
+	appearance_profile = profile
+	if is_instance_valid(model):
+		Appearance.apply(model, profile)
+
+
+func _on_definition_applied(definition: PetDefinition) -> void:
+	if definition != null and definition.appearance_profile != null:
+		set_appearance(definition.appearance_profile)

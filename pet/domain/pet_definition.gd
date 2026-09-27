@@ -6,6 +6,7 @@ extends Resource
 @export var display_name: String = ""
 @export var actor_scene: PackedScene
 @export var capability_ids: Array[StringName] = []
+@export var appearance_profile: PetAppearanceProfile
 @export var presentation_profile: Resource
 
 

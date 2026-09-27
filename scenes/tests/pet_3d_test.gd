@@ -44,6 +44,15 @@ func _ready() -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.pressed.connect(_select_clip.bind(entry[1]))
 		grid.add_child(button)
+	var appearance_choice := OptionButton.new()
+	appearance_choice.add_item("Ngoại hình: Trăng tím")
+	appearance_choice.add_item("Ngoại hình: Băng xanh")
+	appearance_choice.custom_minimum_size.y = 40
+	appearance_choice.item_selected.connect(func(index: int) -> void:
+		var paths := ["res://data/pet/appearance/moon_shadow.tres", "res://data/pet/appearance/moon_frost.tres"]
+		actor.set_appearance(load(paths[index]))
+	)
+	layout.add_child(appearance_choice)
 	var living := Button.new()
 	living.text = "Sống động"
 	living.custom_minimum_size.y = 44
