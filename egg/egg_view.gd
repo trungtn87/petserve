@@ -597,26 +597,7 @@ func _play_hatch_glow() -> void:
 	hatch_whiteout.emit()
 
 
-	await get_tree().create_timer(
-		0.12
-	).timeout
-
-
-	egg_texture.scale = Vector2.ONE
-	egg_texture.rotation = 0.0
-	egg_texture.modulate = Color.WHITE
-
-
-	# Fade trắng trở lại để hiện màn hình tiếp theo.
-	var fade_out: Tween = create_tween()
-
-	fade_out.tween_property(
-		flash,
-		"modulate:a",
-		0.0,
-		0.35
-	)
-
-	await fade_out.finished
-
-	flash.queue_free()
+	# Giữ whiteout ở alpha 1 cho tới khi hatch_effect_finished
+	# làm GameApp chuyển sang PetHome. Không fade trở lại scene Egg,
+	# nếu không texture trứng sẽ ló lại một frame/đoạn ngắn.
+	egg_texture.visible = false
