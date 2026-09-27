@@ -12,7 +12,7 @@ script = ExtResource("1_dark")
 position = Vector2(0, -38)
 [node name="VisualSprite" type="Sprite2D" parent="VisualRoot"]
 visible = false
-scale = Vector2(0.4104, 0.4104)
+scale = Vector2(0.62, 0.62)
 [node name="PlaceholderRoot" type="Node2D" parent="VisualRoot"]
 scale = Vector2(1.32525, 1.32525)
 [node name="Tail" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
@@ -42,42 +42,42 @@ color = Color(0.76, 0.68, 1, 1)
 
 [node name="ExpressionRoot" type="Node2D" parent="."]
 position = Vector2(0, -38)
-scale = Vector2(0.4104, 0.4104)
+scale = Vector2(0.62, 0.62)
 script = ExtResource("2_rig")
 blink_min_delay = 2.2
 blink_max_delay = 5.0
 sleepy_lid_amount = 0.72
 blink_closed_amount = 1.0
-look_radius = 7.0
+look_radius = 5.0
 look_smoothing = 8.0
 [node name="LeftLid" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
-position = Vector2(-62, -85)
-polygon = PackedVector2Array(-35, -4, -24, -17, 0, -22, 24, -17, 35, -4, 25, 7, 0, 11, -25, 7)
-color = Color(0.15, 0.14, 0.22, 0.96)
+position = Vector2(-35, -55)
+polygon = PackedVector2Array(-22, -3, -15, -11, 0, -14, 15, -11, 22, -3, 16, 5, 0, 7, -16, 5)
+color = Color(0.12, 0.1, 0.18, 0.96)
 [node name="RightLid" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
-position = Vector2(65, -82)
-polygon = PackedVector2Array(-35, -4, -24, -17, 0, -22, 24, -17, 35, -4, 25, 7, 0, 11, -25, 7)
-color = Color(0.15, 0.14, 0.22, 0.96)
+position = Vector2(37, -54)
+polygon = PackedVector2Array(-22, -3, -15, -11, 0, -14, 15, -11, 22, -3, 16, 5, 0, 7, -16, 5)
+color = Color(0.12, 0.1, 0.18, 0.96)
 [node name="LeftGlint" type="Polygon2D" parent="ExpressionRoot"]
-position = Vector2(-56, -91)
-polygon = PackedVector2Array(-5, 0, -3, -4, 1, -5, 5, -2, 5, 2, 2, 5, -2, 5, -5, 3)
-color = Color(0.9, 0.98, 1, 0.78)
+position = Vector2(-31, -59)
+polygon = PackedVector2Array(-3, 0, -2, -3, 1, -4, 4, -1, 4, 2, 1, 4, -2, 3)
+color = Color(0.95, 0.98, 1, 0.72)
 [node name="RightGlint" type="Polygon2D" parent="ExpressionRoot"]
-position = Vector2(71, -88)
-polygon = PackedVector2Array(-5, 0, -3, -4, 1, -5, 5, -2, 5, 2, 2, 5, -2, 5, -5, 3)
-color = Color(0.9, 0.98, 1, 0.78)
+position = Vector2(41, -58)
+polygon = PackedVector2Array(-3, 0, -2, -3, 1, -4, 4, -1, 4, 2, 1, 4, -2, 3)
+color = Color(0.95, 0.98, 1, 0.72)
 [node name="HappyMouth" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
-position = Vector2(15, -18)
-polygon = PackedVector2Array(-18, -3, 0, 8, 18, -3, 10, 10, 0, 14, -10, 10)
-color = Color(0.28, 0.12, 0.24, 0.92)
+position = Vector2(4, -21)
+polygon = PackedVector2Array(-10, -2, 0, 5, 10, -2, 6, 6, 0, 9, -6, 6)
+color = Color(0.28, 0.12, 0.24, 0.9)
 [node name="SurpriseMouth" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
-position = Vector2(15, -15)
-polygon = PackedVector2Array(-9, 0, -6, -10, 0, -14, 6, -10, 9, 0, 6, 10, 0, 14, -6, 10)
-color = Color(0.25, 0.12, 0.23, 0.92)
+position = Vector2(4, -19)
+polygon = PackedVector2Array(-5, 0, -3, -6, 0, -8, 3, -6, 5, 0, 3, 6, 0, 8, -3, 6)
+color = Color(0.25, 0.12, 0.23, 0.9)
 [node name="InteractionArea" type="Area2D" parent="."]
 input_pickable = true
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
