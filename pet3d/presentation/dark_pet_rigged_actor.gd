@@ -9,19 +9,19 @@ signal tapped
 @export var diagnostic_step_seconds: float = 2.4
 
 @export_group("Soft Idle Motion")
-@export_range(0.2, 3.0, 0.05) var breath_speed: float = 1.25
-@export_range(0.0, 3.0, 0.05) var breath_degrees: float = 0.7
-@export_range(0.0, 0.03, 0.001) var breath_lift: float = 0.008
-@export_range(0.0, 3.0, 0.05) var body_sway_degrees: float = 0.55
-@export_range(0.0, 10.0, 0.1) var head_look_yaw_degrees: float = 5.0
-@export_range(0.0, 8.0, 0.1) var head_look_pitch_degrees: float = 3.5
-@export_range(1.0, 12.0, 0.1) var head_follow_smoothing: float = 4.5
-@export_range(0.0, 5.0, 0.1) var ear_idle_degrees: float = 1.8
-@export_range(0.0, 16.0, 0.1) var tail_idle_degrees: float = 7.5
-@export_range(0.2, 3.0, 0.05) var tail_speed: float = 0.9
-@export_range(1.0, 12.0, 0.1) var tail_smoothing: float = 5.0
-@export_range(0.0, 3.0, 0.05) var weight_shift_degrees: float = 0.55
-@export_range(0.0, 10.0, 0.1) var touch_reaction_degrees: float = 4.5
+@export_range(0.2, 3.0, 0.05) var breath_speed: float = 0.65
+@export_range(0.0, 3.0, 0.05) var breath_degrees: float = 0.9
+@export_range(0.0, 0.03, 0.001) var breath_lift: float = 0.010
+@export_range(0.0, 3.0, 0.05) var body_sway_degrees: float = 0.8
+@export_range(0.0, 10.0, 0.1) var head_look_yaw_degrees: float = 7.0
+@export_range(0.0, 8.0, 0.1) var head_look_pitch_degrees: float = 4.5
+@export_range(1.0, 12.0, 0.1) var head_follow_smoothing: float = 3.8
+@export_range(0.0, 5.0, 0.1) var ear_idle_degrees: float = 2.4
+@export_range(0.0, 16.0, 0.1) var tail_idle_degrees: float = 5.5
+@export_range(0.2, 3.0, 0.05) var tail_speed: float = 0.75
+@export_range(1.0, 12.0, 0.1) var tail_smoothing: float = 4.0
+@export_range(0.0, 3.0, 0.05) var weight_shift_degrees: float = 0.35
+@export_range(0.0, 10.0, 0.1) var touch_reaction_degrees: float = 4.0
 @export_range(0.0, 3.0, 0.05) var look_height: float = 1.15
 
 @onready var model_root: Node3D = $DarkPetModel
@@ -108,10 +108,10 @@ func _update_normal_idle(delta: float) -> void:
 	)
 
 	var auto_yaw := (
-		sin(_time * 0.43 + 0.4) * deg_to_rad(0.75)
-		+ sin(_time * 0.19 + 1.7) * deg_to_rad(0.45)
+		sin(_time * 0.43 + 0.4) * deg_to_rad(1.15)
+		+ sin(_time * 0.19 + 1.7) * deg_to_rad(0.55)
 	)
-	var auto_pitch := sin(_time * 0.37 + 0.9) * deg_to_rad(0.45)
+	var auto_pitch := sin(_time * 0.37 + 0.9) * deg_to_rad(0.70)
 	var touch_nod := -deg_to_rad(touch_reaction_degrees) * _touch_reaction
 
 	var head_yaw := _look_yaw + auto_yaw
@@ -131,7 +131,7 @@ func _update_normal_idle(delta: float) -> void:
 		Vector3(
 			head_pitch * 0.66,
 			head_yaw * 0.66,
-			sin(_time * 0.31) * deg_to_rad(0.25)
+			sin(_time * 0.31) * deg_to_rad(0.35)
 		)
 	)
 
@@ -146,12 +146,12 @@ func _update_look(delta: float) -> void:
 	if _has_look_target:
 		var local_target := to_local(_look_target)
 		desired_yaw = clampf(
-			local_target.x * 0.065,
+			local_target.x * 0.080,
 			-deg_to_rad(head_look_yaw_degrees),
 			deg_to_rad(head_look_yaw_degrees)
 		)
 		desired_pitch = clampf(
-			-(local_target.y - look_height) * 0.05,
+			-(local_target.y - look_height) * 0.065,
 			-deg_to_rad(head_look_pitch_degrees),
 			deg_to_rad(head_look_pitch_degrees)
 		)
