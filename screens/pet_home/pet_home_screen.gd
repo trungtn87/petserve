@@ -11,6 +11,7 @@ extends Control
 
 
 var _home_host: HomeHost = HomeHost.new()
+var _pet_actor_host: PetActorHost = PetActorHost.new()
 
 
 func apply_home(definition: HomeDefinition) -> bool:
@@ -21,8 +22,20 @@ func apply_home(definition: HomeDefinition) -> bool:
 	)
 
 
+func spawn_pet(definition: PetDefinition) -> PetActor:
+	return _pet_actor_host.spawn(definition, pet_anchor)
+
+
+func clear_pet() -> void:
+	_pet_actor_host.clear()
+
+
 func clear_home() -> void:
 	_home_host.clear()
+
+
+func get_pet_actor() -> PetActor:
+	return _pet_actor_host.get_actor()
 
 
 func get_pet_anchor() -> Marker2D:
