@@ -3,7 +3,7 @@ extends PetActor3D
 
 
 @export var skeleton_path: NodePath = NodePath("DarkPetModel/DarkPetSkeleton/Skeleton3D")
-@export var debug_material_override: bool = true
+@export var debug_material_override: bool = false
 @export var diagnostic_mode: bool = false
 @export var diagnostic_step_seconds: float = 2.4
 
