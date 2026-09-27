@@ -1,7 +1,7 @@
 class_name DarkPetActor
 extends PetActor
 
-const RUNTIME_TEXTURE_PATH: String = "res://assets/pets/dark/runtime/dark_pet_base.png"
+const RUNTIME_TEXTURE_PATH: String = "res://assets/pets/dark/runtime/dark_pet_runtime_v2.png"
 
 @onready var visual_root: Node2D = $VisualRoot
 @onready var visual_sprite: Sprite2D = $VisualRoot/VisualSprite
@@ -52,6 +52,7 @@ func _apply_runtime_art_if_available() -> void:
 		visual_sprite.visible = false
 		placeholder_root.visible = true
 		face_rig.visible = false
+		push_warning("Dark Pet runtime art missing: %s" % RUNTIME_TEXTURE_PATH)
 		return
 	var texture: Texture2D = load(RUNTIME_TEXTURE_PATH) as Texture2D
 	if texture == null:
