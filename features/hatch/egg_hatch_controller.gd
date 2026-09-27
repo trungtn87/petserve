@@ -3,6 +3,7 @@ extends RefCounted
 
 
 signal hatch_completed
+signal pet_home_requested
 
 
 var _egg: EggFacade
@@ -133,27 +134,9 @@ func _on_hatch_whiteout() -> void:
 # =========================================================
 
 func _enter_next_phase() -> void:
-	# =====================================================
-	# TEMPORARY — V1.1
-	#
-	# Hiện tại:
-	# Egg nở -> tạo đời Egg mới.
-	#
-	# Sau này khi có Pet:
-	# Chỉ thay nội dung hàm này bằng luồng tạo Pet /
-	# chuyển sang Pet gameplay.
-	# =====================================================
-
-
-	# Xóa HatchState của đời vừa kết thúc.
-	if not _hatch.reset():
-		push_error(
-			"EggHatchController: Không reset được Hatch save."
-		)
-
-
-	# Tạm thời bắt đầu đời Egg mới.
-	_egg.start_new_life()
+	# Không tạo Egg mới ở đây nữa.
+	# App layer sẽ nhận signal và chuyển sang PetHome.
+	pet_home_requested.emit()
 
 
 # =========================================================
