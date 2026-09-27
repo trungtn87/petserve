@@ -16,12 +16,24 @@ const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet.tres")
 
 var _home_host: HomeHost = HomeHost.new()
 var _pet_actor_host: PetActorHost = PetActorHost.new()
+var _pet_state: PetState = PetState.new()
+var _behavior: PetBehaviorController = PetBehaviorController.new()
 
 
 func _ready() -> void:
 	# Temporary standalone bootstrap. App routing will supply definitions later.
 	apply_home(DEFAULT_HOME)
-	spawn_pet(REFERENCE_PET)
+	var actor: PetActor = spawn_pet(REFERENCE_PET)
+	if actor != null:
+		actor.present_state(_pet_state)
+
+
+func _process(delta: float) -> void:
+	var next_state: StringName = _behavior.tick(delta)
+	if next_state.is_empty():
+		return
+
+	_present_state(next_state)
 
 
 func apply_home(definition: HomeDefinition) -> bool:
@@ -58,3 +70,10 @@ func get_actor_layer() -> Control:
 
 func get_environment_slot() -> Control:
 	return environment_slot
+
+
+func _present_state(state_id: StringName) -> void:
+	_pet_state.set_primary(state_id)
+	var actor: PetActor = get_pet_actor()
+	if actor != null:
+		actor.present_state(_pet_state)
