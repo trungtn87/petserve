@@ -1,7 +1,6 @@
 class_name DarkPetRiggedActor
-extends Node3D
+extends PetActor3D
 
-signal tapped
 
 @export var skeleton_path: NodePath = NodePath("DarkPetModel/DarkPetSkeleton/Skeleton3D")
 @export var debug_material_override: bool = true
