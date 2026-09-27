@@ -2,54 +2,63 @@
 
 [ext_resource type="Script" path="res://pet/presentation/dark_pet_actor.gd" id="1_dark"]
 [sub_resource type="CapsuleShape2D" id="Capsule_pet"]
-radius = 62.0
-height = 170.0
+radius = 82.0
+height = 225.0
 
 [node name="DarkPet" type="Node2D"]
 script = ExtResource("1_dark")
 
-[node name="VisualSprite" type="Sprite2D" parent="."]
+[node name="VisualRoot" type="Node2D" parent="."]
+position = Vector2(0, -38)
+
+[node name="VisualSprite" type="Sprite2D" parent="VisualRoot"]
 visible = false
-position = Vector2(0, -35)
-scale = Vector2(0.22, 0.22)
+scale = Vector2(0.48, 0.48)
 
-[node name="PlaceholderRoot" type="Node2D" parent="."]
+[node name="PlaceholderRoot" type="Node2D" parent="VisualRoot"]
+scale = Vector2(1.55, 1.55)
 
-[node name="Tail" type="Polygon2D" parent="PlaceholderRoot"]
+[node name="Tail" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 position = Vector2(-35, 8)
 polygon = PackedVector2Array(-2, 28, -30, 20, -48, -4, -44, -34, -25, -52, -12, -31, -20, -12, 0, 0)
 color = Color(0.22, 0.16, 0.34, 1)
 
-[node name="Body" type="Polygon2D" parent="PlaceholderRoot"]
+[node name="Body" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 polygon = PackedVector2Array(-42, -20, -34, -54, -14, -72, 0, -76, 14, -72, 34, -54, 42, -20, 38, 22, 24, 48, 0, 58, -24, 48, -38, 22)
 color = Color(0.13, 0.11, 0.2, 1)
 
-[node name="LeftEar" type="Polygon2D" parent="PlaceholderRoot"]
+[node name="LeftEar" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 polygon = PackedVector2Array(-32, -48, -28, -92, -6, -66)
 color = Color(0.13, 0.11, 0.2, 1)
 
-[node name="RightEar" type="Polygon2D" parent="PlaceholderRoot"]
+[node name="RightEar" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 polygon = PackedVector2Array(32, -48, 28, -92, 6, -66)
 color = Color(0.13, 0.11, 0.2, 1)
 
-[node name="Face" type="Node2D" parent="PlaceholderRoot"]
+[node name="Face" type="Node2D" parent="VisualRoot/PlaceholderRoot"]
 position = Vector2(0, -32)
 
-[node name="LeftEye" type="Polygon2D" parent="PlaceholderRoot/Face"]
+[node name="LeftEye" type="Polygon2D" parent="VisualRoot/PlaceholderRoot/Face"]
 polygon = PackedVector2Array(-23, -6, -13, -11, -6, -5, -8, 6, -17, 10, -25, 4)
 color = Color(0.65, 0.54, 1, 1)
 
-[node name="RightEye" type="Polygon2D" parent="PlaceholderRoot/Face"]
+[node name="RightEye" type="Polygon2D" parent="VisualRoot/PlaceholderRoot/Face"]
 polygon = PackedVector2Array(23, -6, 13, -11, 6, -5, 8, 6, 17, 10, 25, 4)
 color = Color(0.65, 0.54, 1, 1)
 
-[node name="Mark" type="Polygon2D" parent="PlaceholderRoot/Face"]
+[node name="Mark" type="Polygon2D" parent="VisualRoot/PlaceholderRoot/Face"]
 polygon = PackedVector2Array(0, -28, 6, -18, 0, -11, -6, -18)
 color = Color(0.76, 0.68, 1, 1)
+
+[node name="ExpressionRoot" type="Node2D" parent="."]
+position = Vector2(0, -38)
+
+[node name="BlinkOverlay" type="Node2D" parent="ExpressionRoot"]
+visible = false
 
 [node name="InteractionArea" type="Area2D" parent="."]
 input_pickable = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
-position = Vector2(0, -30)
+position = Vector2(0, -45)
 shape = SubResource("Capsule_pet")
