@@ -31,3 +31,21 @@ The existing egg/hatch implementation remains the baseline. Pet work is additive
 
 ## PET-010 — First pet milestone
 The first milestone is not full pet gameplay. It is: Pet Home composition + one expressive Dark Pet + idle micro-behaviors + lightweight tap interaction.
+
+## ARCH-001 — Extensible, reusable, diverse
+All major systems are designed for three properties: extension without duplication, reuse of stable frameworks, and content diversity through data/capabilities rather than copied logic.
+
+## ARCH-002 — Adding content is not editing Core
+Adding another entry of an existing content type (pet, element/attribute, home, expression, item, event, etc.) must not require modifying shared Core merely to recognize its identity. Prefer definitions, registries, capabilities and assets.
+
+## ARCH-003 — New capability may extend the framework
+"No Core edits for new content" does not prohibit architecture evolution. A genuinely new gameplay capability may add a generic API/component. Once added, additional content using that capability should be data-driven.
+
+## ARCH-004 — Avoid identity condition chains
+Generic systems must not grow chains such as `if dark / elif fire / elif water`. Identity-specific differences belong in definitions, capabilities, assets or explicit presentation overrides.
+
+## HOME-001 — Pet Home is a reusable host
+Pet Home is not a specific room. It hosts replaceable environment, decoration, actor, effect and UI layers. New homes should primarily be HomeDefinition + assets.
+
+## HOME-002 — Pet and home are independent
+A pet is not bound to a specific home scene. The same pet can inhabit different HomeDefinitions and the same home can host different pets without duplicating controller logic.
