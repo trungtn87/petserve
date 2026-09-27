@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dvja0x8xj4vu1"]
 
-[node name="DefaultRoom" type="Control"]
+[node name="DefaultRoom" type="Control" unique_id=2024553372]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -9,7 +9,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=893451104]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,13 +19,13 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.24, 0.22, 0.36, 1)
 
-[node name="Floor" type="ColorRect" parent="."]
+[node name="Floor" type="ColorRect" parent="." unique_id=1779639365]
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = -1
 anchor_top = 0.68
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
-color = Color(0.34, 0.30, 0.46, 1)
+color = Color(0.34, 0.3, 0.46, 1)

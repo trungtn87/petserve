@@ -5,9 +5,9 @@ extends Control
 signal action_requested(action_id: StringName)
 
 
-const DRAWER_WIDTH_RATIO: float = 0.74
-const DRAWER_MIN_WIDTH: float = 238.0
-const DRAWER_MAX_WIDTH: float = 276.0
+const DRAWER_WIDTH_RATIO: float = 0.62
+const DRAWER_MIN_WIDTH: float = 210.0
+const DRAWER_MAX_WIDTH: float = 232.0
 const OPEN_TIME: float = 0.22
 const CLOSE_TIME: float = 0.18
 const TOAST_TIME: float = 1.35
