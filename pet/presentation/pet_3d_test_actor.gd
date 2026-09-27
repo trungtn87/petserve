@@ -1,4 +1,4 @@
-extends Node3D
+extends PetActor3D
 ## Presentation only: no pet simulation, egg state, RNG or save writes.
 
 const MODEL: PackedScene = preload("res://assets/pets/dark_pet/dark_pet_rigged_v4.glb")
@@ -79,3 +79,15 @@ func start_living() -> void:
 func focus(point: Vector3, touched: bool = true) -> void:
 	if motion != null:
 		motion.focus(point, touched)
+
+
+func set_look_target(target: Vector3) -> void:
+	focus(target, false)
+
+
+func react_to_touch() -> void:
+	if motion != null:
+		# PetHome chỉ truyền sự kiện chạm, không có world point riêng.
+		# Giữ mục tiêu nhìn hiện tại và kích hoạt phản ứng thứ cấp.
+		motion.secondary.react()
+	notify_tapped()
