@@ -1,0 +1,134 @@
+{
+  "metal": [
+	{
+	  "id": "metal_mutation_resonance",
+	  "mechanic": "tap",
+	  "title": "CỘNG HƯỞNG DỊ THƯỜNG",
+	  "instruction": "Lõi Kim đang biến đổi. Chạm đều để giữ cộng hưởng ổn định.",
+	  "target_min": 18,
+	  "target_max": 26
+	},
+	{
+	  "id": "metal_mutation_stabilize",
+	  "mechanic": "rest",
+	  "title": "ỔN ĐỊNH DỊ KIM",
+	  "instruction": "Không chạm vào trứng. Hãy để cấu trúc kim loại mới tự hình thành.",
+	  "target_min": 14,
+	  "target_max": 20
+	}
+  ],
+
+  "wood": [
+	{
+	  "id": "wood_mutation_overgrowth",
+	  "mechanic": "warm",
+	  "title": "SINH TRƯỞNG ĐỘT BIẾN",
+	  "instruction": "Sinh lực đang tăng bất thường. Giữ trứng để duy trì quá trình biến đổi.",
+	  "target_min": 12,
+	  "target_max": 18
+	},
+	{
+	  "id": "wood_mutation_pulse",
+	  "mechanic": "tap",
+	  "title": "MẠCH SỐNG MỚI",
+	  "instruction": "Chạm theo nhịp để ổn định mạch sống vừa xuất hiện.",
+	  "target_min": 16,
+	  "target_max": 24
+	}
+  ],
+
+  "water": [
+	{
+	  "id": "water_mutation_current",
+	  "mechanic": "warm",
+	  "title": "DÒNG CHẢY DỊ BIẾN",
+	  "instruction": "Dòng năng lượng mới đang hình thành. Giữ trứng để nó không tan rã.",
+	  "target_min": 12,
+	  "target_max": 18
+	},
+	{
+	  "id": "water_mutation_still",
+	  "mechanic": "rest",
+	  "title": "THỦY VỰC",
+	  "instruction": "Giữ mọi thứ tĩnh lặng để lõi Thủy biến đổi hoàn toàn.",
+	  "target_min": 15,
+	  "target_max": 21
+	}
+  ],
+
+  "fire": [
+	{
+	  "id": "fire_mutation_inferno",
+	  "mechanic": "tap",
+	  "title": "HỎA TÂM BẠO PHÁT",
+	  "instruction": "Hỏa tâm đang mất ổn định. Chạm liên tục để giữ nó không sụp đổ.",
+	  "target_min": 20,
+	  "target_max": 28
+	},
+	{
+	  "id": "fire_mutation_core",
+	  "mechanic": "warm",
+	  "title": "DỊ HỎA",
+	  "instruction": "Giữ trứng để ngọn lửa mới hoàn tất quá trình biến đổi.",
+	  "target_min": 13,
+	  "target_max": 19
+	}
+  ],
+
+  "earth": [
+	{
+	  "id": "earth_mutation_crystal",
+	  "mechanic": "rest",
+	  "title": "DỊ TINH KẾT",
+	  "instruction": "Không tác động vào trứng. Một cấu trúc khoáng chất mới đang hình thành.",
+	  "target_min": 16,
+	  "target_max": 22
+	},
+	{
+	  "id": "earth_mutation_core",
+	  "mechanic": "tap",
+	  "title": "ĐỊA HẠCH BIẾN ĐỔI",
+	  "instruction": "Chạm đều để ép lõi biến dị đạt trạng thái ổn định.",
+	  "target_min": 17,
+	  "target_max": 25
+	}
+  ],
+
+  "dark": [
+	{
+	  "id": "dark_mutation_void",
+	  "mechanic": "rest",
+	  "title": "HƯ VÔ",
+	  "instruction": "Đừng chạm vào trứng. Một thứ gì đó đang hình thành trong bóng tối.",
+	  "target_min": 18,
+	  "target_max": 25
+	},
+	{
+	  "id": "dark_mutation_heartbeat",
+	  "mechanic": "tap",
+	  "title": "NHỊP ĐẬP TRONG BÓNG TỐI",
+	  "instruction": "Một nhịp sống lạ vừa xuất hiện. Chạm để giữ kết nối với nó.",
+	  "target_min": 14,
+	  "target_max": 22
+	}
+  ],
+
+  "light": [
+	{
+	  "id": "light_mutation_overload",
+	  "mechanic": "warm",
+	  "title": "QUANG NĂNG QUÁ TẢI",
+	  "instruction": "Ánh sáng đang vượt khỏi giới hạn bình thường. Giữ trứng để ổn định lõi.",
+	  "target_min": 13,
+	  "target_max": 19
+	},
+	{
+	  "id": "light_mutation_pulse",
+	  "mechanic": "tap",
+	  "title": "DỊ QUANG",
+	  "instruction": "Chạm theo từng nhịp để nguồn sáng mới hoàn thiện.",
+	  "target_min": 18,
+	  "target_max": 26
+	}
+  ]
+}

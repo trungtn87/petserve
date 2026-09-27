@@ -1,0 +1,22 @@
+# Godot generated files
+.godot/
+
+# Imported/generated cache
+.import/
+
+# Exported builds
+build/
+builds/
+export/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log

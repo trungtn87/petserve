@@ -1,0 +1,190 @@
+{
+  "metal": [
+	{
+	  "id": "metal_forge_core",
+	  "mechanic": "tap",
+	  "title": "RÈN LÕI KIM",
+	  "instruction": "Gõ đều lên vỏ trứng để lõi kim hoàn thiện.",
+	  "target_min": 12,
+	  "target_max": 18
+	},
+	{
+	  "id": "metal_temper",
+	  "mechanic": "warm",
+	  "title": "TÔI LUYỆN",
+	  "instruction": "Giữ trứng ổn định để lớp kim bên trong được tôi luyện.",
+	  "target_min": 8,
+	  "target_max": 12
+	},
+	{
+	  "id": "metal_stillness",
+	  "mechanic": "rest",
+	  "title": "KẾT TINH",
+	  "instruction": "Để trứng bất động cho cấu trúc kim loại kết tinh.",
+	  "target_min": 10,
+	  "target_max": 15
+	}
+  ],
+
+  "wood": [
+	{
+	  "id": "wood_growth",
+	  "mechanic": "warm",
+	  "title": "SINH TRƯỞNG",
+	  "instruction": "Ủ ấm để mầm sống bên trong tiếp tục lớn lên.",
+	  "target_min": 9,
+	  "target_max": 13
+	},
+	{
+	  "id": "wood_heartbeat",
+	  "mechanic": "tap",
+	  "title": "NHỊP SỐNG",
+	  "instruction": "Chạm đều để đánh thức nhịp sống bên trong.",
+	  "target_min": 10,
+	  "target_max": 16
+	},
+	{
+	  "id": "wood_rooting",
+	  "mechanic": "rest",
+	  "title": "CẮM RỄ",
+	  "instruction": "Để trứng yên cho sinh lực tự ổn định.",
+	  "target_min": 11,
+	  "target_max": 16
+	}
+  ],
+
+  "water": [
+	{
+	  "id": "water_pulse",
+	  "mechanic": "tap",
+	  "title": "THỦY MẠCH",
+	  "instruction": "Chạm nhẹ theo từng nhịp để dòng nước bên trong lưu chuyển.",
+	  "target_min": 11,
+	  "target_max": 17
+	},
+	{
+	  "id": "water_current",
+	  "mechanic": "warm",
+	  "title": "DÒNG CHẢY",
+	  "instruction": "Giữ trứng để dòng năng lượng nước duy trì liên tục.",
+	  "target_min": 8,
+	  "target_max": 12
+	},
+	{
+	  "id": "water_calm",
+	  "mechanic": "rest",
+	  "title": "MẶT NƯỚC TĨNH",
+	  "instruction": "Không chạm vào trứng để thủy lực bên trong trở nên cân bằng.",
+	  "target_min": 10,
+	  "target_max": 15
+	}
+  ],
+
+  "fire": [
+	{
+	  "id": "fire_ignite",
+	  "mechanic": "tap",
+	  "title": "BÙNG CHÁY",
+	  "instruction": "Chạm liên tục để đánh thức ngọn lửa trong lõi.",
+	  "target_min": 14,
+	  "target_max": 20
+	},
+	{
+	  "id": "fire_core_heat",
+	  "mechanic": "warm",
+	  "title": "NUÔI HỎA TÂM",
+	  "instruction": "Giữ trứng để hỏa tâm đạt nhiệt độ cần thiết.",
+	  "target_min": 9,
+	  "target_max": 13
+	},
+	{
+	  "id": "fire_ember",
+	  "mechanic": "rest",
+	  "title": "GIỮ TÀN LỬA",
+	  "instruction": "Để trứng yên để ngọn lửa tự ổn định.",
+	  "target_min": 8,
+	  "target_max": 12
+	}
+  ],
+
+  "earth": [
+	{
+	  "id": "earth_core",
+	  "mechanic": "rest",
+	  "title": "ĐỊA TÂM",
+	  "instruction": "Để trứng hoàn toàn yên cho lõi đất ổn định.",
+	  "target_min": 13,
+	  "target_max": 18
+	},
+	{
+	  "id": "earth_compaction",
+	  "mechanic": "tap",
+	  "title": "KẾT KHỐI",
+	  "instruction": "Chạm đều để các lớp khoáng chất kết lại.",
+	  "target_min": 10,
+	  "target_max": 15
+	},
+	{
+	  "id": "earth_nurture",
+	  "mechanic": "warm",
+	  "title": "DƯỠNG ĐỊA",
+	  "instruction": "Ủ ấm để lõi đất hấp thụ năng lượng cuối cùng.",
+	  "target_min": 9,
+	  "target_max": 13
+	}
+  ],
+
+  "dark": [
+	{
+	  "id": "dark_abyss",
+	  "mechanic": "rest",
+	  "title": "VỰC TĨNH LẶNG",
+	  "instruction": "Không chạm vào trứng. Để bóng tối tự bao phủ lõi.",
+	  "target_min": 14,
+	  "target_max": 20
+	},
+	{
+	  "id": "dark_compression",
+	  "mechanic": "warm",
+	  "title": "HỘI TỤ BÓNG TỐI",
+	  "instruction": "Giữ trứng để năng lượng Ám hội tụ vào tâm.",
+	  "target_min": 9,
+	  "target_max": 13
+	},
+	{
+	  "id": "dark_echo",
+	  "mechanic": "tap",
+	  "title": "TIẾNG VỌNG",
+	  "instruction": "Chạm nhẹ để gọi phản ứng từ sâu bên trong.",
+	  "target_min": 8,
+	  "target_max": 14
+	}
+  ],
+
+  "light": [
+	{
+	  "id": "light_awaken",
+	  "mechanic": "tap",
+	  "title": "QUANG MINH",
+	  "instruction": "Chạm vào trứng để giải phóng những tia sáng cuối cùng.",
+	  "target_min": 12,
+	  "target_max": 18
+	},
+	{
+	  "id": "light_core",
+	  "mechanic": "warm",
+	  "title": "QUANG TÂM",
+	  "instruction": "Giữ trứng để ánh sáng hội tụ vào lõi.",
+	  "target_min": 8,
+	  "target_max": 12
+	},
+	{
+	  "id": "light_purity",
+	  "mechanic": "rest",
+	  "title": "TINH QUANG",
+	  "instruction": "Để trứng yên để quang năng trở nên ổn định.",
+	  "target_min": 9,
+	  "target_max": 14
+	}
+  ]
+}

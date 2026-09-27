@@ -1,0 +1,134 @@
+{
+  "metal": [
+	{
+	  "id": "metal_resonance",
+	  "mechanic": "tap",
+	  "title": "CỘNG HƯỞNG KIM",
+	  "instruction": "Gõ nhẹ để đánh thức lõi kim loại.",
+	  "target_min": 8,
+	  "target_max": 12
+	},
+	{
+	  "id": "metal_stability",
+	  "mechanic": "rest",
+	  "title": "ỔN ĐỊNH LÕI KIM",
+	  "instruction": "Giữ quả trứng hoàn toàn bất động.",
+	  "target_min": 8,
+	  "target_max": 12
+	}
+  ],
+
+  "wood": [
+	{
+	  "id": "wood_nurture",
+	  "mechanic": "warm",
+	  "title": "NUÔI MẦM SỐNG",
+	  "instruction": "Ủ ấm để mầm sống bên trong phát triển.",
+	  "target_min": 6,
+	  "target_max": 9
+	},
+	{
+	  "id": "wood_root",
+	  "mechanic": "rest",
+	  "title": "BÉN RỄ",
+	  "instruction": "Để quả trứng yên cho mầm bén rễ.",
+	  "target_min": 10,
+	  "target_max": 14
+	}
+  ],
+
+  "water": [
+	{
+	  "id": "water_ripple",
+	  "mechanic": "tap",
+	  "title": "GỢN SÓNG",
+	  "instruction": "Chạm nhẹ để tạo những nhịp gợn bên trong.",
+	  "target_min": 6,
+	  "target_max": 10
+	},
+	{
+	  "id": "water_flow",
+	  "mechanic": "warm",
+	  "title": "GIỮ DÒNG CHẢY",
+	  "instruction": "Giữ tay để dòng năng lượng ổn định.",
+	  "target_min": 7,
+	  "target_max": 10
+	}
+  ],
+
+  "fire": [
+	{
+	  "id": "fire_heat",
+	  "mechanic": "warm",
+	  "title": "Ủ NHIỆT",
+	  "instruction": "Giữ tay để nhiệt bên trong tăng lên.",
+	  "target_min": 8,
+	  "target_max": 12
+	},
+	{
+	  "id": "fire_spark",
+	  "mechanic": "tap",
+	  "title": "ĐÁNH THỨC TIA LỬA",
+	  "instruction": "Chạm liên tiếp để kích hoạt tia lửa.",
+	  "target_min": 10,
+	  "target_max": 14
+	}
+  ],
+
+  "earth": [
+	{
+	  "id": "earth_settle",
+	  "mechanic": "rest",
+	  "title": "LẮNG ĐỌNG",
+	  "instruction": "Để lớp lõi bên trong tự ổn định.",
+	  "target_min": 10,
+	  "target_max": 15
+	},
+	{
+	  "id": "earth_compact",
+	  "mechanic": "tap",
+	  "title": "NÉN LÕI",
+	  "instruction": "Chạm đều để cấu trúc bên trong kết lại.",
+	  "target_min": 7,
+	  "target_max": 11
+	}
+  ],
+
+  "dark": [
+	{
+	  "id": "dark_silence",
+	  "mechanic": "rest",
+	  "title": "TĨNH MẶC",
+	  "instruction": "Không chạm vào trứng. Hãy để bóng tối tích tụ.",
+	  "target_min": 12,
+	  "target_max": 16
+	},
+	{
+	  "id": "dark_focus",
+	  "mechanic": "warm",
+	  "title": "NÉN BÓNG TỐI",
+	  "instruction": "Giữ tay để năng lượng tối hội tụ.",
+	  "target_min": 6,
+	  "target_max": 9
+	}
+  ],
+
+  "light": [
+	{
+	  "id": "light_charge",
+	  "mechanic": "tap",
+	  "title": "ĐÁNH THỨC ÁNH SÁNG",
+	  "instruction": "Chạm vào trứng để tích tụ quang năng.",
+	  "target_min": 9,
+	  "target_max": 13
+	},
+	{
+	  "id": "light_focus",
+	  "mechanic": "warm",
+	  "title": "HỘI TỤ QUANG NĂNG",
+	  "instruction": "Giữ tay để ánh sáng bên trong hội tụ.",
+	  "target_min": 5,
+	  "target_max": 8
+	}
+  ]
+}

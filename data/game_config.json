@@ -1,0 +1,9 @@
+{
+  "game_version": "1.0.0-dev",
+  "save_schema": 1,
+  "target_platform": "android",
+  "orientation": "portrait",
+  "design_resolution": [720, 1280],
+  "current_scope": "foundation_only",
+  "next_scope": "egg_random_generation"
+}

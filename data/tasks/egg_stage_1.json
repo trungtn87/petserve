@@ -1,0 +1,26 @@
+[
+  {
+	"id": "stage_1_awaken",
+	"mechanic": "tap",
+	"title": "ĐÁNH THỨC",
+	"instruction": "Chạm nhẹ vào quả trứng.",
+	"target_min": 5,
+	"target_max": 9
+  },
+  {
+	"id": "stage_1_warm",
+	"mechanic": "warm",
+	"title": "Ủ ẤM",
+	"instruction": "Giữ tay trên quả trứng.",
+	"target_min": 4,
+	"target_max": 7
+  },
+  {
+	"id": "stage_1_rest",
+	"mechanic": "rest",
+	"title": "TĨNH LẶNG",
+	"instruction": "Để quả trứng hoàn toàn yên.",
+	"target_min": 6,
+	"target_max": 10
+  }
+]
