@@ -116,17 +116,9 @@ func try_hatch() -> bool:
 # =========================================================
 
 func _on_hatch_whiteout() -> void:
-	if not _is_hatching:
-		return
-
-
-	if _next_phase_entered:
-		return
-
-
-	_next_phase_entered = true
-
-	_enter_next_phase()
+	# Whiteout vẫn thuộc hiệu ứng của EggView.
+	# Không đổi scene ở đây vì EggView còn tiếp tục await/tween.
+	return
 
 
 # =========================================================
@@ -149,10 +141,15 @@ func _on_hatch_effect_finished() -> void:
 
 
 	_is_hatching = false
-	_next_phase_entered = false
-
 
 	hatch_completed.emit()
+
+
+	# Chỉ chuyển gameplay sau khi EggView đã hoàn tất toàn bộ
+	# timer/tween của hiệu ứng nở và không còn coroutine dang dở.
+	if not _next_phase_entered:
+		_next_phase_entered = true
+		_enter_next_phase()
 
 
 # =========================================================
