@@ -51,3 +51,35 @@ Chưa kiểm chứng hình ảnh render và chưa test trên thiết bị Androi
 
 - https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html
 - https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/import_configuration.html
+
+## Nâng cấp 2 — Đứng sống động (mặc định khi F6)
+
+- **Sống động**: nhịp thở nhẹ ở cổ/đầu, hít vào ngắn và thở ra dài; nhìn quanh có khoảng nghỉ.
+- **Chạm / kéo trong khung 3D**: đặt mục tiêu nhìn. Chạm tạo phản ứng nghiêng đầu + tai/đuôi, kéo chỉ cập nhật mục tiêu. Sau 3 giây không cập nhật, đầu trở về hướng nghỉ.
+- **Gọi pet**: nhìn về camera và phản ứng. Nếu camera ở sau model đã xoay, pet không vặn đầu ngược ra sau.
+- **Tạm dừng**: giữ toàn bộ pose và đồng hồ chuyển động. **Tư thế gốc**: tắt cả animation lẫn chuyển động thủ tục và reset toàn bộ rig.
+- Các clip cũ được giữ để so sánh/kiểm tra rig; chọn **Sống động** để trở lại chế độ mới.
+
+### Phân chia code
+
+`pet/presentation/motion/`:
+- `pet_rig_profile.gd`: ánh xạ xương, giới hạn yaw 12°, pitch 8°, nghiêng 3°, tai 3°, mỗi đoạn đuôi 4°. Head rest frame của mẫu dùng +Z trước, +Y trên.
+- `pet_look_controller.gd`: mục tiêu world → rest frame, giới hạn góc, smoothing theo delta, hết thời gian chú ý, bỏ mục tiêu phía sau.
+- `pet_secondary_motion.gd`: phản ứng có nhịp tăng/giảm, cooldown chống spam, tai lệch thời điểm, đuôi trễ từng đoạn và dao động tắt dần. Đây là công thức chuyển động, chưa phải mô phỏng va chạm/vật lý đuôi.
+- `pet_motion_controller.gd`: ghép chuyển động từ rest pose, fade 0,4 giây khi vào chế độ, chỉ ghi bone pose khi được kích hoạt. AnimationPlayer bị vô hiệu hóa trong chế độ này để không tranh quyền ghi xương.
+
+Chỉ dùng RNG riêng cho trình diễn. Không gọi RNG gameplay hoặc ghi save. Giữ nguyên root/thân/chân và vị trí model; nhịp thở hiện chỉ biểu đạt nhẹ ở cổ/đầu, chưa có chest rig. Không tuyên bố đã có IK hoặc chân bám sàn.
+
+### Phạm vi chưa hoàn thành của phương án dài hạn
+
+GLB v3 chỉ có một mesh, không có morph target hoặc bone mí mắt. Vì vậy chưa làm chớp mắt; UI ghi rõ giới hạn này. Chưa thêm khớp chân, chest rig, chỉnh skin weights hay tạo clip Blender. Những việc đó cần bước sửa asset và duyệt hình ảnh riêng; bản nâng cấp này triển khai lớp điều khiển đứng tại chỗ trên rig hiện có.
+
+### Kiểm chứng nâng cấp
+
+Godot 4.6.1: test cũ và `tools/test_pet_living.gd` đều đạt. Test mới bao gồm tọa độ chạm, nhiều ngón tay, bone thực sự đổi pose, giới hạn góc, root/thân/chân giữ rest, pause/resume/reset, chuyển từ walk sang living, 600 bước không tích lũy pose lỗi, solver nhìn ở 30/60/120 FPS, model xoay, mục tiêu phía sau và cooldown. Scene chạy 180 frame headless không lỗi runtime.
+
+Audit GLB: trọng số hữu hạn/không âm, chỉ số joint 0–13; sai số tổng trọng số lớn nhất khoảng 1,79e-7. Đây là kiểm tra số học, không thay thế kiểm tra biến dạng bằng mắt. Chưa test Android và Godot 4.7.
+
+```bash
+godot --headless --path . --script res://tools/test_pet_living.gd
+```
