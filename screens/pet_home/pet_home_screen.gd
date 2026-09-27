@@ -2,6 +2,10 @@ class_name PetHomeScreen
 extends Control
 
 
+const DEFAULT_HOME: HomeDefinition = preload("res://data/home/default_room.tres")
+const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet.tres")
+
+
 @onready var environment_slot: Control = $EnvironmentSlot
 @onready var decoration_layer: Control = $DecorationLayer
 @onready var actor_layer: Control = $ActorLayer
@@ -12,6 +16,12 @@ extends Control
 
 var _home_host: HomeHost = HomeHost.new()
 var _pet_actor_host: PetActorHost = PetActorHost.new()
+
+
+func _ready() -> void:
+	# Temporary standalone bootstrap. App routing will supply definitions later.
+	apply_home(DEFAULT_HOME)
+	spawn_pet(REFERENCE_PET)
 
 
 func apply_home(definition: HomeDefinition) -> bool:
