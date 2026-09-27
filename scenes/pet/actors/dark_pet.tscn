@@ -1,9 +1,17 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://pet/presentation/dark_pet_actor.gd" id="1_dark"]
+[sub_resource type="CapsuleShape2D" id="Capsule_pet"]
+radius = 48.0
+height = 128.0
 
 [node name="DarkPet" type="Node2D"]
 script = ExtResource("1_dark")
+
+[node name="Tail" type="Polygon2D" parent="."]
+position = Vector2(-35, 8)
+polygon = PackedVector2Array(-2, 28, -30, 20, -48, -4, -44, -34, -25, -52, -12, -31, -20, -12, 0, 0)
+color = Color(0.22, 0.16, 0.34, 1)
 
 [node name="Body" type="Polygon2D" parent="."]
 polygon = PackedVector2Array(-42, -20, -34, -54, -14, -72, 0, -76, 14, -72, 34, -54, 42, -20, 38, 22, 24, 48, 0, 58, -24, 48, -38, 22)
@@ -31,3 +39,10 @@ color = Color(0.65, 0.54, 1, 1)
 [node name="Mark" type="Polygon2D" parent="Face"]
 polygon = PackedVector2Array(0, -28, 6, -18, 0, -11, -6, -18)
 color = Color(0.76, 0.68, 1, 1)
+
+[node name="InteractionArea" type="Area2D" parent="."]
+input_pickable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
+position = Vector2(0, -18)
+shape = SubResource("Capsule_pet")

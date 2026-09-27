@@ -21,27 +21,21 @@ var _behavior: PetBehaviorController = PetBehaviorController.new()
 
 
 func _ready() -> void:
-	# Temporary standalone bootstrap. App routing will supply definitions later.
 	apply_home(DEFAULT_HOME)
 	var actor: PetActor = spawn_pet(REFERENCE_PET)
 	if actor != null:
+		actor.tapped.connect(_on_pet_tapped)
 		actor.present_state(_pet_state)
 
 
 func _process(delta: float) -> void:
 	var next_state: StringName = _behavior.tick(delta)
-	if next_state.is_empty():
-		return
-
-	_present_state(next_state)
+	if not next_state.is_empty():
+		_present_state(next_state)
 
 
 func apply_home(definition: HomeDefinition) -> bool:
-	return _home_host.apply(
-		definition,
-		environment_slot,
-		pet_anchor
-	)
+	return _home_host.apply(definition, environment_slot, pet_anchor)
 
 
 func spawn_pet(definition: PetDefinition) -> PetActor:
@@ -70,6 +64,10 @@ func get_actor_layer() -> Control:
 
 func get_environment_slot() -> Control:
 	return environment_slot
+
+
+func _on_pet_tapped() -> void:
+	_present_state(_behavior.react_to_tap())
 
 
 func _present_state(state_id: StringName) -> void:
