@@ -1,18 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://pet/presentation/dark_pet_actor.gd" id="1_dark"]
 [ext_resource type="Script" path="res://pet/expression/pet_face_rig.gd" id="2_rig"]
-[ext_resource type="Script" path="res://pet/expression/face_rig_profile.gd" id="3_profile"]
-[sub_resource type="FaceRigProfile" id="FaceRig_dark"]
-script = ExtResource("3_profile")
-face_scale = Vector2(0.4104, 0.4104)
-left_eye_anchor = Vector2(-62, -85)
-right_eye_anchor = Vector2(65, -82)
-mouth_anchor = Vector2(15, -18)
-sleepy_lid_amount = 0.72
-blink_closed_amount = 1.0
-blink_min_delay = 2.2
-blink_max_delay = 5.0
 [sub_resource type="CapsuleShape2D" id="Capsule_pet"]
 radius = 70.0
 height = 195.0
@@ -53,8 +42,12 @@ color = Color(0.76, 0.68, 1, 1)
 
 [node name="ExpressionRoot" type="Node2D" parent="."]
 position = Vector2(0, -38)
+scale = Vector2(0.4104, 0.4104)
 script = ExtResource("2_rig")
-profile = SubResource("FaceRig_dark")
+blink_min_delay = 2.2
+blink_max_delay = 5.0
+sleepy_lid_amount = 0.72
+blink_closed_amount = 1.0
 [node name="LeftLid" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
 position = Vector2(-62, -85)
