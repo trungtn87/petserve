@@ -3,6 +3,7 @@ extends Resource
 
 
 @export var id: StringName = &""
+@export var background_texture: Texture2D
 @export var environment_scene: PackedScene
 
 @export_group("Pet")
