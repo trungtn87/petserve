@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://pet3d/presentation/dark_pet_3d.gd" id="1"]
 [ext_resource type="Script" path="res://pet3d/expression/pet_face_rig_3d.gd" id="2"]
@@ -26,6 +26,9 @@ height = 0.3
 [sub_resource type="CapsuleMesh" id="tail"]
 radius = 0.16
 height = 0.72
+[sub_resource type="CapsuleMesh" id="leg"]
+radius = 0.16
+height = 0.55
 [sub_resource type="PrismMesh" id="ear_mesh"]
 size = Vector3(0.28, 0.48, 0.22)
 
@@ -33,9 +36,27 @@ size = Vector3(0.28, 0.48, 0.22)
 script = ExtResource("1")
 [node name="BodyRoot" type="Node3D" parent="."]
 [node name="Body" type="MeshInstance3D" parent="BodyRoot"]
-position = Vector3(0, 0.7, 0)
+position = Vector3(0, 0.78, 0)
 scale = Vector3(0.82, 1, 0.72)
 mesh = SubResource("body")
+material_override = SubResource("fur")
+[node name="FrontLeftLeg" type="MeshInstance3D" parent="BodyRoot"]
+position = Vector3(-0.34, 0.27, 0.34)
+mesh = SubResource("leg")
+material_override = SubResource("fur")
+[node name="FrontRightLeg" type="MeshInstance3D" parent="BodyRoot"]
+position = Vector3(0.34, 0.27, 0.34)
+mesh = SubResource("leg")
+material_override = SubResource("fur")
+[node name="BackLeftLeg" type="MeshInstance3D" parent="BodyRoot"]
+position = Vector3(-0.38, 0.25, -0.25)
+scale = Vector3(1.08, 0.9, 1.08)
+mesh = SubResource("leg")
+material_override = SubResource("fur")
+[node name="BackRightLeg" type="MeshInstance3D" parent="BodyRoot"]
+position = Vector3(0.38, 0.25, -0.25)
+scale = Vector3(1.08, 0.9, 1.08)
+mesh = SubResource("leg")
 material_override = SubResource("fur")
 [node name="Head" type="Node3D" parent="BodyRoot"]
 position = Vector3(0, 1.55, 0.12)
