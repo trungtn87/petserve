@@ -24,8 +24,8 @@ height = 1.05
 radius = 0.15
 height = 0.3
 [sub_resource type="CapsuleMesh" id="tail"]
-radius = 0.13
-height = 0.65
+radius = 0.16
+height = 0.72
 [sub_resource type="PrismMesh" id="ear_mesh"]
 size = Vector3(0.28, 0.48, 0.22)
 
@@ -80,23 +80,25 @@ scale = Vector3(0.25, 0.16, 0.12)
 mesh = SubResource("eye_mesh")
 material_override = SubResource("dark")
 [node name="TailBase" type="Node3D" parent="BodyRoot"]
-position = Vector3(-0.45, 0.75, -0.25)
-rotation = Vector3(0.2, 0, -0.75)
+position = Vector3(-0.48, 0.62, 0.18)
+rotation = Vector3(1.5708, 0, 1.05)
 [node name="Mesh" type="MeshInstance3D" parent="BodyRoot/TailBase"]
-position = Vector3(0, 0.3, 0)
+position = Vector3(0, 0.32, 0)
 mesh = SubResource("tail")
 material_override = SubResource("fur")
 [node name="TailMid" type="Node3D" parent="BodyRoot/TailBase"]
-position = Vector3(0, 0.58, 0)
+position = Vector3(0, 0.62, 0)
+rotation = Vector3(0, 0, -0.28)
 [node name="Mesh" type="MeshInstance3D" parent="BodyRoot/TailBase/TailMid"]
-position = Vector3(0, 0.28, 0)
-scale = Vector3(0.9, 0.9, 0.9)
+position = Vector3(0, 0.3, 0)
+scale = Vector3(0.92, 0.92, 0.92)
 mesh = SubResource("tail")
 material_override = SubResource("fur")
 [node name="TailTip" type="Node3D" parent="BodyRoot/TailBase/TailMid"]
-position = Vector3(0, 0.52, 0)
+position = Vector3(0, 0.57, 0)
+rotation = Vector3(0, 0, -0.28)
 [node name="Mesh" type="MeshInstance3D" parent="BodyRoot/TailBase/TailMid/TailTip"]
-position = Vector3(0, 0.24, 0)
-scale = Vector3(0.75, 0.75, 0.75)
+position = Vector3(0, 0.27, 0)
+scale = Vector3(0.8, 0.8, 0.8)
 mesh = SubResource("tail")
 material_override = SubResource("fur")
