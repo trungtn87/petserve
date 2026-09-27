@@ -142,6 +142,8 @@ func _on_hatch_effect_finished() -> void:
 
 	_is_hatching = false
 
+	_hide_egg_presentation()
+
 	hatch_completed.emit()
 
 
@@ -150,6 +152,17 @@ func _on_hatch_effect_finished() -> void:
 	if not _next_phase_entered:
 		_next_phase_entered = true
 		_enter_next_phase()
+
+
+func _hide_egg_presentation() -> void:
+	if _egg_view == null or not is_instance_valid(_egg_view):
+		return
+
+	if _egg_view.has_method("clear_egg"):
+		_egg_view.call("clear_egg")
+
+	_egg_view.visible = false
+	_egg_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 # =========================================================
