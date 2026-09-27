@@ -2,6 +2,9 @@ class_name PetHome3DScreen
 extends Control
 
 
+signal action_requested(action_id: StringName)
+
+
 const DEFAULT_HOME: HomeDefinition3D = preload("res://data/home/default_room_3d.tres")
 const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 
@@ -11,6 +14,7 @@ const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 @onready var pet_anchor: Node3D = $ViewportContainer/SubViewport/WorldRoot/PetAnchor
 @onready var camera: Camera3D = $ViewportContainer/SubViewport/WorldRoot/Camera3D
 @onready var ui_layer: CanvasLayer = $UILayer
+@onready var home_menu: PetHomeMenu = $UILayer/MenuOverlay
 
 
 var _home_host: HomeHost3D = HomeHost3D.new()
@@ -20,6 +24,13 @@ var _behavior: PetBehaviorController = PetBehaviorController.new()
 
 
 func _ready() -> void:
+	if home_menu != null and not home_menu.action_requested.is_connected(
+		_on_menu_action_requested
+	):
+		home_menu.action_requested.connect(
+			_on_menu_action_requested
+		)
+
 	if not apply_home(DEFAULT_HOME):
 		push_error("PetHome3DScreen: default home could not be applied.")
 		return
@@ -41,7 +52,10 @@ func _process(delta: float) -> void:
 	_update_pet_look_target()
 
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
+	if home_menu != null and home_menu.is_open():
+		return
+
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
@@ -109,3 +123,8 @@ func _present_state(state_id: StringName) -> void:
 	var actor: PetActor3D = get_pet_actor()
 	if actor != null:
 		actor.present_state(_pet_state)
+
+
+func _on_menu_action_requested(action_id: StringName) -> void:
+	action_requested.emit(action_id)
+	print("PetHome3D action requested: ", action_id)
