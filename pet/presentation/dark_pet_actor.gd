@@ -60,12 +60,7 @@ func _apply_runtime_art_if_available() -> void:
 	_using_runtime_art = true
 
 func _schedule_next_blink() -> void:
-	var min_delay: float = 2.2
-	var max_delay: float = 5.0
-	if face_rig.profile != null:
-		min_delay = face_rig.profile.blink_min_delay
-		max_delay = face_rig.profile.blink_max_delay
-	_next_blink_delay = _rng.randf_range(min_delay, max_delay)
+	_next_blink_delay = _rng.randf_range(face_rig.blink_min_delay, face_rig.blink_max_delay)
 
 func _play_blink() -> void:
 	if _using_runtime_art:
