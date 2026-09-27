@@ -47,6 +47,12 @@ func focus(point: Vector3, touched: bool = true) -> void:
 	if touched:
 		secondary.react()
 
+
+func react() -> void:
+	if not enabled or paused:
+		return
+	secondary.react()
+
 func _process(delta: float) -> void:
 	advance(delta)
 
