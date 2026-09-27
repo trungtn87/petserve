@@ -48,6 +48,8 @@ blink_min_delay = 2.2
 blink_max_delay = 5.0
 sleepy_lid_amount = 0.72
 blink_closed_amount = 1.0
+look_radius = 7.0
+look_smoothing = 8.0
 [node name="LeftLid" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
 position = Vector2(-62, -85)
@@ -58,6 +60,14 @@ visible = false
 position = Vector2(65, -82)
 polygon = PackedVector2Array(-35, -4, -24, -17, 0, -22, 24, -17, 35, -4, 25, 7, 0, 11, -25, 7)
 color = Color(0.15, 0.14, 0.22, 0.96)
+[node name="LeftGlint" type="Polygon2D" parent="ExpressionRoot"]
+position = Vector2(-56, -91)
+polygon = PackedVector2Array(-5, 0, -3, -4, 1, -5, 5, -2, 5, 2, 2, 5, -2, 5, -5, 3)
+color = Color(0.9, 0.98, 1, 0.78)
+[node name="RightGlint" type="Polygon2D" parent="ExpressionRoot"]
+position = Vector2(71, -88)
+polygon = PackedVector2Array(-5, 0, -3, -4, 1, -5, 5, -2, 5, 2, 2, 5, -2, 5, -5, 3)
+color = Color(0.9, 0.98, 1, 0.78)
 [node name="HappyMouth" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
 position = Vector2(15, -18)
