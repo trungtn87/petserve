@@ -1,85 +1,76 @@
-# Test nhân vật 3D — Dark Pet
+# Dark Pet — bản test rig v4
 
-## Chạy trong dự án
+## Chạy
 
-1. Checkout nhánh `feat/dark-pet-3d-test`, mở `project.godot`, chờ import xong.
-2. Mở `scenes/tests/pet_3d_test.tscn`.
-3. Nhấn **F6 / Run Current Scene**. F5 vẫn chạy luồng trứng hiện tại.
-4. Thử bốn nút động tác; kéo thanh xoay để xem mặt trước/sau; dùng Tạm dừng và Tư thế gốc để đối chiếu mesh.
+1. Đóng Godot trước khi cập nhật Git. Dùng nhánh `feat/dark-pet-3d-test`.
+2. Mở `project.godot`, chờ import; mở `scenes/tests/pet_3d_test.tscn`, nhấn **F6**.
+3. Tiêu đề phải là **DARK PET · RIG V4**. F5 vẫn chạy luồng trứng.
 
-Trên Android: tạo bản export test riêng và tạm chọn scene test làm Main Scene trong bản sao dự án. Nhánh này không thay main scene hoặc cấu hình export hiện hành.
+Mặc định là **Sống động**. Chạm/kéo trong khung để pet nhìn theo; **Gọi pet** đặt mục tiêu tại camera. Sau 3 giây không cập nhật, đầu nhả mục tiêu. Pet không vặn đầu về phía sau: xoay pet về phía camera nếu đang kiểm tra góc lưng.
 
-## Kết quả kiểm tra chéo
+**Thở/nghỉ**, **Tò mò**, **Vẫy tai–đuôi** là các clip kiểm tra riêng. **Test chân** chỉ kiểm tra xương một đoạn, chưa phải animation đi hoàn chỉnh. **Tạm dừng** giữ pose; **Tư thế gốc** tắt chuyển động và reset toàn bộ xương. Thanh xoay dùng để xem nhiều góc.
 
-- Baseline GitHub: `a4e1034`, Godot project khai báo 4.7, Compatibility renderer, màn hình dọc 360 × 640.
-- Main chỉ gọi GameApp; kiến trúc yêu cầu pet presentation độc lập, chưa tích hợp Egg → PetHome.
-- Trước thay đổi: chưa có code hoặc asset 3D trong repo.
-- Model nguồn: `dark_pet_rigged_v3.glb`, 12.002 vertex, 24.000 triangle, 14 xương, không có clip animation nhúng.
-- Các node `Rig_*` là node phụ, không phải các joint được skin sử dụng. Track điều khiển các bone thật của Skeleton3D.
+![Khung test v4](previews/dark_pet_v4.png)
 
-## Giải pháp hiện tại
+[Video render kiểm tra chế độ Sống động](previews/dark_pet_v4_living.mp4)
 
-`pet/presentation/pet_3d_test_actor.gd` nạp model, tìm skeleton và quản lý AnimationPlayer.
-`pet/presentation/dark_pet_test_clips.gd` tạo clip dựa trên rest pose của rig Dark Pet.
-`scenes/tests/pet_3d_test.gd` ghép môi trường, camera, SubViewport 3D và UI test.
+## Sửa từ video VID_20260927_165614.mp4
 
-Bốn clip lặp: idle, curious, happy, walk_test. Chuyển clip có crossfade 0,2 giây.
-Mỗi clip chứa cùng tập track để tránh xương bị giữ ở pose của clip trước.
-RESET dừng animation và trả toàn bộ bone pose về rest pose.
+V3 có lỗi rig quan trọng: trọng số đuôi được phân vùng theo phía trái (-X), trong khi đuôi thật nằm phía sau (-Z). Vì vậy xương đuôi ảnh hưởng vào má/tai trái và phần đuôi thật nhận trọng số thân/đầu.
 
-Dùng AnimationPlayer trước vì model chưa có clip để AnimationTree phối hợp. Khi có bộ idle/walk/run đã kiểm tra chất lượng, thêm AnimationTree vào actor wrapper; dùng CharacterBody3D riêng khi cần di chuyển/va chạm trong phòng. Không retarget humanoid cho rig thú bốn chân này.
+V4 sửa vị trí xương và inverse bind matrices; phân lại ảnh hưởng cổ/đầu/tai/chân và chuỗi đuôi theo hình học thực tế. Bốn đoạn đuôi hiện xoay theo trục yaw để vẫy ngang. File v3 được giữ nguyên. V4 giữ nguyên toàn bộ vertex positions, normals và chỉ số tam giác của mesh v3; chỉ sửa rig/skin và thêm vật liệu kiểm tra.
 
-## Giới hạn cần kiểm tra trực quan
+Ngoài ra:
+- Camera orthographic gần hơn để nhìn rõ pet khi xoay.
+- Vật liệu slate nhám, ánh sáng dịu hơn và bóng tiếp đất giúp đọc hình khối.
+- Clip tò mò có nhịp quay/nghiêng đầu khác clip nghỉ; tai lệch pha và đuôi trễ từng đoạn.
+- Bỏ dịch chuyển thân lên/xuống trong các clip chẩn đoán. Test chân dùng nhịp bốn chân lệch nhau và được ghi rõ là test rig.
+- Tâm nhận mục tiêu nhìn lấy từ head rest pose thật, không dùng tọa độ đầu cũ.
 
-Đây là bản test rig, không phải animation thành phẩm. Bước tại chỗ chỉ xoay chân với biên độ nhỏ, chưa có IK, foot locking, root motion hoặc di chuyển thật. Chưa có blink vì chưa xác nhận rig mí mắt/blend shapes. Rig và skin weights chưa được sửa trong thay đổi này.
+## Đối chiếu bản model gốc
 
-Kiểm tra đầu/tai/đuôi có kéo méo mặt không, chân có kéo bụng không, vòng lặp có giật không. Nếu có méo, cần sửa skin weights/rest pose trong công cụ 3D; AnimationTree không sửa lỗi rig.
+File Meshy gốc người dùng gửi có 64.842 vertex, không có skeleton, animation, material, texture, UV hoặc blend shape. V3 có 12.002 vertex, 24.000 triangle và 14 xương, cũng chưa có material/texture. Màu trắng không phải do Godot làm mất texture trong bước import này. V4 dùng vật liệu kiểm tra trung tính; chưa phải màu sắc hoàn thiện của nhân vật.
 
-## Kiểm chứng
+Chưa tạo mí mắt/chớp mắt, khớp gối, chest rig, IK, root motion hoặc clip Blender. Nhịp thở đang biểu đạt nhẹ ở cổ/đầu. Chất lượng bề mặt của mesh vẫn là mesh v3; các gờ/lõm của hình học không được coi là đã sửa bằng rig.
 
-Đã import và chạy headless bằng Godot 4.6.1 (runtime có thể tải trong môi trường kiểm tra; không đổi khai báo 4.7 của dự án). Scene chạy 120 frame không có lỗi runtime. Test tự động xác nhận 14 bone, cả bốn clip tác động lên bone, pause/resume, xoay và reset pose.
+## Phân chia code
+
+- `pet_3d_test_actor.gd`: nạp v4, chuyển quyền điều khiển giữa AnimationPlayer và chế độ Sống động.
+- `dark_pet_test_clips.gd`: tạo các clip kiểm tra cùng tập track, vòng lặp kín.
+- `motion/pet_rig_profile.gd`: tên xương và giới hạn góc riêng cho Dark Pet; head rest dùng +Z phía trước, +Y phía trên.
+- `motion/pet_look_controller.gd`: mục tiêu world → rest frame, giới hạn góc, smoothing theo delta và thời gian chú ý.
+- `motion/pet_secondary_motion.gd`: nhịp phản ứng, cooldown, tai lệch thời điểm và đuôi dao động tắt dần (chưa có vật lý va chạm).
+- `motion/pet_motion_controller.gd`: ghép pose từ rest, fade khi vào chế độ; root/thân/chân giữ rest trong chế độ Sống động. RNG trình diễn riêng; không ghi save.
+
+Không thay đổi main/GameApp hoặc luồng egg/hatch. Nhánh `feat/pet-foundation` là nhánh phát triển khác, không tự gộp vào test này.
+
+## Tái tạo và kiểm tra
+
+Cần Python + numpy để tái tạo asset; người chơi chỉ cần file GLB đã commit.
 
 ```bash
+python tools/rig/refine_dark_pet_v4.py
+python tools/rig/test_dark_pet_v4.py
 godot --headless --path . --editor --import
 godot --headless --path . --script res://tools/test_pet_3d.gd
-godot --headless --path . res://scenes/tests/pet_3d_test.tscn --quit-after 120
-```
-
-Chưa kiểm chứng hình ảnh render và chưa test trên thiết bị Android/Godot 4.7. Import editor báo lỗi có sẵn trong export_presets.cfg về preset.0 thiếu runnable; nằm ngoài phạm vi test scene này.
-
-## Tài liệu Godot đối chiếu
-
-- https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html
-- https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/import_configuration.html
-
-## Nâng cấp 2 — Đứng sống động (mặc định khi F6)
-
-- **Sống động**: nhịp thở nhẹ ở cổ/đầu, hít vào ngắn và thở ra dài; nhìn quanh có khoảng nghỉ.
-- **Chạm / kéo trong khung 3D**: đặt mục tiêu nhìn. Chạm tạo phản ứng nghiêng đầu + tai/đuôi, kéo chỉ cập nhật mục tiêu. Sau 3 giây không cập nhật, đầu trở về hướng nghỉ.
-- **Gọi pet**: nhìn về camera và phản ứng. Nếu camera ở sau model đã xoay, pet không vặn đầu ngược ra sau.
-- **Tạm dừng**: giữ toàn bộ pose và đồng hồ chuyển động. **Tư thế gốc**: tắt cả animation lẫn chuyển động thủ tục và reset toàn bộ rig.
-- Các clip cũ được giữ để so sánh/kiểm tra rig; chọn **Sống động** để trở lại chế độ mới.
-
-### Phân chia code
-
-`pet/presentation/motion/`:
-- `pet_rig_profile.gd`: ánh xạ xương, giới hạn yaw 12°, pitch 8°, nghiêng 3°, tai 3°, mỗi đoạn đuôi 4°. Head rest frame của mẫu dùng +Z trước, +Y trên.
-- `pet_look_controller.gd`: mục tiêu world → rest frame, giới hạn góc, smoothing theo delta, hết thời gian chú ý, bỏ mục tiêu phía sau.
-- `pet_secondary_motion.gd`: phản ứng có nhịp tăng/giảm, cooldown chống spam, tai lệch thời điểm, đuôi trễ từng đoạn và dao động tắt dần. Đây là công thức chuyển động, chưa phải mô phỏng va chạm/vật lý đuôi.
-- `pet_motion_controller.gd`: ghép chuyển động từ rest pose, fade 0,4 giây khi vào chế độ, chỉ ghi bone pose khi được kích hoạt. AnimationPlayer bị vô hiệu hóa trong chế độ này để không tranh quyền ghi xương.
-
-Chỉ dùng RNG riêng cho trình diễn. Không gọi RNG gameplay hoặc ghi save. Giữ nguyên root/thân/chân và vị trí model; nhịp thở hiện chỉ biểu đạt nhẹ ở cổ/đầu, chưa có chest rig. Không tuyên bố đã có IK hoặc chân bám sàn.
-
-### Phạm vi chưa hoàn thành của phương án dài hạn
-
-GLB v3 chỉ có một mesh, không có morph target hoặc bone mí mắt. Vì vậy chưa làm chớp mắt; UI ghi rõ giới hạn này. Chưa thêm khớp chân, chest rig, chỉnh skin weights hay tạo clip Blender. Những việc đó cần bước sửa asset và duyệt hình ảnh riêng; bản nâng cấp này triển khai lớp điều khiển đứng tại chỗ trên rig hiện có.
-
-### Kiểm chứng nâng cấp
-
-Godot 4.6.1: test cũ và `tools/test_pet_living.gd` đều đạt. Test mới bao gồm tọa độ chạm, nhiều ngón tay, bone thực sự đổi pose, giới hạn góc, root/thân/chân giữ rest, pause/resume/reset, chuyển từ walk sang living, 600 bước không tích lũy pose lỗi, solver nhìn ở 30/60/120 FPS, model xoay, mục tiêu phía sau và cooldown. Scene chạy 180 frame headless không lỗi runtime.
-
-Audit GLB: trọng số hữu hạn/không âm, chỉ số joint 0–13; sai số tổng trọng số lớn nhất khoảng 1,79e-7. Đây là kiểm tra số học, không thay thế kiểm tra biến dạng bằng mắt. Chưa test Android và Godot 4.7.
-
-```bash
 godot --headless --path . --script res://tools/test_pet_living.gd
 ```
+
+Đã kiểm tra bằng Godot 4.6.1, Compatibility renderer:
+- Mesh v3/v4 giữ nguyên; rest skin không làm lệch hình. Trọng số hữu hạn, không âm, chuẩn hóa và chỉ số joint hợp lệ.
+- Xoay đuôi không dịch chuyển vertex mặt; xoay đầu không dịch chuyển đuôi; đuôi thật có biến dạng theo bone.
+- Clip, bone tracks, pause/resume/reset, chuyển chế độ, tọa độ chạm/multitouch, giới hạn góc, solver nhìn ở 30/60/120 FPS và cooldown đều đạt.
+- Render thật bằng OpenGL: kiểm tra pose ở góc trước/bên/sau và chuỗi 120 frame Sống động. Ảnh/video phía trên xuất trực tiếp từ Godot.
+
+Chưa kiểm tra Android/Godot 4.7, chưa khẳng định chuyển động đã đạt mức animation thành phẩm. Import editor vẫn có cảnh báo `export_presets.cfg` thiếu `preset.0/runnable` từ baseline.
+
+Có thể tự chụp lại bằng Godot có display:
+
+```bash
+godot --path . --script res://tools/capture_pet_3d.gd -- /absolute/output/folder
+```
+
+Tài liệu API đối chiếu:
+- https://docs.godotengine.org/en/4.6/classes/class_skeleton3d.html
+- https://docs.godotengine.org/en/4.6/classes/class_camera3d.html
+- https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html

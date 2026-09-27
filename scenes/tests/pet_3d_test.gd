@@ -15,7 +15,7 @@ func _ready() -> void:
 	layout.add_theme_constant_override("separation", 6)
 	add_child(layout)
 	var title := Label.new()
-	title.text = "DARK PET · 3D TEST"
+	title.text = "DARK PET · RIG V4"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(title)
 	var container := SubViewportContainer.new()
@@ -37,7 +37,7 @@ func _ready() -> void:
 	var grid := GridContainer.new()
 	grid.columns = 2
 	layout.add_child(grid)
-	for entry: Array in [["Thở / nghỉ", "idle"], ["Tò mò", "curious"], ["Vẫy tai–đuôi", "happy"], ["Bước tại chỗ", "walk_test"]]:
+	for entry: Array in [["Thở / nghỉ", "idle"], ["Tò mò", "curious"], ["Vẫy tai–đuôi", "happy"], ["Test chân", "walk_test"]]:
 		var button := Button.new()
 		button.text = entry[0]
 		button.custom_minimum_size.y = 44
@@ -84,14 +84,20 @@ func _build_world(viewport: SubViewport) -> void:
 	settings.background_mode = Environment.BG_COLOR
 	settings.background_color = Color("252d40")
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("d4dffc")
-	settings.ambient_light_energy = 0.65
+	settings.ambient_light_color = Color("dbe4f5")
+	settings.ambient_light_energy = 0.35
 	environment.environment = settings
 	viewport.add_child(environment)
 	var light := DirectionalLight3D.new()
 	light.rotation_degrees = Vector3(-40, -30, 0)
-	light.light_energy = 1.3
+	light.light_energy = 0.9
+	light.shadow_enabled = true
 	viewport.add_child(light)
+	var fill := DirectionalLight3D.new()
+	fill.rotation_degrees = Vector3(-25, 140, 0)
+	fill.light_color = Color("c8d9ff")
+	fill.light_energy = 0.3
+	viewport.add_child(fill)
 	var floor_mesh := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(12, 12)
@@ -105,16 +111,19 @@ func _build_world(viewport: SubViewport) -> void:
 	actor = Actor.new()
 	viewport.add_child(actor)
 	camera = Camera3D.new()
-	camera.position = Vector3(2.6, 1.8, 4.5)
-	camera.fov = 38
+	camera.position = Vector3(1.2, 1.5, 3.8)
+	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	camera.size = 2.55
+	camera.near = 0.05
+	camera.far = 30.0
 	viewport.add_child(camera)
-	camera.look_at(Vector3(0, 0.85, 0))
+	camera.look_at(Vector3(0, 0.82, 0))
 	camera.current = true
 
 func _select_clip(clip_name: String) -> void:
 	pause_button.set_pressed_no_signal(false)
 	actor.play_clip(clip_name)
-	status.text = clip_name + " · chuyển động xương thử nghiệm"
+	status.text = "Test chân · chưa có khớp gối / IK" if clip_name == "walk_test" else clip_name + " · rig v4"
 
 func _reset_pose() -> void:
 	pause_button.set_pressed_no_signal(false)
@@ -157,7 +166,8 @@ func _focus_screen(point: Vector2, touched: bool) -> void:
 	# GUI event positions are local to the container; account for viewport scaling.
 	var uv := point / viewport_container.size
 	var pixel := uv * Vector2(viewport.size)
-	var head_position: Vector3 = actor.to_global(Vector3(0, 1.05, 0))
+	var head_index: int = actor.skeleton.find_bone("Head")
+	var head_position: Vector3 = actor.skeleton.global_transform * actor.skeleton.get_bone_global_rest(head_index).origin
 	var normal := (camera.global_position - head_position).normalized()
 	var anchor := head_position + normal * 1.2
 	var plane := Plane(normal, normal.dot(anchor))

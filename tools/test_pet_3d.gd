@@ -18,10 +18,16 @@ func _run() -> void:
 	for clip: String in ["idle", "curious", "happy", "walk_test"]:
 		screen._select_clip(clip)
 		actor.player.advance(0.3)
-		actor.player.seek(actor.player.current_animation_length * 0.25, true)
+		actor.player.seek(actor.player.current_animation_length * 0.18, true)
 		await process_frame
 		assert(actor.player.is_playing(), "Clip must play")
 		assert(actor.player.current_animation == clip)
+		var animation: Animation = actor.player.get_animation(clip)
+		for track: int in range(animation.get_track_count()):
+			var count: int = animation.track_get_key_count(track)
+			var first: Quaternion = animation.track_get_key_value(track, 0)
+			var last: Quaternion = animation.track_get_key_value(track, count - 1)
+			assert(first.is_equal_approx(last), "Loop seam must match")
 		assert(not actor.skeleton.get_bone_pose_rotation(head).is_equal_approx(rest), "Animation must reach skeleton")
 		actor.set_paused(true)
 		assert(not actor.player.is_playing())

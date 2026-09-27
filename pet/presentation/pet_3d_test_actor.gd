@@ -1,7 +1,7 @@
 extends Node3D
 ## Presentation only: no pet simulation, egg state, RNG or save writes.
 
-const MODEL: PackedScene = preload("res://assets/pets/dark_pet/dark_pet_rigged_v3.glb")
+const MODEL: PackedScene = preload("res://assets/pets/dark_pet/dark_pet_rigged_v4.glb")
 const Clips = preload("res://pet/presentation/dark_pet_test_clips.gd")
 
 const Motion = preload("res://pet/presentation/motion/pet_motion_controller.gd")

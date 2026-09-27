@@ -82,7 +82,7 @@ func advance(delta: float) -> void:
 	for side: int in range(profile.ears.size()):
 		_rotate(profile.ears[side], Vector3(0, 0, secondary.ear_offset(side, deg_to_rad(profile.ear_degrees))))
 	for index: int in range(profile.tail.size()):
-		_rotate(profile.tail[index], Vector3(0, 0, secondary.tail_offset(index, deg_to_rad(profile.tail_degrees))))
+		_rotate(profile.tail[index], Vector3(0, secondary.tail_offset(index, deg_to_rad(profile.tail_degrees)), 0))
 	var blend := smoothstep(0.0, 0.4, fade_age)
 	if blend < 1.0:
 		for key: String in bones:
