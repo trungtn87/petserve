@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PetDefinition" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://pet/domain/pet_definition.gd" id="1_definition"]
+[ext_resource type="PackedScene" path="res://scenes/pet3d/dark_pet_rigged.tscn" id="2_actor"]
+
+[resource]
+script = ExtResource("1_definition")
+id = &"dark_pet_rigged"
+display_name = "Dark Pet"
+actor_scene = ExtResource("2_actor")
+capability_ids = Array[StringName]([&"expression", &"tap_reaction", &"idle_micro_behavior", &"look_target"])
