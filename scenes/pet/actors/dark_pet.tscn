@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://pet/presentation/dark_pet_actor.gd" id="1_dark"]
 [sub_resource type="CapsuleShape2D" id="Capsule_pet"]
-radius = 82.0
-height = 225.0
+radius = 74.0
+height = 205.0
 
 [node name="DarkPet" type="Node2D"]
 script = ExtResource("1_dark")
@@ -13,10 +13,10 @@ position = Vector2(0, -38)
 
 [node name="VisualSprite" type="Sprite2D" parent="VisualRoot"]
 visible = false
-scale = Vector2(0.48, 0.48)
+scale = Vector2(0.432, 0.432)
 
 [node name="PlaceholderRoot" type="Node2D" parent="VisualRoot"]
-scale = Vector2(1.55, 1.55)
+scale = Vector2(1.395, 1.395)
 
 [node name="Tail" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 position = Vector2(-35, 8)
