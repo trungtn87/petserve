@@ -1,20 +1,7 @@
-# Dark Pet Runtime Asset
+# Dark Pet runtime art
 
-`dark_pet_base.png` is the first runtime visual prepared from the Flow concept image.
+Copy the generated transparent PNG to this exact path:
 
-The project intentionally keeps runtime art separate from reference sheets:
+`assets/pets/dark/runtime/dark_pet_base.png`
 
-- `runtime/` = files loaded by Godot.
-- `reference/` = visual direction only.
-
-## Current reference implementation
-
-Dark Pet already supports reusable runtime behavior through `PetActor`:
-
-- ambient idle motion
-- ear movement
-- tail movement
-- state presentation
-- tap interaction -> happy reaction
-
-The temporary Polygon2D visual remains as fallback until `dark_pet_base.png` is copied into this folder and the Sprite2D rig is enabled. This separation prevents reference/composite artwork from accidentally becoming production runtime art.
+No scene or script edit is required after that. Godot imports it and DarkPetActor switches from the fallback placeholder to the real artwork automatically.
