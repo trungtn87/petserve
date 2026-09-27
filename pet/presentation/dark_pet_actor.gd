@@ -35,7 +35,10 @@ func _process(delta: float) -> void:
 	face_rig.position.y = visual_root.position.y
 	visual_root.rotation = deg_to_rad(sin(_time * 0.8) * 0.7)
 	face_rig.rotation = visual_root.rotation
-	if not _using_runtime_art:
+	if _using_runtime_art:
+		var pointer_local: Vector2 = face_rig.to_local(get_global_mouse_position())
+		face_rig.look_at_local(pointer_local)
+	else:
 		tail.rotation = deg_to_rad(sin(_time * 1.7) * 7.0)
 		left_ear.rotation = deg_to_rad(sin(_time * 1.3) * 1.5)
 		right_ear.rotation = deg_to_rad(-sin(_time * 1.3) * 1.5)
