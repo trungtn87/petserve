@@ -86,8 +86,6 @@ func set_look_target(target: Vector3) -> void:
 
 
 func react_to_touch() -> void:
-	if motion != null:
-		# PetHome chỉ truyền sự kiện chạm, không có world point riêng.
-		# Giữ mục tiêu nhìn hiện tại và kích hoạt phản ứng thứ cấp.
-		motion.secondary.react()
+	if motion != null and motion.has_method("react"):
+		motion.call("react")
 	notify_tapped()
