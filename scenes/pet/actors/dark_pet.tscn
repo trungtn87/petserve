@@ -1,23 +1,31 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://pet/presentation/dark_pet_actor.gd" id="1_dark"]
+[ext_resource type="Script" path="res://pet/expression/pet_face_rig.gd" id="2_rig"]
+[ext_resource type="Script" path="res://pet/expression/face_rig_profile.gd" id="3_profile"]
+[sub_resource type="FaceRigProfile" id="FaceRig_dark"]
+script = ExtResource("3_profile")
+face_scale = Vector2(0.4104, 0.4104)
+left_eye_anchor = Vector2(-62, -85)
+right_eye_anchor = Vector2(65, -82)
+mouth_anchor = Vector2(15, -18)
+sleepy_lid_amount = 0.72
+blink_closed_amount = 1.0
+blink_min_delay = 2.2
+blink_max_delay = 5.0
 [sub_resource type="CapsuleShape2D" id="Capsule_pet"]
 radius = 70.0
 height = 195.0
 
 [node name="DarkPet" type="Node2D"]
 script = ExtResource("1_dark")
-
 [node name="VisualRoot" type="Node2D" parent="."]
 position = Vector2(0, -38)
-
 [node name="VisualSprite" type="Sprite2D" parent="VisualRoot"]
 visible = false
 scale = Vector2(0.4104, 0.4104)
-
 [node name="PlaceholderRoot" type="Node2D" parent="VisualRoot"]
 scale = Vector2(1.32525, 1.32525)
-
 [node name="Tail" type="Polygon2D" parent="VisualRoot/PlaceholderRoot"]
 position = Vector2(-35, 8)
 polygon = PackedVector2Array(-2, 28, -30, 20, -48, -4, -44, -34, -25, -52, -12, -31, -20, -12, 0, 0)
@@ -45,8 +53,8 @@ color = Color(0.76, 0.68, 1, 1)
 
 [node name="ExpressionRoot" type="Node2D" parent="."]
 position = Vector2(0, -38)
-scale = Vector2(0.4104, 0.4104)
-
+script = ExtResource("2_rig")
+profile = SubResource("FaceRig_dark")
 [node name="LeftLid" type="Polygon2D" parent="ExpressionRoot"]
 visible = false
 position = Vector2(-62, -85)
@@ -67,7 +75,6 @@ visible = false
 position = Vector2(15, -15)
 polygon = PackedVector2Array(-9, 0, -6, -10, 0, -14, 6, -10, 9, 0, 6, 10, 0, 14, -6, 10)
 color = Color(0.25, 0.12, 0.23, 0.92)
-
 [node name="InteractionArea" type="Area2D" parent="."]
 input_pickable = true
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionArea"]
