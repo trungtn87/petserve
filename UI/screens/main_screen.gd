@@ -2,6 +2,9 @@ class_name MainScreen
 extends RefCounted
 
 
+signal pet_home_requested
+
+
 const UI_REFRESH_INTERVAL: float = 0.10
 
 
@@ -214,9 +217,24 @@ func _connect_signals() -> void:
 		_hatch_controller.hatch_completed.connect(
 			_on_hatch_completed
 		)
-		
+
+	if (
+		_hatch_controller != null
+		and
+		not _hatch_controller.pet_home_requested.is_connected(
+			_on_pet_home_requested
+		)
+	):
+		_hatch_controller.pet_home_requested.connect(
+			_on_pet_home_requested
+		)
+
 func _on_hatch_completed() -> void:
 	_force_refresh()
+
+
+func _on_pet_home_requested() -> void:
+	pet_home_requested.emit()
 # =========================================================
 # EGG INPUT
 # =========================================================
