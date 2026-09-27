@@ -1,6 +1,6 @@
 extends Node3D
 
-@onready var pet: DarkPet3D = $DarkPet3D
+@onready var pet: DarkPetRiggedActor = $DarkPetRigged
 @onready var camera: Camera3D = $Camera3D
 
 func _process(_delta: float) -> void:
