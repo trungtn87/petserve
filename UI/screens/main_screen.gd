@@ -234,7 +234,23 @@ func _on_hatch_completed() -> void:
 
 
 func _on_pet_home_requested() -> void:
+	_prepare_pet_home_transition()
 	pet_home_requested.emit()
+
+
+func _prepare_pet_home_transition() -> void:
+	if _name_dialog != null:
+		_name_dialog.close_dialog()
+
+	if _egg_view != null:
+		if _egg_view.has_method("clear_egg"):
+			_egg_view.call("clear_egg")
+
+		_egg_view.visible = false
+		_egg_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	if _info_box != null:
+		_info_box.visible = false
 # =========================================================
 # EGG INPUT
 # =========================================================
