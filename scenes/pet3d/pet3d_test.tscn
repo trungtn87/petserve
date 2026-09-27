@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="PackedScene" path="res://scenes/pet3d/dark_pet_3d.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/pet3d/dark_pet_rigged.tscn" id="1"]
 [ext_resource type="Script" path="res://screens/pet3d_test/pet3d_test.gd" id="2"]
 [sub_resource type="Environment" id="env"]
 background_mode = 1
@@ -23,10 +23,10 @@ rotation_degrees = Vector3(-42, -25, 0)
 light_energy = 1.4
 shadow_enabled = true
 [node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 1.3, 5.2)
+position = Vector3(0, 1.25, 5.2)
 current = true
 fov = 35.0
-[node name="DarkPet3D" parent="." instance=ExtResource("1")]
+[node name="DarkPetRigged" parent="." instance=ExtResource("1")]
 position = Vector3(0, -0.45, 0)
 [node name="Floor" type="MeshInstance3D" parent="."]
 mesh = SubResource("floor_mesh")
