@@ -3,7 +3,7 @@ extends Control
 
 
 const DEFAULT_HOME: HomeDefinition3D = preload("res://data/home/default_room_3d.tres")
-const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_rigged.tres")
+const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 
 
 @onready var viewport: SubViewport = $ViewportContainer/SubViewport
