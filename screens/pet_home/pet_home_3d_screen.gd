@@ -9,6 +9,7 @@ const DEFAULT_HOME: HomeDefinition3D = preload("res://data/home/default_room_3d.
 const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 
 
+@onready var background: TextureRect = $Background
 @onready var viewport: SubViewport = $ViewportContainer/SubViewport
 @onready var environment_slot: Node3D = $ViewportContainer/SubViewport/WorldRoot/EnvironmentSlot
 @onready var pet_anchor: Node3D = $ViewportContainer/SubViewport/WorldRoot/PetAnchor
@@ -67,6 +68,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func apply_home(definition: HomeDefinition3D) -> bool:
+	if definition == null:
+		return false
+
+	background.texture = definition.background_texture
+
 	return _home_host.apply(
 		definition,
 		environment_slot,
