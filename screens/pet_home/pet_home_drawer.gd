@@ -10,7 +10,9 @@ const PetHomeThemeScript = preload(
 signal action_requested(action_id: StringName)
 
 
-const DRAWER_WIDTH: float = 236.0
+const POPUP_WIDTH: float = 174.0
+const POPUP_TOP: float = 58.0
+const RIGHT_MARGIN: float = 14.0
 
 
 var _theme: Dictionary = {}
@@ -22,9 +24,12 @@ var _animating: bool = false
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
+
 	_build()
 
 
@@ -33,10 +38,8 @@ func configure(
 ) -> void:
 	_theme = theme.duplicate(true)
 
-	if _panel == null:
-		return
-
-	_apply_theme()
+	if _panel != null:
+		_apply_theme()
 
 
 func open_drawer() -> void:
@@ -48,11 +51,15 @@ func open_drawer() -> void:
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	var width := _drawer_width()
-	_layout_panel(size.x)
+	_layout_popup()
 
 	_scrim.modulate.a = 0.0
-	_panel.position.x = size.x
+	_panel.modulate.a = 0.0
+	_panel.scale = Vector2(0.96, 0.96)
+	_panel.pivot_offset = Vector2(
+		_panel.size.x,
+		0
+	)
 
 	var tween := create_tween()
 	tween.set_parallel(true)
@@ -60,13 +67,19 @@ func open_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		1.0,
-		0.18
+		0.12
 	)
 	tween.tween_property(
 		_panel,
-		"position:x",
-		size.x - width,
-		0.22
+		"modulate:a",
+		1.0,
+		0.15
+	)
+	tween.tween_property(
+		_panel,
+		"scale",
+		Vector2.ONE,
+		0.18
 	).set_trans(
 		Tween.TRANS_QUAD
 	).set_ease(
@@ -91,17 +104,19 @@ func close_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		0.0,
-		0.16
+		0.10
 	)
 	tween.tween_property(
 		_panel,
-		"position:x",
-		size.x,
-		0.20
-	).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(
-		Tween.EASE_IN
+		"modulate:a",
+		0.0,
+		0.12
+	)
+	tween.tween_property(
+		_panel,
+		"scale",
+		Vector2(0.97, 0.97),
+		0.12
 	)
 	tween.finished.connect(
 		_on_close_finished,
@@ -118,6 +133,7 @@ func _build() -> void:
 	_scrim.set_anchors_preset(
 		Control.PRESET_FULL_RECT
 	)
+	_scrim.color = Color(0, 0, 0, 0.12)
 	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_scrim.gui_input.connect(
 		_on_scrim_input
@@ -131,142 +147,91 @@ func _build() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(
 		"margin_left",
-		18
+		8
 	)
 	margin.add_theme_constant_override(
 		"margin_top",
-		24
+		8
 	)
 	margin.add_theme_constant_override(
 		"margin_right",
-		18
+		8
 	)
 	margin.add_theme_constant_override(
 		"margin_bottom",
-		20
+		8
 	)
 	_panel.add_child(margin)
 
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override(
 		"separation",
-		10
+		5
 	)
 	margin.add_child(_content)
 
-	var header := HBoxContainer.new()
-	_content.add_child(header)
-
-	var title := Label.new()
-	title.text = "PET HOME"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override(
-		"font_size",
-		18
-	)
-	title.set_meta(
-		"theme_role",
-		"title"
-	)
-	header.add_child(title)
-
-	var close := Button.new()
-	close.text = "×"
-	close.focus_mode = Control.FOCUS_NONE
-	close.custom_minimum_size = Vector2(
-		38,
-		38
-	)
-	close.pressed.connect(
-		close_drawer
-	)
-	close.set_meta(
-		"theme_role",
-		"menu_button"
-	)
-	header.add_child(close)
-
-	_content.add_child(
-		_separator()
-	)
-
 	_add_action(
+		"ⓘ",
 		"Thông tin pet",
 		&"pet_info"
 	)
 	_add_action(
+		"▣",
 		"Rương đồ",
 		&"chest"
 	)
 	_add_action(
+		"▷",
 		"Giải trí",
 		&"entertainment"
 	)
 	_add_action(
+		"✦",
 		"Tiến hóa",
 		&"evolution"
 	)
 	_add_action(
+		"⚙",
 		"Cài đặt",
 		&"settings"
 	)
 
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_content.add_child(spacer)
-
-	var hint := Label.new()
-	hint.text = "Các chức năng được mở theo từng lớp."
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.add_theme_font_size_override(
-		"font_size",
-		10
-	)
-	hint.set_meta(
-		"theme_role",
-		"muted"
-	)
-	_content.add_child(hint)
-
 	resized.connect(
-		_on_resized
+		_layout_popup
 	)
 
 	_apply_theme()
 	call_deferred(
-		"_on_resized"
+		"_layout_popup"
 	)
 
 
 func _add_action(
-	label: String,
+	icon_text: String,
+	label_text: String,
 	action_id: StringName
 ) -> void:
 	var button := Button.new()
-	button.text = label
+	button.text = "%s   %s" % [
+		icon_text,
+		label_text,
+	]
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(
 		0,
-		48
+		38
 	)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.add_theme_font_size_override(
+		"font_size",
+		13
+	)
 	button.pressed.connect(
 		_emit_action.bind(
 			action_id
 		)
 	)
-	button.set_meta(
-		"theme_role",
-		"menu_button"
-	)
 	_content.add_child(button)
-
-
-func _separator() -> HSeparator:
-	var separator := HSeparator.new()
-	separator.modulate.a = 0.35
-
-	return separator
 
 
 func _apply_theme() -> void:
@@ -279,7 +244,7 @@ func _apply_theme() -> void:
 		"panel",
 		Color("#171229")
 	)
-	panel_color.a = 0.96
+	panel_color.a = 0.94
 
 	var accent: Color = _theme.get(
 		"accent",
@@ -289,133 +254,86 @@ func _apply_theme() -> void:
 		"text",
 		Color.WHITE
 	)
-	var muted: Color = _theme.get(
-		"muted",
-		Color("#C3B2E8")
-	)
-
-	_scrim.color = _theme.get(
-		"scrim",
-		Color(0.02, 0.02, 0.04, 0.55)
-	)
 
 	_panel.add_theme_stylebox_override(
 		"panel",
 		PetHomeThemeScript.panel_style(
 			panel_color,
 			accent,
-			0
+			14
 		)
 	)
 
-	for child in _walk(
-		_content
-	):
-		if child is Label:
-			var label := child as Label
+	for child in _content.get_children():
+		if child is not Button:
+			continue
 
-			if str(
-				label.get_meta(
-					"theme_role",
-					""
-				)
-			) == "muted":
-				label.add_theme_color_override(
-					"font_color",
-					muted
-				)
-			else:
-				label.add_theme_color_override(
-					"font_color",
-					text_color
-				)
-
-		elif child is Button:
-			var button := child as Button
-			button.add_theme_color_override(
-				"font_color",
-				text_color
-			)
-			button.add_theme_color_override(
-				"font_hover_color",
-				text_color
-			)
-
-			var normal := panel_color.lightened(
-				0.04
-			)
-			var hover := panel_color.lightened(
-				0.10
-			)
-
-			var soft_accent := accent
-			soft_accent.a = 0.35
-
-			button.add_theme_stylebox_override(
-				"normal",
-				PetHomeThemeScript.panel_style(
-					normal,
-					soft_accent,
-					12
-				)
-			)
-			button.add_theme_stylebox_override(
-				"hover",
-				PetHomeThemeScript.panel_style(
-					hover,
-					accent,
-					12
-				)
-			)
-
-
-func _walk(
-	root: Node
-) -> Array[Node]:
-	var result: Array[Node] = []
-
-	for child in root.get_children():
-		result.append(child)
-		result.append_array(
-			_walk(child)
+		var button := child as Button
+		button.add_theme_color_override(
+			"font_color",
+			text_color
+		)
+		button.add_theme_color_override(
+			"font_hover_color",
+			text_color
+		)
+		button.add_theme_color_override(
+			"font_pressed_color",
+			text_color
 		)
 
-	return result
+		var normal := panel_color.lightened(
+			0.035
+		)
+		var hover := panel_color.lightened(
+			0.09
+		)
+		var soft_accent := accent
+		soft_accent.a = 0.32
+
+		button.add_theme_stylebox_override(
+			"normal",
+			PetHomeThemeScript.panel_style(
+				normal,
+				soft_accent,
+				10
+			)
+		)
+		button.add_theme_stylebox_override(
+			"hover",
+			PetHomeThemeScript.panel_style(
+				hover,
+				accent,
+				10
+			)
+		)
+		button.add_theme_stylebox_override(
+			"pressed",
+			PetHomeThemeScript.panel_style(
+				hover,
+				accent,
+				10
+			)
+		)
 
 
-func _drawer_width() -> float:
-	return minf(
-		DRAWER_WIDTH,
-		size.x * 0.72
-	)
-
-
-func _layout_panel(
-	x_position: float
-) -> void:
-	var width := _drawer_width()
-	_panel.position = Vector2(
-		x_position,
-		0
-	)
-	_panel.size = Vector2(
-		width,
-		size.y
-	)
-
-
-func _on_resized() -> void:
+func _layout_popup() -> void:
 	if _panel == null:
 		return
 
-	var target_x := (
-		size.x - _drawer_width()
-		if _is_open
-		else size.x
+	var width := minf(
+		POPUP_WIDTH,
+		size.x - 28.0
 	)
+	var height := 8.0 + 5.0 * 38.0 + 4.0 * 5.0 + 8.0
 
-	_layout_panel(
-		target_x
+	_panel.position = Vector2(
+		size.x - width - RIGHT_MARGIN,
+		POPUP_TOP
+	)
+	_panel.size = Vector2(
+		width,
+		height
 	)
 
 
@@ -440,7 +358,12 @@ func _emit_action(
 	action_requested.emit(
 		action_id
 	)
-	close_drawer()
+
+	# Chọn mục xong tự đóng.
+	_is_open = false
+	_animating = false
+	visible = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _on_open_finished() -> void:
