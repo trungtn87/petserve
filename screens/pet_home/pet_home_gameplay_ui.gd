@@ -65,7 +65,7 @@ func show_message(message: String) -> void:
 	var tween := create_tween()
 	tween.tween_interval(1.0)
 	tween.tween_property(_toast, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(func(): _toast.visible = false)
+	tween.tween_callback(\n\t\tfunc() -> void:\n\t\t\t_toast.visible = false\n\t)
 
 func _build_hud() -> void:
 	var panel := PanelContainer.new()
@@ -121,11 +121,11 @@ func _build_hud() -> void:
 	add_child(actions)
 
 	_chest_button = _action_button("RƯƠNG")
-	_chest_button.pressed.connect(func(): chest_open_requested.emit())
+	_chest_button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\tchest_open_requested.emit()\n\t)
 	actions.add_child(_chest_button)
 
 	_inventory_button = _action_button("KHO")
-	_inventory_button.pressed.connect(func(): open_inventory())
+	_inventory_button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\topen_inventory()\n\t)
 	actions.add_child(_inventory_button)
 
 func _build_overlay() -> void:
@@ -165,7 +165,7 @@ func _build_overlay() -> void:
 	header.add_child(_title)
 	var close := Button.new()
 	close.text = "X"
-	close.pressed.connect(func(): _overlay.visible = false)
+	close.pressed.connect(\n\t\tfunc() -> void:\n\t\t\t_overlay.visible = false\n\t)
 	header.add_child(close)
 
 	_filters = HBoxContainer.new()
@@ -252,7 +252,7 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 		button.text = "Dùng" if usable else "Khóa"
 		button.disabled = not usable
 		if usable:
-			button.pressed.connect(func(): item_use_requested.emit(String(item.get("uid",""))))
+			button.pressed.connect(\n\t\t\t\tfunc() -> void:\n\t\t\t\t\titem_use_requested.emit(String(item.get("uid", "")))\n\t\t\t)
 		row.add_child(button)
 	return panel
 
@@ -268,7 +268,7 @@ func _add_filter(label: String, filter_type: StringName) -> void:
 	var button := Button.new()
 	button.text = label
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(func(): open_inventory(filter_type))
+	button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\topen_inventory(filter_type)\n\t)
 	_filters.add_child(button)
 
 func _action_button(label: String) -> Button:
