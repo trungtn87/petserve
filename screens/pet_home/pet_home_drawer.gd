@@ -16,16 +16,11 @@ const PetHomeMenuDecorScript = preload(
 signal action_requested(action_id: StringName)
 
 
-const PANEL_WIDTH: float = 232.0
-const PANEL_TOP: float = 18.0
-const PANEL_BOTTOM: float = 18.0
-const RIGHT_MARGIN: float = 10.0
-
-
 var _theme: Dictionary = {}
 var _scrim: ColorRect
 var _panel: PanelContainer
 var _content: VBoxContainer
+var _cards: Array[Dictionary] = []
 var _is_open: bool = false
 var _animating: bool = false
 
@@ -58,16 +53,15 @@ func open_drawer() -> void:
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	_layout_panel()
-
 	_scrim.modulate.a = 0.0
 	_panel.modulate.a = 0.0
-	_panel.position.x += 20.0
-
-	var target_x := (
-		size.x
-		- _panel.size.x
-		- RIGHT_MARGIN
+	_panel.scale = Vector2(
+		0.97,
+		0.97
+	)
+	_panel.pivot_offset = Vector2(
+		_panel.size.x,
+		0
 	)
 
 	var tween := create_tween()
@@ -76,7 +70,7 @@ func open_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		1.0,
-		0.16
+		0.14
 	)
 	tween.tween_property(
 		_panel,
@@ -86,9 +80,9 @@ func open_drawer() -> void:
 	)
 	tween.tween_property(
 		_panel,
-		"position:x",
-		target_x,
-		0.22
+		"scale",
+		Vector2.ONE,
+		0.20
 	).set_trans(
 		Tween.TRANS_QUAD
 	).set_ease(
@@ -113,23 +107,22 @@ func close_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		0.0,
-		0.12
+		0.10
 	)
 	tween.tween_property(
 		_panel,
 		"modulate:a",
 		0.0,
-		0.14
+		0.12
 	)
 	tween.tween_property(
 		_panel,
-		"position:x",
-		size.x + 8.0,
-		0.18
-	).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(
-		Tween.EASE_IN
+		"scale",
+		Vector2(
+			0.98,
+			0.98
+		),
+		0.12
 	)
 	tween.finished.connect(
 		_on_close_finished,
@@ -146,7 +139,12 @@ func _build() -> void:
 	_scrim.set_anchors_preset(
 		Control.PRESET_FULL_RECT
 	)
-	_scrim.color = Color(0.01, 0.01, 0.03, 0.48)
+	_scrim.color = Color(
+		0.01,
+		0.01,
+		0.03,
+		0.52
+	)
 	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_scrim.gui_input.connect(
 		_on_scrim_input
@@ -154,6 +152,14 @@ func _build() -> void:
 	add_child(_scrim)
 
 	_panel = PanelContainer.new()
+	_panel.anchor_left = 0.32
+	_panel.anchor_top = 0.025
+	_panel.anchor_right = 0.975
+	_panel.anchor_bottom = 0.975
+	_panel.offset_left = 0.0
+	_panel.offset_top = 0.0
+	_panel.offset_right = 0.0
+	_panel.offset_bottom = 0.0
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 
@@ -177,6 +183,12 @@ func _build() -> void:
 	_panel.add_child(margin)
 
 	_content = VBoxContainer.new()
+	_content.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_content.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
 	_content.add_theme_constant_override(
 		"separation",
 		8
@@ -187,7 +199,7 @@ func _build() -> void:
 	decor.name = "Decor"
 	decor.custom_minimum_size = Vector2(
 		0,
-		72
+		76
 	)
 	_content.add_child(decor)
 
@@ -228,52 +240,58 @@ func _build() -> void:
 		"font_size",
 		9
 	)
-	footer.modulate.a = 0.42
+	footer.modulate.a = 0.40
 	_content.add_child(footer)
 
-	resized.connect(
-		_layout_panel
-	)
-
 	_apply_theme()
-	call_deferred(
-		"_layout_panel"
-	)
 
 
 func _add_action(
 	action_id: StringName,
 	label_text: String
 ) -> void:
-	var button := Button.new()
-	button.name = String(action_id).to_pascal_case()
-	button.text = ""
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(
+	var card := PanelContainer.new()
+	card.name = (
+		String(action_id).to_pascal_case()
+		+ "Card"
+	)
+	card.custom_minimum_size = Vector2(
 		0,
-		58
+		62
 	)
-	button.pressed.connect(
-		_emit_action.bind(
-			action_id
-		)
+	card.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
 	)
-	_content.add_child(button)
+	_content.add_child(card)
+
+	var padding := MarginContainer.new()
+	padding.add_theme_constant_override(
+		"margin_left",
+		10
+	)
+	padding.add_theme_constant_override(
+		"margin_top",
+		8
+	)
+	padding.add_theme_constant_override(
+		"margin_right",
+		10
+	)
+	padding.add_theme_constant_override(
+		"margin_bottom",
+		8
+	)
+	card.add_child(padding)
 
 	var row := HBoxContainer.new()
-	row.set_anchors_preset(
-		Control.PRESET_FULL_RECT
+	row.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
 	)
-	row.offset_left = 10.0
-	row.offset_top = 7.0
-	row.offset_right = -10.0
-	row.offset_bottom = -7.0
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override(
 		"separation",
 		10
 	)
-	button.add_child(row)
+	padding.add_child(row)
 
 	var icon = PetHomeMenuIconScript.new()
 	icon.name = "Icon"
@@ -296,7 +314,6 @@ func _add_action(
 		"font_size",
 		14
 	)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(label)
 
 	var chevron := Label.new()
@@ -307,15 +324,36 @@ func _add_action(
 	)
 	chevron.add_theme_font_size_override(
 		"font_size",
-		23
+		22
 	)
-	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(chevron)
 
-	button.set_meta(
-		"action_id",
-		action_id
+	var hitbox := Button.new()
+	hitbox.name = "Hitbox"
+	hitbox.text = ""
+	hitbox.flat = true
+	hitbox.focus_mode = Control.FOCUS_NONE
+	hitbox.set_anchors_preset(
+		Control.PRESET_FULL_RECT
 	)
+	hitbox.mouse_default_cursor_shape = (
+		Control.CURSOR_POINTING_HAND
+	)
+	hitbox.pressed.connect(
+		_emit_action.bind(
+			action_id
+		)
+	)
+	card.add_child(hitbox)
+
+	_cards.append({
+		"action_id": action_id,
+		"card": card,
+		"icon": icon,
+		"label": label,
+		"chevron": chevron,
+		"hitbox": hitbox,
+	})
 
 
 func _apply_theme() -> void:
@@ -328,8 +366,10 @@ func _apply_theme() -> void:
 		"panel",
 		Color("#171229")
 	)
-	panel_color = panel_color.lightened(0.035)
-	panel_color.a = 0.965
+	panel_color = panel_color.lightened(
+		0.035
+	)
+	panel_color.a = 0.97
 
 	var accent: Color = _theme.get(
 		"accent",
@@ -347,148 +387,103 @@ func _apply_theme() -> void:
 		0.22
 	)
 
+	var panel_border := accent
+	panel_border.a = 0.62
+
 	_panel.add_theme_stylebox_override(
 		"panel",
 		PetHomeThemeScript.panel_style(
 			panel_color,
-			Color(
-				accent.r,
-				accent.g,
-				accent.b,
-				0.68
-			),
+			panel_border,
 			24
 		)
 	)
 
-	for child in _content.get_children():
+	var decor := _content.get_node_or_null(
+		"Decor"
+	)
+
+	if (
+		decor != null
+		and decor.has_method(
+			"configure"
+		)
+	):
+		decor.configure(
+			accent,
+			secondary
+		)
+
+	var footer := _content.get_node_or_null(
+		"Footer"
+	) as Label
+
+	if footer != null:
+		footer.add_theme_color_override(
+			"font_color",
+			muted
+		)
+
+	for item in _cards:
+		var card = item.get(
+			"card"
+		)
+		var icon = item.get(
+			"icon"
+		)
+		var label = item.get(
+			"label"
+		)
+		var chevron = item.get(
+			"chevron"
+		)
+		var action_id := StringName(
+			item.get(
+				"action_id",
+				&""
+			)
+		)
+
+		if card != null:
+			var card_bg := panel_color.lightened(
+				0.055
+			)
+			card_bg.a = 0.94
+			var border := accent
+			border.a = 0.38
+
+			card.add_theme_stylebox_override(
+				"panel",
+				PetHomeThemeScript.panel_style(
+					card_bg,
+					border,
+					18
+				)
+			)
+
 		if (
-			child.name == "Decor"
-			and child.has_method(
+			icon != null
+			and icon.has_method(
 				"configure"
 			)
 		):
-			child.configure(
-				accent,
-				secondary
-			)
-			continue
-
-		if child is Label:
-			var footer := child as Label
-			footer.add_theme_color_override(
-				"font_color",
-				muted
-			)
-			continue
-
-		if child is not Button:
-			continue
-
-		var button := child as Button
-		var normal := panel_color.lightened(
-			0.055
-		)
-		var hover := panel_color.lightened(
-			0.105
-		)
-		var border := accent
-		border.a = 0.42
-
-		button.add_theme_stylebox_override(
-			"normal",
-			PetHomeThemeScript.panel_style(
-				normal,
-				border,
-				18
-			)
-		)
-		button.add_theme_stylebox_override(
-			"hover",
-			PetHomeThemeScript.panel_style(
-				hover,
-				accent,
-				18
-			)
-		)
-		button.add_theme_stylebox_override(
-			"pressed",
-			PetHomeThemeScript.panel_style(
-				hover,
-				accent,
-				18
-			)
-		)
-
-		var action_id := StringName(
-			str(
-				button.get_meta(
-					"action_id",
-					""
-				)
-			)
-		)
-
-		var row := button.get_child(
-			0
-		) as HBoxContainer
-
-		if row == null:
-			continue
-
-		var icon := row.get_node_or_null(
-			"Icon"
-		)
-
-		if icon != null:
 			icon.configure(
 				action_id,
 				accent,
 				secondary
 			)
 
-		var label := row.get_node_or_null(
-			"Label"
-		) as Label
-
-		if label != null:
+		if label is Label:
 			label.add_theme_color_override(
 				"font_color",
 				text_color
 			)
 
-		var chevron := row.get_node_or_null(
-			"Chevron"
-		) as Label
-
-		if chevron != null:
+		if chevron is Label:
 			chevron.add_theme_color_override(
 				"font_color",
 				muted
 			)
-
-
-func _layout_panel() -> void:
-	if _panel == null:
-		return
-
-	var width := minf(
-		PANEL_WIDTH,
-		size.x * 0.68
-	)
-	var height := maxf(
-		320.0,
-		size.y - PANEL_TOP - PANEL_BOTTOM
-	)
-
-	_panel.position = Vector2(
-		size.x - width - RIGHT_MARGIN,
-		PANEL_TOP
-	)
-	_panel.size = Vector2(
-		width,
-		height
-	)
 
 
 func _on_scrim_input(
