@@ -5,14 +5,21 @@ extends Control
 const PetHomeThemeScript = preload(
 	"res://screens/pet_home/pet_home_theme.gd"
 )
+const PetHomeMenuIconScript = preload(
+	"res://screens/pet_home/pet_home_menu_icon.gd"
+)
+const PetHomeMenuDecorScript = preload(
+	"res://screens/pet_home/pet_home_menu_decor.gd"
+)
 
 
 signal action_requested(action_id: StringName)
 
 
-const POPUP_WIDTH: float = 174.0
-const POPUP_TOP: float = 58.0
-const RIGHT_MARGIN: float = 14.0
+const PANEL_WIDTH: float = 232.0
+const PANEL_TOP: float = 18.0
+const PANEL_BOTTOM: float = 18.0
+const RIGHT_MARGIN: float = 10.0
 
 
 var _theme: Dictionary = {}
@@ -51,14 +58,16 @@ func open_drawer() -> void:
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
-	_layout_popup()
+	_layout_panel()
 
 	_scrim.modulate.a = 0.0
 	_panel.modulate.a = 0.0
-	_panel.scale = Vector2(0.96, 0.96)
-	_panel.pivot_offset = Vector2(
-		_panel.size.x,
-		0
+	_panel.position.x += 20.0
+
+	var target_x := (
+		size.x
+		- _panel.size.x
+		- RIGHT_MARGIN
 	)
 
 	var tween := create_tween()
@@ -67,19 +76,19 @@ func open_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		1.0,
-		0.12
+		0.16
 	)
 	tween.tween_property(
 		_panel,
 		"modulate:a",
 		1.0,
-		0.15
+		0.18
 	)
 	tween.tween_property(
 		_panel,
-		"scale",
-		Vector2.ONE,
-		0.18
+		"position:x",
+		target_x,
+		0.22
 	).set_trans(
 		Tween.TRANS_QUAD
 	).set_ease(
@@ -104,19 +113,23 @@ func close_drawer() -> void:
 		_scrim,
 		"modulate:a",
 		0.0,
-		0.10
+		0.12
 	)
 	tween.tween_property(
 		_panel,
 		"modulate:a",
 		0.0,
-		0.12
+		0.14
 	)
 	tween.tween_property(
 		_panel,
-		"scale",
-		Vector2(0.97, 0.97),
-		0.12
+		"position:x",
+		size.x + 8.0,
+		0.18
+	).set_trans(
+		Tween.TRANS_QUAD
+	).set_ease(
+		Tween.EASE_IN
 	)
 	tween.finished.connect(
 		_on_close_finished,
@@ -133,7 +146,7 @@ func _build() -> void:
 	_scrim.set_anchors_preset(
 		Control.PRESET_FULL_RECT
 	)
-	_scrim.color = Color(0, 0, 0, 0.12)
+	_scrim.color = Color(0.01, 0.01, 0.03, 0.48)
 	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	_scrim.gui_input.connect(
 		_on_scrim_input
@@ -147,84 +160,98 @@ func _build() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(
 		"margin_left",
-		8
+		12
 	)
 	margin.add_theme_constant_override(
 		"margin_top",
-		8
+		14
 	)
 	margin.add_theme_constant_override(
 		"margin_right",
-		8
+		12
 	)
 	margin.add_theme_constant_override(
 		"margin_bottom",
-		8
+		14
 	)
 	_panel.add_child(margin)
 
 	_content = VBoxContainer.new()
 	_content.add_theme_constant_override(
 		"separation",
-		5
+		8
 	)
 	margin.add_child(_content)
 
+	var decor = PetHomeMenuDecorScript.new()
+	decor.name = "Decor"
+	decor.custom_minimum_size = Vector2(
+		0,
+		72
+	)
+	_content.add_child(decor)
+
 	_add_action(
-		"ⓘ",
-		"Thông tin pet",
-		&"pet_info"
+		&"pet_info",
+		"Thông tin pet"
 	)
 	_add_action(
-		"▣",
-		"Rương đồ",
-		&"chest"
+		&"chest",
+		"Rương đồ"
 	)
 	_add_action(
-		"▷",
-		"Giải trí",
-		&"entertainment"
+		&"entertainment",
+		"Giải trí"
 	)
 	_add_action(
-		"✦",
-		"Tiến hóa",
-		&"evolution"
+		&"evolution",
+		"Tiến hóa"
 	)
 	_add_action(
-		"⚙",
-		"Cài đặt",
-		&"settings"
+		&"settings",
+		"Cài đặt"
 	)
 
+	var spacer := Control.new()
+	spacer.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_content.add_child(spacer)
+
+	var footer := Label.new()
+	footer.name = "Footer"
+	footer.text = "PETVERSE"
+	footer.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	footer.add_theme_font_size_override(
+		"font_size",
+		9
+	)
+	footer.modulate.a = 0.42
+	_content.add_child(footer)
+
 	resized.connect(
-		_layout_popup
+		_layout_panel
 	)
 
 	_apply_theme()
 	call_deferred(
-		"_layout_popup"
+		"_layout_panel"
 	)
 
 
 func _add_action(
-	icon_text: String,
-	label_text: String,
-	action_id: StringName
+	action_id: StringName,
+	label_text: String
 ) -> void:
 	var button := Button.new()
-	button.text = "%s   %s" % [
-		icon_text,
-		label_text,
-	]
+	button.name = String(action_id).to_pascal_case()
+	button.text = ""
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(
 		0,
-		38
-	)
-	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	button.add_theme_font_size_override(
-		"font_size",
-		13
+		58
 	)
 	button.pressed.connect(
 		_emit_action.bind(
@@ -232,6 +259,63 @@ func _add_action(
 		)
 	)
 	_content.add_child(button)
+
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	row.offset_left = 10.0
+	row.offset_top = 7.0
+	row.offset_right = -10.0
+	row.offset_bottom = -7.0
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override(
+		"separation",
+		10
+	)
+	button.add_child(row)
+
+	var icon = PetHomeMenuIconScript.new()
+	icon.name = "Icon"
+	icon.custom_minimum_size = Vector2(
+		42,
+		42
+	)
+	row.add_child(icon)
+
+	var label := Label.new()
+	label.name = "Label"
+	label.text = label_text
+	label.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	label.add_theme_font_size_override(
+		"font_size",
+		14
+	)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(label)
+
+	var chevron := Label.new()
+	chevron.name = "Chevron"
+	chevron.text = "›"
+	chevron.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	chevron.add_theme_font_size_override(
+		"font_size",
+		23
+	)
+	chevron.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(chevron)
+
+	button.set_meta(
+		"action_id",
+		action_id
+	)
 
 
 func _apply_theme() -> void:
@@ -244,7 +328,8 @@ func _apply_theme() -> void:
 		"panel",
 		Color("#171229")
 	)
-	panel_color.a = 0.94
+	panel_color = panel_color.lightened(0.035)
+	panel_color.a = 0.965
 
 	var accent: Color = _theme.get(
 		"accent",
@@ -254,49 +339,63 @@ func _apply_theme() -> void:
 		"text",
 		Color.WHITE
 	)
+	var muted: Color = _theme.get(
+		"muted",
+		Color("#C3B2E8")
+	)
+	var secondary := accent.lightened(
+		0.22
+	)
 
 	_panel.add_theme_stylebox_override(
 		"panel",
 		PetHomeThemeScript.panel_style(
 			panel_color,
-			accent,
-			14
+			Color(
+				accent.r,
+				accent.g,
+				accent.b,
+				0.68
+			),
+			24
 		)
 	)
 
 	for child in _content.get_children():
+		if child is PetHomeMenuDecor:
+			child.configure(
+				accent,
+				secondary
+			)
+			continue
+
+		if child is Label:
+			var footer := child as Label
+			footer.add_theme_color_override(
+				"font_color",
+				muted
+			)
+			continue
+
 		if child is not Button:
 			continue
 
 		var button := child as Button
-		button.add_theme_color_override(
-			"font_color",
-			text_color
-		)
-		button.add_theme_color_override(
-			"font_hover_color",
-			text_color
-		)
-		button.add_theme_color_override(
-			"font_pressed_color",
-			text_color
-		)
-
 		var normal := panel_color.lightened(
-			0.035
+			0.055
 		)
 		var hover := panel_color.lightened(
-			0.09
+			0.105
 		)
-		var soft_accent := accent
-		soft_accent.a = 0.32
+		var border := accent
+		border.a = 0.42
 
 		button.add_theme_stylebox_override(
 			"normal",
 			PetHomeThemeScript.panel_style(
 				normal,
-				soft_accent,
-				10
+				border,
+				18
 			)
 		)
 		button.add_theme_stylebox_override(
@@ -304,7 +403,7 @@ func _apply_theme() -> void:
 			PetHomeThemeScript.panel_style(
 				hover,
 				accent,
-				10
+				18
 			)
 		)
 		button.add_theme_stylebox_override(
@@ -312,24 +411,74 @@ func _apply_theme() -> void:
 			PetHomeThemeScript.panel_style(
 				hover,
 				accent,
-				10
+				18
 			)
 		)
 
+		var action_id := StringName(
+			str(
+				button.get_meta(
+					"action_id",
+					""
+				)
+			)
+		)
 
-func _layout_popup() -> void:
+		var row := button.get_child(
+			0
+		) as HBoxContainer
+
+		if row == null:
+			continue
+
+		var icon := row.get_node_or_null(
+			"Icon"
+		)
+
+		if icon != null:
+			icon.configure(
+				action_id,
+				accent,
+				secondary
+			)
+
+		var label := row.get_node_or_null(
+			"Label"
+		) as Label
+
+		if label != null:
+			label.add_theme_color_override(
+				"font_color",
+				text_color
+			)
+
+		var chevron := row.get_node_or_null(
+			"Chevron"
+		) as Label
+
+		if chevron != null:
+			chevron.add_theme_color_override(
+				"font_color",
+				muted
+			)
+
+
+func _layout_panel() -> void:
 	if _panel == null:
 		return
 
 	var width := minf(
-		POPUP_WIDTH,
-		size.x - 28.0
+		PANEL_WIDTH,
+		size.x * 0.68
 	)
-	var height := 8.0 + 5.0 * 38.0 + 4.0 * 5.0 + 8.0
+	var height := maxf(
+		320.0,
+		size.y - PANEL_TOP - PANEL_BOTTOM
+	)
 
 	_panel.position = Vector2(
 		size.x - width - RIGHT_MARGIN,
-		POPUP_TOP
+		PANEL_TOP
 	)
 	_panel.size = Vector2(
 		width,
@@ -359,7 +508,6 @@ func _emit_action(
 		action_id
 	)
 
-	# Chọn mục xong tự đóng.
 	_is_open = false
 	_animating = false
 	visible = false
