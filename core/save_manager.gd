@@ -2,45 +2,23 @@ extends Node
 
 
 const SAVE_PATH := "user://save_v11.json"
+const META_PATH := "user://meta_v1.json"
 
 
 func save_run(data: Dictionary) -> bool:
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-
-	if file == null:
-		push_error("Không thể mở file save để ghi.")
-		return false
-
-	file.store_string(JSON.stringify(data))
-	file.close()
-
-	return true
+	return _write_dictionary(
+		SAVE_PATH,
+		data,
+		"Không thể mở file save để ghi."
+	)
 
 
 func load_run() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_PATH):
-		return {}
-
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
-
-	if file == null:
-		push_error("Không thể mở file save để đọc.")
-		return {}
-
-	var text := file.get_as_text()
-	file.close()
-
-	var parsed = JSON.parse_string(text)
-
-	if parsed == null:
-		push_error("File save không hợp lệ.")
-		return {}
-
-	if typeof(parsed) != TYPE_DICTIONARY:
-		push_error("Dữ liệu save không phải Dictionary.")
-		return {}
-
-	return parsed
+	return _read_dictionary(
+		SAVE_PATH,
+		"File save không hợp lệ.",
+		"Dữ liệu save không phải Dictionary."
+	)
 
 
 func has_save() -> bool:
@@ -52,3 +30,77 @@ func delete_save() -> void:
 		DirAccess.remove_absolute(
 			ProjectSettings.globalize_path(SAVE_PATH)
 		)
+
+
+func save_meta(data: Dictionary) -> bool:
+	return _write_dictionary(
+		META_PATH,
+		data,
+		"Không thể mở file meta để ghi."
+	)
+
+
+func load_meta() -> Dictionary:
+	return _read_dictionary(
+		META_PATH,
+		"File meta không hợp lệ.",
+		"Dữ liệu meta không phải Dictionary."
+	)
+
+
+func has_meta() -> bool:
+	return FileAccess.file_exists(META_PATH)
+
+
+func delete_meta() -> void:
+	if FileAccess.file_exists(META_PATH):
+		DirAccess.remove_absolute(
+			ProjectSettings.globalize_path(META_PATH)
+		)
+
+
+func _write_dictionary(
+	path: String,
+	data: Dictionary,
+	error_message: String
+) -> bool:
+	var file := FileAccess.open(path, FileAccess.WRITE)
+
+	if file == null:
+		push_error(error_message)
+		return false
+
+	file.store_string(JSON.stringify(data))
+	file.close()
+
+	return true
+
+
+func _read_dictionary(
+	path: String,
+	parse_error: String,
+	type_error: String
+) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
+
+	var file := FileAccess.open(path, FileAccess.READ)
+
+	if file == null:
+		push_error("Không thể mở file dữ liệu để đọc.")
+		return {}
+
+	var text := file.get_as_text()
+	file.close()
+
+	var parsed = JSON.parse_string(text)
+
+	if parsed == null:
+		push_error(parse_error)
+		return {}
+
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_error(type_error)
+		return {}
+
+	return parsed
