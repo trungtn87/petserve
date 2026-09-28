@@ -102,7 +102,7 @@ func build_request(
 	}
 
 
-func render_initial(
+func render(
 	request: PetRenderRequest
 ) -> PetRenderResult:
 	var config := PetRenderConfig.load_default()
@@ -122,6 +122,15 @@ func render_initial(
 	)
 
 	return await _render_service.render(
+		request
+	)
+
+
+# Compatibility alias for the M5/M6 call site.
+func render_initial(
+	request: PetRenderRequest
+) -> PetRenderResult:
+	return await render(
 		request
 	)
 
