@@ -109,7 +109,10 @@ func apply_item(item: Dictionary) -> Dictionary:
 		_:
 			return {
 				"ok": false,
-				"message": "Vật phẩm này chưa dùng được ở giai đoạn Ấu thể.",
+				"message": LocalizationManager.text(
+				"ITEM_ERROR_INFANT_UNUSABLE",
+				"This item cannot be used during the Infant stage."
+			),
 			}
 
 	_update_ready()
@@ -117,7 +120,7 @@ func apply_item(item: Dictionary) -> Dictionary:
 
 	return {
 		"ok": true,
-		"message": "Đã sử dụng " + String(item.get("display_name", "vật phẩm")),
+		"message": LocalizationManager.text("ITEM_USED", "Used %s") % ItemGenerator.new().display_name(item),
 	}
 
 
