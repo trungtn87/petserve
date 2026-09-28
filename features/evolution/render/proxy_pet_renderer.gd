@@ -157,7 +157,7 @@ func render(
 
 	var image_base64 := str(
 		root.get("image", "")
-	)
+	).strip_edges()
 
 	if image_base64.is_empty():
 		return PetRenderResult.fail(
@@ -175,6 +175,13 @@ func render(
 				comma_index + 1
 			)
 
+	image_base64 = (
+		image_base64
+		.replace("\n", "")
+		.replace("\r", "")
+		.replace(" ", "")
+	)
+
 	var image_bytes := Marshalls.base64_to_raw(
 		image_base64
 	)
@@ -188,20 +195,24 @@ func render(
 		)
 
 	var image := Image.new()
-	var image_error := image.load_png_from_buffer(
+	var image_format := _detect_image_format(
 		image_bytes
 	)
-
-	if image_error != OK:
-		image_error = image.load_jpg_from_buffer(
-			image_bytes
-		)
+	var image_error := _load_image_buffer(
+		image,
+		image_bytes,
+		image_format
+	)
 
 	if image_error != OK:
 		return PetRenderResult.fail(
 			&"invalid_image",
-			"Ảnh proxy trả về không hợp lệ: %s"
-			% error_string(image_error),
+			"Ảnh proxy không decode được (%s, %d bytes): %s"
+			% [
+				image_format,
+				image_bytes.size(),
+				error_string(image_error),
+			],
 			renderer_id(),
 			StringName(_config.model_id)
 		)
@@ -246,6 +257,82 @@ func render(
 			"height": image.get_height(),
 			"provider": "cloudflare_worker_proxy",
 		}
+	)
+
+
+func _detect_image_format(
+	bytes: PackedByteArray
+) -> String:
+	if (
+		bytes.size() >= 8
+		and bytes[0] == 0x89
+		and bytes[1] == 0x50
+		and bytes[2] == 0x4E
+		and bytes[3] == 0x47
+	):
+		return "png"
+
+	if (
+		bytes.size() >= 3
+		and bytes[0] == 0xFF
+		and bytes[1] == 0xD8
+		and bytes[2] == 0xFF
+	):
+		return "jpeg"
+
+	if (
+		bytes.size() >= 12
+		and bytes[0] == 0x52
+		and bytes[1] == 0x49
+		and bytes[2] == 0x46
+		and bytes[3] == 0x46
+		and bytes[8] == 0x57
+		and bytes[9] == 0x45
+		and bytes[10] == 0x42
+		and bytes[11] == 0x50
+	):
+		return "webp"
+
+	return "unknown"
+
+
+func _load_image_buffer(
+	image: Image,
+	bytes: PackedByteArray,
+	format: String
+) -> Error:
+	match format:
+		"png":
+			return image.load_png_from_buffer(
+				bytes
+			)
+
+		"jpeg":
+			return image.load_jpg_from_buffer(
+				bytes
+			)
+
+		"webp":
+			return image.load_webp_from_buffer(
+				bytes
+			)
+
+	var error := image.load_webp_from_buffer(
+		bytes
+	)
+
+	if error == OK:
+		return OK
+
+	error = image.load_jpg_from_buffer(
+		bytes
+	)
+
+	if error == OK:
+		return OK
+
+	return image.load_png_from_buffer(
+		bytes
 	)
 
 
