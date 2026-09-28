@@ -2,6 +2,11 @@ class_name EvolutionBootstrapService
 extends RefCounted
 
 
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
+
+
 func build_from_hatch() -> Dictionary:
 	var egg_data := SaveService.new().load_game()
 	var hatch_data := HatchSaveService.new().load_data()
@@ -57,7 +62,7 @@ func build_from_hatch() -> Dictionary:
 		}
 
 	var scene_profile := (
-		PetSceneProfileFactory.new()
+		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
 

@@ -2,12 +2,17 @@ class_name InitialPetVisualSpecBuilder
 extends RefCounted
 
 
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
+
+
 func build(
 	identity: PetIdentity,
 	genome: PetGenome,
 	style: MythicStyleProfile,
 	species_profile: InitialSpeciesProfile,
-	scene_profile: PetSceneProfile = null
+	scene_profile = null
 ) -> InitialPetVisualSpec:
 	if (
 		identity == null
@@ -19,7 +24,7 @@ func build(
 
 	if scene_profile == null:
 		scene_profile = (
-			PetSceneProfileFactory.new()
+			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
 

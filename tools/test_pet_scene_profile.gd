@@ -1,6 +1,17 @@
 extends SceneTree
 
 
+const PetIdentityFactoryScript = preload(
+	"res://features/evolution/domain/pet_identity_factory.gd"
+)
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
+
+
 const ELEMENTS: Array[StringName] = [
 	&"metal",
 	&"wood",
@@ -33,8 +44,8 @@ func _initialize() -> void:
 
 
 func _test_all_elements() -> void:
-	var identity_factory := PetIdentityFactory.new()
-	var scene_factory := PetSceneProfileFactory.new()
+	var identity_factory := PetIdentityFactoryScript.new()
+	var scene_factory := PetSceneProfileFactoryScript.new()
 
 	for element in ELEMENTS:
 		var identity := identity_factory.create_initial(
@@ -56,10 +67,10 @@ func _test_all_elements() -> void:
 
 func _test_deterministic_profile() -> void:
 	var identity := (
-		PetIdentityFactory.new()
+		PetIdentityFactoryScript.new()
 		.create_initial(7281, &"dark")
 	)
-	var factory := PetSceneProfileFactory.new()
+	var factory := PetSceneProfileFactoryScript.new()
 
 	var a := factory.create_initial(identity)
 	var b := factory.create_initial(identity)
@@ -73,8 +84,8 @@ func _test_deterministic_profile() -> void:
 
 
 func _test_different_seed_changes_scene_seed() -> void:
-	var identity_factory := PetIdentityFactory.new()
-	var scene_factory := PetSceneProfileFactory.new()
+	var identity_factory := PetIdentityFactoryScript.new()
+	var scene_factory := PetSceneProfileFactoryScript.new()
 
 	var a := scene_factory.create_initial(
 		identity_factory.create_initial(
@@ -99,14 +110,14 @@ func _test_different_seed_changes_scene_seed() -> void:
 
 func _test_round_trip() -> void:
 	var identity := (
-		PetIdentityFactory.new()
+		PetIdentityFactoryScript.new()
 		.create_initial(7281, &"dark")
 	)
 	var original := (
-		PetSceneProfileFactory.new()
+		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
-	var restored := PetSceneProfile.from_dict(
+	var restored = PetSceneProfileScript.from_dict(
 		original.to_dict()
 	)
 

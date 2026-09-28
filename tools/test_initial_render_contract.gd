@@ -7,6 +7,9 @@ const PetIdentityFactoryScript = preload(
 const PetGenomeFactoryScript = preload(
 	"res://features/evolution/domain/pet_genome_factory.gd"
 )
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
 const MythicStyleProfileScript = preload(
 	"res://features/evolution/visual/mythic_style_profile.gd"
 )
@@ -43,7 +46,7 @@ func _initialize() -> void:
 		.create_initial()
 	)
 	var scene_profile = (
-		PetSceneProfileFactory.new()
+		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
 	var style = (

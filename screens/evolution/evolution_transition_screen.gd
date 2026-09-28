@@ -2,6 +2,11 @@ class_name EvolutionTransitionScreen
 extends Control
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+
+
 signal transition_completed(image_path: String)
 
 
@@ -27,7 +32,7 @@ var mode: int = TransitionMode.INITIAL_BIRTH
 
 var _identity: PetIdentity
 var _genome: PetGenome
-var _scene_profile: PetSceneProfile
+var _scene_profile
 var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
@@ -314,7 +319,7 @@ func _run_initial_birth() -> void:
 	_genome = data.get("genome") as PetGenome
 	_scene_profile = data.get(
 		"scene_profile"
-	) as PetSceneProfile
+	)
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
@@ -540,7 +545,7 @@ func _get_existing_visual_path() -> String:
 	if typeof(scene_value) != TYPE_DICTIONARY:
 		return ""
 
-	var saved_scene := PetSceneProfile.from_dict(
+	var saved_scene = PetSceneProfileScript.from_dict(
 		scene_value as Dictionary
 	)
 

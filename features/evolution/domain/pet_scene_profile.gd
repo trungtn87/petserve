@@ -31,7 +31,7 @@ func is_valid() -> bool:
 
 
 func same_profile(
-	other: PetSceneProfile
+	other
 ) -> bool:
 	if other == null:
 		return false
@@ -66,7 +66,7 @@ func to_dict() -> Dictionary:
 
 static func from_dict(
 	data: Dictionary
-) -> PetSceneProfile:
+):
 	var profile := PetSceneProfile.new()
 
 	profile.element = StringName(
