@@ -17,6 +17,7 @@ const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 @onready var ui_layer: CanvasLayer = $UILayer
 @onready var gameplay_ui: PetHomeGameplayUI = $UILayer/GameplayUI
 @onready var home_menu: PetHomeMenu = $UILayer/MenuOverlay
+@onready var entertainment_ui: EntertainmentHubUI = $UILayer/EntertainmentUI
 
 
 var _home_host: HomeHost3D = HomeHost3D.new()
@@ -42,6 +43,17 @@ func _ready() -> void:
 		)
 		gameplay_ui.item_use_requested.connect(
 			_on_item_use_requested
+		)
+		gameplay_ui.entertainment_requested.connect(
+			_on_entertainment_requested
+		)
+
+	if entertainment_ui != null:
+		entertainment_ui.caro_win_reward_requested.connect(
+			_on_caro_win_reward_requested
+		)
+		entertainment_ui.match_finished.connect(
+			_on_caro_match_finished
 		)
 
 	var run_snapshot := RunManager.get_snapshot()
@@ -104,6 +116,9 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if entertainment_ui != null and entertainment_ui.is_open():
+		return
+
 	if home_menu != null and home_menu.is_open():
 		return
 
@@ -208,6 +223,45 @@ func _on_item_use_requested(uid: String) -> void:
 
 	if bool(result.get("ok", false)):
 		gameplay_ui.open_inventory()
+
+
+func _on_entertainment_requested() -> void:
+	if entertainment_ui == null:
+		return
+
+	var state := _infant_game.snapshot()
+
+	entertainment_ui.open_hub(
+		int(state.get("caro_rewards_claimed", 0)),
+		int(state.get("caro_rewards_max", 4)),
+		not bool(state.get("ready_to_evolve", false))
+	)
+
+
+func _on_caro_win_reward_requested() -> void:
+	var result := _infant_game.claim_caro_win_reward()
+	var state := _infant_game.snapshot()
+
+	entertainment_ui.set_reward_status(
+		int(state.get("caro_rewards_claimed", 0)),
+		int(state.get("caro_rewards_max", 4)),
+		not bool(state.get("ready_to_evolve", false))
+	)
+	entertainment_ui.show_reward_message(
+		String(result.get("message", ""))
+	)
+
+	gameplay_ui.refresh_status(state)
+
+
+func _on_caro_match_finished(result: StringName) -> void:
+	match result:
+		TicTacToeGame.RESULT_PLAYER:
+			_present_state(&"surprised")
+		TicTacToeGame.RESULT_PET:
+			_present_state(&"happy")
+		TicTacToeGame.RESULT_DRAW:
+			_present_state(&"curious")
 
 
 func _on_menu_action_requested(action_id: StringName) -> void:
