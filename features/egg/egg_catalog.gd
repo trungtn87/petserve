@@ -13,14 +13,14 @@ const TYPES: Array[String] = [
 ]
 
 
-const NAMES: Dictionary = {
-	"metal": "KIM",
-	"wood": "MỘC",
-	"water": "THỦY",
-	"fire": "HỎA",
-	"earth": "THỔ",
-	"dark": "ÁM",
-	"light": "QUANG"
+const NAME_KEYS: Dictionary = {
+	"metal": "EGG_ELEMENT_METAL",
+	"wood": "EGG_ELEMENT_WOOD",
+	"water": "EGG_ELEMENT_WATER",
+	"fire": "EGG_ELEMENT_FIRE",
+	"earth": "EGG_ELEMENT_EARTH",
+	"dark": "EGG_ELEMENT_DARK",
+	"light": "EGG_ELEMENT_LIGHT"
 }
 
 
@@ -35,9 +35,5 @@ static func is_valid(
 static func name_for(
 	egg_type: String
 ) -> String:
-	return str(
-		NAMES.get(
-			egg_type,
-			"KHÔNG XÁC ĐỊNH"
-		)
-	)
+	var key := String(NAME_KEYS.get(egg_type, "EGG_ELEMENT_UNKNOWN"))
+	return LocalizationManager.text(key, "UNKNOWN")
