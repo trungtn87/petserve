@@ -2,7 +2,7 @@ class_name GameApp
 extends RefCounted
 
 
-const PET_HOME_SCENE: PackedScene = preload(
+const NEXT_PHASE_SCENE: PackedScene = preload(
 	"res://scenes/pet/pet_home_3d.tscn"
 )
 
@@ -53,11 +53,11 @@ func start(
 
 		return false
 
-	if not _main_screen.pet_home_requested.is_connected(
-		_enter_pet_home
+	if not _main_screen.next_phase_requested.is_connected(
+		_enter_next_phase
 	):
-		_main_screen.pet_home_requested.connect(
-			_enter_pet_home
+		_main_screen.next_phase_requested.connect(
+			_enter_next_phase
 		)
 
 
@@ -118,10 +118,10 @@ func get_hatch() -> HatchFacade:
 	return _hatch
 
 
-func _enter_pet_home() -> void:
+func _enter_next_phase() -> void:
 	if _root == null:
 		push_error(
-			"GameApp: Root không tồn tại khi vào PetHome."
+			"GameApp: Root không tồn tại khi vào next phase."
 		)
 		return
 
@@ -134,10 +134,10 @@ func _enter_pet_home() -> void:
 		return
 
 	var error: Error = tree.change_scene_to_packed(
-		PET_HOME_SCENE
+		NEXT_PHASE_SCENE
 	)
 
 	if error != OK:
 		push_error(
-			"GameApp: Không chuyển được sang PetHome3D."
+			"GameApp: Không chuyển được sang next phase3D."
 		)

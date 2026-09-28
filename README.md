@@ -1,23 +1,23 @@
-# Pet Vô Hạn — V1.0 Foundation
+# Pet Vô Hạn — Evolution Core
 
-Bộ khung kỹ thuật đầu tiên cho game pet một đời, phát triển không cố định.
+Godot Android portrait project.
 
-## Trạng thái hiện tại
+## M0 — Clean baseline
 
-Đã có:
-- project Godot Android portrait;
-- scene khởi động;
-- seeded RNG trung tâm;
-- RunManager;
-- save/load local;
-- Android export preset cơ bản;
-- script kiểm tra môi trường;
-- cấu trúc thư mục để phát triển tiếp.
+M0 removes the retired pet presentation experiments so the next implementation starts from a small, controlled base.
 
-Chưa có gameplay trứng/pet. Bước kế tiếp là **V1.0.1 — Random Egg**.
+Kept:
+- Core infrastructure and local save/load.
+- Egg incubation v1.1.
+- Hatch and naming flow.
+- Main UI and Android project configuration.
+- Independent feature branches remain untouched.
 
-## Chạy nhanh
+Removed from the M0 branch:
+- 3D pet runtime, models, rigs and test tooling.
+- 2D/2.5D pet actor/presentation code.
+- Pet idle/expression/motion/interaction systems.
+- Pet Home runtime and old room definitions.
+- Old pet-specific runtime assets and implementation docs.
 
-Mở `project.godot` bằng Godot 4.7.2 và Run Project.
-
-Xem `docs/SETUP.md` để cấu hình Android.
+After hatching, the app currently routes to a static Evolution Core placeholder. M1 will replace that placeholder with the new evolution-domain foundation.

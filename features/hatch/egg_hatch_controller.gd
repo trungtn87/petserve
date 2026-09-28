@@ -3,7 +3,7 @@ extends RefCounted
 
 
 signal hatch_completed
-signal pet_home_requested
+signal next_phase_requested
 
 
 var _egg: EggFacade
@@ -127,8 +127,8 @@ func _on_hatch_whiteout() -> void:
 
 func _enter_next_phase() -> void:
 	# Không tạo Egg mới ở đây nữa.
-	# App layer sẽ nhận signal và chuyển sang PetHome.
-	pet_home_requested.emit()
+	# App layer sẽ nhận signal và chuyển sang phase gameplay kế tiếp.
+	next_phase_requested.emit()
 
 
 # =========================================================
