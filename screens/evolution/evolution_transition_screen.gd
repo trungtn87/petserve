@@ -28,6 +28,12 @@ const RETRY_DELAYS := [
 
 const MIN_TRANSITION_SECONDS: float = 3.0
 
+const TRANSITION_BG := Color("#090617")
+const DNA_LEFT := Color(0.72, 0.56, 1.0, 0.94)
+const DNA_RIGHT := Color(0.48, 0.90, 1.0, 0.94)
+const DNA_RUNG := Color(0.86, 0.94, 1.0, 0.42)
+const DNA_CORE := Color(0.94, 0.98, 1.0, 0.92)
+
 
 @export_enum("Initial Birth", "Evolution Update")
 var mode: int = TransitionMode.INITIAL_BIRTH
@@ -69,11 +75,11 @@ func _process(delta: float) -> void:
 
 	if _status_label != null and not _completed and not _fatal:
 		_status_label.modulate.a = (
-			0.72
-			+ 0.28
+			0.82
+			+ 0.18
 			* (
 				0.5
-				+ 0.5 * sin(_effect_time * 2.0)
+				+ 0.5 * sin(_effect_time * 2.4)
 			)
 		)
 
@@ -88,44 +94,233 @@ func _draw() -> void:
 
 	draw_rect(
 		Rect2(Vector2.ZERO, viewport_size),
-		Color("#080611"),
+		TRANSITION_BG,
 		true
 	)
 
 	var center := Vector2(
 		viewport_size.x * 0.5,
-		viewport_size.y * 0.46
+		viewport_size.y * 0.44
 	)
-
 	var pulse := (
 		0.5
-		+ 0.5 * sin(_effect_time * 2.4)
+		+ 0.5 * sin(_effect_time * 2.15)
+	)
+	var slow_pulse := (
+		0.5
+		+ 0.5 * sin(
+			_effect_time * 1.1
+			+ 0.8
+		)
 	)
 
-	var glow_alpha := (
-		0.10
-		+ pulse * 0.08
-	) * _effect_strength
+	_draw_mystic_glow(
+		center,
+		pulse,
+		slow_pulse
+	)
+	_draw_dna_helix(
+		center,
+		pulse
+	)
+	_draw_mystic_rings(
+		center,
+		pulse
+	)
+	_draw_transition_particles(
+		center,
+		slow_pulse
+	)
+
+
+func _draw_mystic_glow(
+	center: Vector2,
+	pulse: float,
+	slow_pulse: float
+) -> void:
+	for index in range(5, 0, -1):
+		var radius := (
+			68.0
+			+ float(index) * 30.0
+			+ pulse * 8.0
+		)
+		var alpha := (
+			0.018
+			+ float(index) * 0.010
+		) * _effect_strength
+
+		var color := (
+			Color(
+				0.36,
+				0.20,
+				0.82,
+				alpha
+			)
+			if index % 2 == 0
+			else Color(
+				0.18,
+				0.62,
+				0.96,
+				alpha * 0.86
+			)
+		)
+
+		draw_circle(
+			center,
+			radius,
+			color,
+			true
+		)
 
 	draw_circle(
 		center,
-		86.0 + pulse * 7.0,
-		Color(0.43, 0.24, 0.72, glow_alpha),
+		52.0 + pulse * 8.0,
+		Color(
+			0.55,
+			0.40,
+			1.0,
+			(0.10 + slow_pulse * 0.05)
+			* _effect_strength
+		),
 		true
 	)
 
 	draw_circle(
 		center,
-		60.0 + pulse * 4.0,
-		Color(0.22, 0.55, 0.95, glow_alpha * 0.8),
+		24.0 + pulse * 4.0,
+		Color(
+			DNA_CORE.r,
+			DNA_CORE.g,
+			DNA_CORE.b,
+			(0.70 + pulse * 0.20)
+			* _effect_strength
+		),
 		true
 	)
 
+
+func _draw_dna_helix(
+	center: Vector2,
+	pulse: float
+) -> void:
+	var helix_height := 270.0
+	var amplitude := 40.0 + pulse * 2.0
+	var segments := 34
+	var phase := _effect_time * 1.35
+
+	var left_points: Array[Vector2] = []
+	var right_points: Array[Vector2] = []
+
+	for index in range(segments + 1):
+		var ratio := float(index) / float(segments)
+		var y := (
+			center.y
+			- helix_height * 0.5
+			+ ratio * helix_height
+		)
+		var wave := sin(
+			ratio * TAU * 2.35
+			+ phase
+		)
+		var depth := (
+			0.72
+			+ 0.28
+			* (
+				0.5
+				+ 0.5 * cos(
+					ratio * TAU * 2.35
+					+ phase
+				)
+			)
+		)
+
+		left_points.append(
+			Vector2(
+				center.x
+				+ wave * amplitude,
+				y
+			)
+		)
+		right_points.append(
+			Vector2(
+				center.x
+				- wave * amplitude,
+				y
+			)
+		)
+
+		if index % 2 == 0:
+			var rung := DNA_RUNG
+			rung.a *= (
+				depth
+				* _effect_strength
+			)
+
+			draw_line(
+				left_points[index],
+				right_points[index],
+				rung,
+				1.6,
+				true
+			)
+
+	for index in range(segments):
+		var left_color := DNA_LEFT
+		var right_color := DNA_RIGHT
+		left_color.a *= _effect_strength
+		right_color.a *= _effect_strength
+
+		draw_line(
+			left_points[index],
+			left_points[index + 1],
+			left_color,
+			3.0,
+			true
+		)
+		draw_line(
+			right_points[index],
+			right_points[index + 1],
+			right_color,
+			3.0,
+			true
+		)
+
+	for index in range(0, segments + 1, 5):
+		var travel := (
+			0.5
+			+ 0.34
+			* sin(
+				_effect_time * 2.2
+				+ float(index)
+			)
+		)
+		var point := left_points[index].lerp(
+			right_points[index],
+			travel
+		)
+
+		draw_circle(
+			point,
+			2.2 + pulse * 1.1,
+			Color(
+				0.90,
+				0.96,
+				1.0,
+				0.82 * _effect_strength
+			),
+			true
+		)
+
+
+func _draw_mystic_rings(
+	center: Vector2,
+	pulse: float
+) -> void:
 	for ring_index in range(3):
-		var radius := 74.0 + float(ring_index) * 24.0
-		var speed := (
-			0.42
-			+ float(ring_index) * 0.16
+		var radius := (
+			72.0
+			+ float(ring_index) * 24.0
+			+ pulse * 3.0
 		)
 		var direction := (
 			1.0
@@ -133,90 +328,98 @@ func _draw() -> void:
 			else -1.0
 		)
 		var start_angle := (
-			_effect_time * speed * direction
+			_effect_time
+			* (
+				0.44
+				+ float(ring_index) * 0.18
+			)
+			* direction
 			+ float(ring_index)
 		)
-		var arc_length := (
-			PI * (1.15 + float(ring_index) * 0.12)
-		)
+		var alpha := (
+			0.58
+			- float(ring_index) * 0.12
+		) * _effect_strength
 
 		draw_arc(
 			center,
 			radius,
 			start_angle,
-			start_angle + arc_length,
-			64,
+			start_angle + PI * 0.86,
+			42,
 			Color(
-				0.64,
-				0.48 + float(ring_index) * 0.08,
+				0.68,
+				0.60 + float(ring_index) * 0.08,
 				1.0,
-				0.55 * _effect_strength
+				alpha
 			),
 			2.0,
 			true
 		)
 
-	for particle_index in range(18):
-		var seed := float(particle_index) * 0.73
+
+func _draw_transition_particles(
+	center: Vector2,
+	pulse: float
+) -> void:
+	for particle_index in range(22):
+		var seed := float(particle_index) * 0.71
 		var orbit := (
-			52.0
+			64.0
 			+ fmod(
-				_effect_time * (12.0 + float(particle_index % 5) * 2.0)
-				+ float(particle_index) * 19.0,
-				138.0
+				float(particle_index) * 19.0
+				+ _effect_time
+				* (
+					10.0
+					+ float(
+						particle_index % 5
+					)
+				),
+				150.0
 			)
 		)
 		var angle := (
 			seed
 			+ _effect_time
 			* (
-				0.20
-				+ float(particle_index % 4) * 0.04
+				0.16
+				+ float(
+					particle_index % 4
+				) * 0.035
 			)
 		)
-
-		var position := (
+		var point := (
 			center
-			+ Vector2(cos(angle), sin(angle))
-			* orbit
+			+ Vector2(
+				cos(angle),
+				sin(angle)
+			) * orbit
 		)
-
 		var alpha := (
-			0.18
+			0.20
 			+ 0.42
 			* (
 				0.5
 				+ 0.5
 				* sin(
-					_effect_time * 2.0
+					_effect_time * 1.8
 					+ seed
 				)
 			)
-		)
+		) * _effect_strength
 
 		draw_circle(
-			position,
-			1.5 + float(particle_index % 3),
-			Color(
-				0.74,
-				0.82,
-				1.0,
-				alpha * _effect_strength
-			),
-			true
-		)
-
-	if not _completed:
-		var core_radius := 22.0 + pulse * 5.0
-
-		draw_circle(
-			center,
-			core_radius,
+			point,
+			1.2
+			+ float(
+				particle_index % 3
+			) * 0.65
+			+ pulse * 0.25,
 			Color(
 				0.82,
-				0.90,
+				0.91,
 				1.0,
-				0.48 * _effect_strength
+				alpha
 			),
 			true
 		)
@@ -240,24 +443,28 @@ func _build_ui() -> void:
 
 	_status_label = Label.new()
 	_status_label.name = "GameStatusLabel"
-	_status_label.text = "Đang thức tỉnh..."
+	_status_label.text = "Đang thức tỉnh huyết mạch..."
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_status_label.anchor_left = 0.08
-	_status_label.anchor_top = 0.82
-	_status_label.anchor_right = 0.92
-	_status_label.anchor_bottom = 0.90
+	_status_label.anchor_left = 0.10
+	_status_label.anchor_top = 0.81
+	_status_label.anchor_right = 0.90
+	_status_label.anchor_bottom = 0.89
 	_status_label.add_theme_font_size_override(
 		"font_size",
-		16
+		17
 	)
 	_status_label.add_theme_constant_override(
 		"outline_size",
-		3
+		4
+	)
+	_status_label.add_theme_color_override(
+		"font_color",
+		Color(0.93, 0.96, 1.0, 0.96)
 	)
 	_status_label.add_theme_color_override(
 		"font_outline_color",
-		Color(0.04, 0.03, 0.08, 0.85)
+		Color(0.10, 0.05, 0.24, 0.96)
 	)
 	add_child(_status_label)
 
@@ -279,7 +486,7 @@ func _begin_transition() -> void:
 
 
 func _run_initial_birth() -> void:
-	_status_label.text = "Đang thức tỉnh..."
+	_status_label.text = "Đang thức tỉnh huyết mạch..."
 
 	var data := (
 		EvolutionBootstrapService.new()
@@ -378,9 +585,9 @@ func _render_until_success(
 
 	while is_inside_tree():
 		if _retry_count == 0:
-			_status_label.text = "Đang định hình thế giới..."
+			_status_label.text = "Chuỗi gen đang tái cấu trúc..."
 		else:
-			_status_label.text = "Dòng năng lượng đang ổn định lại..."
+			_status_label.text = "Dòng gen đang ổn định lại..."
 
 		var result: PetRenderResult = await (
 			_coordinator.render_initial(
@@ -421,7 +628,7 @@ func _render_until_success(
 				result.error_message,
 			]
 		)
-		_status_label.text = "Dòng năng lượng đang ổn định lại..."
+		_status_label.text = "Dòng gen đang ổn định lại..."
 
 		await get_tree().create_timer(
 			retry_delay
