@@ -2,6 +2,11 @@ class_name EvolutionInitialScreen
 extends Control
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+
+
 @onready var _pet_name_label: Label = %PetNameLabel
 @onready var _identity_label: Label = %IdentityLabel
 @onready var _status_label: Label = %StatusLabel
@@ -12,7 +17,7 @@ extends Control
 
 var _identity: PetIdentity
 var _genome: PetGenome
-var _scene_profile: PetSceneProfile
+var _scene_profile
 var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
@@ -48,7 +53,7 @@ func _bootstrap() -> void:
 	_genome = data.get("genome") as PetGenome
 	_scene_profile = data.get(
 		"scene_profile"
-	) as PetSceneProfile
+	)
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
@@ -230,7 +235,7 @@ func _try_load_existing_visual() -> bool:
 	if typeof(scene_value) != TYPE_DICTIONARY:
 		return false
 
-	var saved_scene := PetSceneProfile.from_dict(
+	var saved_scene = PetSceneProfileScript.from_dict(
 		scene_value as Dictionary
 	)
 
