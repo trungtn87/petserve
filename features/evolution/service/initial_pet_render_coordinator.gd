@@ -2,6 +2,11 @@ class_name InitialPetRenderCoordinator
 extends Node
 
 
+const CloudflareWorkersAIRendererScript = preload(
+	"res://features/evolution/render/cloudflare_workers_ai_renderer.gd"
+)
+
+
 var _render_service: PetRenderService
 
 
@@ -90,7 +95,7 @@ func render_initial(
 			"Không load được Cloudflare render config."
 		)
 
-	var renderer := CloudflareWorkersAIRenderer.new(
+	var renderer = CloudflareWorkersAIRendererScript.new(
 		config
 	)
 
