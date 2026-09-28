@@ -2,6 +2,14 @@ class_name EvolutionSaveService
 extends RefCounted
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
+
+
 const SAVE_PATH: String = (
 	"user://evolution_pet_v1.json"
 )
@@ -14,11 +22,11 @@ func save_initial(
 	genome: PetGenome,
 	visual: PetVisualRecord,
 	pet_name: String,
-	scene_profile: PetSceneProfile = null
+	scene_profile = null
 ) -> bool:
 	if scene_profile == null and identity != null:
 		scene_profile = (
-			PetSceneProfileFactory.new()
+			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
 
@@ -83,7 +91,7 @@ func load_data() -> Dictionary:
 	return parsed as Dictionary
 
 
-func load_scene_profile() -> PetSceneProfile:
+func load_scene_profile():
 	var data := load_data()
 
 	if data.is_empty():
@@ -97,6 +105,6 @@ func load_scene_profile() -> PetSceneProfile:
 	if typeof(value) != TYPE_DICTIONARY:
 		return null
 
-	return PetSceneProfile.from_dict(
+	return PetSceneProfileScript.from_dict(
 		value as Dictionary
 	)
