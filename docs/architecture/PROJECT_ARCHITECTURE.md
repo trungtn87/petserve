@@ -206,3 +206,36 @@ EvolutionInitialScreen
 ```
 
 The initial request intentionally has no source image. Future evolution editing will reuse the same renderer contract with EVOLUTION_IMAGE_EDIT and the previous PetVisualRecord as source.
+
+
+## M8 stage lifecycle
+
+```text
+PetHome
+   ↓
+InfantGameFacade (compatibility name)
+   ↓
+StageLifecycle
+   ↓
+StageLifecyclePolicy
+   ↓
+data/gameplay/lifecycle/stages.json
+```
+
+Evolution dependency:
+
+```text
+lifecycle ready + current PetGenome
+              ↓
+      StageEvolutionService
+              ↓
+ deterministic M3 EvolutionDelta
+              ↓
+     EvolutionEditCoordinator
+              ↓
+       EVOLUTION_IMAGE_EDIT
+              ↓
+ valid PNG → atomic evolution commit
+```
+
+Stage 1–3 share this path. Stage 4 is terminal for M8.
