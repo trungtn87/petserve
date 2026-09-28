@@ -5,6 +5,9 @@ extends Control
 const PetSceneProfileScript = preload(
 	"res://features/evolution/domain/pet_scene_profile.gd"
 )
+const PETHOME_SCENE: PackedScene = preload(
+	"res://scenes/pet/pet_home.tscn"
+)
 
 
 signal transition_completed(image_path: String)
@@ -46,6 +49,7 @@ var _retry_count: int = 0
 var _completed: bool = false
 var _fatal: bool = false
 var _transition_started_msec: int = 0
+var _pet_home_scheduled: bool = false
 
 
 func _ready() -> void:
@@ -597,6 +601,38 @@ func _finish_success(
 	transition_completed.emit(
 		image_path
 	)
+
+	_schedule_pet_home()
+
+
+func _schedule_pet_home() -> void:
+	if _pet_home_scheduled:
+		return
+
+	_pet_home_scheduled = true
+
+	var timer := get_tree().create_timer(
+		0.25
+	)
+	timer.timeout.connect(
+		_enter_pet_home,
+		CONNECT_ONE_SHOT
+	)
+
+
+func _enter_pet_home() -> void:
+	if not is_inside_tree():
+		return
+
+	var error := get_tree().change_scene_to_packed(
+		PETHOME_SCENE
+	)
+
+	if error != OK:
+		_pet_home_scheduled = false
+		push_error(
+			"EvolutionTransition: không chuyển được sang PetHome."
+		)
 
 
 func _show_fatal(
