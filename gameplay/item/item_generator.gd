@@ -300,7 +300,7 @@ func _generate_food(
 		"salvage_type": "food_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
-		"usable_stage": "infant",
+		"usable_stage": "growth",
 	}
 
 
@@ -370,7 +370,7 @@ func _generate_growth(
 		"salvage_type": "growth_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
-		"usable_stage": "infant",
+		"usable_stage": "growth",
 	}
 
 
