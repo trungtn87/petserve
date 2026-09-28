@@ -185,17 +185,18 @@ func _build_main_hud() -> void:
 	)
 	panel_color.a = 0.84
 
+	var accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	var soft_accent := accent
+	soft_accent.a = 0.65
+
 	panel.add_theme_stylebox_override(
 		"panel",
 		PetHomeThemeScript.panel_style(
 			panel_color,
-			Color(
-				_theme.get(
-					"accent",
-					Color.WHITE
-				),
-				0.65
-			),
+			soft_accent,
 			16
 		)
 	)
@@ -287,17 +288,14 @@ func _build_main_hud() -> void:
 			Color.WHITE
 		)
 	)
+	var menu_bg := panel_color
+	menu_bg.a = 0.86
+
 	_menu_button.add_theme_stylebox_override(
 		"normal",
 		PetHomeThemeScript.panel_style(
-			Color(
-				panel_color,
-				0.86
-			),
-			_theme.get(
-				"accent",
-				Color.WHITE
-			),
+			menu_bg,
+			accent,
 			14
 		)
 	)
