@@ -4,7 +4,7 @@ extends RefCounted
 
 const DURATION_SECONDS: int = 2 * 60 * 60
 const START_FOOD_SECONDS: int = 15 * 60
-const STARVED_GROWTH_MULTIPLIER: float = 0.25
+const STARVED_GROWTH_MULTIPLIER: float = 0.75
 const SAVE_INTERVAL: float = 5.0
 
 
