@@ -26,10 +26,15 @@ var _pet_state: PetState = PetState.new()
 var _behavior: PetBehaviorController = PetBehaviorController.new()
 
 var _infant_game: InfantGameFacade = InfantGameFacade.new()
+var _settings_panel: SettingsPanel
 var _hud_accumulator: float = 0.0
 
 
 func _ready() -> void:
+	_settings_panel = SettingsPanel.new()
+	_settings_panel.name = "SettingsPanel"
+	ui_layer.add_child(_settings_panel)
+
 	if home_menu != null and not home_menu.action_requested.is_connected(
 		_on_menu_action_requested
 	):
@@ -116,6 +121,9 @@ func _exit_tree() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _settings_panel != null and _settings_panel.is_open():
+		return
+
 	if entertainment_ui != null and entertainment_ui.is_open():
 		return
 
@@ -206,7 +214,9 @@ func _on_chest_open_requested() -> void:
 	var rewards := _infant_game.open_next_chest()
 
 	if rewards.is_empty():
-		gameplay_ui.show_message("Không có rương để mở.")
+		gameplay_ui.show_message(
+			LocalizationManager.text("INFANT_NO_CHEST", "No chest to open.")
+		)
 		return
 
 	gameplay_ui.show_chest_rewards(rewards)
@@ -272,6 +282,9 @@ func _on_menu_action_requested(action_id: StringName) -> void:
 			)
 		&"items":
 			gameplay_ui.open_inventory()
+		&"settings":
+			if _settings_panel != null:
+				_settings_panel.open_panel()
 		_:
 			action_requested.emit(action_id)
 			print("PetHome3D action requested: ", action_id)
