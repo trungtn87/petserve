@@ -1,7 +1,8 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://screens/pet_home/pet_home_3d_screen.gd" id="1_screen"]
-[ext_resource type="Script" path="res://screens/pet_home/pet_home_menu.gd" id="2_menu"]\n[ext_resource type="Script" path="res://screens/pet_home/pet_home_gameplay_ui.gd" id="3_gameplay"]
+[ext_resource type="Script" path="res://screens/pet_home/pet_home_menu.gd" id="2_menu"]
+[ext_resource type="Script" path="res://screens/pet_home/pet_home_gameplay_ui.gd" id="3_gameplay"]
 
 [sub_resource type="StyleBoxFlat" id="Style_menu_button"]
 bg_color = Color(0.12, 0.08, 0.22, 0.9)
@@ -131,7 +132,17 @@ fov = 34.0
 [node name="UILayer" type="CanvasLayer" parent="."]
 layer = 10
 
-[node name="GameplayUI" type="Control" parent="UILayer"]\nlayout_mode = 3\nanchors_preset = 15\nanchor_right = 1.0\nanchor_bottom = 1.0\ngrow_horizontal = 2\ngrow_vertical = 2\nmouse_filter = 2\nscript = ExtResource("3_gameplay")\n\n[node name="MenuOverlay" type="Control" parent="UILayer"]
+[node name="GameplayUI" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("3_gameplay")
+
+[node name="MenuOverlay" type="Control" parent="UILayer"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
