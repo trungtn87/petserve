@@ -26,7 +26,9 @@ func setup(
 		)
 		return
 
-	var current := _load_saved_state()
+	var current := _load_saved_state(
+		current_stage
+	)
 
 	if (
 		current.is_empty()
@@ -332,10 +334,44 @@ func advance_to_stage(
 
 
 func restore_state() -> void:
-	_state = _load_saved_state()
+	var stage_index := int(
+		_state.get(
+			"stage_index",
+			1
+		)
+	)
+	_state = _load_saved_state(
+		stage_index
+	)
 
 
-func _load_saved_state() -> Dictionary:
+func _load_saved_state(
+	preferred_stage: int = -1
+) -> Dictionary:
+	# M7 tests and old saves may still mutate/read infant_state directly.
+	if preferred_stage == 1:
+		var legacy: Variant = _meta.get(
+			"infant_state",
+			{}
+		)
+
+		if (
+			typeof(legacy) == TYPE_DICTIONARY
+			and not (
+				legacy as Dictionary
+			).is_empty()
+		):
+			var migrated := (
+				legacy as Dictionary
+			).duplicate(true)
+
+			if not migrated.has(
+				"stage_index"
+			):
+				migrated["stage_index"] = 1
+
+			return migrated
+
 	var value: Variant = _meta.get(
 		"life_state",
 		{}
@@ -351,28 +387,27 @@ func _load_saved_state() -> Dictionary:
 			value as Dictionary
 		).duplicate(true)
 
-	# Migrate the M7 infant-only state.
-	var legacy: Variant = _meta.get(
+	var fallback: Variant = _meta.get(
 		"infant_state",
 		{}
 	)
 
-	if typeof(legacy) != TYPE_DICTIONARY:
+	if typeof(fallback) != TYPE_DICTIONARY:
 		return {}
 
-	var migrated := (
-		legacy as Dictionary
+	var migrated_fallback := (
+		fallback as Dictionary
 	).duplicate(true)
 
-	if migrated.is_empty():
+	if migrated_fallback.is_empty():
 		return {}
 
-	if not migrated.has(
+	if not migrated_fallback.has(
 		"stage_index"
 	):
-		migrated["stage_index"] = 1
+		migrated_fallback["stage_index"] = 1
 
-	return migrated
+	return migrated_fallback
 
 
 func _new_stage_state(
