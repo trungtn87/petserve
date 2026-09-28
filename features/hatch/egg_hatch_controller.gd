@@ -35,50 +35,6 @@ func setup() -> bool:
 		)
 		return false
 
-
-	if not _egg_view.has_signal(
-		"hatch_effect_finished"
-	):
-		push_error(
-			"EggHatchController: EggView thiếu signal hatch_effect_finished."
-		)
-		return false
-
-
-	if not _egg_view.has_signal(
-		"hatch_whiteout"
-	):
-		push_error(
-			"EggHatchController: EggView thiếu signal hatch_whiteout."
-		)
-		return false
-
-
-	if not _egg_view.has_method(
-		"play_hatch_effect"
-	):
-		push_error(
-			"EggHatchController: EggView thiếu play_hatch_effect()."
-		)
-		return false
-
-
-	if not _egg_view.hatch_whiteout.is_connected(
-		_on_hatch_whiteout
-	):
-		_egg_view.hatch_whiteout.connect(
-			_on_hatch_whiteout
-		)
-
-
-	if not _egg_view.hatch_effect_finished.is_connected(
-		_on_hatch_effect_finished
-	):
-		_egg_view.hatch_effect_finished.connect(
-			_on_hatch_effect_finished
-		)
-
-
 	return true
 
 
@@ -90,35 +46,25 @@ func try_hatch() -> bool:
 	if _is_hatching:
 		return true
 
-
 	if not _egg.is_ready_to_hatch():
 		return false
-
 
 	if not _hatch.is_name_confirmed():
 		return false
 
-
 	_is_hatching = true
 	_next_phase_entered = false
 
+	# Không chạy hatch flash/whiteout nữa.
+	# Bấm nở sẽ chuyển ngay sang EvolutionTransitionScreen.
+	_hide_egg_presentation()
+	hatch_completed.emit()
 
-	_egg_view.call(
-		"play_hatch_effect"
-	)
-
+	if not _next_phase_entered:
+		_next_phase_entered = true
+		_enter_next_phase()
 
 	return true
-
-
-# =========================================================
-# WHITEOUT
-# =========================================================
-
-func _on_hatch_whiteout() -> void:
-	# Whiteout vẫn thuộc hiệu ứng của EggView.
-	# Không đổi scene ở đây vì EggView còn tiếp tục await/tween.
-	return
 
 
 # =========================================================
@@ -126,32 +72,7 @@ func _on_hatch_whiteout() -> void:
 # =========================================================
 
 func _enter_next_phase() -> void:
-	# Không tạo Egg mới ở đây nữa.
-	# App layer sẽ nhận signal và chuyển sang phase gameplay kế tiếp.
 	next_phase_requested.emit()
-
-
-# =========================================================
-# EFFECT COMPLETE
-# =========================================================
-
-func _on_hatch_effect_finished() -> void:
-	if not _is_hatching:
-		return
-
-
-	_is_hatching = false
-
-	_hide_egg_presentation()
-
-	hatch_completed.emit()
-
-
-	# Chỉ chuyển gameplay sau khi EggView đã hoàn tất toàn bộ
-	# timer/tween của hiệu ứng nở và không còn coroutine dang dở.
-	if not _next_phase_entered:
-		_next_phase_entered = true
-		_enter_next_phase()
 
 
 func _hide_egg_presentation() -> void:
