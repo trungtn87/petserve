@@ -133,7 +133,10 @@ func _finish_close() -> void:
 
 func _request_action(action_id: StringName) -> void:
 	action_requested.emit(action_id)
-	_show_action_toast(action_id)
+
+	if action_id != &"food" and action_id != &"items":
+		_show_action_toast(action_id)
+
 	close_menu()
 
 
