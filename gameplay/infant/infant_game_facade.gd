@@ -66,7 +66,10 @@ func claim_caro_win_reward() -> Dictionary:
 		return {
 			"ok": false,
 			"rewarded": false,
-			"message": "Ấu thể đã sẵn sàng tiến hóa • không nhận thêm rương.",
+			"message": LocalizationManager.text(
+				"CARO_REWARD_EVOLUTION_LOCK",
+				"Infant is ready to evolve • no more chests can be earned."
+			),
 		}
 
 	var result := _entertainment.claim_caro_win(_run_id)
@@ -101,13 +104,16 @@ func use_item(uid: String) -> Dictionary:
 	if item.is_empty():
 		return {
 			"ok": false,
-			"message": "Không tìm thấy vật phẩm.",
+			"message": LocalizationManager.text("ITEM_ERROR_NOT_FOUND", "Item not found."),
 		}
 
 	if not _inventory.can_use_in_infant(item):
 		return {
 			"ok": false,
-			"message": "Vật phẩm này được giữ lại cho giai đoạn sau.",
+			"message": LocalizationManager.text(
+				"ITEM_ERROR_LATER_STAGE",
+				"This item is reserved for a later stage."
+			),
 		}
 
 	var result := _lifecycle.apply_item(item)
@@ -118,12 +124,19 @@ func use_item(uid: String) -> Dictionary:
 	if not _inventory.remove_item(uid):
 		return {
 			"ok": false,
-			"message": "Đã áp dụng hiệu ứng nhưng không thể cập nhật kho đồ.",
+			"message": LocalizationManager.text(
+				"ITEM_ERROR_INVENTORY_UPDATE",
+				"Effect applied but inventory could not be updated."
+			),
 		}
 
 	save()
 
 	return result
+
+
+func item_name(item: Dictionary) -> String:
+	return _generator.display_name(item)
 
 
 func describe_item(item: Dictionary) -> String:
