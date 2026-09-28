@@ -1,0 +1,23 @@
+[
+  {
+    "stage": 1,
+    "duration_seconds": 7200,
+    "starting_food_seconds": 900,
+    "starved_growth_multiplier": 0.75,
+    "tutorial_protected": true
+  },
+  {
+    "stage": 2,
+    "duration_seconds": 172800,
+    "starting_food_seconds": 0,
+    "starved_growth_multiplier": 0.75,
+    "tutorial_protected": true
+  },
+  {
+    "stage": 3,
+    "duration_seconds": 259200,
+    "starting_food_seconds": 0,
+    "starved_growth_multiplier": 0.75,
+    "tutorial_protected": true
+  }
+]
