@@ -1,0 +1,77 @@
+keys,en,vi
+EGG_PREPARING_TASK,Preparing task...,Đang chuẩn bị nhiệm vụ...
+EGG_NAME_PROMPT,Name your pet,Hãy đặt tên cho pet
+EGG_READY_TO_HATCH,EGG READY TO HATCH,TRỨNG SẴN SÀNG NỞ
+EGG_SECONDS_FORMAT,%.1f / %.1f seconds,%.1f / %.1f giây
+HATCH_DIALOG_TITLE,✦  EGG ABOUT TO HATCH  ✦,✦  TRỨNG SẮP NỞ  ✦
+HATCH_DIALOG_DESCRIPTION,Name the new life,Đặt tên cho sinh mệnh mới
+HATCH_NAME_PLACEHOLDER,Pet name...,Tên của pet...
+HATCH_CONFIRM,CONFIRM,XÁC NHẬN
+HATCH_ERROR_EMPTY,Enter a name for your pet.,Hãy nhập tên cho pet.
+HATCH_ERROR_SHORT,Name is too short.,Tên quá ngắn.
+HATCH_ERROR_LONG,Name can contain at most %d characters.,Tên tối đa %d ký tự.
+HATCH_ERROR_INVALID_CHARACTER,Name contains an invalid character.,Tên chứa ký tự không hợp lệ.
+HATCH_ERROR_INVALID_NAME,Invalid name.,Tên không hợp lệ.
+HATCH_ERROR_NOT_READY,Hatch flow has not been initialized.,Hatch Flow chưa được khởi tạo.
+HATCH_ERROR_SAVE_NAME,Could not save the name. Try again.,Không lưu được tên. Hãy thử lại.
+HATCH_ERROR_CREATE_DATA,Could not create naming data.,Không tạo được dữ liệu đặt tên.
+EGG_ELEMENT_METAL,METAL,KIM
+EGG_ELEMENT_WOOD,WOOD,MỘC
+EGG_ELEMENT_WATER,WATER,THỦY
+EGG_ELEMENT_FIRE,FIRE,HỎA
+EGG_ELEMENT_EARTH,EARTH,THỔ
+EGG_ELEMENT_DARK,DARK,ÁM
+EGG_ELEMENT_LIGHT,LIGHT,QUANG
+EGG_ELEMENT_UNKNOWN,UNKNOWN,KHÔNG XÁC ĐỊNH
+EGG_TASK_STAGE_1_AWAKEN_INSTRUCTION,Tap the egg gently.,Chạm nhẹ vào quả trứng.
+EGG_TASK_STAGE_1_WARM_INSTRUCTION,Hold your finger on the egg.,Giữ tay trên quả trứng.
+EGG_TASK_STAGE_1_REST_INSTRUCTION,Leave the egg completely still.,Để quả trứng hoàn toàn yên.
+EGG_TASK_METAL_RESONANCE_INSTRUCTION,Tap gently to awaken the metal core.,Gõ nhẹ để đánh thức lõi kim loại.
+EGG_TASK_METAL_STABILITY_INSTRUCTION,Keep the egg completely still.,Giữ quả trứng hoàn toàn bất động.
+EGG_TASK_WOOD_NURTURE_INSTRUCTION,Keep it warm so the life sprout can grow.,Ủ ấm để mầm sống bên trong phát triển.
+EGG_TASK_WOOD_ROOT_INSTRUCTION,Leave the egg still so the sprout can take root.,Để quả trứng yên cho mầm bén rễ.
+EGG_TASK_WATER_RIPPLE_INSTRUCTION,Tap gently to create ripples inside.,Chạm nhẹ để tạo những nhịp gợn bên trong.
+EGG_TASK_WATER_FLOW_INSTRUCTION,Hold the egg to keep the energy flow stable.,Giữ tay để dòng năng lượng ổn định.
+EGG_TASK_FIRE_HEAT_INSTRUCTION,Hold the egg to raise the heat inside.,Giữ tay để nhiệt bên trong tăng lên.
+EGG_TASK_FIRE_SPARK_INSTRUCTION,Tap repeatedly to ignite the spark.,Chạm liên tiếp để kích hoạt tia lửa.
+EGG_TASK_EARTH_SETTLE_INSTRUCTION,Leave the inner core to settle on its own.,Để lớp lõi bên trong tự ổn định.
+EGG_TASK_EARTH_COMPACT_INSTRUCTION,Tap evenly to compact the inner structure.,Chạm đều để cấu trúc bên trong kết lại.
+EGG_TASK_DARK_SILENCE_INSTRUCTION,Do not touch the egg. Let darkness gather.,Không chạm vào trứng. Hãy để bóng tối tích tụ.
+EGG_TASK_DARK_FOCUS_INSTRUCTION,Hold the egg to focus dark energy.,Giữ tay để năng lượng tối hội tụ.
+EGG_TASK_LIGHT_CHARGE_INSTRUCTION,Tap the egg to gather light energy.,Chạm vào trứng để tích tụ quang năng.
+EGG_TASK_LIGHT_FOCUS_INSTRUCTION,Hold the egg to focus the light within.,Giữ tay để ánh sáng bên trong hội tụ.
+EGG_TASK_METAL_FORGE_CORE_INSTRUCTION,Tap evenly to finish forging the metal core.,Gõ đều lên vỏ trứng để lõi kim hoàn thiện.
+EGG_TASK_METAL_TEMPER_INSTRUCTION,Keep the egg stable while the inner metal tempers.,Giữ trứng ổn định để lớp kim bên trong được tôi luyện.
+EGG_TASK_METAL_STILLNESS_INSTRUCTION,Leave the egg still so the metal structure can crystallize.,Để trứng bất động cho cấu trúc kim loại kết tinh.
+EGG_TASK_WOOD_GROWTH_INSTRUCTION,Keep it warm so the life sprout continues to grow.,Ủ ấm để mầm sống bên trong tiếp tục lớn lên.
+EGG_TASK_WOOD_HEARTBEAT_INSTRUCTION,Tap evenly to awaken the heartbeat within.,Chạm đều để đánh thức nhịp sống bên trong.
+EGG_TASK_WOOD_ROOTING_INSTRUCTION,Leave the egg still so its life force can stabilize.,Để trứng yên cho sinh lực tự ổn định.
+EGG_TASK_WATER_PULSE_INSTRUCTION,Tap in a gentle rhythm to circulate the water within.,Chạm nhẹ theo từng nhịp để dòng nước bên trong lưu chuyển.
+EGG_TASK_WATER_CURRENT_INSTRUCTION,Hold the egg to keep the water energy flowing.,Giữ trứng để dòng năng lượng nước duy trì liên tục.
+EGG_TASK_WATER_CALM_INSTRUCTION,Do not touch the egg so the water force can balance.,Không chạm vào trứng để thủy lực bên trong trở nên cân bằng.
+EGG_TASK_FIRE_IGNITE_INSTRUCTION,Tap repeatedly to awaken the flame in the core.,Chạm liên tục để đánh thức ngọn lửa trong lõi.
+EGG_TASK_FIRE_CORE_HEAT_INSTRUCTION,Hold the egg until the fire core reaches the needed heat.,Giữ trứng để hỏa tâm đạt nhiệt độ cần thiết.
+EGG_TASK_FIRE_EMBER_INSTRUCTION,Leave the egg still so the flame can stabilize.,Để trứng yên để ngọn lửa tự ổn định.
+EGG_TASK_EARTH_CORE_INSTRUCTION,Leave the egg completely still so the earth core can stabilize.,Để trứng hoàn toàn yên cho lõi đất ổn định.
+EGG_TASK_EARTH_COMPACTION_INSTRUCTION,Tap evenly to bind the mineral layers together.,Chạm đều để các lớp khoáng chất kết lại.
+EGG_TASK_EARTH_NURTURE_INSTRUCTION,Keep it warm so the earth core absorbs its final energy.,Ủ ấm để lõi đất hấp thụ năng lượng cuối cùng.
+EGG_TASK_DARK_ABYSS_INSTRUCTION,Do not touch the egg. Let darkness cover the core.,Không chạm vào trứng. Để bóng tối tự bao phủ lõi.
+EGG_TASK_DARK_COMPRESSION_INSTRUCTION,Hold the egg to focus Dark energy into its center.,Giữ trứng để năng lượng Ám hội tụ vào tâm.
+EGG_TASK_DARK_ECHO_INSTRUCTION,Tap gently to call for a response from deep within.,Chạm nhẹ để gọi phản ứng từ sâu bên trong.
+EGG_TASK_LIGHT_AWAKEN_INSTRUCTION,Tap the egg to release the final rays of light.,Chạm vào trứng để giải phóng những tia sáng cuối cùng.
+EGG_TASK_LIGHT_CORE_INSTRUCTION,Hold the egg to focus light into its core.,Giữ trứng để ánh sáng hội tụ vào lõi.
+EGG_TASK_LIGHT_PURITY_INSTRUCTION,Leave the egg still so the light energy can stabilize.,Để trứng yên để quang năng trở nên ổn định.
+EGG_TASK_METAL_MUTATION_RESONANCE_INSTRUCTION,The Metal core is changing. Tap evenly to stabilize its resonance.,Lõi Kim đang biến đổi. Chạm đều để giữ cộng hưởng ổn định.
+EGG_TASK_METAL_MUTATION_STABILIZE_INSTRUCTION,Do not touch the egg. Let the new metal structure form itself.,Không chạm vào trứng. Hãy để cấu trúc kim loại mới tự hình thành.
+EGG_TASK_WOOD_MUTATION_OVERGROWTH_INSTRUCTION,Life force is surging. Hold the egg to sustain the change.,Sinh lực đang tăng bất thường. Giữ trứng để duy trì quá trình biến đổi.
+EGG_TASK_WOOD_MUTATION_PULSE_INSTRUCTION,Tap in rhythm to stabilize the new life pulse.,Chạm theo nhịp để ổn định mạch sống vừa xuất hiện.
+EGG_TASK_WATER_MUTATION_CURRENT_INSTRUCTION,A new energy flow is forming. Hold the egg so it does not collapse.,Dòng năng lượng mới đang hình thành. Giữ trứng để nó không tan rã.
+EGG_TASK_WATER_MUTATION_STILL_INSTRUCTION,Keep everything still so the Water core can fully transform.,Giữ mọi thứ tĩnh lặng để lõi Thủy biến đổi hoàn toàn.
+EGG_TASK_FIRE_MUTATION_INFERNO_INSTRUCTION,The fire core is unstable. Tap repeatedly to keep it from collapsing.,Hỏa tâm đang mất ổn định. Chạm liên tục để giữ nó không sụp đổ.
+EGG_TASK_FIRE_MUTATION_CORE_INSTRUCTION,Hold the egg so the new flame can finish transforming.,Giữ trứng để ngọn lửa mới hoàn tất quá trình biến đổi.
+EGG_TASK_EARTH_MUTATION_CRYSTAL_INSTRUCTION,Do not disturb the egg. A new mineral structure is forming.,Không tác động vào trứng. Một cấu trúc khoáng chất mới đang hình thành.
+EGG_TASK_EARTH_MUTATION_CORE_INSTRUCTION,Tap evenly to stabilize the mutated core.,Chạm đều để ép lõi biến dị đạt trạng thái ổn định.
+EGG_TASK_DARK_MUTATION_VOID_INSTRUCTION,Do not touch the egg. Something is forming in the darkness.,Đừng chạm vào trứng. Một thứ gì đó đang hình thành trong bóng tối.
+EGG_TASK_DARK_MUTATION_HEARTBEAT_INSTRUCTION,A strange heartbeat appeared. Tap to keep the connection.,Một nhịp sống lạ vừa xuất hiện. Chạm để giữ kết nối với nó.
+EGG_TASK_LIGHT_MUTATION_OVERLOAD_INSTRUCTION,The light exceeds normal limits. Hold the egg to stabilize the core.,Ánh sáng đang vượt khỏi giới hạn bình thường. Giữ trứng để ổn định lõi.
+EGG_TASK_LIGHT_MUTATION_PULSE_INSTRUCTION,Tap in rhythm to complete the new light source.,Chạm theo từng nhịp để nguồn sáng mới hoàn thiện.
