@@ -55,7 +55,12 @@ func traits_snapshot() -> Dictionary:
 
 
 func mutation_ids() -> Array[StringName]:
-	return _mutations.duplicate()
+	var result: Array[StringName] = []
+
+	for mutation_id in _mutations:
+		result.append(mutation_id)
+
+	return result
 
 
 func has_mutation(
