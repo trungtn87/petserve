@@ -125,3 +125,34 @@ new PetGenome
 ```
 
 The rule layer has no dependency on AI/image rendering, UI, Pet Home, chest/inventory or entertainment modules.
+
+
+## M4 visual-spec layer
+
+```text
+features/evolution/visual/
+├── pet_visual_spec.gd
+├── galaxy_style_profile.gd
+├── mutation_visual_definition.gd
+├── mutation_visual_catalog.gd
+├── pet_visual_spec_builder.gd
+└── pet_prompt_builder.gd
+```
+
+Dependency direction:
+
+```text
+Identity + Genome + EvolutionDelta
+              ↓
+      Visual definition data
+              ↓
+      PetVisualSpecBuilder
+              ↓
+        PetVisualSpec
+              ↓
+        PetPromptBuilder
+              ↓
+future renderer adapter
+```
+
+The visual layer may read evolution results but must never choose mutation probability, eligibility or gameplay outcomes.

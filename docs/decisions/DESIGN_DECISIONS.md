@@ -67,3 +67,22 @@ A mutation already recorded on a pet is not eligible again. Absolute uniqueness 
 
 ## EVO-016 — Evolution applies by snapshot replacement
 Applying an EvolutionDelta creates a new PetGenome snapshot. The old genome remains unchanged.
+
+
+## EVO-017 — M4 is renderer-neutral
+Visual Spec and Prompt Builder describe the desired edit but contain no vendor/model API assumptions.
+
+## EVO-018 — Galaxy Fantasy Chibi is the first locked visual family
+The baseline visual style is Galaxy Fantasy Chibi with one shared quality/style contract and element-specific accent palettes.
+
+## EVO-019 — Visual wording is separate from mutation probability
+Gameplay MutationDefinition remains independent from MutationVisualDefinition. Art prompt changes must not alter evolution weights or eligibility.
+
+## EVO-020 — Every rendered evolution starts from the previous pet image
+The future renderer must treat the previous individual pet image as the source of truth. M4 prompts explicitly request the same individual, not a new text-only character.
+
+## EVO-021 — M4 rejects multi-trait drift
+A visual spec is produced only when the M3 transition changes one target trait and appends one mutation. Any unrelated genome change invalidates the visual request.
+
+## EVO-022 — Galaxy detail stays restrained
+Galaxy style uses nebula gradients, glow and small stellar details as integrated accents. Full-body noisy star texture is explicitly rejected.

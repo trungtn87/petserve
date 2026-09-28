@@ -4,42 +4,37 @@ Godot Android portrait project.
 
 ## Current milestone
 
-M3 introduces deterministic Evolution Rules.
+M4 adds a renderer-neutral Galaxy visual specification and prompt builder.
 
 ```text
-PetIdentity
-    +
-PetGenome
-    +
-Mutation data
-    ↓
-EvolutionDelta
-    ↓
-new PetGenome
+M1 PetIdentity
+        +
+M2 PetGenome
+        +
+M3 EvolutionDelta
+        ↓
+M4 PetVisualSpec
+        ↓
+fixed Galaxy prompt contract
 ```
 
-Each M3 step changes exactly one trait and records exactly one new mutation.
+M4 still does not call an AI image model.
 
-Current separation:
+It guarantees that the future renderer is instructed to:
+- keep the same individual pet;
+- keep the Galaxy Fantasy Chibi art family;
+- apply only one M3 mutation;
+- preserve unrelated traits;
+- use restrained edit strength.
 
-- M1 PetIdentity = which individual this is;
-- M2 PetGenome = what this individual currently looks/develops like;
-- M3 Evolution Rules = which single controlled mutation happens next.
-
-AI image generation is still deliberately outside the gameplay domain.
-
-## Preserved baseline
-
-- Egg incubation v1.1.
-- Hatch and naming flow.
-- Core save/random infrastructure.
-- Side gameplay branches remain untouched.
+Gameplay mutation rules and visual prompt wording remain separate data layers.
 
 ## Test status
 
-M1/M2/M3 include test scripts. Local Godot execution is deferred until later as requested.
+M1–M4 include headless tests. Local execution is deferred until later as requested.
 
 See:
 - `docs/evolution/M1_PET_IDENTITY.md`
 - `docs/evolution/M2_PET_GENOME.md`
 - `docs/evolution/M3_EVOLUTION_RULES.md`
+- `docs/evolution/M4_VISUAL_SPEC.md`
