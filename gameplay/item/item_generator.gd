@@ -552,10 +552,9 @@ func _make_uid(
 	seed_value: int,
 	item_type: StringName
 ) -> String:
-	return "%s_%s_%s" % [
+	return "%s_%s" % [
 		String(item_type),
 		str(abs(seed_value)),
-		str(Time.get_ticks_usec()),
 	]
 
 
