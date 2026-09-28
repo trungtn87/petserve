@@ -139,7 +139,8 @@ func _start_generate(
 ) -> void:
 	_generate_button.disabled = true
 	_status_label.text = (
-		"Đang tạo Dark Galaxy infant từ prompt..."
+		"Đang tạo %s Galaxy infant từ prompt..."
+		% String(_identity.element()).to_upper()
 	)
 
 	var result: PetRenderResult = await (
