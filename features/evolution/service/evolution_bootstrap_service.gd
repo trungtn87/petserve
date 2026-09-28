@@ -61,7 +61,7 @@ func build_from_hatch() -> Dictionary:
 			"error": "Không tạo được Identity/Genome ban đầu.",
 		}
 
-	var scene_profile := (
+	var scene_profile = (
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
