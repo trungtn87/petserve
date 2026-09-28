@@ -147,6 +147,16 @@ func _initialize() -> void:
 		"initial negative prompt must reject pet-only and split outputs"
 	)
 
+	_expect(
+		request.positive_prompt.to_lower().contains(
+			"full-bleed vertical 9:16"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"fill the entire game screen edge to edge"
+		),
+		"PetHome render must target a full-screen 9:16 mobile composition"
+	)
+
 	var renderer = MockPetRendererScript.new()
 	var result = await renderer.render(request)
 
