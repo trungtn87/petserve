@@ -1,0 +1,15 @@
+keys,en,vi
+SETTINGS_TITLE,Settings,Cài đặt
+SETTINGS_LANGUAGE,Language,Ngôn ngữ
+SETTINGS_LANGUAGE_NOTE,Changes apply immediately and are saved on this device.,Thay đổi áp dụng ngay và được lưu trên thiết bị này.
+LANG_VIETNAMESE,Tiếng Việt,Tiếng Việt
+LANG_ENGLISH,English,English
+COMMON_CLOSE,Close,Đóng
+COMMON_CONFIRM,Confirm,Xác nhận
+COMMON_USE,Use,Dùng
+COMMON_LOCKED,Locked,Khóa
+COMMON_ITEM,Item,Vật phẩm
+COMMON_NO_ITEMS,No items.,Không có vật phẩm.
+TIME_HOURS_MINUTES,%dh %02dm,%dh %02dp
+TIME_MINUTES,%dm,%dp
+TIME_LT_MINUTE,<1m,<1p
