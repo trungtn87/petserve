@@ -16,6 +16,12 @@ const PetHomeMenuDecorScript = preload(
 signal action_requested(action_id: StringName)
 
 
+const PANEL_WIDTH: float = 164.0
+const PANEL_HEIGHT: float = 390.0
+const PANEL_TOP: float = 14.0
+const PANEL_RIGHT: float = 8.0
+
+
 var _theme: Dictionary = {}
 var _scrim: ColorRect
 var _panel: PanelContainer
@@ -29,10 +35,25 @@ func _ready() -> void:
 	set_anchors_preset(
 		Control.PRESET_FULL_RECT
 	)
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 
 	_build()
+
+	if not resized.is_connected(
+		_layout_panel
+	):
+		resized.connect(
+			_layout_panel
+		)
+
+	call_deferred(
+		"_layout_panel"
+	)
 
 
 func configure(
@@ -52,6 +73,8 @@ func open_drawer() -> void:
 	_animating = true
 	visible = true
 	mouse_filter = Control.MOUSE_FILTER_STOP
+
+	_layout_panel()
 
 	_scrim.modulate.a = 0.0
 	_panel.modulate.a = 0.0
@@ -152,14 +175,9 @@ func _build() -> void:
 	add_child(_scrim)
 
 	_panel = PanelContainer.new()
-	_panel.anchor_left = 0.48
-	_panel.anchor_top = 0.03
-	_panel.anchor_right = 0.975
-	_panel.anchor_bottom = 0.965
-	_panel.offset_left = 0.0
-	_panel.offset_top = 0.0
-	_panel.offset_right = 0.0
-	_panel.offset_bottom = 0.0
+	_panel.set_anchors_preset(
+		Control.PRESET_TOP_LEFT
+	)
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_panel)
 
@@ -199,7 +217,7 @@ func _build() -> void:
 	decor.name = "Decor"
 	decor.custom_minimum_size = Vector2(
 		0,
-		54
+		42
 	)
 	_content.add_child(decor)
 
@@ -257,7 +275,7 @@ func _add_action(
 	)
 	card.custom_minimum_size = Vector2(
 		0,
-		50
+		46
 	)
 	card.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
@@ -296,8 +314,8 @@ func _add_action(
 	var icon = PetHomeMenuIconScript.new()
 	icon.name = "Icon"
 	icon.custom_minimum_size = Vector2(
-		32,
-		32
+		28,
+		28
 	)
 	row.add_child(icon)
 
@@ -312,7 +330,7 @@ func _add_action(
 	)
 	label.add_theme_font_size_override(
 		"font_size",
-		12
+		11
 	)
 	row.add_child(label)
 
@@ -324,7 +342,7 @@ func _add_action(
 	)
 	chevron.add_theme_font_size_override(
 		"font_size",
-		17
+		15
 	)
 	row.add_child(chevron)
 
@@ -484,6 +502,76 @@ func _apply_theme() -> void:
 				"font_color",
 				muted
 			)
+
+
+func _layout_panel() -> void:
+	if _panel == null:
+		return
+
+	var viewport_width := maxf(
+		size.x,
+		1.0
+	)
+	var viewport_height := maxf(
+		size.y,
+		1.0
+	)
+
+	var panel_width := minf(
+		PANEL_WIDTH,
+		viewport_width - 16.0
+	)
+	var panel_height := minf(
+		PANEL_HEIGHT,
+		viewport_height - PANEL_TOP - 12.0
+	)
+
+	_panel.position = Vector2(
+		viewport_width
+		- panel_width
+		- PANEL_RIGHT,
+		PANEL_TOP
+	)
+	_panel.size = Vector2(
+		panel_width,
+		panel_height
+	)
+
+
+func _input(
+	event: InputEvent
+) -> void:
+	if (
+		not _is_open
+		or not visible
+		or _panel == null
+	):
+		return
+
+	var pressed := false
+	var pointer_position := Vector2.ZERO
+
+	if event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		pressed = mouse_event.pressed
+		pointer_position = mouse_event.position
+	elif event is InputEventScreenTouch:
+		var touch_event := event as InputEventScreenTouch
+		pressed = touch_event.pressed
+		pointer_position = touch_event.position
+	else:
+		return
+
+	if not pressed:
+		return
+
+	if _panel.get_global_rect().has_point(
+		pointer_position
+	):
+		return
+
+	close_drawer()
+	get_viewport().set_input_as_handled()
 
 
 func _on_scrim_input(
