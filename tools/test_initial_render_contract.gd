@@ -126,7 +126,7 @@ func _initialize() -> void:
 			"[UI SAFE LAYOUT]"
 		)
 		and request.positive_prompt.to_lower().contains(
-			"moonlit"
+			"pethome environment"
 		)
 		and request.positive_prompt.to_lower().contains(
 			"one coherent scene"
