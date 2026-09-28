@@ -4,58 +4,71 @@ Godot Android portrait project.
 
 ## Current visual direction
 
-The base art direction is now:
+Base art direction:
 
 ```text
 MYTHIC ELEMENTAL CHIBI
 ```
 
-not full-body Galaxy.
+M1–M4 remain provider-independent:
+- PetIdentity
+- PetGenome
+- deterministic evolution rules
+- Mythic visual/prompt specification
 
-Target infant look:
-- very cute kitten proportions;
-- slightly oversized rounded head;
-- compact body and short legs;
-- large glossy expressive eyes;
-- plush layered fur;
-- polished soft semi-3D illustration;
-- clean readable silhouette;
-- restrained mythic effects;
-- element identity concentrated in palette, eyes, one small forehead lineage sigil and a tail-centered effect.
+## M5/M6 development renderer
 
-The seven base element families are:
-- metal;
-- wood;
-- water;
-- fire;
-- earth;
-- dark;
-- light.
+The active development renderer is now:
 
-Internal M3 mutation IDs are intentionally unchanged so the stable rule layer does not move just because visual wording changes.
+```text
+Cloudflare Workers AI
+@cf/black-forest-labs/flux-2-klein-4b
+```
 
-## Current runtime
-
-M5 + M6 are wired into Godot:
+Flow:
 
 ```text
 Egg element + run seed
         ↓
 PetIdentity + initial PetGenome
         ↓
-Mythic infant visual spec
+Mythic infant prompt
         ↓
-text-to-image request
+Cloudflare Workers AI
         ↓
 PNG cached in user://pet_renders
 ```
 
-The first pet image still uses **no reference image**. That image becomes the visual origin for every later evolution edit.
+The first image uses no reference image and becomes the visual origin for later evolution edits.
 
-The development renderer now uses `gpt-image-2.5-sunburst` for the initial base image because the first image is the most important identity anchor.
+The provider boundary remains `PetRenderer`, so Cloudflare can later be replaced with a paid API without changing M1–M4.
 
-No API key is stored in the repository. The development adapter reads `OPENAI_API_KEY` from the environment.
+## Local development credentials
+
+No Cloudflare secret is stored in the repository.
+
+Godot reads:
+
+```text
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
+```
+
+from the environment.
+
+The token must have Workers AI permissions.
+
+This direct client-to-provider path is for development only. A production game must later use a backend/proxy so players never receive the provider token.
+
+## Current M6 output
+
+- model: FLUX.2 Klein 4B
+- width: 1024
+- height: 1024
+- result cached as PNG
+- infant render uses text-to-image
+- image-edit mode remains reserved for the next milestone
 
 ## Test status
 
-M1–M6 include headless/runtime test hooks. Local execution remains deferred until convenient.
+Local testing is active. Fix parser/runtime issues from the lowest milestone upward before changing higher-level behavior.

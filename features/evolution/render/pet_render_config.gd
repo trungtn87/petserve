@@ -3,33 +3,38 @@ extends RefCounted
 
 
 const DEFAULT_PATH: String = (
-	"res://data/evolution/render/openai_dev.json"
+	"res://data/evolution/render/cloudflare_dev.json"
 )
 
 
-var endpoint: String = ""
-var api_key_env: String = "OPENAI_API_KEY"
+var base_url: String = (
+	"https://api.cloudflare.com/client/v4/accounts"
+)
+var account_id_env: String = "CLOUDFLARE_ACCOUNT_ID"
+var api_token_env: String = "CLOUDFLARE_API_TOKEN"
 
-var initial_model: String = ""
-var edit_model: String = ""
+var initial_model: String = (
+	"@cf/black-forest-labs/flux-2-klein-4b"
+)
+var edit_model: String = (
+	"@cf/black-forest-labs/flux-2-klein-4b"
+)
 
-var size: String = "1024x1024"
-var quality: String = "high"
-var background: String = "transparent"
-var output_format: String = "png"
+var width: int = 1024
+var height: int = 1024
 
 var timeout_seconds: float = 180.0
 
 
 func is_valid() -> bool:
 	return (
-		not endpoint.is_empty()
-		and not api_key_env.is_empty()
+		not base_url.is_empty()
+		and not account_id_env.is_empty()
+		and not api_token_env.is_empty()
 		and not initial_model.is_empty()
 		and not edit_model.is_empty()
-		and not size.is_empty()
-		and not quality.is_empty()
-		and not output_format.is_empty()
+		and width > 0
+		and height > 0
 		and timeout_seconds > 0.0
 	)
 
@@ -74,35 +79,47 @@ static func load_from_path(
 	var data := parsed as Dictionary
 	var config := PetRenderConfig.new()
 
-	config.endpoint = str(
-		data.get("endpoint", "")
-	)
-	config.api_key_env = str(
+	config.base_url = str(
 		data.get(
-			"api_key_env",
-			"OPENAI_API_KEY"
+			"base_url",
+			config.base_url
+		)
+	)
+	config.account_id_env = str(
+		data.get(
+			"account_id_env",
+			config.account_id_env
+		)
+	)
+	config.api_token_env = str(
+		data.get(
+			"api_token_env",
+			config.api_token_env
 		)
 	)
 	config.initial_model = str(
-		data.get("initial_model", "")
+		data.get(
+			"initial_model",
+			config.initial_model
+		)
 	)
 	config.edit_model = str(
-		data.get("edit_model", "")
+		data.get(
+			"edit_model",
+			config.edit_model
+		)
 	)
-	config.size = str(
-		data.get("size", "1024x1024")
+	config.width = int(
+		data.get("width", config.width)
 	)
-	config.quality = str(
-		data.get("quality", "high")
-	)
-	config.background = str(
-		data.get("background", "transparent")
-	)
-	config.output_format = str(
-		data.get("output_format", "png")
+	config.height = int(
+		data.get("height", config.height)
 	)
 	config.timeout_seconds = float(
-		data.get("timeout_seconds", 180.0)
+		data.get(
+			"timeout_seconds",
+			config.timeout_seconds
+		)
 	)
 
 	if not config.is_valid():

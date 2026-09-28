@@ -115,3 +115,13 @@ M3 rule IDs remain stable even when M4 reinterpretation changes their art wordin
 
 ## EVO-031 — Initial identity render uses Sunburst
 The first text-to-image render uses gpt-image-2.5-sunburst in the development adapter because this image becomes the visual origin for the pet's later evolution lineage.
+
+
+## EVO-032 — Prototype renderer uses Cloudflare Workers AI
+M5/M6 development rendering uses FLUX.2 Klein 4B through Cloudflare Workers AI to keep prototype image generation within the available free quota.
+
+## EVO-033 — Provider choice does not enter gameplay domain
+Cloudflare is only a PetRenderer adapter. M1 identity, M2 genome, M3 rules and M4 visual specification remain provider-independent so a paid API can replace Cloudflare later.
+
+## EVO-034 — Direct Cloudflare credentials are development-only
+The local Godot test reads CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN from environment variables. Production builds must not ship this token.

@@ -1,0 +1,10 @@
+{
+  "base_url": "https://api.cloudflare.com/client/v4/accounts",
+  "account_id_env": "CLOUDFLARE_ACCOUNT_ID",
+  "api_token_env": "CLOUDFLARE_API_TOKEN",
+  "initial_model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "edit_model": "@cf/black-forest-labs/flux-2-klein-4b",
+  "width": 1024,
+  "height": 1024,
+  "timeout_seconds": 180
+}

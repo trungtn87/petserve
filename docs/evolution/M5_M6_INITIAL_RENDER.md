@@ -1,93 +1,70 @@
-# M5 + M6 — Godot Initial Mythic Pet Render
+# M5/M6 — Cloudflare Free Development Renderer
 
-## Goal
+## Decision
 
-Generate one complete infant pet directly inside the Godot pipeline without any sample/reference image.
+The paid OpenAI development adapter is replaced by Cloudflare Workers AI for the prototype.
 
-```text
-NO SOURCE IMAGE
-      ↓
-Identity + initial Genome
-      ↓
-Mythic Elemental infant prompt
-      ↓
-text-to-image renderer
-      ↓
-PNG
-      ↓
-Godot TextureRect
-```
-
-## Infant data contract
-
-The infant is still the least-developed pet state:
+Model:
 
 ```text
-stage = 1
-body_growth = 0.0
-traits = base
-mutations = []
+@cf/black-forest-labs/flux-2-klein-4b
 ```
 
-Element identity is visual lineage metadata, not a mutation. The initial image may therefore contain:
-- element-specific base palette;
-- element-specific eye color;
-- exactly one small lineage sigil;
-- one restrained tail-centered elemental effect.
-
-It must not contain advanced mutation features.
-
-## Target cat form
-
-The first cat image should resemble a premium soft mythical game mascot:
-- compact kitten body;
-- rounded slightly oversized head;
-- short legs;
-- huge glossy expressive eyes;
-- small triangular ears;
-- plush soft fur;
-- one fluffy tail;
-- front three-quarter standing pose;
-- transparent background;
-- no props or scenery.
-
-## Seven base looks
-
-- Metal: silver-gray + cool blue, tiny crystal cues.
-- Wood: cream/tan + leaf green, small leaf cues.
-- Water: pearl white + aqua/cyan, water wisps/droplets.
-- Fire: cream + orange/red, restrained flame tail.
-- Earth: tan/umber + olive, mineral dust/tiny pebbles.
-- Dark: smoky charcoal-indigo + violet, purple shadow mist and crescent lineage sigil.
-- Light: ivory/pearl + pale gold, soft radiant tail and luminous sigil.
-
-## Renderer
-
-Development config:
+The renderer contract itself is unchanged:
 
 ```text
-initial_model = gpt-image-2.5-sunburst
-edit_model    = gpt-image-2.5-sunburst
-size          = 1024x1024
-quality       = high
-background    = transparent
-output_format = png
+PetRenderRequest
+      ↓
+PetRenderer
+      ↓
+PetRenderResult
 ```
 
-No API key is committed. Godot reads `OPENAI_API_KEY` from the environment.
+This keeps the game independent from the image provider.
 
-## Expected live result
+## Initial render
+
+M6 sends a multipart REST request containing:
 
 ```text
-Egg/Hatch
-   ↓
-CAT + current element
-   ↓
-Mythic Elemental infant prompt
-   ↓
-one transparent PNG
-   ↓
-image visible in Godot
-   ↓
-that image becomes the visual origin for later image edits
+prompt
+width
+height
 ```
+
+to:
+
+```text
+/accounts/{ACCOUNT_ID}/ai/run/@cf/black-forest-labs/flux-2-klein-4b
+```
+
+The API token is sent as a Bearer token.
+
+The response image may be returned in the Workers AI JSON envelope as base64. The adapter also accepts a raw PNG/JPEG response defensively.
+
+Returned data is decoded into Godot `Image` and always cached locally as PNG.
+
+## Development environment
+
+Required:
+
+```text
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
+```
+
+No credential is committed.
+
+## Future evolution edit
+
+FLUX.2 Klein supports reference-image editing. The current M5 request enum already contains:
+
+```text
+EVOLUTION_IMAGE_EDIT
+```
+
+That mode is not enabled in this commit. The next image-edit milestone will attach the previous pet image as `input_image_0`.
+
+## Provider replacement
+
+If a later paid renderer is better, implement another `PetRenderer` adapter. Identity, genome, mutation rules and prompt builders must remain unchanged.
