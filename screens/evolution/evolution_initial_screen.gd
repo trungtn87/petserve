@@ -94,7 +94,7 @@ func _bootstrap() -> void:
 
 	if existing:
 		_status_label.text = (
-			"Ấu thể đã được tạo • dùng lại ảnh đã lưu."
+			"PetHome đã được tạo • dùng lại ảnh đã lưu."
 		)
 		_generate_button.text = "TẠO LẠI ẢNH"
 		return
@@ -189,7 +189,7 @@ func _start_generate(
 	)
 
 	_status_label.text = (
-		"Ấu thể Mythic đã tạo xong."
+		"PetHome Mythic đã tạo xong."
 	)
 	_generate_button.disabled = false
 	_generate_button.text = "TẠO LẠI ẢNH"
@@ -222,6 +222,27 @@ func _try_load_existing_visual() -> bool:
 	):
 		return false
 
+	var scene_value: Variant = data.get(
+		"scene_profile",
+		{}
+	)
+
+	if typeof(scene_value) != TYPE_DICTIONARY:
+		return false
+
+	var saved_scene := PetSceneProfile.from_dict(
+		scene_value as Dictionary
+	)
+
+	if (
+		saved_scene == null
+		or _scene_profile == null
+		or not saved_scene.same_profile(
+			_scene_profile
+		)
+	):
+		return false
+
 	var visual_value: Variant = data.get(
 		"current_visual",
 		{}
@@ -234,7 +255,11 @@ func _try_load_existing_visual() -> bool:
 		visual_value as Dictionary
 	)
 
-	if visual == null:
+	if (
+		visual == null
+		or visual.source_mode
+			!= &"initial_pethome_text_to_image"
+	):
 		return false
 
 	return _load_image_path(
