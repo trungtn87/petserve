@@ -3,6 +3,7 @@ extends RefCounted
 
 
 const CHEST_HATCH: StringName = &"hatch"
+const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
 
 
 var _meta: Dictionary = {}
@@ -43,6 +44,43 @@ func ensure_hatch_chest(run_id: int) -> void:
 	})
 
 	_meta["chest_queue"] = queue
+
+
+func ensure_infant_activity_chest(
+	run_id: int,
+	game_id: String,
+	reward_index: int
+) -> bool:
+	if reward_index <= 0:
+		return false
+
+	var queue: Array = _meta.get("chest_queue", [])
+	var uid := "infant_activity_%s_%s_%s" % [
+		run_id,
+		game_id,
+		reward_index,
+	]
+
+	for raw_chest in queue:
+		if typeof(raw_chest) != TYPE_DICTIONARY:
+			continue
+
+		var chest: Dictionary = raw_chest
+
+		if String(chest.get("uid", "")) == uid:
+			return true
+
+	queue.append({
+		"uid": uid,
+		"chest_type": String(CHEST_INFANT_ACTIVITY),
+		"run_id": run_id,
+		"game_id": game_id,
+		"reward_index": reward_index,
+		"opened": false,
+	})
+
+	_meta["chest_queue"] = queue
+	return true
 
 
 func pending_count() -> int:
@@ -109,6 +147,8 @@ func _roll_rewards(chest: Dictionary) -> Array[Dictionary]:
 	match chest_type:
 		CHEST_HATCH:
 			return _roll_hatch_chest(chest)
+		CHEST_INFANT_ACTIVITY:
+			return _roll_infant_activity_chest(chest)
 		_:
 			push_error("ChestService: unsupported chest: " + String(chest_type))
 			return []
@@ -155,6 +195,46 @@ func _roll_hatch_chest(chest: Dictionary) -> Array[Dictionary]:
 			rewards.append(item)
 
 	return rewards
+
+
+func _roll_infant_activity_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(chest.get("uid", "infant_activity"))
+	var channel := StringName("activity_%s" % uid)
+	var chest_seed := 0
+
+	if RandomManager.current_seed > 0:
+		chest_seed = RandomManager.derive_seed(channel)
+	else:
+		chest_seed = abs(hash(uid))
+
+	if chest_seed == 0:
+		chest_seed = 1
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = chest_seed
+
+	var item_type: StringName = (
+		ItemGenerator.TYPE_FOOD
+		if rng.randf() <= 0.72
+		else ItemGenerator.TYPE_GROWTH
+	)
+
+	var item_seed := abs(hash("%s:item" % chest_seed))
+
+	if item_seed == 0:
+		item_seed = chest_seed + 1
+
+	var item := _generator.generate_basic_infant(
+		item_type,
+		item_seed
+	)
+
+	if item.is_empty():
+		return []
+
+	return [item]
 
 
 func _reward_uids(rewards: Array[Dictionary]) -> Array[String]:
