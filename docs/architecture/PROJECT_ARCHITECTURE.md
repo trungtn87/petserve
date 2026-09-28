@@ -57,3 +57,15 @@ Main/root scripts coordinate lifecycle and routing only. Domain rules must not b
 ## Stable baseline rule
 
 Egg v1.1 and Hatch remain working baseline modules while Evolution Core is developed in isolated milestones.
+
+
+## M1 domain
+
+```text
+features/evolution/
+└── domain/
+    ├── pet_identity.gd
+    └── pet_identity_factory.gd
+```
+
+PetIdentity is the root of future Evolution Core data. Future Genome, EvolutionRule and VisualSpec layers may depend on identity, but identity must not depend on them.

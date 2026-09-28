@@ -2,22 +2,32 @@
 
 Godot Android portrait project.
 
-## M0 — Clean baseline
+## Current milestone
 
-M0 removes the retired pet presentation experiments so the next implementation starts from a small, controlled base.
+M1 introduces the first Evolution Core domain object: `PetIdentity`.
 
-Kept:
+Stable identity contains only:
+- pet id;
+- species;
+- element;
+- lineage seed;
+- generation.
+
+It deliberately contains no visual, stage, mutation or AI-render data.
+
+## Preserved baseline
+
 - Core infrastructure and local save/load.
 - Egg incubation v1.1.
 - Hatch and naming flow.
 - Main UI and Android project configuration.
 - Independent feature branches remain untouched.
 
-Removed from the M0 branch:
-- 3D pet runtime, models, rigs and test tooling.
-- 2D/2.5D pet actor/presentation code.
-- Pet idle/expression/motion/interaction systems.
-- Pet Home runtime and old room definitions.
-- Old pet-specific runtime assets and implementation docs.
+## Retired from the active baseline
 
-After hatching, the app currently routes to a static Evolution Core placeholder. M1 will replace that placeholder with the new evolution-domain foundation.
+- 3D pet runtime.
+- 2D/2.5D pet presentation runtime.
+- Pet idle/expression/motion/interaction systems.
+- Old Pet Home runtime.
+
+See `docs/evolution/M1_PET_IDENTITY.md` for the M1 contract and test.

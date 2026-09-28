@@ -31,3 +31,10 @@ Egg incubation, hatch and naming remain baseline behavior until an evolution rep
 
 ## ARCH-004 — Side branches are historical/experimental references
 M0 cleanup must not rewrite or delete existing side branches.
+
+
+## EVO-006 — PetIdentity is immutable across evolution
+A single pet life keeps the same pet_id, species, element, lineage_seed and generation through every later growth/evolution visual change. Stage, genome mutations and rendered images must not be stored as identity fields.
+
+## EVO-007 — Identity is deterministic
+The same species + element + lineage_seed + generation must produce the same pet_id. Identity generation must not depend on AI output or image content.
