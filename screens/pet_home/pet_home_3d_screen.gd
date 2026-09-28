@@ -60,6 +60,9 @@ func _ready() -> void:
 
 	if gameplay_ui != null:
 		gameplay_ui.bind(_infant_game)
+		gameplay_ui.set_pet_identity(
+			REFERENCE_PET.display_name
+		)
 
 	if not apply_home(DEFAULT_HOME):
 		push_error("PetHome3DScreen: default home could not be applied.")
