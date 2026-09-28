@@ -1,0 +1,663 @@
+class_name PetHomeScreen
+extends Control
+
+
+const PetHomeThemeScript = preload(
+	"res://screens/pet_home/pet_home_theme.gd"
+)
+const PetHomeDrawerScript = preload(
+	"res://screens/pet_home/pet_home_drawer.gd"
+)
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+
+
+var _theme: Dictionary = {}
+var _data: Dictionary = {}
+
+var _background: TextureRect
+var _name_label: Label
+var _summary_label: Label
+var _menu_button: Button
+var _drawer
+var _section_overlay: Control
+var _section_title: Label
+var _section_body: VBoxContainer
+
+
+func _ready() -> void:
+	set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
+	if not _load_pet():
+		push_error(
+			"PetHomeScreen: không load được pet hiện tại."
+		)
+		return
+
+	_build_background()
+	_build_main_hud()
+	_build_drawer()
+	_build_section_overlay()
+
+
+func _unhandled_input(
+	event: InputEvent
+) -> void:
+	if (
+		event.is_action_pressed(
+			"ui_cancel"
+		)
+		and _drawer != null
+		and _drawer.is_open()
+	):
+		_drawer.close_drawer()
+		get_viewport().set_input_as_handled()
+
+
+func _load_pet() -> bool:
+	_data = EvolutionSaveService.new().load_data()
+
+	if _data.is_empty():
+		return false
+
+	var identity_value: Variant = _data.get(
+		"identity",
+		{}
+	)
+	var genome_value: Variant = _data.get(
+		"genome",
+		{}
+	)
+	var visual_value: Variant = _data.get(
+		"current_visual",
+		{}
+	)
+	var scene_value: Variant = _data.get(
+		"scene_profile",
+		{}
+	)
+
+	if (
+		typeof(identity_value) != TYPE_DICTIONARY
+		or typeof(genome_value) != TYPE_DICTIONARY
+		or typeof(visual_value) != TYPE_DICTIONARY
+		or typeof(scene_value) != TYPE_DICTIONARY
+	):
+		return false
+
+	var identity := PetIdentity.from_dict(
+		identity_value as Dictionary
+	)
+	var genome := PetGenome.from_dict(
+		genome_value as Dictionary
+	)
+	var visual := PetVisualRecord.from_dict(
+		visual_value as Dictionary
+	)
+	var scene = PetSceneProfileScript.from_dict(
+		scene_value as Dictionary
+	)
+
+	if (
+		identity == null
+		or genome == null
+		or visual == null
+		or scene == null
+		or not FileAccess.file_exists(
+			visual.image_path
+		)
+	):
+		return false
+
+	_data["_identity_object"] = identity
+	_data["_genome_object"] = genome
+	_data["_visual_object"] = visual
+	_data["_scene_object"] = scene
+
+	_theme = PetHomeThemeScript.for_element(
+		identity.element()
+	)
+
+	return true
+
+
+func _build_background() -> void:
+	var visual = _data.get(
+		"_visual_object"
+	)
+
+	var image := Image.new()
+	var error := image.load(
+		visual.image_path
+	)
+
+	if error != OK:
+		push_error(
+			"PetHomeScreen: không load được ảnh PetHome."
+		)
+		return
+
+	_background = TextureRect.new()
+	_background.name = "PetHomeVisual"
+	_background.texture = (
+		ImageTexture.create_from_image(
+			image
+		)
+	)
+	_background.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
+	)
+	_background.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	)
+	_background.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_background.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	add_child(_background)
+
+
+func _build_main_hud() -> void:
+	var identity = _data.get(
+		"_identity_object"
+	)
+	var genome = _data.get(
+		"_genome_object"
+	)
+
+	var panel := PanelContainer.new()
+	panel.name = "PetSummary"
+	panel.anchor_left = 0.045
+	panel.anchor_top = 0.035
+	panel.anchor_right = 0.72
+	panel.anchor_bottom = 0.17
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = 0.84
+
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			Color(
+				_theme.get(
+					"accent",
+					Color.WHITE
+				),
+				0.65
+			),
+			16
+		)
+	)
+	add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		14
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		14
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		10
+	)
+	panel.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(
+		"separation",
+		2
+	)
+	margin.add_child(box)
+
+	_name_label = Label.new()
+	_name_label.text = str(
+		_data.get(
+			"pet_name",
+			"PET"
+		)
+	)
+	_name_label.add_theme_font_size_override(
+		"font_size",
+		20
+	)
+	_name_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	box.add_child(_name_label)
+
+	_summary_label = Label.new()
+	_summary_label.text = _summary_text(
+		identity,
+		genome
+	)
+	_summary_label.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_summary_label.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	_summary_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color("#C3B2E8")
+		)
+	)
+	box.add_child(_summary_label)
+
+	_menu_button = Button.new()
+	_menu_button.name = "MenuButton"
+	_menu_button.text = "☰"
+	_menu_button.focus_mode = Control.FOCUS_NONE
+	_menu_button.anchor_left = 0.84
+	_menu_button.anchor_top = 0.035
+	_menu_button.anchor_right = 0.955
+	_menu_button.anchor_bottom = 0.105
+	_menu_button.add_theme_font_size_override(
+		"font_size",
+		22
+	)
+	_menu_button.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	_menu_button.add_theme_stylebox_override(
+		"normal",
+		PetHomeThemeScript.panel_style(
+			Color(
+				panel_color,
+				0.86
+			),
+			_theme.get(
+				"accent",
+				Color.WHITE
+			),
+			14
+		)
+	)
+	_menu_button.pressed.connect(
+		_on_menu_pressed
+	)
+	add_child(_menu_button)
+
+
+func _build_drawer() -> void:
+	_drawer = PetHomeDrawerScript.new()
+	_drawer.name = "SideDrawer"
+	add_child(_drawer)
+	_drawer.configure(
+		_theme
+	)
+	_drawer.action_requested.connect(
+		_on_drawer_action
+	)
+
+
+func _build_section_overlay() -> void:
+	_section_overlay = Control.new()
+	_section_overlay.name = "SectionOverlay"
+	_section_overlay.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_section_overlay.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+	_section_overlay.visible = false
+	add_child(_section_overlay)
+
+	var scrim := ColorRect.new()
+	scrim.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	scrim.color = Color(
+		0.01,
+		0.01,
+		0.02,
+		0.62
+	)
+	_section_overlay.add_child(scrim)
+
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.07
+	panel.anchor_top = 0.10
+	panel.anchor_right = 0.93
+	panel.anchor_bottom = 0.90
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = 0.97
+
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			_theme.get(
+				"accent",
+				Color.WHITE
+			),
+			18
+		)
+	)
+	_section_overlay.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		14
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		16
+	)
+	panel.add_child(margin)
+
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override(
+		"separation",
+		10
+	)
+	margin.add_child(root)
+
+	var header := HBoxContainer.new()
+	root.add_child(header)
+
+	_section_title = Label.new()
+	_section_title.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_section_title.add_theme_font_size_override(
+		"font_size",
+		20
+	)
+	_section_title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	header.add_child(_section_title)
+
+	var close := Button.new()
+	close.text = "×"
+	close.focus_mode = Control.FOCUS_NONE
+	close.custom_minimum_size = Vector2(
+		40,
+		40
+	)
+	close.pressed.connect(
+		_close_section
+	)
+	header.add_child(close)
+
+	var separator := HSeparator.new()
+	separator.modulate = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	separator.modulate.a = 0.45
+	root.add_child(separator)
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	scroll.horizontal_scroll_mode = (
+		ScrollContainer.SCROLL_MODE_DISABLED
+	)
+	root.add_child(scroll)
+
+	_section_body = VBoxContainer.new()
+	_section_body.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_section_body.add_theme_constant_override(
+		"separation",
+		8
+	)
+	scroll.add_child(_section_body)
+
+
+func _summary_text(
+	identity: PetIdentity,
+	genome: PetGenome
+) -> String:
+	var growth := int(
+		round(
+			genome.body_growth()
+			* 100.0
+		)
+	)
+
+	return "Hệ %s • %s • Trưởng thành %d%%" % [
+		PetHomeThemeScript.element_label(
+			identity.element()
+		),
+		PetHomeThemeScript.stage_label(
+			genome.stage()
+		),
+		growth,
+	]
+
+
+func _on_menu_pressed() -> void:
+	if _drawer == null:
+		return
+
+	_drawer.open_drawer()
+
+
+func _on_drawer_action(
+	action_id: StringName
+) -> void:
+	match action_id:
+		&"pet_info":
+			_open_pet_info()
+		&"chest":
+			_open_placeholder(
+				"Rương đồ"
+			)
+		&"entertainment":
+			_open_placeholder(
+				"Giải trí"
+			)
+		&"evolution":
+			_open_placeholder(
+				"Tiến hóa"
+			)
+		&"settings":
+			_open_placeholder(
+				"Cài đặt"
+			)
+
+
+func _open_pet_info() -> void:
+	var identity = _data.get(
+		"_identity_object"
+	)
+	var genome = _data.get(
+		"_genome_object"
+	)
+	var scene = _data.get(
+		"_scene_object"
+	)
+
+	_prepare_section(
+		"Thông tin pet"
+	)
+
+	_add_info_row(
+		"Tên",
+		str(
+			_data.get(
+				"pet_name",
+				"PET"
+			)
+		)
+	)
+	_add_info_row(
+		"Hệ",
+		PetHomeThemeScript.element_label(
+			identity.element()
+		)
+	)
+	_add_info_row(
+		"Giai đoạn",
+		PetHomeThemeScript.stage_label(
+			genome.stage()
+		)
+	)
+	_add_info_row(
+		"Trưởng thành",
+		"%d%%" % int(
+			round(
+				genome.body_growth()
+				* 100.0
+			)
+		)
+	)
+	_add_info_row(
+		"Loài",
+		String(
+			identity.species()
+		).capitalize()
+	)
+	_add_info_row(
+		"Thế hệ",
+		str(
+			identity.generation()
+			+ 1
+		)
+	)
+	_add_info_row(
+		"Phong cách",
+		String(
+			scene.palette_id
+		).replace(
+			"_",
+			" "
+		).capitalize()
+	)
+
+	_section_overlay.visible = true
+
+
+func _open_placeholder(
+	title: String
+) -> void:
+	_prepare_section(
+		title
+	)
+
+	var label := Label.new()
+	label.text = (
+		"Lối vào %s đã sẵn sàng. "
+		+ "Nội dung chức năng sẽ được nối ở bước tiếp theo."
+	) % title
+	label.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	label.add_theme_font_size_override(
+		"font_size",
+		13
+	)
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	_section_body.add_child(label)
+
+	_section_overlay.visible = true
+
+
+func _prepare_section(
+	title: String
+) -> void:
+	_section_title.text = title
+
+	for child in _section_body.get_children():
+		child.queue_free()
+
+
+func _add_info_row(
+	label_text: String,
+	value_text: String
+) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(
+		"separation",
+		10
+	)
+	_section_body.add_child(row)
+
+	var label := Label.new()
+	label.text = label_text
+	label.custom_minimum_size.x = 92
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	row.add_child(label)
+
+	var value := Label.new()
+	value.text = value_text
+	value.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	value.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	value.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	row.add_child(value)
+
+
+func _close_section() -> void:
+	_section_overlay.visible = false
