@@ -18,7 +18,8 @@ var _data: Dictionary = {}
 
 var _background: TextureRect
 var _name_label: Label
-var _summary_label: Label
+var _growth_bar: ProgressBar
+var _fullness_bar: ProgressBar
 var _menu_button: Button
 var _drawer
 var _section_overlay: Control
@@ -164,19 +165,28 @@ func _build_background() -> void:
 
 
 func _build_main_hud() -> void:
-	var identity = _data.get(
-		"_identity_object"
-	)
 	var genome = _data.get(
 		"_genome_object"
 	)
+
+	var growth_percent := clampi(
+		int(
+			round(
+				genome.body_growth()
+				* 100.0
+			)
+		),
+		0,
+		100
+	)
+	var fullness_percent := _current_fullness_percent()
 
 	var panel := PanelContainer.new()
 	panel.name = "PetSummary"
 	panel.anchor_left = 0.045
 	panel.anchor_top = 0.035
 	panel.anchor_right = 0.72
-	panel.anchor_bottom = 0.17
+	panel.anchor_bottom = 0.205
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var panel_color: Color = _theme.get(
@@ -224,7 +234,7 @@ func _build_main_hud() -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(
 		"separation",
-		2
+		6
 	)
 	margin.add_child(box)
 
@@ -248,26 +258,18 @@ func _build_main_hud() -> void:
 	)
 	box.add_child(_name_label)
 
-	_summary_label = Label.new()
-	_summary_label.text = _summary_text(
-		identity,
-		genome
+	_growth_bar = _add_meter(
+		box,
+		"Trưởng thành",
+		growth_percent,
+		accent
 	)
-	_summary_label.autowrap_mode = (
-		TextServer.AUTOWRAP_WORD_SMART
+	_fullness_bar = _add_meter(
+		box,
+		"Độ no",
+		fullness_percent,
+		accent
 	)
-	_summary_label.add_theme_font_size_override(
-		"font_size",
-		11
-	)
-	_summary_label.add_theme_color_override(
-		"font_color",
-		_theme.get(
-			"muted",
-			Color("#C3B2E8")
-		)
-	)
-	box.add_child(_summary_label)
 
 	_menu_button = Button.new()
 	_menu_button.name = "MenuButton"
@@ -303,6 +305,140 @@ func _build_main_hud() -> void:
 		_on_menu_pressed
 	)
 	add_child(_menu_button)
+
+
+func _add_meter(
+	parent: VBoxContainer,
+	label_text: String,
+	percent: int,
+	accent: Color
+) -> ProgressBar:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(
+		"separation",
+		8
+	)
+	parent.add_child(row)
+
+	var label := Label.new()
+	label.text = label_text
+	label.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	label.add_theme_font_size_override(
+		"font_size",
+		10
+	)
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	row.add_child(label)
+
+	var value := Label.new()
+	value.text = "%d%%" % percent
+	value.add_theme_font_size_override(
+		"font_size",
+		10
+	)
+	value.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	row.add_child(value)
+
+	var bar := ProgressBar.new()
+	bar.min_value = 0.0
+	bar.max_value = 100.0
+	bar.value = percent
+	bar.show_percentage = false
+	bar.custom_minimum_size = Vector2(
+		0,
+		10
+	)
+
+	var track := PetHomeThemeScript.panel_style(
+		Color(0.02, 0.02, 0.04, 0.48),
+		Color(0.0, 0.0, 0.0, 0.0),
+		6
+	)
+	bar.add_theme_stylebox_override(
+		"background",
+		track
+	)
+
+	var fill_color := accent
+	fill_color.a = 0.92
+	var fill := PetHomeThemeScript.panel_style(
+		fill_color,
+		fill_color,
+		6
+	)
+	bar.add_theme_stylebox_override(
+		"fill",
+		fill
+	)
+
+	parent.add_child(bar)
+
+	return bar
+
+
+func _current_fullness_percent() -> int:
+	var state_value: Variant = _data.get(
+		"pet_home_state",
+		{}
+	)
+
+	if typeof(state_value) != TYPE_DICTIONARY:
+		return 100
+
+	var state := state_value as Dictionary
+
+	if state.has(
+		"fullness_percent"
+	):
+		return clampi(
+			int(
+				state.get(
+					"fullness_percent",
+					100
+				)
+			),
+			0,
+			100
+		)
+
+	if state.has(
+		"fullness"
+	):
+		var fullness := float(
+			state.get(
+				"fullness",
+				1.0
+			)
+		)
+
+		if fullness <= 1.0:
+			fullness *= 100.0
+
+		return clampi(
+			int(
+				round(
+					fullness
+				)
+			),
+			0,
+			100
+		)
+
+	return 100
 
 
 func _build_drawer() -> void:
@@ -450,28 +586,6 @@ func _build_section_overlay() -> void:
 		8
 	)
 	scroll.add_child(_section_body)
-
-
-func _summary_text(
-	identity: PetIdentity,
-	genome: PetGenome
-) -> String:
-	var growth := int(
-		round(
-			genome.body_growth()
-			* 100.0
-		)
-	)
-
-	return "Hệ %s • %s • Trưởng thành %d%%" % [
-		PetHomeThemeScript.element_label(
-			identity.element()
-		),
-		PetHomeThemeScript.stage_label(
-			genome.stage()
-		),
-		growth,
-	]
 
 
 func _on_menu_pressed() -> void:
