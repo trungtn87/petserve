@@ -19,7 +19,7 @@ func build_positive(
 	)
 
 	sections.append(
-		"[GALAXY STYLE]\n"
+		"[MYTHIC ELEMENTAL STYLE]\n"
 		+ spec.style_prompt()
 	)
 

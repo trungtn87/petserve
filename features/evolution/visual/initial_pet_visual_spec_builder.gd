@@ -5,7 +5,7 @@ extends RefCounted
 func build(
 	identity: PetIdentity,
 	genome: PetGenome,
-	style: GalaxyStyleProfile,
+	style: MythicStyleProfile,
 	species_profile: InitialSpeciesProfile
 ) -> InitialPetVisualSpec:
 	if (
@@ -56,12 +56,12 @@ func build(
 		+ String(identity.species())
 		+ ". Element family: "
 		+ String(identity.element())
-		+ ". This image establishes the character identity that all later evolution images must preserve."
+		+ ". This image establishes the permanent visual identity that all later evolution images must preserve."
 	)
 
 	spec.style_section = (
 		style.base_style()
-		+ " Element accent: "
+		+ " Element lineage appearance: "
 		+ style.accent_for(
 			identity.element()
 		)
@@ -77,13 +77,14 @@ func build(
 
 	spec.future_space_section = (
 		"This is the clean infant base form before any mutation. "
-		+ "Keep the design visually complete and beautiful but deliberately leave room for later evolution. "
+		+ "The pet should already look polished, lovable and mythic, but remain visually simple enough for many later evolution steps. "
+		+ "Element lineage cues are allowed only as stable base identity: palette, eye color, one small forehead sigil and one restrained tail-centered effect. "
 		+ species_profile.forbidden_advanced_features
 	)
 
 	spec.negative_prompt = (
 		style.negative_prompt()
-		+ ", adult body, mature proportions, advanced evolution form, heavy armor, elaborate accessories, wings, horns, multiple mutation features"
+		+ ", adult body, mature proportions, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
 	)
 
 	if not spec.is_valid():

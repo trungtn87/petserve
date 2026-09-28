@@ -16,8 +16,8 @@ const MutationCatalogScript = preload(
 const GenomeDeltaApplierScript = preload(
 	"res://features/evolution/rules/genome_delta_applier.gd"
 )
-const GalaxyStyleProfileScript = preload(
-	"res://features/evolution/visual/galaxy_style_profile.gd"
+const MythicStyleProfileScript = preload(
+	"res://features/evolution/visual/mythic_style_profile.gd"
 )
 const MutationVisualCatalogScript = preload(
 	"res://features/evolution/visual/mutation_visual_catalog.gd"
@@ -54,13 +54,13 @@ func _initialize() -> void:
 
 func _test_style_profile() -> void:
 	var style = (
-		GalaxyStyleProfileScript
+		MythicStyleProfileScript
 		.load_default()
 	)
 
 	_expect(
 		style != null and style.is_valid(),
-		"galaxy style profile must load"
+		"mythic style profile must load"
 	)
 
 	if style == null:
@@ -79,7 +79,7 @@ func _test_style_profile() -> void:
 			not style.accent_for(
 				element
 			).is_empty(),
-			"all seven elements need galaxy accent text"
+			"all seven elements need mythic accent text"
 		)
 
 
@@ -166,7 +166,7 @@ func _test_build_visual_spec() -> void:
 			genome,
 			next_genome,
 			delta,
-			GalaxyStyleProfileScript.load_default(),
+			MythicStyleProfileScript.load_default(),
 			visual
 		)
 	)
@@ -246,7 +246,7 @@ func _test_prompt_contract() -> void:
 			genome,
 			next_genome,
 			delta,
-			GalaxyStyleProfileScript.load_default(),
+			MythicStyleProfileScript.load_default(),
 			visual
 		)
 	)
@@ -266,7 +266,7 @@ func _test_prompt_contract() -> void:
 			"[IDENTITY LOCK]"
 		)
 		and positive.contains(
-			"[GALAXY STYLE]"
+			"[MYTHIC ELEMENTAL STYLE]"
 		)
 		and positive.contains(
 			"[CHANGE ONLY]"
@@ -286,9 +286,9 @@ func _test_prompt_contract() -> void:
 
 	_expect(
 		positive.contains(
-			"Galaxy Fantasy Chibi"
+			"Mythic Elemental Chibi"
 		),
-		"prompt must lock Galaxy Fantasy Chibi style"
+		"prompt must lock Mythic Elemental Chibi style"
 	)
 
 	_expect(
@@ -348,7 +348,7 @@ func _test_rejects_unrelated_trait_change() -> void:
 			previous,
 			bad_next,
 			delta,
-			GalaxyStyleProfileScript.load_default(),
+			MythicStyleProfileScript.load_default(),
 			visual
 		)
 	)

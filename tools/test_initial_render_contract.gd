@@ -7,8 +7,8 @@ const PetIdentityFactoryScript = preload(
 const PetGenomeFactoryScript = preload(
 	"res://features/evolution/domain/pet_genome_factory.gd"
 )
-const GalaxyStyleProfileScript = preload(
-	"res://features/evolution/visual/galaxy_style_profile.gd"
+const MythicStyleProfileScript = preload(
+	"res://features/evolution/visual/mythic_style_profile.gd"
 )
 const InitialSpeciesCatalogScript = preload(
 	"res://features/evolution/visual/initial_species_catalog.gd"
@@ -43,7 +43,7 @@ func _initialize() -> void:
 		.create_initial()
 	)
 	var style = (
-		GalaxyStyleProfileScript.load_default()
+		MythicStyleProfileScript.load_default()
 	)
 	var catalog = InitialSpeciesCatalogScript.new()
 	var species = catalog.find_by_species(
@@ -102,12 +102,15 @@ func _initialize() -> void:
 			"first visual form"
 		)
 		and request.positive_prompt.contains(
-			"Galaxy Fantasy Chibi"
+			"Mythic Elemental Chibi"
 		)
 		and request.positive_prompt.contains(
-			"No mutation marks yet"
+			"single lineage sigil"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"dark"
 		),
-		"initial prompt must encode base-form + Galaxy constraints"
+		"initial prompt must encode infant + mythic element identity"
 	)
 
 	var renderer = MockPetRendererScript.new()

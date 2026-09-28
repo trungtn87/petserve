@@ -2,72 +2,60 @@
 
 Godot Android portrait project.
 
-## Current milestone
+## Current visual direction
 
-M5 + M6 are wired into the Godot runtime.
+The base art direction is now:
 
-After Hatch, the app now opens the Evolution Initial screen and builds a real infant render request from:
+```text
+MYTHIC ELEMENTAL CHIBI
+```
+
+not full-body Galaxy.
+
+Target infant look:
+- very cute kitten proportions;
+- slightly oversized rounded head;
+- compact body and short legs;
+- large glossy expressive eyes;
+- plush layered fur;
+- polished soft semi-3D illustration;
+- clean readable silhouette;
+- restrained mythic effects;
+- element identity concentrated in palette, eyes, one small forehead lineage sigil and a tail-centered effect.
+
+The seven base element families are:
+- metal;
+- wood;
+- water;
+- fire;
+- earth;
+- dark;
+- light.
+
+Internal M3 mutation IDs are intentionally unchanged so the stable rule layer does not move just because visual wording changes.
+
+## Current runtime
+
+M5 + M6 are wired into Godot:
 
 ```text
 Egg element + run seed
         ↓
-PetIdentity
-        +
-initial PetGenome
+PetIdentity + initial PetGenome
         ↓
-Galaxy infant visual spec
+Mythic infant visual spec
         ↓
 text-to-image request
+        ↓
+PNG cached in user://pet_renders
 ```
 
-The first render intentionally uses **no reference image**. It establishes the first visual identity for that pet.
+The first pet image still uses **no reference image**. That image becomes the visual origin for every later evolution edit.
 
-Current infant constraints:
-- species: cat;
-- stage: 1;
-- body_growth: 0;
-- all traits: base;
-- mutations: empty;
-- Galaxy Fantasy Chibi style;
-- advanced mutation features explicitly forbidden.
+The development renderer now uses `gpt-image-2.5-sunburst` for the initial base image because the first image is the most important identity anchor.
 
-## Development renderer
-
-The branch includes a direct OpenAI Images API adapter for local development only.
-
-It reads:
-
-```text
-OPENAI_API_KEY
-```
-
-from the environment. No API key is stored in the repo.
-
-If the key is missing, the Godot screen still runs, shows the complete generated prompt, and reports that rendering is waiting for the key instead of crashing.
-
-A successful render is cached in:
-
-```text
-user://pet_renders/
-```
-
-and linked to the pet in:
-
-```text
-user://evolution_pet_v1.json
-```
-
-## Android
-
-Internet permission is enabled for later network rendering. A production APK must not contain a provider API key; the direct adapter is a development bridge until a server/proxy render path is added.
+No API key is stored in the repository. The development adapter reads `OPENAI_API_KEY` from the environment.
 
 ## Test status
 
 M1–M6 include headless/runtime test hooks. Local execution remains deferred until convenient.
-
-See:
-- `docs/evolution/M1_PET_IDENTITY.md`
-- `docs/evolution/M2_PET_GENOME.md`
-- `docs/evolution/M3_EVOLUTION_RULES.md`
-- `docs/evolution/M4_VISUAL_SPEC.md`
-- `docs/evolution/M5_M6_INITIAL_RENDER.md`

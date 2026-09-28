@@ -102,3 +102,16 @@ The direct Images API adapter reads its API key only from an environment variabl
 
 ## EVO-027 — Rendered initial art is cached
 A successful initial render is saved under user:// and linked to PetIdentity + PetGenome through EvolutionSaveService. Re-entering the screen reuses the saved image for the same pet unless the user explicitly regenerates it.
+
+
+## EVO-028 — Base visual family changed to Mythic Elemental Chibi
+The Galaxy-heavy direction is retired for base pets. Base infants use soft Mythic Elemental Chibi art with restrained magical effects.
+
+## EVO-029 — Element lineage anchors exist before mutation
+Base infants may carry element palette, eye color, one small forehead lineage sigil and one restrained tail-centered effect while the genome remains mutation-free. These cues identify lineage rather than mutation state.
+
+## EVO-030 — Stable M3 mutation IDs are not renamed for visual-only changes
+M3 rule IDs remain stable even when M4 reinterpretation changes their art wording. Visual meaning belongs to M4 data.
+
+## EVO-031 — Initial identity render uses Sunburst
+The first text-to-image render uses gpt-image-2.5-sunburst in the development adapter because this image becomes the visual origin for the pet's later evolution lineage.

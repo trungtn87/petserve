@@ -14,12 +14,12 @@ func build_request(
 	identity: PetIdentity,
 	genome: PetGenome
 ) -> Dictionary:
-	var style := GalaxyStyleProfile.load_default()
+	var style := MythicStyleProfile.load_default()
 
 	if style == null:
 		return {
 			"ok": false,
-			"error": "Không load được GalaxyStyleProfile.",
+			"error": "Không load được MythicStyleProfile.",
 		}
 
 	var species_catalog := InitialSpeciesCatalog.new()

@@ -12,7 +12,7 @@ func build_positive(
 		"[INITIAL IDENTITY]\n"
 		+ spec.identity_section,
 
-		"[GALAXY STYLE]\n"
+		"[MYTHIC ELEMENTAL STYLE]\n"
 		+ spec.style_section,
 
 		"[INFANT FORM]\n"

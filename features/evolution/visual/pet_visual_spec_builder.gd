@@ -7,7 +7,7 @@ func build(
 	previous_genome: PetGenome,
 	next_genome: PetGenome,
 	delta: EvolutionDelta,
-	style: GalaxyStyleProfile,
+	style: MythicStyleProfile,
 	visual: MutationVisualDefinition
 ) -> PetVisualSpec:
 	if not _validate_inputs(
@@ -31,7 +31,7 @@ func build(
 
 	var style_prompt := (
 		style.base_style()
-		+ " Element accent: "
+		+ " Element lineage appearance: "
 		+ style.accent_for(
 			identity.element()
 		)
@@ -90,7 +90,7 @@ func _validate_inputs(
 	previous_genome: PetGenome,
 	next_genome: PetGenome,
 	delta: EvolutionDelta,
-	style: GalaxyStyleProfile,
+	style: MythicStyleProfile,
 	visual: MutationVisualDefinition
 ) -> bool:
 	if (

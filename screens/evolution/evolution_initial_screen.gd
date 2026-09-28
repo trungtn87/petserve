@@ -139,7 +139,7 @@ func _start_generate(
 ) -> void:
 	_generate_button.disabled = true
 	_status_label.text = (
-		"Đang tạo %s Galaxy infant từ prompt..."
+		"Đang tạo %s Mythic infant từ prompt..."
 		% String(_identity.element()).to_upper()
 	)
 
@@ -182,7 +182,7 @@ func _start_generate(
 	)
 
 	_status_label.text = (
-		"Ấu thể Galaxy đã tạo xong."
+		"Ấu thể Mythic đã tạo xong."
 	)
 	_generate_button.disabled = false
 	_generate_button.text = "TẠO LẠI ẢNH"

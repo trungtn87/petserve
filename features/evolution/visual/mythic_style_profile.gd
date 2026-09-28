@@ -1,9 +1,9 @@
-class_name GalaxyStyleProfile
+class_name MythicStyleProfile
 extends RefCounted
 
 
 const DEFAULT_PATH: String = (
-	"res://data/evolution/visual/galaxy_style.json"
+	"res://data/evolution/visual/mythic_style.json"
 )
 
 
@@ -46,7 +46,7 @@ func accent_for(
 	return str(
 		_element_accents.get(
 			"default",
-			"subtle cosmic glow with restrained galaxy accents"
+			"soft mystical elemental accents, localized around the eyes, forehead sigil and tail"
 		)
 	)
 
@@ -61,16 +61,16 @@ func is_valid() -> bool:
 	)
 
 
-static func load_default() -> GalaxyStyleProfile:
+static func load_default() -> MythicStyleProfile:
 	return load_from_path(DEFAULT_PATH)
 
 
 static func load_from_path(
 	path: String
-) -> GalaxyStyleProfile:
+) -> MythicStyleProfile:
 	if not FileAccess.file_exists(path):
 		push_error(
-			"GalaxyStyleProfile: Không tìm thấy file: "
+			"MythicStyleProfile: Không tìm thấy file: "
 			+ path
 		)
 		return null
@@ -82,7 +82,7 @@ static func load_from_path(
 
 	if file == null:
 		push_error(
-			"GalaxyStyleProfile: Không mở được file: "
+			"MythicStyleProfile: Không mở được file: "
 			+ path
 		)
 		return null
@@ -94,7 +94,7 @@ static func load_from_path(
 
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error(
-			"GalaxyStyleProfile: Root JSON phải là Dictionary."
+			"MythicStyleProfile: Root JSON phải là Dictionary."
 		)
 		return null
 
@@ -107,7 +107,7 @@ static func load_from_path(
 	if typeof(accents_value) != TYPE_DICTIONARY:
 		return null
 
-	var profile := GalaxyStyleProfile.new()
+	var profile := MythicStyleProfile.new()
 
 	profile._style_id = StringName(
 		str(data.get("style_id", ""))
