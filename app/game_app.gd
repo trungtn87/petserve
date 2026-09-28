@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const PET_HOME_SCENE: PackedScene = preload(
-	"res://scenes/pet/pet_home_3d.tscn"
+	"res://scenes/pet/pet_home_2_5d.tscn"
 )
 
 
@@ -139,5 +139,5 @@ func _enter_pet_home() -> void:
 
 	if error != OK:
 		push_error(
-			"GameApp: Không chuyển được sang PetHome3D."
+			"GameApp: Không chuyển được sang PetHome2.5D."
 		)

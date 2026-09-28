@@ -49,3 +49,11 @@ Pet Home is not a specific room. It hosts replaceable environment, decoration, a
 
 ## HOME-002 — Pet and home are independent
 A pet is not bound to a specific home scene. The same pet can inhabit different HomeDefinitions and the same home can host different pets without duplicating controller logic.
+
+## PET-011 — Fixed-camera Cat 2.5D production presentation
+The primary Pet Home uses the reusable native-Godot Cat 2.5D Framework.
+Sprite parts, pivot motion, texture swaps and lightweight FX preserve the
+concept appearance for limited interactions. No free/360-degree camera.
+Dark is Reference Pack 01; element/stage variations are profiles and assets,
+not identity checks in Core. Existing 3D scenes remain R&D.
+See `docs/design/CAT_2_5D_FRAMEWORK.md` for implementation and limits.

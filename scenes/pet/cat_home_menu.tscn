@@ -1,0 +1,298 @@
+[gd_scene load_steps=7 format=3]
+[ext_resource type="Script" path="res://screens/pet_home/cat_home_menu.gd" id="2_menu"]
+[sub_resource type="StyleBoxFlat" id="Style_menu_button"]
+bg_color = Color(0.12, 0.08, 0.22, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.43, 0.82, 0.72)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
+shadow_color = Color(0, 0, 0, 0.34)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="Style_drawer"]
+bg_color = Color(0.105, 0.07, 0.19, 0.965)
+border_width_left = 1
+border_width_top = 1
+border_width_bottom = 1
+border_color = Color(0.48, 0.34, 0.72, 0.82)
+corner_radius_top_left = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="Style_action"]
+bg_color = Color(0.22, 0.16, 0.34, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.48, 0.36, 0.68, 0.76)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+content_margin_left = 18.0
+content_margin_right = 14.0
+
+[sub_resource type="StyleBoxFlat" id="Style_action_pressed"]
+bg_color = Color(0.31, 0.22, 0.46, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.68, 0.53, 0.92, 0.92)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+content_margin_left = 18.0
+content_margin_right = 14.0
+
+[sub_resource type="StyleBoxFlat" id="Style_toast"]
+bg_color = Color(0.10, 0.07, 0.18, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.50, 0.38, 0.72, 0.72)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+
+[node name="MenuOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_menu")
+
+[node name="MenuButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = 72.0
+grow_horizontal = 0
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("Style_menu_button")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+text = "☰"
+
+[node name="Scrim" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.025, 0.018, 0.045, 0.66)
+
+[node name="Drawer" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 360.0
+offset_right = 620.0
+offset_bottom = 640.0
+mouse_filter = 0
+clip_contents = true
+theme_override_styles/panel = SubResource("Style_drawer")
+
+[node name="DrawerMargin" type="MarginContainer" parent="./Drawer"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="./Drawer/DrawerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="./Drawer/DrawerMargin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleBox" type="VBoxContainer" parent="./Drawer/DrawerMargin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+
+[node name="Title" type="Label" parent="./Drawer/DrawerMargin/VBox/Header/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.89, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "PETVERSE"
+
+[node name="Subtitle" type="Label" parent="./Drawer/DrawerMargin/VBox/Header/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.53, 0.76, 1)
+theme_override_font_sizes/font_size = 11
+text = "NGÔI NHÀ CỦA PET"
+
+[node name="CloseButton" type="Button" parent="./Drawer/DrawerMargin/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("Style_menu_button")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+text = "×"
+
+[node name="HeaderRule" type="HSeparator" parent="./Drawer/DrawerMargin/VBox"]
+layout_mode = 2
+modulate = Color(0.62, 0.48, 0.86, 0.46)
+
+[node name="FoodButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Thức ăn"
+
+[node name="ItemButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Đồ dùng"
+
+[node name="ExploreButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Khám phá"
+
+[node name="JournalButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Nhật ký"
+
+[node name="DecorButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Trang trí"
+
+[node name="SettingsButton" type="Button" parent="./Drawer/DrawerMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("Style_action")
+theme_override_styles/hover = SubResource("Style_action_pressed")
+theme_override_styles/pressed = SubResource("Style_action_pressed")
+alignment = 0
+text = "Cài đặt"
+
+[node name="Spacer" type="Control" parent="./Drawer/DrawerMargin/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Stars" type="Label" parent="./Drawer/DrawerMargin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.69, 0.56, 0.93, 0.9)
+theme_override_font_sizes/font_size = 18
+text = "☾     ✦     ✧"
+horizontal_alignment = 1
+
+[node name="Footer" type="Label" parent="./Drawer/DrawerMargin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.49, 0.42, 0.62, 1)
+theme_override_font_sizes/font_size = 11
+text = "một pet • một cuộc đời"
+horizontal_alignment = 1
+
+[node name="ActionToast" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = -82.0
+offset_right = -30.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("Style_toast")
+
+[node name="ToastLabel" type="Label" parent="./ActionToast"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.87, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "PetVerse"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2

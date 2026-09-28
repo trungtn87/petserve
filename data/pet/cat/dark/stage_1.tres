@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CatPresentationProfile" load_steps=3 format=3]
+[ext_resource type="Script" path="res://pet/presentation/cat2d/cat_presentation_profile.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/pets/cat/dark/stage_1/parts_atlas.png" id="2"]
+[resource]
+script = ExtResource("1")
+id = &"dark_cat_stage_1"
+atlas = ExtResource("2")
+parts = {
+&"body": {"region": Rect2(20, 85, 320, 280), "group": "Body", "parent": &"", "pivot": Vector2(-15, 0), "offset": Vector2(0, -109), "width": 250.0, "z": 0},
+&"head": {"region": Rect2(350, 105, 302, 264), "group": "Head", "parent": &"", "pivot": Vector2(25, -235), "offset": Vector2(0, 0), "width": 255.0, "z": 5},
+&"tail": {"region": Rect2(675, 35, 270, 350), "group": "Tail", "parent": &"", "pivot": Vector2(-95, -75), "offset": Vector2(-26, -78), "width": 160.0, "z": 0},
+&"ear_left": {"region": Rect2(985, 95, 230, 285), "group": "Head", "parent": &"head", "pivot": Vector2(-77, -50), "offset": Vector2(0, -35), "width": 98.0, "z": -1},
+&"ear_right": {"region": Rect2(20, 390, 280, 320), "group": "Head", "parent": &"head", "pivot": Vector2(82, -55), "offset": Vector2(0, -38), "width": 100.0, "z": -1},
+&"eye_left": {"region": Rect2(350, 450, 270, 215), "group": "Face", "parent": &"head", "pivot": Vector2(-18, 24), "offset": Vector2(0, 0), "width": 103.0, "z": 1},
+&"eye_right": {"region": Rect2(700, 460, 220, 205), "group": "Face", "parent": &"head", "pivot": Vector2(81, 19), "offset": Vector2(0, 0), "width": 66.0, "z": 1},
+&"mouth": {"region": Rect2(410, 785, 190, 75), "group": "Face", "parent": &"head", "pivot": Vector2(48, 76), "offset": Vector2(0, 0), "width": 32.0, "z": 1},
+&"mark": {"region": Rect2(980, 680, 250, 285), "group": "Face", "parent": &"head", "pivot": Vector2(45, -58), "offset": Vector2(0, 0), "width": 44.0, "z": 1},
+&"fx": {"region": Rect2(30, 920, 285, 330), "group": "BackFX", "parent": &"", "pivot": Vector2(-112, -60), "offset": Vector2(0, -30), "width": 105.0, "z": 0}
+}
+variants = {
+&"eye_left_closed": Rect2(990, 480, 245, 175),
+&"eye_right_closed": Rect2(50, 740, 255, 170),
+&"mouth_eat": Rect2(735, 765, 160, 125),
+&"mouth_happy": Rect2(730, 1055, 205, 90),
+&"body_lie": Rect2(330, 960, 375, 265)
+}

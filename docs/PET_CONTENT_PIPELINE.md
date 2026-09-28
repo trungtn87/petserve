@@ -22,3 +22,9 @@ Dark Pet is the first reference implementation. It validates:
 6. touch/click reaction
 
 Future pets should reuse this contract and replace presentation assets/configuration rather than adding element-specific branches to Core.
+
+## Cat 2.5D production path
+
+The shared rig, profiles, sample art pack, validation commands and future
+element/stage workflow are documented in
+[Cat 2.5D Framework](design/CAT_2_5D_FRAMEWORK.md).
