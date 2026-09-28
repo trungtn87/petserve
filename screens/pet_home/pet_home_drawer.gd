@@ -152,10 +152,10 @@ func _build() -> void:
 	add_child(_scrim)
 
 	_panel = PanelContainer.new()
-	_panel.anchor_left = 0.32
-	_panel.anchor_top = 0.025
+	_panel.anchor_left = 0.48
+	_panel.anchor_top = 0.03
 	_panel.anchor_right = 0.975
-	_panel.anchor_bottom = 0.975
+	_panel.anchor_bottom = 0.965
 	_panel.offset_left = 0.0
 	_panel.offset_top = 0.0
 	_panel.offset_right = 0.0
@@ -191,7 +191,7 @@ func _build() -> void:
 	)
 	_content.add_theme_constant_override(
 		"separation",
-		8
+		6
 	)
 	margin.add_child(_content)
 
@@ -199,7 +199,7 @@ func _build() -> void:
 	decor.name = "Decor"
 	decor.custom_minimum_size = Vector2(
 		0,
-		76
+		54
 	)
 	_content.add_child(decor)
 
@@ -238,7 +238,7 @@ func _build() -> void:
 	)
 	footer.add_theme_font_size_override(
 		"font_size",
-		9
+		8
 	)
 	footer.modulate.a = 0.40
 	_content.add_child(footer)
@@ -257,7 +257,7 @@ func _add_action(
 	)
 	card.custom_minimum_size = Vector2(
 		0,
-		62
+		50
 	)
 	card.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
@@ -267,19 +267,19 @@ func _add_action(
 	var padding := MarginContainer.new()
 	padding.add_theme_constant_override(
 		"margin_left",
-		10
+		8
 	)
 	padding.add_theme_constant_override(
 		"margin_top",
-		8
+		5
 	)
 	padding.add_theme_constant_override(
 		"margin_right",
-		10
+		8
 	)
 	padding.add_theme_constant_override(
 		"margin_bottom",
-		8
+		5
 	)
 	card.add_child(padding)
 
@@ -289,15 +289,15 @@ func _add_action(
 	)
 	row.add_theme_constant_override(
 		"separation",
-		10
+		7
 	)
 	padding.add_child(row)
 
 	var icon = PetHomeMenuIconScript.new()
 	icon.name = "Icon"
 	icon.custom_minimum_size = Vector2(
-		42,
-		42
+		32,
+		32
 	)
 	row.add_child(icon)
 
@@ -312,7 +312,7 @@ func _add_action(
 	)
 	label.add_theme_font_size_override(
 		"font_size",
-		14
+		12
 	)
 	row.add_child(label)
 
@@ -324,7 +324,7 @@ func _add_action(
 	)
 	chevron.add_theme_font_size_override(
 		"font_size",
-		22
+		17
 	)
 	row.add_child(chevron)
 
