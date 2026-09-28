@@ -17,8 +17,8 @@ Evolution identity, genome and mutation changes are decided by deterministic/dom
 ## EVO-004 — Small controlled deltas
 Evolution should be developed as a sequence of small controlled changes. New mutation types should primarily be data additions once the rule system is stable.
 
-## EVO-005 — Galaxy visual direction
-The target visual family is Galaxy Fantasy Chibi. Style constraints belong in the future visual-spec layer, not in gameplay rules.
+## EVO-005 — Visual direction belongs to the visual-spec layer
+The art family is controlled by visual-spec data rather than gameplay rules. The original Galaxy direction was later superseded by EVO-028.
 
 ## ARCH-001 — Main coordinates only
 Main/root code remains orchestration-focused.
@@ -72,8 +72,8 @@ Applying an EvolutionDelta creates a new PetGenome snapshot. The old genome rema
 ## EVO-017 — M4 is renderer-neutral
 Visual Spec and Prompt Builder describe the desired edit but contain no vendor/model API assumptions.
 
-## EVO-018 — Galaxy Fantasy Chibi is the first locked visual family
-The baseline visual style is Galaxy Fantasy Chibi with one shared quality/style contract and element-specific accent palettes.
+## EVO-018 — Shared visual family with element-specific accents
+All base pets use one shared quality/style contract with element-specific accent palettes. The original Galaxy family was later superseded by Mythic Elemental Chibi in EVO-028.
 
 ## EVO-019 — Visual wording is separate from mutation probability
 Gameplay MutationDefinition remains independent from MutationVisualDefinition. Art prompt changes must not alter evolution weights or eligibility.
@@ -84,8 +84,8 @@ The future renderer must treat the previous individual pet image as the source o
 ## EVO-021 — M4 rejects multi-trait drift
 A visual spec is produced only when the M3 transition changes one target trait and appends one mutation. Any unrelated genome change invalidates the visual request.
 
-## EVO-022 — Galaxy detail stays restrained
-Galaxy style uses nebula gradients, glow and small stellar details as integrated accents. Full-body noisy star texture is explicitly rejected.
+## EVO-022 — Magical detail stays restrained
+Elemental magic is localized and readable. Full-body noisy textures, excessive particles and effects that obscure the pet silhouette are explicitly rejected.
 
 
 ## EVO-023 — Initial infant render is text-to-image

@@ -97,21 +97,11 @@ AI is not involved in the decision.
 
 ## Initial mutation catalog
 
-M3 includes a small Galaxy-oriented semantic catalog:
+M3 includes a small semantic mutation catalog. Some internal IDs retain early Galaxy-era names such as `galaxy_eye_ring`, `nebula_fur_speckles` and `starlight_whiskers`.
 
-- galaxy eye ring;
-- star ear tips;
-- long fluffy tail;
-- crescent forehead mark;
-- nebula fur speckles;
-- luminous paws;
-- starlight whiskers;
-- constellation freckles;
-- astral neck fur;
-- twin tail tip;
-- eclipse forehead mark.
+Those IDs are gameplay identifiers only. They do not dictate final art direction.
 
-These are semantic genome traits only. The actual Galaxy art wording and AI prompt belong to the future Visual Spec/Prompt milestone.
+M4 currently interprets them under the Mythic Elemental Chibi style while keeping the IDs stable so the completed rule layer does not change for a visual-only revision.
 
 ## Anti-repeat behavior
 

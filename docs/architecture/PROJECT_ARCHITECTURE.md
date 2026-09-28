@@ -132,7 +132,7 @@ The rule layer has no dependency on AI/image rendering, UI, Pet Home, chest/inve
 ```text
 features/evolution/visual/
 ├── pet_visual_spec.gd
-├── galaxy_style_profile.gd
+├── mythic_style_profile.gd
 ├── mutation_visual_definition.gd
 ├── mutation_visual_catalog.gd
 ├── pet_visual_spec_builder.gd
@@ -155,7 +155,7 @@ Identity + Genome + EvolutionDelta
 future renderer adapter
 ```
 
-The visual layer may read evolution results but must never choose mutation probability, eligibility or gameplay outcomes.
+The visual layer may read evolution results but must never choose mutation probability, eligibility or gameplay outcomes. The active base style profile is Mythic Elemental Chibi; element lineage cues remain visual data.
 
 
 ## M5/M6 render boundary
