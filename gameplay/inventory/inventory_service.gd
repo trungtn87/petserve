@@ -32,7 +32,7 @@ func list_items(filter_type: StringName = &"") -> Array[Dictionary]:
 		if typeof(raw_item) != TYPE_DICTIONARY:
 			continue
 
-		var item := raw_item as Dictionary
+		var item: Dictionary = raw_item
 
 		if not filter_type.is_empty():
 			if StringName(item.get("item_type", "")) != filter_type:
@@ -82,7 +82,7 @@ func remove_item(uid: String) -> bool:
 
 
 func count() -> int:
-	return (_meta.get("inventory", []) as Array).size()
+	var stored: Array = _meta.get("inventory", [])\n\n\treturn stored.size()
 
 
 func can_use_in_infant(item: Dictionary) -> bool:
