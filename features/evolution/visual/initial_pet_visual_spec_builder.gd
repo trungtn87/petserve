@@ -122,7 +122,7 @@ func build(
 	spec.negative_prompt = (
 		style.negative_prompt()
 		+ ", adult body, mature proportions, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
-		+ ", plain studio background, neutral empty background, isolated character on blank background, no scenery, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
+		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
 	)
 
 	if not spec.is_valid():
