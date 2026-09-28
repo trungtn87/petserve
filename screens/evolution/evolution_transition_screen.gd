@@ -114,6 +114,10 @@ func _draw() -> void:
 		)
 	)
 
+	_draw_energy_beam(
+		center,
+		pulse
+	)
 	_draw_mystic_glow(
 		center,
 		pulse,
@@ -127,10 +131,134 @@ func _draw() -> void:
 		center,
 		pulse
 	)
+	_draw_rune_orbit(
+		center,
+		pulse
+	)
 	_draw_transition_particles(
 		center,
 		slow_pulse
 	)
+
+
+func _draw_energy_beam(
+	center: Vector2,
+	pulse: float
+) -> void:
+	var beam_height := minf(
+		size.y * 0.62,
+		390.0
+	)
+	var beam_width := 34.0 + pulse * 10.0
+	var beam_rect := Rect2(
+		center.x - beam_width * 0.5,
+		center.y - beam_height * 0.5,
+		beam_width,
+		beam_height
+	)
+
+	draw_rect(
+		beam_rect,
+		Color(
+			0.48,
+			0.73,
+			1.0,
+			0.035 * _effect_strength
+		),
+		true
+	)
+
+	var core_width := 5.0 + pulse * 2.0
+	draw_rect(
+		Rect2(
+			center.x - core_width * 0.5,
+			center.y - beam_height * 0.5,
+			core_width,
+			beam_height
+		),
+		Color(
+			0.82,
+			0.92,
+			1.0,
+			0.10 * _effect_strength
+		),
+		true
+	)
+
+
+func _draw_rune_orbit(
+	center: Vector2,
+	pulse: float
+) -> void:
+	var orbit_radius := 122.0 + pulse * 5.0
+
+	for index in range(8):
+		var angle := (
+			_effect_time * 0.34
+			+ float(index) / 8.0 * TAU
+		)
+		var point := (
+			center
+			+ Vector2(
+				cos(angle),
+				sin(angle)
+			) * orbit_radius
+		)
+		var alpha := (
+			0.34
+			+ 0.30
+			* (
+				0.5
+				+ 0.5
+				* sin(
+					_effect_time * 1.7
+					+ float(index)
+				)
+			)
+		) * _effect_strength
+
+		var rune_color := Color(
+			0.72,
+			0.82,
+			1.0,
+			alpha
+		)
+
+		if index % 2 == 0:
+			_draw_diamond_rune(
+				point,
+				4.0 + pulse,
+				rune_color
+			)
+		else:
+			draw_circle(
+				point,
+				2.1 + pulse * 0.4,
+				rune_color,
+				true
+			)
+
+
+func _draw_diamond_rune(
+	center: Vector2,
+	radius: float,
+	color: Color
+) -> void:
+	var points := PackedVector2Array([
+		center + Vector2(0, -radius),
+		center + Vector2(radius * 0.65, 0),
+		center + Vector2(0, radius),
+		center + Vector2(-radius * 0.65, 0),
+	])
+
+	for index in range(points.size()):
+		draw_line(
+			points[index],
+			points[(index + 1) % points.size()],
+			color,
+			1.2,
+			true
+		)
 
 
 func _draw_mystic_glow(
@@ -363,7 +491,7 @@ func _draw_transition_particles(
 	pulse: float
 ) -> void:
 	for particle_index in range(22):
-		var seed := float(particle_index) * 0.71
+		var particle_seed := float(particle_index) * 0.71
 		var orbit := (
 			64.0
 			+ fmod(
@@ -379,7 +507,7 @@ func _draw_transition_particles(
 			)
 		)
 		var angle := (
-			seed
+			particle_seed
 			+ _effect_time
 			* (
 				0.16
@@ -403,7 +531,7 @@ func _draw_transition_particles(
 				+ 0.5
 				* sin(
 					_effect_time * 1.8
-					+ seed
+					+ particle_seed
 				)
 			)
 		) * _effect_strength
