@@ -16,6 +16,12 @@ const PetSceneProfileScript = preload(
 )
 
 
+var _game := InfantGameFacade.new()
+var _hud: PetHomeGameplayUI
+var _hub: EntertainmentHubUI
+var _game_tick: float = 0.0
+var _paused: bool = false
+var _skip_tick: bool = false
 var _theme: Dictionary = {}
 var _data: Dictionary = {}
 
@@ -46,6 +52,7 @@ func _ready() -> void:
 	_build_main_hud()
 	_build_drawer()
 	_build_section_overlay()
+	_setup_gameplay()
 
 
 func _unhandled_input(
@@ -389,6 +396,7 @@ func _add_meter(
 	row.add_child(value)
 
 	var bar := ProgressBar.new()
+	bar.set_meta("value_label", value)
 	bar.min_value = 0.0
 	bar.max_value = 100.0
 	bar.value = percent
@@ -636,25 +644,18 @@ func _on_menu_pressed() -> void:
 func _on_drawer_action(
 	action_id: StringName
 ) -> void:
+	_drawer.close_drawer()
 	match action_id:
 		&"pet_info":
 			_open_pet_info()
 		&"chest":
-			_open_placeholder(
-				"Rương đồ"
-			)
+			_open_storage()
 		&"entertainment":
-			_open_placeholder(
-				"Giải trí"
-			)
+			_open_games()
 		&"evolution":
-			_open_placeholder(
-				"Tiến hóa"
-			)
+			_open_evolution()
 		&"settings":
-			_open_placeholder(
-				"Cài đặt"
-			)
+			_open_settings()
 
 
 func _open_pet_info() -> void:
@@ -693,15 +694,7 @@ func _open_pet_info() -> void:
 			genome.stage()
 		)
 	)
-	_add_info_row(
-		"Trưởng thành",
-		"%d%%" % int(
-			round(
-				genome.body_growth()
-				* 100.0
-			)
-		)
-	)
+	_add_info_row("Trưởng thành", "%d%%" % int(_game.snapshot().get("growth_percent", 0)))
 	_add_info_row(
 		"Loài",
 		String(
@@ -811,3 +804,132 @@ func _add_info_row(
 
 func _close_section() -> void:
 	_section_overlay.visible = false
+
+
+func _setup_gameplay() -> void:
+	var identity: PetIdentity = _data.get("_identity_object")
+	var genome: PetGenome = _data.get("_genome_object")
+	_game.setup(identity.lineage_seed())
+	if genome.stage() > 1:
+		_game.complete_infant()
+	theme = PetHomeGameplayTheme.build(_theme)
+	_hud = PetHomeGameplayUI.new()
+	_hud.palette = _theme
+	_hud.dialogs_only = true
+	add_child(_hud)
+	_hud.bind(_game)
+	_hud.item_use_requested.connect(_use_item)
+	_hub = EntertainmentHubUI.new()
+	_hub.palette = _theme
+	add_child(_hub)
+	_hub.caro_win_reward_requested.connect(_reward)
+	_refresh_gameplay()
+
+func _process(delta: float) -> void:
+	if _hud == null or _paused:
+		return
+	if _skip_tick:
+		_skip_tick = false
+		return
+	_game.tick(delta)
+	_game_tick += delta
+	if _game_tick >= 0.5:
+		_game_tick = 0.0
+		_refresh_gameplay()
+
+func _refresh_gameplay() -> void:
+	var state := _game.snapshot()
+	_hud.refresh_status(state)
+	_growth_bar.value = int(state.get("growth_percent", 0))
+	_fullness_bar.value = clampf(float(state.get("food_seconds", 0)) / InfantLifecycle.DURATION_SECONDS * 100.0, 0, 100)
+	for bar in [_growth_bar, _fullness_bar]:
+		var label: Label = bar.get_meta("value_label")
+		label.text = "%d%%" % int(bar.value)
+	_growth_bar.tooltip_text = "Sẵn sàng tiến hóa" if bool(state.get("ready_to_evolve", false)) else "Trưởng thành theo thời gian và vật phẩm"
+	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
+
+func _notification(what: int) -> void:
+	if _hud == null:
+		return
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_paused = true
+		_game.save()
+	if what == NOTIFICATION_APPLICATION_RESUMED:
+		var identity: PetIdentity = _data.get("_identity_object")
+		_game.setup(identity.lineage_seed())
+		_paused = false
+		_skip_tick = true
+
+func _exit_tree() -> void:
+	if _hud != null:
+		_game.save()
+
+func _section_button(text: String, callback: Callable) -> void:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size.y = 48
+	button.pressed.connect(callback)
+	_section_body.add_child(button)
+
+func _open_storage() -> void:
+	_prepare_section("Rương đồ")
+	var state := _game.snapshot()
+	_add_info_row("Rương", str(state.get("pending_chests", 0)))
+	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
+	_section_button("Mở rương", _open_chest)
+	_section_button("Kho vật phẩm", func(): _close_section(); _hud.open_inventory())
+	_section_overlay.visible = true
+
+func _open_chest() -> void:
+	var items := _game.open_next_chest()
+	if items.is_empty():
+		_hud.show_message("Không có rương hoặc chưa lưu được. Hãy thử lại.")
+		return
+	_close_section()
+	_hud.show_chest_rewards(items)
+	_refresh_gameplay()
+
+func _use_item(uid: String) -> void:
+	var result := _game.use_item(uid)
+	_hud.show_message(str(result.get("message", "")))
+	_hud.open_inventory()
+	_refresh_gameplay()
+
+func _open_games() -> void:
+	var state := _game.snapshot()
+	_hub.open_hub(int(state.get("caro_rewards_claimed", 0)), 4, int(state.get("stage_index", 1)) == 1 and not bool(state.get("ready_to_evolve", false)))
+
+func _reward() -> void:
+	var result := _game.claim_caro_win_reward()
+	_hub.show_reward_message(str(result.get("message", "")))
+	var state := _game.snapshot()
+	_hub.set_reward_status(int(state.get("caro_rewards_claimed", 0)), 4, int(state.get("stage_index", 1)) == 1 and not bool(state.get("ready_to_evolve", false)))
+	_refresh_gameplay()
+
+func _open_evolution() -> void:
+	_prepare_section("Tiến hóa")
+	var state := _game.snapshot()
+	_add_info_row("Giai đoạn", PetHomeTheme.stage_label(int(state.get("stage_index", 1))))
+	_add_info_row("Trưởng thành", "%d%%" % int(state.get("growth_percent", 0)))
+	_add_info_row("Thức ăn", "%d phút" % int(int(state.get("food_seconds", 0)) / 60))
+	if bool(state.get("ready_to_evolve", false)):
+		_section_button("TIẾN HÓA", _evolve)
+	elif int(state.get("stage_index", 1)) == 1:
+		_add_info_row("Tiến độ còn", "~%d phút tăng trưởng" % int(ceil(float(state.get("growth_remaining_seconds", 0)) / 60.0)))
+	else:
+		_add_info_row("Ấu thể", "Đã hoàn tất")
+	_section_overlay.visible = true
+
+func _evolve() -> void:
+	if bool(_game.snapshot().get("ready_to_evolve", false)) and _game.save():
+		get_tree().change_scene_to_file("res://scenes/evolution_update.tscn")
+
+func _open_settings() -> void:
+	_prepare_section("Cài đặt")
+	var sound := CheckButton.new()
+	sound.text = "Âm thanh"
+	sound.button_pressed = not AudioServer.is_bus_mute(0)
+	sound.toggled.connect(func(enabled: bool): AudioServer.set_bus_mute(0, not enabled))
+	_section_body.add_child(sound)
+	_section_button("Lưu tiến trình", func(): _hud.show_message("Đã lưu" if _game.save() else "Chưa lưu được. Hãy thử lại."))
+	_section_overlay.visible = true

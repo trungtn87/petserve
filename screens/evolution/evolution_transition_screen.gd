@@ -19,13 +19,6 @@ enum TransitionMode {
 }
 
 
-const RETRY_DELAYS := [
-	2.0,
-	4.0,
-	6.0,
-	8.0,
-]
-
 const MIN_TRANSITION_SECONDS: float = 3.0
 
 const TRANSITION_BG := Color("#090617")
@@ -46,12 +39,14 @@ var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
 
+var _retry_button: Button
+var _back_button: Button
+var _busy: bool = false
 var _status_label: Label
 var _result_image: TextureRect
 
 var _effect_time: float = 0.0
 var _effect_strength: float = 1.0
-var _retry_count: int = 0
 var _completed: bool = false
 var _fatal: bool = false
 var _transition_started_msec: int = 0
@@ -62,6 +57,7 @@ func _ready() -> void:
 	_transition_started_msec = Time.get_ticks_msec()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
+	theme = PetHomeGameplayTheme.build()
 	_build_ui()
 
 	_coordinator = InitialPetRenderCoordinator.new()
@@ -595,17 +591,37 @@ func _build_ui() -> void:
 		Color(0.10, 0.05, 0.24, 0.96)
 	)
 	add_child(_status_label)
+	_retry_button = Button.new()
+	_retry_button.text = "THỬ LẠI"
+	_retry_button.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_retry_button.position = Vector2(size.x * 0.5 - 145, size.y - 54)
+	_retry_button.custom_minimum_size = Vector2(140, 44)
+	_retry_button.visible = false
+	_retry_button.pressed.connect(_begin_transition)
+	add_child(_retry_button)
+	_back_button = Button.new()
+	_back_button.text = "TRỞ VỀ"
+	_back_button.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_back_button.position = Vector2(size.x * 0.5 + 5, size.y - 54)
+	_back_button.custom_minimum_size = Vector2(140, 44)
+	_back_button.visible = false
+	_back_button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/pet/pet_home.tscn" if mode == TransitionMode.EVOLUTION_UPDATE else "res://scenes/main.tscn"))
+	add_child(_back_button)
 
 
 func _begin_transition() -> void:
+	if _busy:
+		return
+	_busy = true
+	_fatal = false
+	_retry_button.visible = false
+	_back_button.visible = false
 	match mode:
 		TransitionMode.INITIAL_BIRTH:
 			await _run_initial_birth()
 
 		TransitionMode.EVOLUTION_UPDATE:
-			_show_fatal(
-				"Chế độ tiến hóa sau chưa được nối renderer."
-			)
+			await _run_evolution()
 
 		_:
 			_show_fatal(
@@ -709,58 +725,47 @@ func _run_initial_birth() -> void:
 func _render_until_success(
 	request: PetRenderRequest
 ) -> void:
-	_retry_count = 0
-
-	while is_inside_tree():
-		if _retry_count == 0:
-			_status_label.text = "Chuỗi gen đang tái cấu trúc..."
-		else:
-			_status_label.text = "Dòng gen đang ổn định lại..."
-
-		var result: PetRenderResult = await (
-			_coordinator.render_initial(
-				request
-			)
-		)
-
-		if not is_inside_tree():
+	_status_label.text = "Đang định hình thế giới..."
+	var result: PetRenderResult = await _coordinator.render_initial(request)
+	if not is_inside_tree():
+		return
+	if result == null or not result.success:
+		_show_fatal("Không tạo được hình thái. Tiến trình đã được giữ lại.")
+		return
+	if mode == TransitionMode.EVOLUTION_UPDATE:
+		if not InfantEvolutionService.new().commit(result):
+			_show_fatal("Chưa lưu được hình thái mới. Hãy thử lại.")
 			return
+		await _wait_for_minimum_duration()
+		_load_result_image(result.image_path)
+		_finish_success(result.image_path, false)
+	else:
+		await _complete_initial_render(result)
 
-		if result != null and result.success:
-			await _complete_initial_render(result)
-			return
-
-		if result == null:
-			_show_fatal(
-				"Renderer không trả kết quả."
-			)
-			return
-
-		if not _is_retryable(result):
-			_show_fatal(
-				result.error_message
-			)
-			return
-
-		_retry_count += 1
-
-		var retry_delay := _retry_delay(
-			_retry_count
-		)
-
-		push_warning(
-			"Evolution render retry %d after %.0fs: %s"
-			% [
-				_retry_count,
-				retry_delay,
-				result.error_message,
-			]
-		)
-		_status_label.text = "Dòng gen đang ổn định lại..."
-
-		await get_tree().create_timer(
-			retry_delay
-		).timeout
+func _run_evolution() -> void:
+	var saved := EvolutionSaveService.new().load_data()
+	var identity := PetIdentity.from_dict(saved.get("identity", {}))
+	var genome := PetGenome.from_dict(saved.get("genome", {}))
+	if identity == null or genome == null:
+		_show_fatal("Không đọc được dữ liệu pet.")
+		return
+	if genome.stage() > 1:
+		_finish_success(str(saved.get("current_visual", {}).get("image_path", "")), true)
+		return
+	var game := InfantGameFacade.new()
+	if not game.setup(identity.lineage_seed()):
+		_show_fatal("Chưa lưu được tiến trình.")
+		return
+	var service := InfantEvolutionService.new()
+	var prepared := service.prepare(game.snapshot())
+	if not bool(prepared.get("ok", false)):
+		_show_fatal(str(prepared.get("error", "Chưa thể tiến hóa.")))
+		return
+	var request := service.build_request(prepared.get("data", {}))
+	if request == null:
+		_show_fatal("Không tạo được yêu cầu tiến hóa.")
+		return
+	await _render_until_success(request)
 
 
 func _complete_initial_render(
@@ -865,12 +870,11 @@ func _get_existing_visual_path() -> String:
 
 	if (
 		visual == null
-		or visual.source_mode
-			!= &"initial_pethome_v5_text_to_image"
+		or visual.source_mode not in [&"initial_pethome_v5_text_to_image", &"evolution_pethome_v5_image_edit"]
 	):
 		return ""
 
-	if visual.image_path.is_empty():
+	if visual.image_path.is_empty() or not FileAccess.file_exists(visual.image_path):
 		return ""
 
 	return visual.image_path
@@ -933,9 +937,7 @@ func _finish_success(
 
 	queue_redraw()
 
-	transition_completed.emit(
-		image_path
-	)
+	transition_completed.emit(image_path)
 
 	_schedule_pet_home()
 
@@ -974,6 +976,9 @@ func _show_fatal(
 	message: String
 ) -> void:
 	_fatal = true
+	_busy = false
+	_retry_button.visible = true
+	_back_button.visible = true
 	_completed = false
 	_effect_strength = 0.45
 
@@ -982,73 +987,5 @@ func _show_fatal(
 	)
 
 	_status_label.modulate.a = 1.0
-	_status_label.text = "Kết nối thế giới bị gián đoạn."
-
-
-func _retry_delay(
-	retry_count: int
-) -> float:
-	var index := clampi(
-		retry_count - 1,
-		0,
-		RETRY_DELAYS.size() - 1
-	)
-
-	return float(
-		RETRY_DELAYS[index]
-	)
-
-
-func _is_retryable(
-	result: PetRenderResult
-) -> bool:
-	match result.error_code:
-		&"invalid_request":
-			return false
-
-		&"invalid_config":
-			return false
-
-		&"proxy_not_configured":
-			return false
-
-		&"unsupported_mode":
-			return false
-
-		&"not_implemented":
-			return false
-
-		&"output_dir_failed":
-			return false
-
-		&"write_failed":
-			return false
-
-		&"proxy_error":
-			return not _is_fatal_http_error(
-				result.error_message
-			)
-
-		_:
-			return true
-
-
-func _is_fatal_http_error(
-	message: String
-) -> bool:
-	for status in [
-		400,
-		401,
-		403,
-		404,
-		405,
-		413,
-		415,
-		422,
-	]:
-		if message.begins_with(
-			"HTTP %d" % status
-		):
-			return true
-
-	return false
+	_status_label.text = message
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

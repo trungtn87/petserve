@@ -52,20 +52,11 @@ func save_initial(
 		"current_visual": visual.to_dict(),
 	}
 
-	var file := FileAccess.open(
-		SAVE_PATH,
-		FileAccess.WRITE
-	)
+	return save_data(data)
 
-	if file == null:
-		return false
 
-	file.store_string(
-		JSON.stringify(data)
-	)
-	file.close()
-
-	return true
+func save_data(data: Dictionary) -> bool:
+	return AtomicJson.write(SAVE_PATH, data)
 
 
 func load_data() -> Dictionary:

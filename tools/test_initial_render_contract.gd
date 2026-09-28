@@ -162,7 +162,7 @@ func _initialize() -> void:
 			"12 to 15 percent"
 		)
 		and request.positive_prompt.to_lower().contains(
-			"pulled-back camera"
+			"camera pulled much farther back"
 		)
 		and request.negative_prompt.to_lower().contains(
 			"close-up portrait"

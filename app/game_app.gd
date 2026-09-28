@@ -164,8 +164,7 @@ func _current_pet_visual_state() -> StringName:
 		return &"none"
 
 	if (
-		visual.source_mode
-		== &"initial_pethome_v5_text_to_image"
+		visual.source_mode in [&"initial_pethome_v5_text_to_image", &"evolution_pethome_v5_image_edit"]
 	):
 		return &"current"
 
