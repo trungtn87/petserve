@@ -86,3 +86,19 @@ M7 adds:
 `tools/test_m7_evolution_edit.tscn`
 
 The remaining runtime validation is the deployed `/v1/render/evolution` Worker route with a real Stage 1 → 2 image edit, followed by Android device verification.
+
+
+## M8 stage lifecycle
+
+M8 extends the playable life from the infant milestone through all three evolutions:
+
+```text
+Stage 1 → Evolution I → Stage 2 → Evolution II → Stage 3 → Evolution III → Stage 4
+```
+
+Stage timing is loaded from `data/gameplay/lifecycle/stages.json`.
+Stage 2 and Stage 3 use the provisional 2-day / 3-day design baselines; Stage 1 preserves the existing 2-hour tutorial target.
+
+`StageEvolutionService` reuses the M7 image-edit contract for all three evolution transactions. Stage 4 is the M8 final-form boundary; aging, death and legacy are deferred.
+
+See `docs/evolution/M8_STAGE_LIFECYCLE.md`.
