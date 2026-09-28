@@ -1,0 +1,42 @@
+keys,en,vi
+MENU_HOME_SUBTITLE,PET HOME,NGÔI NHÀ CỦA PET
+MENU_FOOD,Food,Thức ăn
+MENU_ITEMS,Items,Đồ dùng
+MENU_EXPLORE,Explore,Khám phá
+MENU_JOURNAL,Journal,Nhật ký
+MENU_DECOR,Decor,Trang trí
+MENU_SETTINGS,Settings,Cài đặt
+MENU_FOOTER,one pet • one life,một pet • một cuộc đời
+MENU_COMING_SOON,%s • coming in a later step,%s • sẽ nối gameplay ở bước tiếp theo
+INFANT_STAGE,INFANT,ẤU THỂ
+INFANT_GROWTH,Growth  %d%%,Trưởng thành  %d%%
+INFANT_FOOD,Food  %s,Thức ăn  %s
+INFANT_READY_EVOLVE,Ready to evolve,Sẵn sàng tiến hóa
+INFANT_REMAINING,~%s left,Còn ~%s
+INFANT_CHEST,CHEST,RƯƠNG
+INFANT_CHEST_COUNT,CHEST • %d,RƯƠNG • %d
+INFANT_INVENTORY,INVENTORY,KHO
+INFANT_INVENTORY_COUNT,INVENTORY • %d,KHO • %d
+INFANT_PLAY,PLAY,CHƠI
+INFANT_INVENTORY_TITLE,INVENTORY,KHO ĐỒ
+INFANT_FILTER_ALL,All,Tất cả
+INFANT_FILTER_FOOD,Food,Ăn
+INFANT_FILTER_GROWTH,Growth,Lớn
+INFANT_FILTER_OTHER,Other,Khác
+INFANT_NO_CHEST,No chest to open.,Không có rương để mở.
+CARO_TITLE,ENTERTAINMENT • TIC-TAC-TOE 3×3,GIẢI TRÍ • CARO 3×3
+CARO_HINT,You are X • Pet is O,Bạn là X • Pet là O
+CARO_YOUR_TURN,Your turn,Lượt của bạn
+CARO_PET_THINKING,Pet is thinking...,Pet đang nghĩ...
+CARO_REWARD_HINT,Win to receive an Infant Chest.,Thắng để nhận Rương Ấu thể.
+CARO_REWARD_DONE,You can keep playing • rewards for this stage are finished.,Có thể chơi tiếp • phần thưởng giai đoạn này đã hết.
+CARO_NEW_ROUND,NEW ROUND,VÁN MỚI
+CARO_PLAYER_WIN,You win!,Bạn thắng!
+CARO_PLAYER_WIN_REWARD,Receiving an Infant Chest...,Đang nhận Rương Ấu thể...
+CARO_PLAYER_WIN_NO_REWARD,You win • no reward chests remain.,Bạn thắng • không còn rương thưởng.
+CARO_PET_WIN,Pet wins!,Pet thắng!
+CARO_PET_WIN_MESSAGE,Pet looks rather pleased.,Pet có vẻ khá đắc ý.
+CARO_DRAW,Draw!,Hòa!
+CARO_DRAW_MESSAGE,Nothing lost • try another round.,Không mất gì • thử lại ván khác.
+CARO_REWARD_ENDED,Infant Chest • reward stage finished,Rương Ấu thể • giai đoạn thưởng đã kết thúc
+CARO_REWARD_COUNT,Caro Chest  %d/%d,Rương Caro  %d/%d
