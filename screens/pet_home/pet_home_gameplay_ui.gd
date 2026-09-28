@@ -65,7 +65,10 @@ func show_message(message: String) -> void:
 	var tween := create_tween()
 	tween.tween_interval(1.0)
 	tween.tween_property(_toast, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(\n\t\tfunc() -> void:\n\t\t\t_toast.visible = false\n\t)
+	tween.tween_callback(
+\t\tfunc() -> void:
+\t\t\t_toast.visible = false
+\t)
 
 func _build_hud() -> void:
 	var panel := PanelContainer.new()
@@ -121,11 +124,17 @@ func _build_hud() -> void:
 	add_child(actions)
 
 	_chest_button = _action_button("RƯƠNG")
-	_chest_button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\tchest_open_requested.emit()\n\t)
+	_chest_button.pressed.connect(
+\t\tfunc() -> void:
+\t\t\tchest_open_requested.emit()
+\t)
 	actions.add_child(_chest_button)
 
 	_inventory_button = _action_button("KHO")
-	_inventory_button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\topen_inventory()\n\t)
+	_inventory_button.pressed.connect(
+\t\tfunc() -> void:
+\t\t\topen_inventory()
+\t)
 	actions.add_child(_inventory_button)
 
 func _build_overlay() -> void:
@@ -165,7 +174,10 @@ func _build_overlay() -> void:
 	header.add_child(_title)
 	var close := Button.new()
 	close.text = "X"
-	close.pressed.connect(\n\t\tfunc() -> void:\n\t\t\t_overlay.visible = false\n\t)
+	close.pressed.connect(
+\t\tfunc() -> void:
+\t\t\t_overlay.visible = false
+\t)
 	header.add_child(close)
 
 	_filters = HBoxContainer.new()
@@ -252,7 +264,10 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 		button.text = "Dùng" if usable else "Khóa"
 		button.disabled = not usable
 		if usable:
-			button.pressed.connect(\n\t\t\t\tfunc() -> void:\n\t\t\t\t\titem_use_requested.emit(String(item.get("uid", "")))\n\t\t\t)
+			button.pressed.connect(
+\t\t\t\tfunc() -> void:
+\t\t\t\t\titem_use_requested.emit(String(item.get("uid", "")))
+\t\t\t)
 		row.add_child(button)
 	return panel
 
@@ -268,7 +283,10 @@ func _add_filter(label: String, filter_type: StringName) -> void:
 	var button := Button.new()
 	button.text = label
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(\n\t\tfunc() -> void:\n\t\t\topen_inventory(filter_type)\n\t)
+	button.pressed.connect(
+\t\tfunc() -> void:
+\t\t\topen_inventory(filter_type)
+\t)
 	_filters.add_child(button)
 
 func _action_button(label: String) -> Button:
@@ -295,16 +313,21 @@ func _style(bg: Color, border: Color) -> StyleBoxFlat:
 
 func _rarity_color(rarity: String) -> Color:
 	match rarity:
-		"uncommon": return Color(0.50,0.82,0.58)
-		"rare": return Color(0.44,0.65,1.0)
-		"epic": return Color(0.76,0.47,1.0)
-		"legendary": return Color(1.0,0.72,0.28)
-		_: return Color(0.68,0.68,0.74)
+		"uncommon":
+			return Color(0.50, 0.82, 0.58)
+		"rare":
+			return Color(0.44, 0.65, 1.0)
+		"epic":
+			return Color(0.76, 0.47, 1.0)
+		"legendary":
+			return Color(1.0, 0.72, 0.28)
+		_:
+			return Color(0.68, 0.68, 0.74)
 
 func _duration(seconds: int) -> String:
 	var safe := max(0, seconds)
-	var h := safe / 3600
-	var m := (safe % 3600) / 60
+	var h := int(safe / 3600)
+	var m := int((safe % 3600) / 60)
 	if h > 0:
 		return "%dh %02dm" % [h, m]
 	if m > 0:
