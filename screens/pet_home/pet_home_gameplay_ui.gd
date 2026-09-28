@@ -3,6 +3,7 @@ extends Control
 
 signal chest_open_requested
 signal item_use_requested(uid: String)
+signal entertainment_requested
 
 var _facade: InfantGameFacade
 var _pet_name_label: Label
@@ -12,6 +13,7 @@ var _food_label: Label
 var _state_label: Label
 var _chest_button: Button
 var _inventory_button: Button
+var _entertainment_button: Button
 var _overlay: Control
 var _title: Label
 var _list: VBoxContainer
@@ -58,7 +60,7 @@ func open_inventory(filter_type: StringName = &"") -> void:
 	_overlay.visible = true
 
 func show_chest_rewards(items: Array[Dictionary]) -> void:
-	_title.text = "RƯƠNG CHÀO ĐỜI"
+	_title.text = "RƯƠNG"
 	_filters.visible = false
 	_fill(items, false)
 	_overlay.visible = true
@@ -124,9 +126,9 @@ func _build_hud() -> void:
 	actions.anchor_top = 1.0
 	actions.anchor_right = 0.5
 	actions.anchor_bottom = 1.0
-	actions.offset_left = -152
+	actions.offset_left = -165
 	actions.offset_top = -68
-	actions.offset_right = 152
+	actions.offset_right = 165
 	actions.offset_bottom = -16
 	actions.add_theme_constant_override("separation", 8)
 	add_child(actions)
@@ -138,6 +140,10 @@ func _build_hud() -> void:
 	_inventory_button = _action_button("KHO")
 	_inventory_button.pressed.connect(_open_inventory_all)
 	actions.add_child(_inventory_button)
+
+	_entertainment_button = _action_button("CHƠI")
+	_entertainment_button.pressed.connect(_emit_entertainment)
+	actions.add_child(_entertainment_button)
 
 func _build_overlay() -> void:
 	_overlay = Control.new()
@@ -289,7 +295,7 @@ func _add_filter(label: String, filter_type: StringName) -> void:
 func _action_button(label: String) -> Button:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size = Vector2(148, 52)
+	button.custom_minimum_size = Vector2(101, 52)
 	button.focus_mode = Control.FOCUS_NONE
 	button.add_theme_stylebox_override("normal", _style(Color(0.16,0.11,0.27,0.97), Color(0.55,0.41,0.79,0.92)))
 	return button
@@ -350,6 +356,10 @@ func _close_overlay() -> void:
 
 func _emit_item_use(uid: String) -> void:
 	item_use_requested.emit(uid)
+
+
+func _emit_entertainment() -> void:
+	entertainment_requested.emit()
 
 
 func _open_filter(filter_type: StringName) -> void:
