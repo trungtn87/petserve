@@ -5,6 +5,9 @@ extends RefCounted
 const NEXT_PHASE_SCENE: PackedScene = preload(
 	"res://scenes/evolution_transition.tscn"
 )
+const PETHOME_SCENE: PackedScene = preload(
+	"res://scenes/pet/pet_home.tscn"
+)
 
 
 var _root: Control
@@ -24,6 +27,13 @@ func start(
 		return true
 
 	_root = root
+
+	if _has_current_pet_visual():
+		_started = true
+		call_deferred(
+			"_resume_pet_home"
+		)
+		return true
 
 
 	# =====================================================
@@ -116,6 +126,51 @@ func get_egg() -> EggFacade:
 
 func get_hatch() -> HatchFacade:
 	return _hatch
+
+
+func _has_current_pet_visual() -> bool:
+	var data := EvolutionSaveService.new().load_data()
+
+	if data.is_empty():
+		return false
+
+	var visual_value: Variant = data.get(
+		"current_visual",
+		{}
+	)
+
+	if typeof(visual_value) != TYPE_DICTIONARY:
+		return false
+
+	var visual := PetVisualRecord.from_dict(
+		visual_value as Dictionary
+	)
+
+	return (
+		visual != null
+		and FileAccess.file_exists(
+			visual.image_path
+		)
+	)
+
+
+func _resume_pet_home() -> void:
+	if _root == null:
+		return
+
+	var tree := _root.get_tree()
+
+	if tree == null:
+		return
+
+	var error := tree.change_scene_to_packed(
+		PETHOME_SCENE
+	)
+
+	if error != OK:
+		push_error(
+			"GameApp: Không chuyển được sang PetHome."
+		)
 
 
 func _enter_next_phase() -> void:
