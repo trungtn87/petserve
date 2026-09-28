@@ -42,7 +42,7 @@ func prepare(
 	if int(
 		state.get(
 			"stage_index",
-			-1
+			current_stage
 		)
 	) != current_stage:
 		return {
