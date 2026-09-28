@@ -28,10 +28,19 @@ func start(
 
 	_root = root
 
-	if _has_current_pet_visual():
+	var visual_state := _current_pet_visual_state()
+
+	if visual_state == &"current":
 		_started = true
 		call_deferred(
 			"_resume_pet_home"
+		)
+		return true
+
+	if visual_state == &"stale":
+		_started = true
+		call_deferred(
+			"_resume_render_transition"
 		)
 		return true
 
@@ -128,11 +137,11 @@ func get_hatch() -> HatchFacade:
 	return _hatch
 
 
-func _has_current_pet_visual() -> bool:
+func _current_pet_visual_state() -> StringName:
 	var data := EvolutionSaveService.new().load_data()
 
 	if data.is_empty():
-		return false
+		return &"none"
 
 	var visual_value: Variant = data.get(
 		"current_visual",
@@ -140,18 +149,27 @@ func _has_current_pet_visual() -> bool:
 	)
 
 	if typeof(visual_value) != TYPE_DICTIONARY:
-		return false
+		return &"none"
 
 	var visual := PetVisualRecord.from_dict(
 		visual_value as Dictionary
 	)
 
-	return (
-		visual != null
-		and FileAccess.file_exists(
+	if (
+		visual == null
+		or not FileAccess.file_exists(
 			visual.image_path
 		)
-	)
+	):
+		return &"none"
+
+	if (
+		visual.source_mode
+		== &"initial_pethome_v3_text_to_image"
+	):
+		return &"current"
+
+	return &"stale"
 
 
 func _resume_pet_home() -> void:
@@ -170,6 +188,25 @@ func _resume_pet_home() -> void:
 	if error != OK:
 		push_error(
 			"GameApp: Không chuyển được sang PetHome."
+		)
+
+
+func _resume_render_transition() -> void:
+	if _root == null:
+		return
+
+	var tree := _root.get_tree()
+
+	if tree == null:
+		return
+
+	var error := tree.change_scene_to_packed(
+		NEXT_PHASE_SCENE
+	)
+
+	if error != OK:
+		push_error(
+			"GameApp: Không chuyển được sang render transition."
 		)
 
 
