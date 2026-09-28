@@ -157,6 +157,19 @@ func _initialize() -> void:
 		"PetHome render must target a full-screen 9:16 mobile composition"
 	)
 
+	_expect(
+		request.positive_prompt.to_lower().contains(
+			"38 to 42 percent"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"pulled-back camera"
+		)
+		and request.negative_prompt.to_lower().contains(
+			"close-up portrait"
+		),
+		"PetHome render must keep the full-body pet small enough for runtime UI"
+	)
+
 	var renderer = MockPetRendererScript.new()
 	var result = await renderer.render(request)
 
