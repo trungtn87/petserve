@@ -125,3 +125,16 @@ Cloudflare is only a PetRenderer adapter. M1 identity, M2 genome, M3 rules and M
 
 ## EVO-034 — Direct Cloudflare credentials are development-only
 The local Godot test reads CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN from environment variables. Production builds must not ship this token.
+
+
+## EVO-035 — M7 evolution render is always image-edit
+Every post-hatch evolution render uses the previous complete PetHome image as its source. Text-only regeneration is not a valid evolution path.
+
+## EVO-036 — M7 persists the render plan before network I/O
+The exact evolution image-edit request is saved before contacting the renderer. Retry restores the persisted request and must not reroll mutation, target region, edit strength, source image or prompt.
+
+## EVO-037 — Stage advancement is explicit visual data
+M3 continues to describe one same-stage mutation delta. M7 supplies the next visual stage explicitly to the visual-spec builder; string replacement of stage text is not allowed.
+
+## EVO-038 — PetHome world continuity is part of M7 identity preservation
+An evolution edit preserves the previous environment, palette, lighting, camera/framing and UI-safe composition while changing only the selected biological target plus normal maturity implied by the next stage.
