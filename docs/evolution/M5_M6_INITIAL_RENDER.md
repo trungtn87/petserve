@@ -1,52 +1,56 @@
-# M5/M6 — Proxy Renderer
+# M5/M6 — Single-Image PetHome Renderer
 
 ## Goal
 
-Make PC and Android use the same renderer path without shipping provider credentials in the game.
+PC and Android use the same proxy renderer while each hatch/evolution spends only one image-generation request.
 
-## Flow
+## Initial flow
 
 ```text
-PetRenderRequest
-      ↓
-ProxyPetRenderer
-      ↓ HTTPS JSON
-Cloudflare Worker
-      ↓ env.AI.run()
-FLUX.2 Klein 4B
-      ↓
-base64 image
-      ↓
-PetRenderResult
+PetIdentity + PetSceneProfile + PetGenome
+                 ↓
+        InitialPetVisualSpec
+                 ↓
+     one unified PetHome prompt
+                 ↓
+          PetRenderRequest
+                 ↓
+         ProxyPetRenderer
+                 ↓ HTTPS JSON
+        Cloudflare Worker
+                 ↓ Workers AI
+         FLUX.2 Klein 4B
+                 ↓
+ one image containing pet + environment
+                 ↓
+    user://pet_renders/*.png
 ```
 
-## Why this boundary exists
+The first image is the visual origin of the pet and its PetHome world.
 
-The APK must not contain Cloudflare Account ID/API token credentials. The Worker owns the provider call.
+## Credit rule
 
-The client sends only:
-- generated prompt;
-- requested width;
-- requested height.
+There is no second background-render request.
 
-The Worker owns:
-- model selection;
-- Workers AI binding;
-- provider errors;
-- future provider replacement.
+```text
+Hatch      → 1 request → pet + background
+Evolution  → 1 request → evolved pet + evolved/continued background
+```
 
-## Current scope
+## Save contract
 
-M6 initial text-to-image is active.
+`EvolutionSaveService` schema 2 stores:
 
-Evolution image-edit remains reserved for the next milestone. FLUX.2 Klein accepts reference image inputs, so the Worker can later add `input_image_0` while keeping the Godot domain model unchanged.
+- pet name;
+- identity;
+- genome;
+- scene profile;
+- current visual.
 
-## Client configuration
+Legacy saves without a scene profile are not reused as a valid PetHome visual, so an old pet-only render is regenerated once using the new full-scene contract.
 
-`data/evolution/render/proxy_dev.json`
+## Provider boundary
 
-The `proxy_url` must be the deployed Worker endpoint:
+The APK only knows the proxy URL. Provider credentials remain outside the game client.
 
-`https://<worker>.workers.dev/v1/render/initial`
-
-No Cloudflare provider token belongs in Godot or the APK.
+Evolution image-edit remains the next renderer milestone. It will use the previous full PetHome image as the reference while retaining the same scene profile.

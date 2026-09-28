@@ -27,6 +27,7 @@ var mode: int = TransitionMode.INITIAL_BIRTH
 
 var _identity: PetIdentity
 var _genome: PetGenome
+var _scene_profile: PetSceneProfile
 var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
@@ -311,13 +312,20 @@ func _run_initial_birth() -> void:
 
 	_identity = data.get("identity") as PetIdentity
 	_genome = data.get("genome") as PetGenome
+	_scene_profile = data.get(
+		"scene_profile"
+	) as PetSceneProfile
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
 
-	if _identity == null or _genome == null:
+	if (
+		_identity == null
+		or _genome == null
+		or _scene_profile == null
+	):
 		_show_fatal(
-			"Không tạo được Identity/Genome cho pet."
+			"Không tạo được Identity/Genome/Scene Profile cho pet."
 		)
 		return
 
@@ -355,7 +363,8 @@ func _run_initial_birth() -> void:
 
 	var request_data := _coordinator.build_request(
 		_identity,
-		_genome
+		_genome,
+		_scene_profile
 	)
 
 	if not bool(request_data.get("ok", false)):
@@ -395,10 +404,10 @@ func _render_until_success(
 	while is_inside_tree():
 		if _retry_count == 0:
 			_status_label.text = (
-				"Đang tạo ngoại hình pet..."
+				"Đang tạo PetHome..."
 			)
 			_detail_label.text = (
-				"Hiệu ứng sẽ tiếp tục cho tới khi ảnh hoàn tất."
+				"AI đang tạo pet và môi trường trong cùng một ảnh."
 			)
 		else:
 			_status_label.text = (
@@ -463,7 +472,7 @@ func _complete_initial_render(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_text_to_image"
+	visual.source_mode = &"initial_pethome_text_to_image"
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -471,7 +480,8 @@ func _complete_initial_render(
 		_identity,
 		_genome,
 		visual,
-		_pet_name
+		_pet_name,
+		_scene_profile
 	)
 
 	if not saved:
@@ -522,6 +532,27 @@ func _get_existing_visual_path() -> String:
 	):
 		return ""
 
+	var scene_value: Variant = data.get(
+		"scene_profile",
+		{}
+	)
+
+	if typeof(scene_value) != TYPE_DICTIONARY:
+		return ""
+
+	var saved_scene := PetSceneProfile.from_dict(
+		scene_value as Dictionary
+	)
+
+	if (
+		saved_scene == null
+		or _scene_profile == null
+		or not saved_scene.same_profile(
+			_scene_profile
+		)
+	):
+		return ""
+
 	var visual_value: Variant = data.get(
 		"current_visual",
 		{}
@@ -534,7 +565,11 @@ func _get_existing_visual_path() -> String:
 		visual_value as Dictionary
 	)
 
-	if visual == null:
+	if (
+		visual == null
+		or visual.source_mode
+			!= &"initial_pethome_text_to_image"
+	):
 		return ""
 
 	if visual.image_path.is_empty():
@@ -605,7 +640,7 @@ func _finish_success(
 	)
 
 	_detail_label.text = (
-		"Đã dùng lại ảnh pet đã lưu."
+		"Đã dùng lại PetHome đã lưu."
 		if reused
 		else "Ảnh pet mới đã được tạo và lưu."
 	)

@@ -12,6 +12,7 @@ extends Control
 
 var _identity: PetIdentity
 var _genome: PetGenome
+var _scene_profile: PetSceneProfile
 var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
@@ -45,6 +46,9 @@ func _bootstrap() -> void:
 
 	_identity = data.get("identity") as PetIdentity
 	_genome = data.get("genome") as PetGenome
+	_scene_profile = data.get(
+		"scene_profile"
+	) as PetSceneProfile
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
@@ -60,7 +64,8 @@ func _bootstrap() -> void:
 
 	var request_data := _coordinator.build_request(
 		_identity,
-		_genome
+		_genome,
+		_scene_profile
 	)
 
 	if not bool(
@@ -89,7 +94,7 @@ func _bootstrap() -> void:
 
 	if existing:
 		_status_label.text = (
-			"Ấu thể đã được tạo • dùng lại ảnh đã lưu."
+			"PetHome đã được tạo • dùng lại ảnh đã lưu."
 		)
 		_generate_button.text = "TẠO LẠI ẢNH"
 		return
@@ -112,7 +117,8 @@ func _on_generate_pressed() -> void:
 
 	var request_data := _coordinator.build_request(
 		_identity,
-		_genome
+		_genome,
+		_scene_profile
 	)
 
 	if not bool(
@@ -139,7 +145,7 @@ func _start_generate(
 ) -> void:
 	_generate_button.disabled = true
 	_status_label.text = (
-		"Đang tạo %s Mythic infant từ prompt..."
+		"Đang tạo PetHome %s từ một prompt..."
 		% String(_identity.element()).to_upper()
 	)
 
@@ -170,7 +176,7 @@ func _start_generate(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_text_to_image"
+	visual.source_mode = &"initial_pethome_text_to_image"
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -178,11 +184,12 @@ func _start_generate(
 		_identity,
 		_genome,
 		visual,
-		_pet_name
+		_pet_name,
+		_scene_profile
 	)
 
 	_status_label.text = (
-		"Ấu thể Mythic đã tạo xong."
+		"PetHome Mythic đã tạo xong."
 	)
 	_generate_button.disabled = false
 	_generate_button.text = "TẠO LẠI ẢNH"
@@ -215,6 +222,27 @@ func _try_load_existing_visual() -> bool:
 	):
 		return false
 
+	var scene_value: Variant = data.get(
+		"scene_profile",
+		{}
+	)
+
+	if typeof(scene_value) != TYPE_DICTIONARY:
+		return false
+
+	var saved_scene := PetSceneProfile.from_dict(
+		scene_value as Dictionary
+	)
+
+	if (
+		saved_scene == null
+		or _scene_profile == null
+		or not saved_scene.same_profile(
+			_scene_profile
+		)
+	):
+		return false
+
 	var visual_value: Variant = data.get(
 		"current_visual",
 		{}
@@ -227,7 +255,11 @@ func _try_load_existing_visual() -> bool:
 		visual_value as Dictionary
 	)
 
-	if visual == null:
+	if (
+		visual == null
+		or visual.source_mode
+			!= &"initial_pethome_text_to_image"
+	):
 		return false
 
 	return _load_image_path(

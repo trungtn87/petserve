@@ -17,7 +17,8 @@ func _ready() -> void:
 
 func build_request(
 	identity: PetIdentity,
-	genome: PetGenome
+	genome: PetGenome,
+	scene_profile: PetSceneProfile = null
 ) -> Dictionary:
 	var style := MythicStyleProfile.load_default()
 
@@ -25,6 +26,18 @@ func build_request(
 		return {
 			"ok": false,
 			"error": "Không load được MythicStyleProfile.",
+		}
+
+	if scene_profile == null:
+		scene_profile = (
+			PetSceneProfileFactory.new()
+			.create_initial(identity)
+		)
+
+	if scene_profile == null:
+		return {
+			"ok": false,
+			"error": "Không tạo được PetHome Scene Profile.",
 		}
 
 	var species_catalog := InitialSpeciesCatalog.new()
@@ -44,7 +57,8 @@ func build_request(
 		identity,
 		genome,
 		style,
-		species_profile
+		species_profile,
+		scene_profile
 	)
 
 	if spec == null:
@@ -68,17 +82,18 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_infant_base"
+		+ "_pethome_infant"
 	)
 
 	if not request.is_valid():
 		return {
 			"ok": false,
-			"error": "Initial render request không hợp lệ.",
+			"error": "Initial PetHome render request không hợp lệ.",
 		}
 
 	return {
 		"ok": true,
+		"scene_profile": scene_profile,
 		"spec": spec,
 		"request": request,
 	}

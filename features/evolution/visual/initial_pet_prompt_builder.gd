@@ -18,8 +18,14 @@ func build_positive(
 		"[INFANT FORM]\n"
 		+ spec.form_section,
 
+		"[PETHOME WORLD]\n"
+		+ spec.scene_section,
+
 		"[COMPOSITION]\n"
 		+ spec.composition_section,
+
+		"[UI SAFE LAYOUT]\n"
+		+ spec.ui_safe_section,
 
 		"[EVOLUTION SPACE]\n"
 		+ spec.future_space_section,

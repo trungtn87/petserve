@@ -1,6 +1,4 @@
-# M4 — Visual Spec + Mythic Elemental Prompt
-
-Status: visual direction revised after M6 reference review.
+# M4 — Visual Spec + Mythic PetHome Prompt
 
 ## Locked art family
 
@@ -8,64 +6,61 @@ Status: visual direction revised after M6 reference review.
 mythic_elemental_chibi_v1
 ```
 
-The visual target is a soft mythic elemental pet, not a full-body galaxy creature.
-
-Core traits:
-- cute infant/chibi proportions;
-- large glossy eyes;
-- plush layered fur;
-- polished semi-3D painterly game art;
-- restrained magical atmosphere;
-- one readable elemental lineage;
-- clean silhouette;
-- no full-body starfield/nebula texture.
-
-## Seven elemental lineage anchors
-
-Each base pet may use stable element identity cues even before any mutation:
+The renderer now produces one coherent PetHome artwork per life stage:
 
 ```text
-palette
-+ eye color
-+ one small forehead lineage sigil
-+ one restrained tail-centered effect
+pet + matching environment = one AI image
 ```
 
-These are lineage anchors, not mutations.
+It does not render a pet asset and a background asset separately.
 
-This allows the seven infant cats to be visually recognizable while their M2 genome still remains:
+## Inputs
 
-```text
-stage = 1
-body_growth = 0
-traits = base
-mutations = []
-```
+M4 combines:
 
-## Stable-rule decision
+- `PetIdentity`
+- `PetSceneProfile`
+- `PetGenome`
+- Mythic style profile
+- species profile
 
-M3 mutation IDs such as `galaxy_eye_ring` are retained internally for now to avoid destabilizing the completed rule layer.
+The scene profile contributes stable world identity:
 
-M4 visual wording no longer interprets those IDs literally as galaxy art. For example:
+- environment
+- palette
+- lighting
+- motif
+- scene seed
 
-```text
-galaxy_eye_ring
-→ thin mystical elemental iris ring
-→ explicitly no galaxy texture
-```
+The genome contributes the current biological/evolution state.
 
-This preserves gameplay data while allowing the art direction to evolve independently.
-
-## Prompt contract
-
-Evolution edits keep the same structure:
+## Initial prompt contract
 
 ```text
-[IDENTITY LOCK]
+[INITIAL IDENTITY]
 [MYTHIC ELEMENTAL STYLE]
-[CURRENT FORM]
-[CHANGE ONLY]
-[PRESERVE]
+[INFANT FORM]
+[PETHOME WORLD]
+[COMPOSITION]
+[UI SAFE LAYOUT]
+[EVOLUTION SPACE]
 ```
 
-The previous pet image remains the source of truth for every evolved visual.
+The PetHome world must be visible in the same image as the pet.
+
+The composition reserves low-detail areas for runtime UI:
+- upper region: name / stage / growth / food;
+- lower region: three PetHome menu buttons.
+
+No text, UI, frame or interface artwork is generated into the image.
+
+## Evolution continuity
+
+Later evolution renders must use the previous PetHome image as the visual reference. The pet remains the same individual and the scene keeps the same world identity while stage, mutation and maturity may change.
+
+This keeps the cost model:
+
+```text
+one hatch = one AI image
+one evolution = one AI image
+```

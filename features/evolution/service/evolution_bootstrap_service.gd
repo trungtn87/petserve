@@ -56,9 +56,21 @@ func build_from_hatch() -> Dictionary:
 			"error": "Không tạo được Identity/Genome ban đầu.",
 		}
 
+	var scene_profile := (
+		PetSceneProfileFactory.new()
+		.create_initial(identity)
+	)
+
+	if scene_profile == null:
+		return {
+			"ok": false,
+			"error": "Không tạo được PetHome Scene Profile từ M1.",
+		}
+
 	return {
 		"ok": true,
 		"identity": identity,
 		"genome": genome,
+		"scene_profile": scene_profile,
 		"pet_name": hatch_state.pet_name,
 	}

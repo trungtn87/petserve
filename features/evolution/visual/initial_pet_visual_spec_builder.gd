@@ -6,7 +6,8 @@ func build(
 	identity: PetIdentity,
 	genome: PetGenome,
 	style: MythicStyleProfile,
-	species_profile: InitialSpeciesProfile
+	species_profile: InitialSpeciesProfile,
+	scene_profile: PetSceneProfile = null
 ) -> InitialPetVisualSpec:
 	if (
 		identity == null
@@ -16,15 +17,26 @@ func build(
 	):
 		return null
 
+	if scene_profile == null:
+		scene_profile = (
+			PetSceneProfileFactory.new()
+			.create_initial(identity)
+		)
+
 	if (
 		not identity.is_valid()
 		or not genome.is_valid()
 		or not style.is_valid()
 		or not species_profile.is_valid()
+		or scene_profile == null
+		or not scene_profile.is_valid()
 	):
 		return null
 
 	if identity.species() != species_profile.species:
+		return null
+
+	if identity.element() != scene_profile.element:
 		return null
 
 	if genome.stage() != 1:
@@ -56,7 +68,8 @@ func build(
 		+ String(identity.species())
 		+ ". Element family: "
 		+ String(identity.element())
-		+ ". This image establishes the permanent visual identity that all later evolution images must preserve."
+		+ ". This image establishes the permanent visual identity that all later evolution images must preserve. "
+		+ "The pet and its PetHome environment must be rendered together as one coherent scene, not as separate assets."
 	)
 
 	spec.style_section = (
@@ -70,21 +83,46 @@ func build(
 
 	spec.form_section = species_profile.infant_form
 
+	spec.scene_section = (
+		"PetHome environment: "
+		+ scene_profile.environment_theme
+		+ ". Shared palette: "
+		+ scene_profile.palette_description
+		+ ". Lighting: "
+		+ scene_profile.lighting_theme
+		+ ". Repeating world motif: "
+		+ scene_profile.motif_description
+		+ ". Scene identity seed: "
+		+ str(scene_profile.scene_seed)
+		+ ". Keep the environment supportive and atmospheric, but the pet remains the clear focal point."
+	)
+
 	spec.composition_section = (
 		species_profile.composition
-		+ " Generate only one character."
+		+ " Generate exactly one pet in exactly one continuous PetHome environment. "
+		+ "Do not create a split image, collage, character sheet or separate background panel."
+	)
+
+	spec.ui_safe_section = (
+		"Design the composition for a portrait mobile PetHome screen. "
+		+ "Keep the pet large and readable around the visual center to lower-middle area. "
+		+ "Keep the upper area calm and low-detail for name, stage, growth and food UI. "
+		+ "Keep the lower edge calm and low-detail for three menu buttons. "
+		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
 	)
 
 	spec.future_space_section = (
 		"This is the clean infant base form before any mutation. "
 		+ "The pet should already look polished, lovable and mythic, but remain visually simple enough for many later evolution steps. "
 		+ "Element lineage cues are allowed only as stable base identity: palette, eye color, one small forehead sigil and one restrained tail-centered effect. "
+		+ "The PetHome world should also remain recognizable in later evolution images so the same pet feels like it continues living in the same world. "
 		+ species_profile.forbidden_advanced_features
 	)
 
 	spec.negative_prompt = (
 		style.negative_prompt()
 		+ ", adult body, mature proportions, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
+		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
 	)
 
 	if not spec.is_valid():

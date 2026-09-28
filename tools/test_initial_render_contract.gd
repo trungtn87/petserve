@@ -42,6 +42,10 @@ func _initialize() -> void:
 		PetGenomeFactoryScript.new()
 		.create_initial()
 	)
+	var scene_profile = (
+		PetSceneProfileFactory.new()
+		.create_initial(identity)
+	)
 	var style = (
 		MythicStyleProfileScript.load_default()
 	)
@@ -57,7 +61,8 @@ func _initialize() -> void:
 			identity,
 			genome,
 			style,
-			species
+			species,
+			scene_profile
 		)
 	)
 
@@ -111,6 +116,32 @@ func _initialize() -> void:
 			"dark"
 		),
 		"initial prompt must encode infant + mythic element identity"
+	)
+
+	_expect(
+		request.positive_prompt.contains(
+			"[PETHOME WORLD]"
+		)
+		and request.positive_prompt.contains(
+			"[UI SAFE LAYOUT]"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"pethome environment"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"one coherent scene"
+		),
+		"initial prompt must render pet + PetHome background in one image"
+	)
+
+	_expect(
+		request.negative_prompt.to_lower().contains(
+			"neutral empty background"
+		)
+		and request.negative_prompt.to_lower().contains(
+			"split image"
+		),
+		"initial negative prompt must reject pet-only and split outputs"
 	)
 
 	var renderer = MockPetRendererScript.new()
