@@ -627,7 +627,10 @@ func _on_menu_pressed() -> void:
 	if _drawer == null:
 		return
 
-	_drawer.open_drawer()
+	if _drawer.is_open():
+		_drawer.close_drawer()
+	else:
+		_drawer.open_drawer()
 
 
 func _on_drawer_action(
