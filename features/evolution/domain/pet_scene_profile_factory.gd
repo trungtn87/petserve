@@ -239,8 +239,9 @@ func _pick_index(
 		return 0
 
 	var mixed := (
-		seed * 1103515245
-		+ salt * 12345
+		seed * 31
+		+ salt * 17
+		+ int(seed / 7)
 	)
 
 	if mixed < 0:
@@ -260,4 +261,4 @@ func _scene_seed(
 	if value < 0:
 		value = -value
 
-	return max(1, value)
+	return maxi(1, value)
