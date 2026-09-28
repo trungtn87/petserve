@@ -18,6 +18,8 @@ var _reward_max: int = 4
 var _reward_enabled: bool = true
 var _turn_ticket: int = 0
 
+var _title_label: Label
+var _hint_label: Label
 var _status_label: Label
 var _reward_label: Label
 var _message_label: Label
@@ -30,6 +32,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_build_ui()
+
+	if not LocalizationManager.language_changed.is_connected(_on_language_changed):
+		LocalizationManager.language_changed.connect(_on_language_changed)
 
 
 func open_hub(
@@ -107,11 +112,11 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	root.add_child(header)
 
-	var title := Label.new()
-	title.text = "GIẢI TRÍ • CARO 3×3"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 19)
-	header.add_child(title)
+	_title_label = Label.new()
+	_title_label.text = LocalizationManager.text("CARO_TITLE", "ENTERTAINMENT • TIC-TAC-TOE 3×3")
+	_title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title_label.add_theme_font_size_override("font_size", 19)
+	header.add_child(_title_label)
 
 	var close := Button.new()
 	close.text = "×"
@@ -125,14 +130,14 @@ func _build_ui() -> void:
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_reward_label)
 
-	var hint := Label.new()
-	hint.text = "Bạn là X • Pet là O"
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 11)
-	root.add_child(hint)
+	_hint_label = Label.new()
+	_hint_label.text = LocalizationManager.text("CARO_HINT", "You are X • Pet is O")
+	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint_label.add_theme_font_size_override("font_size", 11)
+	root.add_child(_hint_label)
 
 	_status_label = Label.new()
-	_status_label.text = "Lượt của bạn"
+	_status_label.text = LocalizationManager.text("CARO_YOUR_TURN", "Your turn")
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.add_theme_font_size_override("font_size", 15)
 	root.add_child(_status_label)
@@ -157,14 +162,14 @@ func _build_ui() -> void:
 		_cells.append(cell)
 
 	_message_label = Label.new()
-	_message_label.text = "Thắng để nhận Rương Ấu thể."
+	_message_label.text = LocalizationManager.text("CARO_REWARD_HINT", "Win to receive an Infant Chest.")
 	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_message_label.add_theme_font_size_override("font_size", 11)
 	root.add_child(_message_label)
 
 	_new_round_button = Button.new()
-	_new_round_button.text = "VÁN MỚI"
+	_new_round_button.text = LocalizationManager.text("CARO_NEW_ROUND", "NEW ROUND")
 	_new_round_button.custom_minimum_size = Vector2(0, 48)
 	_new_round_button.focus_mode = Control.FOCUS_NONE
 	_new_round_button.pressed.connect(_start_new_round)
@@ -179,9 +184,9 @@ func _start_new_round() -> void:
 	_pet_turn_pending = false
 	_status_label.text = "Lượt của bạn"
 	_message_label.text = (
-		"Thắng để nhận Rương Ấu thể."
+		LocalizationManager.text("CARO_REWARD_HINT", "Win to receive an Infant Chest.")
 		if _reward_enabled and _reward_claimed < _reward_max
-		else "Có thể chơi tiếp • phần thưởng giai đoạn này đã hết."
+		else LocalizationManager.text("CARO_REWARD_DONE", "You can keep playing • rewards for this stage are finished.")
 	)
 	_render_board()
 
@@ -202,7 +207,7 @@ func _on_cell_pressed(index: int) -> void:
 		return
 
 	_pet_turn_pending = true
-	_status_label.text = "Pet đang nghĩ..."
+	_status_label.text = LocalizationManager.text("CARO_PET_THINKING", "Pet is thinking...")
 	_render_board()
 
 	var ticket := _turn_ticket
@@ -234,23 +239,23 @@ func _pet_turn(ticket: int) -> void:
 func _finish_round(game_result: StringName) -> void:
 	match game_result:
 		TicTacToeGame.RESULT_PLAYER:
-			_status_label.text = "Bạn thắng!"
+			_status_label.text = LocalizationManager.text("CARO_PLAYER_WIN", "You win!")
 			_message_label.text = (
-				"Đang nhận Rương Ấu thể..."
+				LocalizationManager.text("CARO_PLAYER_WIN_REWARD", "Receiving an Infant Chest...")
 				if _reward_enabled and _reward_claimed < _reward_max
-				else "Bạn thắng • không còn rương thưởng."
+				else LocalizationManager.text("CARO_PLAYER_WIN_NO_REWARD", "You win • no reward chests remain.")
 			)
 
 			if _reward_enabled and _reward_claimed < _reward_max:
 				caro_win_reward_requested.emit()
 
 		TicTacToeGame.RESULT_PET:
-			_status_label.text = "Pet thắng!"
-			_message_label.text = "Pet có vẻ khá đắc ý."
+			_status_label.text = LocalizationManager.text("CARO_PET_WIN", "Pet wins!")
+			_message_label.text = LocalizationManager.text("CARO_PET_WIN_MESSAGE", "Pet looks rather pleased.")
 
 		TicTacToeGame.RESULT_DRAW:
-			_status_label.text = "Hòa!"
-			_message_label.text = "Không mất gì • thử lại ván khác."
+			_status_label.text = LocalizationManager.text("CARO_DRAW", "Draw!")
+			_message_label.text = LocalizationManager.text("CARO_DRAW_MESSAGE", "Nothing lost • try another round.")
 
 	match_finished.emit(game_result)
 	_render_board()
@@ -285,13 +290,38 @@ func _update_reward_label() -> void:
 	var claimed := clampi(_reward_claimed, 0, _reward_max)
 
 	if not _reward_enabled:
-		_reward_label.text = "Rương Ấu thể • giai đoạn thưởng đã kết thúc"
+		_reward_label.text = LocalizationManager.text(
+			"CARO_REWARD_ENDED",
+			"Infant Chest • reward stage finished"
+		)
 		return
 
-	_reward_label.text = "Rương Caro  %d/%d" % [
+	_reward_label.text = LocalizationManager.text(
+		"CARO_REWARD_COUNT",
+		"Caro Chest  %d/%d"
+	) % [
 		claimed,
 		_reward_max,
 	]
+
+
+func _on_language_changed(_language: String) -> void:
+	if _title_label != null:
+		_title_label.text = LocalizationManager.text(
+			"CARO_TITLE",
+			"ENTERTAINMENT • TIC-TAC-TOE 3×3"
+		)
+
+	if _hint_label != null:
+		_hint_label.text = LocalizationManager.text("CARO_HINT", "You are X • Pet is O")
+
+	if _new_round_button != null:
+		_new_round_button.text = LocalizationManager.text("CARO_NEW_ROUND", "NEW ROUND")
+
+	_update_reward_label()
+
+	if _is_open:
+		_start_new_round()
 
 
 func _style(bg: Color, border: Color) -> StyleBoxFlat:
