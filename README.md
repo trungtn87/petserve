@@ -4,16 +4,23 @@ Godot Android portrait project.
 
 ## Current milestone
 
-M1 introduces the first Evolution Core domain object: `PetIdentity`.
+M2 adds `PetGenome`, the mutable-by-evolution state that is kept separate from the stable `PetIdentity`.
 
-Stable identity contains only:
-- pet id;
-- species;
-- element;
-- lineage seed;
-- generation.
+Current Evolution Core:
 
-It deliberately contains no visual, stage, mutation or AI-render data.
+```text
+PetIdentity  = which individual this is
+PetGenome    = what this individual has developed into
+```
+
+M2 genome intentionally stays small:
+
+- stage;
+- body_growth;
+- extensible visual traits;
+- mutation IDs.
+
+No AI rendering, mutation probability or evolution rules are implemented yet.
 
 ## Preserved baseline
 
@@ -23,11 +30,10 @@ It deliberately contains no visual, stage, mutation or AI-render data.
 - Main UI and Android project configuration.
 - Independent feature branches remain untouched.
 
-## Retired from the active baseline
+## Test status
 
-- 3D pet runtime.
-- 2D/2.5D pet presentation runtime.
-- Pet idle/expression/motion/interaction systems.
-- Old Pet Home runtime.
+M1/M2 include headless test scripts, but local Godot execution is deferred and will be run later on the user's machine.
 
-See `docs/evolution/M1_PET_IDENTITY.md` for the M1 contract and test.
+See:
+- `docs/evolution/M1_PET_IDENTITY.md`
+- `docs/evolution/M2_PET_GENOME.md`

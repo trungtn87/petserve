@@ -38,3 +38,16 @@ A single pet life keeps the same pet_id, species, element, lineage_seed and gene
 
 ## EVO-007 — Identity is deterministic
 The same species + element + lineage_seed + generation must produce the same pet_id. Identity generation must not depend on AI output or image content.
+
+
+## EVO-008 — Genome is separate from identity
+Stage, body growth, visual traits and mutation IDs belong to PetGenome, never PetIdentity.
+
+## EVO-009 — Genome starts small and extensible
+The V1 genome exposes only stage, body_growth, an open trait map and mutation IDs. New visual channels should be added as trait data rather than new core fields unless a future capability genuinely requires a typed field.
+
+## EVO-010 — Genome is a snapshot
+PetGenome does not expose mutable internal collections. A later evolution service creates a new validated genome snapshot instead of letting arbitrary UI/render code mutate the current genome in place.
+
+## EVO-011 — M2 contains no evolution probability
+Mutation rarity, compatibility, item influence and next-evolution selection are explicitly deferred to the Evolution Rules milestone.

@@ -69,3 +69,27 @@ features/evolution/
 ```
 
 PetIdentity is the root of future Evolution Core data. Future Genome, EvolutionRule and VisualSpec layers may depend on identity, but identity must not depend on them.
+
+
+## M2 genome domain
+
+```text
+features/evolution/
+└── domain/
+    ├── pet_identity.gd
+    ├── pet_identity_factory.gd
+    ├── pet_genome.gd
+    └── pet_genome_factory.gd
+```
+
+Dependency boundary:
+
+```text
+PetIdentity   PetGenome
+     \         /
+      future Evolution Rules
+             ↓
+      future Visual Spec
+```
+
+PetGenome does not depend on renderer, UI, Pet Home, AI models, item systems or mutation probability logic.
