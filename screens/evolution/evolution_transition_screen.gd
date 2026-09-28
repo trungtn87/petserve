@@ -18,6 +18,8 @@ const RETRY_DELAYS := [
 	8.0,
 ]
 
+const MIN_TRANSITION_SECONDS: float = 3.0
+
 
 @export_enum("Initial Birth", "Evolution Update")
 var mode: int = TransitionMode.INITIAL_BIRTH
@@ -39,9 +41,11 @@ var _effect_strength: float = 1.0
 var _retry_count: int = 0
 var _completed: bool = false
 var _fatal: bool = false
+var _transition_started_msec: int = 0
 
 
 func _ready() -> void:
+	_transition_started_msec = Time.get_ticks_msec()
 	mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_build_ui()
@@ -323,7 +327,30 @@ func _run_initial_birth() -> void:
 			+ _pet_name
 		)
 
-	if _try_use_existing_visual():
+	var existing_path := _get_existing_visual_path()
+
+	if not existing_path.is_empty():
+		_status_label.text = (
+			"Đang ổn định hình thái..."
+		)
+		_detail_label.text = (
+			"Đang đồng bộ hình thái đã lưu."
+		)
+
+		await _wait_for_minimum_duration()
+
+		if not _load_result_image(
+			existing_path
+		):
+			_show_fatal(
+				"Không load được ảnh pet đã lưu."
+			)
+			return
+
+		_finish_success(
+			existing_path,
+			true
+		)
 		return
 
 	var request_data := _coordinator.build_request(
@@ -392,7 +419,7 @@ func _render_until_success(
 			return
 
 		if result != null and result.success:
-			_complete_initial_render(result)
+			await _complete_initial_render(result)
 			return
 
 		if result == null:
@@ -453,6 +480,8 @@ func _complete_initial_render(
 		)
 		return
 
+	await _wait_for_minimum_duration()
+
 	if not _load_result_image(
 		result.image_path
 	):
@@ -467,11 +496,11 @@ func _complete_initial_render(
 	)
 
 
-func _try_use_existing_visual() -> bool:
+func _get_existing_visual_path() -> String:
 	var data := EvolutionSaveService.new().load_data()
 
 	if data.is_empty():
-		return false
+		return ""
 
 	var identity_value: Variant = data.get(
 		"identity",
@@ -479,7 +508,7 @@ func _try_use_existing_visual() -> bool:
 	)
 
 	if typeof(identity_value) != TYPE_DICTIONARY:
-		return false
+		return ""
 
 	var saved_identity := PetIdentity.from_dict(
 		identity_value as Dictionary
@@ -491,7 +520,7 @@ func _try_use_existing_visual() -> bool:
 			_identity
 		)
 	):
-		return false
+		return ""
 
 	var visual_value: Variant = data.get(
 		"current_visual",
@@ -499,26 +528,41 @@ func _try_use_existing_visual() -> bool:
 	)
 
 	if typeof(visual_value) != TYPE_DICTIONARY:
-		return false
+		return ""
 
 	var visual := PetVisualRecord.from_dict(
 		visual_value as Dictionary
 	)
 
 	if visual == null:
-		return false
+		return ""
 
-	if not _load_result_image(
-		visual.image_path
-	):
-		return false
+	if visual.image_path.is_empty():
+		return ""
 
-	_finish_success(
-		visual.image_path,
-		true
+	return visual.image_path
+
+
+func _wait_for_minimum_duration() -> void:
+	var elapsed := (
+		float(
+			Time.get_ticks_msec()
+			- _transition_started_msec
+		)
+		/ 1000.0
 	)
 
-	return true
+	var remaining := maxf(
+		0.0,
+		MIN_TRANSITION_SECONDS - elapsed
+	)
+
+	if remaining <= 0.0:
+		return
+
+	await get_tree().create_timer(
+		remaining
+	).timeout
 
 
 func _load_result_image(
