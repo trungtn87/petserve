@@ -109,10 +109,11 @@ func build(
 	)
 
 	spec.ui_safe_section = (
-		"Design the composition for a portrait mobile PetHome screen. "
+		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
 		+ "Keep the pet large and readable around the visual center to lower-middle area. "
 		+ "Keep the upper area calm and low-detail for name, stage, growth and food UI. "
 		+ "Keep the lower edge calm and low-detail for three menu buttons. "
+		+ "Extend the environment naturally to every edge of the image with no border, frame, vignette panel or empty margin. "
 		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
 	)
 
