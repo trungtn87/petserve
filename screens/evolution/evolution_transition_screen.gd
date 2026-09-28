@@ -726,14 +726,14 @@ func _render_until_success(
 	request: PetRenderRequest
 ) -> void:
 	_status_label.text = "Đang định hình thế giới..."
-	var result: PetRenderResult = await _coordinator.render_initial(request)
+	var result: PetRenderResult = await _coordinator.render(request)
 	if not is_inside_tree():
 		return
 	if result == null or not result.success:
 		_show_fatal("Không tạo được hình thái. Tiến trình đã được giữ lại.")
 		return
 	if mode == TransitionMode.EVOLUTION_UPDATE:
-		if not InfantEvolutionService.new().commit(result):
+		if not StageEvolutionService.new().commit(result):
 			_show_fatal("Chưa lưu được hình thái mới. Hãy thử lại.")
 			return
 		await _wait_for_minimum_duration()
@@ -749,14 +749,28 @@ func _run_evolution() -> void:
 	if identity == null or genome == null:
 		_show_fatal("Không đọc được dữ liệu pet.")
 		return
-	if genome.stage() > 1:
-		_finish_success(str(saved.get("current_visual", {}).get("image_path", "")), true)
+	if genome.stage() >= StageLifecycle.FINAL_STAGE:
+		_finish_success(
+			str(
+				saved.get(
+					"current_visual",
+					{}
+				).get(
+					"image_path",
+					""
+				)
+			),
+			true
+		)
 		return
 	var game := InfantGameFacade.new()
-	if not game.setup(identity.lineage_seed()):
+	if not game.setup(
+		identity.lineage_seed(),
+		genome.stage()
+	):
 		_show_fatal("Chưa lưu được tiến trình.")
 		return
-	var service := InfantEvolutionService.new()
+	var service := StageEvolutionService.new()
 	var prepared := service.prepare(game.snapshot())
 	if not bool(prepared.get("ok", false)):
 		_show_fatal(str(prepared.get("error", "Chưa thể tiến hóa.")))
