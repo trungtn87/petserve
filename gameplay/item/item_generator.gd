@@ -134,29 +134,81 @@ func describe(item: Dictionary) -> String:
 		TYPE_FOOD:
 			var food_seconds := int(item.get("main_value_seconds", 0))
 			var growth_delta := int(item.get("growth_delta_seconds", 0))
-			var text := "No +" + _format_minutes(food_seconds)
+			var text := LocalizationManager.text(
+				"ITEM_EFFECT_FOOD",
+				"Food +%s"
+			) % _format_minutes(food_seconds)
+
 			if growth_delta > 0:
-				text += " • Trưởng thành -" + _format_minutes(growth_delta)
+				text += LocalizationManager.text(
+					"ITEM_EFFECT_GROWTH_MINUS",
+					" • Growth -%s"
+				) % _format_minutes(growth_delta)
 			elif growth_delta < 0:
-				text += " • Trưởng thành +" + _format_minutes(abs(growth_delta))
+				text += LocalizationManager.text(
+					"ITEM_EFFECT_GROWTH_PLUS",
+					" • Growth +%s"
+				) % _format_minutes(abs(growth_delta))
+
 			return text
 
 		TYPE_GROWTH:
 			var growth_seconds := int(item.get("main_value_seconds", 0))
 			var food_delta := int(item.get("food_delta_seconds", 0))
 			var text := ""
+
 			if growth_seconds >= 0:
-				text = "Trưởng thành -" + _format_minutes(growth_seconds)
+				text = LocalizationManager.text(
+					"ITEM_EFFECT_GROWTH",
+					"Growth -%s"
+				) % _format_minutes(growth_seconds)
 			else:
-				text = "Trưởng thành +" + _format_minutes(abs(growth_seconds))
+				text = LocalizationManager.text(
+					"ITEM_EFFECT_GROWTH_DELAY",
+					"Growth +%s"
+				) % _format_minutes(abs(growth_seconds))
+
 			if food_delta < 0:
-				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
+				text += LocalizationManager.text(
+					"ITEM_EFFECT_FOOD_LOSS",
+					" • Lose %s food"
+				) % _format_minutes(abs(food_delta))
+
 			return text
 
 		TYPE_FUTURE_FRAGMENT:
-			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
+			return LocalizationManager.text(
+				"ITEM_EFFECT_FUTURE_FRAGMENT",
+				"Fragment for a later stage • cannot be used yet"
+			)
 
-	return "Không rõ hiệu ứng"
+	return LocalizationManager.text("ITEM_EFFECT_UNKNOWN", "Unknown effect")
+
+
+func display_name(item: Dictionary) -> String:
+	var properties: Array[String] = []
+	var defects: Array[String] = []
+
+	for value in item.get("properties", []):
+		properties.append(String(value))
+
+	for value in item.get("defects", []):
+		defects.append(String(value))
+
+	var item_type := StringName(item.get("item_type", ""))
+	var quality := String(item.get("quality", "normal"))
+
+	match item_type:
+		TYPE_FOOD:
+			return _food_name(quality, properties, defects)
+		TYPE_GROWTH:
+			return _growth_name(quality, properties, defects)
+		TYPE_FUTURE_FRAGMENT:
+			return _future_fragment_name(
+				StringName(item.get("definition_id", ""))
+			)
+
+	return LocalizationManager.text("COMMON_ITEM", "Item")
 
 
 func rarity_label(value: String) -> String:
@@ -178,15 +230,15 @@ func rarity_label(value: String) -> String:
 func quality_label(value: String) -> String:
 	match value:
 		"broken":
-			return "Hỏng"
+			return LocalizationManager.text("QUALITY_BROKEN", "Broken")
 		"poor":
-			return "Kém"
+			return LocalizationManager.text("QUALITY_POOR", "Poor")
 		"normal":
-			return "Thường"
+			return LocalizationManager.text("QUALITY_NORMAL", "Normal")
 		"good":
-			return "Tốt"
+			return LocalizationManager.text("QUALITY_GOOD", "Good")
 		"perfect":
-			return "Hoàn hảo"
+			return LocalizationManager.text("QUALITY_PERFECT", "Perfect")
 		_:
 			return value
 
@@ -194,21 +246,21 @@ func quality_label(value: String) -> String:
 func property_label(value: StringName) -> String:
 	match value:
 		&"fresh":
-			return "Tươi"
+			return LocalizationManager.text("PROP_FRESH", "Fresh")
 		&"dense":
-			return "Đậm đặc"
+			return LocalizationManager.text("PROP_DENSE", "Dense")
 		&"nutritious":
-			return "Dinh dưỡng"
+			return LocalizationManager.text("PROP_NUTRITIOUS", "Nutritious")
 		&"growth_rich":
-			return "Giàu tăng trưởng"
+			return LocalizationManager.text("PROP_GROWTH_RICH", "Growth-rich")
 		&"concentrated":
-			return "Cô đặc"
+			return LocalizationManager.text("PROP_CONCENTRATED", "Concentrated")
 		&"rapid":
-			return "Tác dụng nhanh"
+			return LocalizationManager.text("PROP_RAPID", "Fast acting")
 		&"pure":
-			return "Tinh khiết"
+			return LocalizationManager.text("PROP_PURE", "Pure")
 		&"burst":
-			return "Bùng trưởng"
+			return LocalizationManager.text("PROP_BURST", "Growth burst")
 		_:
 			return String(value)
 
@@ -216,21 +268,21 @@ func property_label(value: StringName) -> String:
 func defect_label(value: StringName) -> String:
 	match value:
 		&"spoiled":
-			return "Ôi"
+			return LocalizationManager.text("DEFECT_SPOILED", "Spoiled")
 		&"stale":
-			return "Cũ"
+			return LocalizationManager.text("DEFECT_STALE", "Stale")
 		&"heavy":
-			return "Khó tiêu"
+			return LocalizationManager.text("DEFECT_HEAVY", "Hard to digest")
 		&"rotten":
-			return "Hỏng nặng"
+			return LocalizationManager.text("DEFECT_ROTTEN", "Badly spoiled")
 		&"diluted":
-			return "Pha loãng"
+			return LocalizationManager.text("DEFECT_DILUTED", "Diluted")
 		&"expired":
-			return "Hết hạn"
+			return LocalizationManager.text("DEFECT_EXPIRED", "Expired")
 		&"appetite_drain":
-			return "Hao thức ăn"
+			return LocalizationManager.text("DEFECT_APPETITE_DRAIN", "Food drain")
 		&"backfire":
-			return "Phản tác dụng"
+			return LocalizationManager.text("DEFECT_BACKFIRE", "Backfire")
 		_:
 			return String(value)
 
@@ -510,28 +562,29 @@ func _food_name(
 	defects: Array[String]
 ) -> String:
 	if defects.has("rotten"):
-		return "Khẩu phần hỏng nặng"
-	if defects.has("spoiled"):
-		return "Khẩu phần ôi"
+		return LocalizationManager.text("ITEM_FOOD_ROTTEN", "Badly spoiled ration")
 
-	var base := "Khẩu phần"
+	if defects.has("spoiled"):
+		return LocalizationManager.text("ITEM_FOOD_SPOILED", "Spoiled ration")
+
+	var base := LocalizationManager.text("ITEM_FOOD_BASE", "Ration")
 
 	match quality:
 		"broken":
-			base = "Khẩu phần vụn"
+			base = LocalizationManager.text("ITEM_FOOD_BROKEN", "Crumbled ration")
 		"poor":
-			base = "Khẩu phần kém"
+			base = LocalizationManager.text("ITEM_FOOD_POOR", "Poor ration")
 		"good":
-			base = "Khẩu phần tươi"
+			base = LocalizationManager.text("ITEM_FOOD_GOOD", "Fresh ration")
 		"perfect":
-			base = "Khẩu phần hoàn hảo"
+			base = LocalizationManager.text("ITEM_FOOD_PERFECT", "Perfect ration")
 
 	if properties.has("dense"):
-		base += " đậm đặc"
+		base += LocalizationManager.text("ITEM_SUFFIX_DENSE", " dense")
 	elif properties.has("nutritious"):
-		base += " dinh dưỡng"
+		base += LocalizationManager.text("ITEM_SUFFIX_NUTRITIOUS", " nutritious")
 	elif properties.has("growth_rich"):
-		base += " tăng trưởng"
+		base += LocalizationManager.text("ITEM_SUFFIX_GROWTH", " growth-rich")
 
 	return base
 
@@ -542,28 +595,29 @@ func _growth_name(
 	defects: Array[String]
 ) -> String:
 	if defects.has("backfire"):
-		return "Chất xúc tác bất ổn"
-	if defects.has("expired"):
-		return "Tinh chất hết hạn"
+		return LocalizationManager.text("ITEM_GROWTH_BACKFIRE", "Unstable catalyst")
 
-	var base := "Gel tăng trưởng"
+	if defects.has("expired"):
+		return LocalizationManager.text("ITEM_GROWTH_EXPIRED", "Expired essence")
+
+	var base := LocalizationManager.text("ITEM_GROWTH_BASE", "Growth gel")
 
 	match quality:
 		"broken":
-			base = "Dung dịch lỗi"
+			base = LocalizationManager.text("ITEM_GROWTH_BROKEN", "Faulty solution")
 		"poor":
-			base = "Gel loãng"
+			base = LocalizationManager.text("ITEM_GROWTH_POOR", "Diluted gel")
 		"good":
-			base = "Tinh chất tăng trưởng"
+			base = LocalizationManager.text("ITEM_GROWTH_GOOD", "Growth essence")
 		"perfect":
-			base = "Lõi tăng trưởng"
+			base = LocalizationManager.text("ITEM_GROWTH_PERFECT", "Growth core")
 
 	if properties.has("concentrated"):
-		base += " cô đặc"
+		base += LocalizationManager.text("ITEM_SUFFIX_CONCENTRATED", " concentrated")
 	elif properties.has("burst"):
-		base += " bùng nổ"
+		base += LocalizationManager.text("ITEM_SUFFIX_BURST", " burst")
 	elif properties.has("pure"):
-		base += " tinh khiết"
+		base += LocalizationManager.text("ITEM_SUFFIX_PURE", " pure")
 
 	return base
 
@@ -571,13 +625,13 @@ func _growth_name(
 func _future_fragment_name(family: StringName) -> String:
 	match family:
 		&"gene_fragment":
-			return "Mảnh Gene chưa xác định"
+			return LocalizationManager.text("ITEM_FRAGMENT_GENE", "Unknown Gene Fragment")
 		&"element_fragment":
-			return "Mảnh Nguyên Tố chưa xác định"
+			return LocalizationManager.text("ITEM_FRAGMENT_ELEMENT", "Unknown Element Fragment")
 		&"mutation_fragment":
-			return "Mảnh Dị Biến chưa xác định"
+			return LocalizationManager.text("ITEM_FRAGMENT_MUTATION", "Unknown Mutation Fragment")
 		_:
-			return "Mảnh chưa xác định"
+			return LocalizationManager.text("ITEM_FRAGMENT_UNKNOWN", "Unknown Fragment")
 
 
 func _make_uid(
@@ -594,6 +648,6 @@ func _format_minutes(seconds: int) -> String:
 	var minutes := float(seconds) / 60.0
 
 	if minutes < 10.0:
-		return "%.1f phút" % minutes
+		return LocalizationManager.text("ITEM_MINUTES_DECIMAL", "%.1f min") % minutes
 
-	return "%d phút" % int(round(minutes))
+	return LocalizationManager.text("ITEM_MINUTES_INTEGER", "%d min") % int(round(minutes))
