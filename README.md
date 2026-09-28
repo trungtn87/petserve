@@ -44,6 +44,27 @@ The client endpoint is configured in:
 
 The first image uses no reference image and becomes the visual origin for later evolution edits.
 
+## M7 evolution image-edit
+
+M7 reuses the previous complete PetHome PNG as the visual source of truth.
+
+`EvolutionEditCoordinator` builds one controlled `EVOLUTION_IMAGE_EDIT` request from:
+
+- the same immutable PetIdentity;
+- the previous genome;
+- one deterministic EvolutionDelta;
+- the previous PetHome visual;
+- the stable PetHome scene profile;
+- the explicit next stage.
+
+The complete render request is persisted inside `pending_evolution` before network rendering. Retry restores that exact request instead of rerolling mutation or rebuilding a different prompt.
+
+Stage 1 → 2 now uses this contract. Future Stage 2 → 3 and Stage 3 → 4 must reuse it.
+
+See:
+
+`docs/evolution/M7_EVOLUTION_IMAGE_EDIT.md`
+
 ## Security boundary
 
 The mobile APK only knows the proxy URL. Provider credentials remain on Cloudflare.
@@ -58,4 +79,10 @@ M1–M4 do not know about Cloudflare. A later paid image provider can replace Wo
 
 ## Test status
 
-Local direct Workers AI generation was validated before switching the client to the proxy architecture. The next validation target is the same render flow through the deployed Worker, then Android APK.
+Repository contract tests cover M1–M7 and the infant PetHome integration.
+
+M7 adds:
+
+`tools/test_m7_evolution_edit.tscn`
+
+The remaining runtime validation is the deployed `/v1/render/evolution` Worker route with a real Stage 1 → 2 image edit, followed by Android device verification.
