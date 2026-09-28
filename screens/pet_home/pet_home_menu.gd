@@ -17,6 +17,8 @@ const TOAST_TIME: float = 1.35
 @onready var scrim: ColorRect = %Scrim
 @onready var drawer: PanelContainer = %Drawer
 @onready var close_button: Button = %CloseButton
+@onready var subtitle_label: Label = $Drawer/DrawerMargin/VBox/Header/TitleBox/Subtitle
+@onready var footer_label: Label = $Drawer/DrawerMargin/VBox/Footer
 
 @onready var food_button: Button = %FoodButton
 @onready var item_button: Button = %ItemButton
@@ -51,6 +53,10 @@ func _ready() -> void:
 	scrim.gui_input.connect(_on_scrim_gui_input)
 	resized.connect(_on_resized)
 
+	if not LocalizationManager.language_changed.is_connected(_on_language_changed):
+		LocalizationManager.language_changed.connect(_on_language_changed)
+
+	_apply_localized_texts()
 	call_deferred("_layout_closed")
 
 
@@ -134,7 +140,11 @@ func _finish_close() -> void:
 func _request_action(action_id: StringName) -> void:
 	action_requested.emit(action_id)
 
-	if action_id != &"food" and action_id != &"items":
+	if (
+		action_id != &"food"
+		and action_id != &"items"
+		and action_id != &"settings"
+	):
 		_show_action_toast(action_id)
 
 	close_menu()
@@ -143,7 +153,10 @@ func _request_action(action_id: StringName) -> void:
 func _show_action_toast(action_id: StringName) -> void:
 	var title: String = _action_title(action_id)
 
-	toast_label.text = title + " • sẽ nối gameplay ở bước tiếp theo"
+	toast_label.text = LocalizationManager.text(
+		"MENU_COMING_SOON",
+		"%s • coming in a later step"
+	) % title
 	action_toast.visible = true
 	action_toast.modulate.a = 1.0
 
@@ -167,19 +180,43 @@ func _show_action_toast(action_id: StringName) -> void:
 func _action_title(action_id: StringName) -> String:
 	match action_id:
 		&"food":
-			return "Thức ăn"
+			return LocalizationManager.text("MENU_FOOD", "Food")
 		&"items":
-			return "Đồ dùng"
+			return LocalizationManager.text("MENU_ITEMS", "Items")
 		&"explore":
-			return "Khám phá"
+			return LocalizationManager.text("MENU_EXPLORE", "Explore")
 		&"journal":
-			return "Nhật ký"
+			return LocalizationManager.text("MENU_JOURNAL", "Journal")
 		&"decor":
-			return "Trang trí"
+			return LocalizationManager.text("MENU_DECOR", "Decor")
 		&"settings":
-			return "Cài đặt"
+			return LocalizationManager.text("MENU_SETTINGS", "Settings")
 		_:
 			return "PetVerse"
+
+
+func _apply_localized_texts() -> void:
+	if subtitle_label == null:
+		return
+
+	subtitle_label.text = LocalizationManager.text(
+		"MENU_HOME_SUBTITLE",
+		"PET HOME"
+	)
+	food_button.text = LocalizationManager.text("MENU_FOOD", "Food") + "  ›"
+	item_button.text = LocalizationManager.text("MENU_ITEMS", "Items") + "  ›"
+	explore_button.text = LocalizationManager.text("MENU_EXPLORE", "Explore") + "  ›"
+	journal_button.text = LocalizationManager.text("MENU_JOURNAL", "Journal") + "  ›"
+	decor_button.text = LocalizationManager.text("MENU_DECOR", "Decor") + "  ›"
+	settings_button.text = LocalizationManager.text("MENU_SETTINGS", "Settings") + "  ›"
+	footer_label.text = LocalizationManager.text(
+		"MENU_FOOTER",
+		"one pet • one life"
+	)
+
+
+func _on_language_changed(_language: String) -> void:
+	_apply_localized_texts()
 
 
 func _on_scrim_gui_input(event: InputEvent) -> void:
