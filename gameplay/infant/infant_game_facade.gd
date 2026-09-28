@@ -10,9 +10,12 @@ var _generator: ItemGenerator = ItemGenerator.new()
 var _inventory: InventoryService = InventoryService.new()
 var _chests: ChestService = ChestService.new()
 var _lifecycle: InfantLifecycle = InfantLifecycle.new()
+var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
+var _run_id: int = 0
 
 
 func setup(run_id: int) -> bool:
+	_run_id = run_id
 	_meta = SaveManager.load_meta()
 
 	if _meta.is_empty():
@@ -26,6 +29,7 @@ func setup(run_id: int) -> bool:
 	_chests.setup(_meta, _generator)
 	_chests.ensure_hatch_chest(run_id)
 	_lifecycle.setup(_meta, run_id)
+	_entertainment.setup(_meta, _chests, run_id)
 
 	return save()
 
@@ -47,7 +51,30 @@ func snapshot() -> Dictionary:
 	state["pending_chests"] = _chests.pending_count()
 	state["inventory_count"] = _inventory.count()
 
+	var entertainment_state := _entertainment.snapshot(_run_id)
+
+	for key in entertainment_state.keys():
+		state[key] = entertainment_state[key]
+
 	return state
+
+
+func claim_caro_win_reward() -> Dictionary:
+	var lifecycle_state := _lifecycle.snapshot()
+
+	if bool(lifecycle_state.get("ready_to_evolve", false)):
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Ấu thể đã sẵn sàng tiến hóa • không nhận thêm rương.",
+		}
+
+	var result := _entertainment.claim_caro_win(_run_id)
+
+	if bool(result.get("rewarded", false)):
+		save()
+
+	return result
 
 
 func inventory(
