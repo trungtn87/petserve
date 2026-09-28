@@ -116,7 +116,13 @@ func _roll_rewards(chest: Dictionary) -> Array[Dictionary]:
 
 func _roll_hatch_chest(chest: Dictionary) -> Array[Dictionary]:
 	var run_id := int(chest.get("run_id", 0))
-	var chest_seed := abs(hash("hatch:%s" % run_id))
+	var channel := StringName("hatch_chest_%s" % run_id)
+	var chest_seed := 0
+
+	if RandomManager.current_seed > 0:
+		chest_seed = RandomManager.derive_seed(channel)
+	else:
+		chest_seed = abs(hash("hatch:%s" % run_id))
 
 	if chest_seed == 0:
 		chest_seed = 1
