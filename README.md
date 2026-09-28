@@ -16,59 +16,46 @@ M1–M4 remain provider-independent:
 - deterministic evolution rules
 - Mythic visual/prompt specification
 
-## M5/M6 development renderer
+## M5/M6 renderer architecture
 
-The active development renderer is now:
+The active client renderer now uses a proxy:
 
 ```text
-Cloudflare Workers AI
+Godot PC / Android
+        ↓ HTTPS
+PetVerse Cloudflare Worker
+        ↓ Workers AI binding
 @cf/black-forest-labs/flux-2-klein-4b
-```
-
-Flow:
-
-```text
-Egg element + run seed
         ↓
-PetIdentity + initial PetGenome
-        ↓
-Mythic infant prompt
-        ↓
-Cloudflare Workers AI
+base64 image
         ↓
 PNG cached in user://pet_renders
 ```
 
+Cloudflare Account ID and API token are no longer required by the Godot client.
+
+The Worker implementation lives under:
+
+`infrastructure/cloudflare/pet-render-proxy/`
+
+The client endpoint is configured in:
+
+`data/evolution/render/proxy_dev.json`
+
 The first image uses no reference image and becomes the visual origin for later evolution edits.
 
-The provider boundary remains `PetRenderer`, so Cloudflare can later be replaced with a paid API without changing M1–M4.
+## Security boundary
 
-## Local development credentials
+The mobile APK only knows the proxy URL. Provider credentials remain on Cloudflare.
 
-No Cloudflare secret is stored in the repository.
+An optional `PETVERSE_PROXY_KEY` can gate a development Worker, but any key shipped in an APK must not be treated as a production secret.
 
-Godot reads:
+A production release should add real server-side authentication, abuse controls and rate limiting.
 
-```text
-CLOUDFLARE_ACCOUNT_ID
-CLOUDFLARE_API_TOKEN
-```
+## Provider replacement
 
-from the environment.
-
-The token must have Workers AI permissions.
-
-This direct client-to-provider path is for development only. A production game must later use a backend/proxy so players never receive the provider token.
-
-## Current M6 output
-
-- model: FLUX.2 Klein 4B
-- width: 1024
-- height: 1024
-- result cached as PNG
-- infant render uses text-to-image
-- image-edit mode remains reserved for the next milestone
+M1–M4 do not know about Cloudflare. A later paid image provider can replace Workers AI inside the proxy while Godot keeps the same client contract.
 
 ## Test status
 
-Local testing is active. Fix parser/runtime issues from the lowest milestone upward before changing higher-level behavior.
+Local direct Workers AI generation was validated before switching the client to the proxy architecture. The next validation target is the same render flow through the deployed Worker, then Android APK.

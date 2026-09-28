@@ -2,8 +2,8 @@ class_name InitialPetRenderCoordinator
 extends Node
 
 
-const CloudflareWorkersAIRendererScript = preload(
-	"res://features/evolution/render/cloudflare_workers_ai_renderer.gd"
+const ProxyPetRendererScript = preload(
+	"res://features/evolution/render/proxy_pet_renderer.gd"
 )
 
 
@@ -92,10 +92,10 @@ func render_initial(
 	if config == null:
 		return PetRenderResult.fail(
 			&"invalid_config",
-			"Không load được Cloudflare render config."
+			"Không load được proxy render config."
 		)
 
-	var renderer = CloudflareWorkersAIRendererScript.new(
+	var renderer = ProxyPetRendererScript.new(
 		config
 	)
 
@@ -108,17 +108,10 @@ func render_initial(
 	)
 
 
-func has_direct_dev_credentials() -> bool:
+func has_render_endpoint() -> bool:
 	var config := PetRenderConfig.load_default()
 
-	if config == null:
-		return false
-
 	return (
-		not OS.get_environment(
-			config.account_id_env
-		).strip_edges().is_empty()
-		and not OS.get_environment(
-			config.api_token_env
-		).strip_edges().is_empty()
+		config != null
+		and config.is_configured()
 	)

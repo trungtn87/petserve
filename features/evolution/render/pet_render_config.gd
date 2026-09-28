@@ -3,20 +3,14 @@ extends RefCounted
 
 
 const DEFAULT_PATH: String = (
-	"res://data/evolution/render/cloudflare_dev.json"
+	"res://data/evolution/render/proxy_dev.json"
 )
 
 
-var base_url: String = (
-	"https://api.cloudflare.com/client/v4/accounts"
-)
-var account_id_env: String = "CLOUDFLARE_ACCOUNT_ID"
-var api_token_env: String = "CLOUDFLARE_API_TOKEN"
+var proxy_url: String = ""
+var client_key: String = ""
 
-var initial_model: String = (
-	"@cf/black-forest-labs/flux-2-klein-4b"
-)
-var edit_model: String = (
+var model_id: String = (
 	"@cf/black-forest-labs/flux-2-klein-4b"
 )
 
@@ -28,14 +22,19 @@ var timeout_seconds: float = 180.0
 
 func is_valid() -> bool:
 	return (
-		not base_url.is_empty()
-		and not account_id_env.is_empty()
-		and not api_token_env.is_empty()
-		and not initial_model.is_empty()
-		and not edit_model.is_empty()
+		not proxy_url.is_empty()
+		and not model_id.is_empty()
 		and width > 0
 		and height > 0
 		and timeout_seconds > 0.0
+	)
+
+
+func is_configured() -> bool:
+	return (
+		is_valid()
+		and proxy_url.begins_with("https://")
+		and not proxy_url.contains("REPLACE_ME")
 	)
 
 
@@ -79,34 +78,16 @@ static func load_from_path(
 	var data := parsed as Dictionary
 	var config := PetRenderConfig.new()
 
-	config.base_url = str(
-		data.get(
-			"base_url",
-			config.base_url
-		)
+	config.proxy_url = str(
+		data.get("proxy_url", "")
 	)
-	config.account_id_env = str(
-		data.get(
-			"account_id_env",
-			config.account_id_env
-		)
+	config.client_key = str(
+		data.get("client_key", "")
 	)
-	config.api_token_env = str(
+	config.model_id = str(
 		data.get(
-			"api_token_env",
-			config.api_token_env
-		)
-	)
-	config.initial_model = str(
-		data.get(
-			"initial_model",
-			config.initial_model
-		)
-	)
-	config.edit_model = str(
-		data.get(
-			"edit_model",
-			config.edit_model
+			"model_id",
+			config.model_id
 		)
 	)
 	config.width = int(

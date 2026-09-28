@@ -94,13 +94,13 @@ func _bootstrap() -> void:
 		_generate_button.text = "TẠO LẠI ẢNH"
 		return
 
-	if _coordinator.has_direct_dev_credentials():
+	if _coordinator.has_render_endpoint():
 		_start_generate(request)
 		return
 
 	_status_label.text = (
 		"Sẵn sàng tạo pet từ prompt. "
-		+ "Chưa có CLOUDFLARE_ACCOUNT_ID / CLOUDFLARE_API_TOKEN nên chưa gửi request."
+		+ "Chưa cấu hình URL Worker proxy nên chưa gửi request."
 	)
 	_generate_button.disabled = false
 	_generate_button.text = "TẠO PET ẤU THỂ"

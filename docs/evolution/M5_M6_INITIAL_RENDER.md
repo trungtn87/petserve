@@ -1,70 +1,52 @@
-# M5/M6 — Cloudflare Free Development Renderer
+# M5/M6 — Proxy Renderer
 
-## Decision
+## Goal
 
-The paid OpenAI development adapter is replaced by Cloudflare Workers AI for the prototype.
+Make PC and Android use the same renderer path without shipping provider credentials in the game.
 
-Model:
-
-```text
-@cf/black-forest-labs/flux-2-klein-4b
-```
-
-The renderer contract itself is unchanged:
+## Flow
 
 ```text
 PetRenderRequest
       ↓
-PetRenderer
+ProxyPetRenderer
+      ↓ HTTPS JSON
+Cloudflare Worker
+      ↓ env.AI.run()
+FLUX.2 Klein 4B
+      ↓
+base64 image
       ↓
 PetRenderResult
 ```
 
-This keeps the game independent from the image provider.
+## Why this boundary exists
 
-## Initial render
+The APK must not contain Cloudflare Account ID/API token credentials. The Worker owns the provider call.
 
-M6 sends a multipart REST request containing:
+The client sends only:
+- generated prompt;
+- requested width;
+- requested height.
 
-```text
-prompt
-width
-height
-```
+The Worker owns:
+- model selection;
+- Workers AI binding;
+- provider errors;
+- future provider replacement.
 
-to:
+## Current scope
 
-```text
-/accounts/{ACCOUNT_ID}/ai/run/@cf/black-forest-labs/flux-2-klein-4b
-```
+M6 initial text-to-image is active.
 
-The API token is sent as a Bearer token.
+Evolution image-edit remains reserved for the next milestone. FLUX.2 Klein accepts reference image inputs, so the Worker can later add `input_image_0` while keeping the Godot domain model unchanged.
 
-The response image may be returned in the Workers AI JSON envelope as base64. The adapter also accepts a raw PNG/JPEG response defensively.
+## Client configuration
 
-Returned data is decoded into Godot `Image` and always cached locally as PNG.
+`data/evolution/render/proxy_dev.json`
 
-## Development environment
+The `proxy_url` must be the deployed Worker endpoint:
 
-Required:
+`https://<worker>.workers.dev/v1/render/initial`
 
-```text
-CLOUDFLARE_ACCOUNT_ID
-CLOUDFLARE_API_TOKEN
-```
-
-No credential is committed.
-
-## Future evolution edit
-
-FLUX.2 Klein supports reference-image editing. The current M5 request enum already contains:
-
-```text
-EVOLUTION_IMAGE_EDIT
-```
-
-That mode is not enabled in this commit. The next image-edit milestone will attach the previous pet image as `input_image_0`.
-
-## Provider replacement
-
-If a later paid renderer is better, implement another `PetRenderer` adapter. Identity, genome, mutation rules and prompt builders must remain unchanged.
+No Cloudflare provider token belongs in Godot or the APK.
