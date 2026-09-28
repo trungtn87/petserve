@@ -110,11 +110,11 @@ func build(
 
 	spec.ui_safe_section = (
 		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
-		+ "Use a wide environmental establishing shot with a strongly pulled-back camera, never a portrait or medium shot. Show the pet's complete body from ears to paws and tail as a relatively small subject inside a large world. "
-		+ "The pet should occupy only about 18 to 22 percent of the total image height, centered slightly below the middle of the screen. "
+		+ "Use a very wide environmental establishing shot with the camera pulled much farther back than a normal character portrait. Never use a portrait, medium shot or character showcase. Show the pet's complete body from ears to paws and tail as a small subject inside a large PetHome world. "
+		+ "The pet should occupy only about 12 to 15 percent of the total image height, centered slightly below the middle of the screen. "
 		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. "
 		+ "Keep the bottom area visually calm and scenic; runtime navigation is handled by a side drawer, not bottom buttons. "
-		+ "The environment should visually occupy at least about 78 percent of the frame. Keep generous visible scenery above, beside and below the pet so the PetHome world is visually dominant. "
+		+ "The environment should visually occupy at least about 85 percent of the frame. The pet should read as a small resident of the world, not as the dominant object in the frame. Keep large uninterrupted scenery above, beside and below the pet. Place the pet around the lower-middle area with substantial breathing room on every side. "
 		+ "Do not let the head, ears, paws or tail touch the image edges. "
 		+ "Extend the environment naturally to every edge of the image with no border, frame, vignette panel or empty margin. "
 		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
@@ -132,7 +132,7 @@ func build(
 		style.negative_prompt()
 		+ ", adult body, mature proportions, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
 		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
-		+ ", close-up portrait, medium close shot, bust shot, oversized pet, pet filling more than one quarter of the frame, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges"
+		+ ", close-up portrait, medium close shot, bust shot, oversized pet, pet filling more than one fifth of the frame, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges"
 	)
 
 	if not spec.is_valid():
