@@ -93,9 +93,10 @@ func _ensure_run(run_id: int) -> void:
 			_meta[META_KEY] = state
 		return
 
-	_meta[META_KEY] = {
+	var new_state: Dictionary = {
 		"run_id": run_id,
-		String(GAME_CARO_3X3): {
-			"claimed": 0,
-		},
 	}
+	new_state[String(GAME_CARO_3X3)] = {
+		"claimed": 0,
+	}
+	_meta[META_KEY] = new_state
