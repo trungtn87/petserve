@@ -2,6 +2,11 @@ class_name PetSceneProfileFactory
 extends RefCounted
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+
+
 const ENVIRONMENTS := {
 	"metal": [
 		"a silver crystal valley with faceted mineral cliffs and reflective crystal clusters",
@@ -157,7 +162,7 @@ const MOTIFS := {
 
 func create_initial(
 	identity: PetIdentity
-) -> PetSceneProfile:
+):
 	if identity == null or not identity.is_valid():
 		return null
 
@@ -199,7 +204,7 @@ func create_initial(
 	var palette: Array = palettes[palette_index]
 	var motif: Array = motifs[motif_index]
 
-	var profile := PetSceneProfile.new()
+	var profile = PetSceneProfileScript.new()
 	profile.element = identity.element()
 	profile.environment_theme = str(
 		environments[environment_index]
