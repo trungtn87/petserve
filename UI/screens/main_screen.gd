@@ -77,6 +77,9 @@ func setup() -> bool:
 	_create_name_dialog()
 	_connect_signals()
 
+	if not LocalizationManager.language_changed.is_connected(_on_language_changed):
+		LocalizationManager.language_changed.connect(_on_language_changed)
+
 	return true
 func _find_node(
 	node_name: String
@@ -540,7 +543,10 @@ func _sync_hatch_flow(
 			_name_dialog.open_dialog()
 
 			_name_dialog.show_error(
-				"Không tạo được dữ liệu đặt tên."
+				LocalizationManager.text(
+					"HATCH_ERROR_CREATE_DATA",
+					"Could not create naming data."
+				)
 			)
 
 
@@ -598,7 +604,10 @@ func _show_incubation_task(
 ) -> void:
 
 	if task.is_empty():
-		_task_label.text = "Đang chuẩn bị nhiệm vụ..."
+		_task_label.text = LocalizationManager.text(
+			"EGG_PREPARING_TASK",
+			"Preparing task..."
+		)
 		_progress_label.text = ""
 		return
 
@@ -608,6 +617,15 @@ func _show_incubation_task(
 			""
 		)
 	)
+
+	var task_id := String(task.get("task_id", ""))
+
+	if not task_id.is_empty():
+		var translation_key := "EGG_TASK_%s_INSTRUCTION" % task_id.to_upper()
+		instruction = LocalizationManager.text(
+			translation_key,
+			instruction
+		)
 
 	var mechanic: String = str(
 		task.get(
@@ -639,7 +657,7 @@ func _show_incubation_task(
 	)
 func _show_waiting_name() -> void:
 
-	_task_label.text = "Hãy đặt tên cho pet"
+	_task_label.text = LocalizationManager.text("EGG_NAME_PROMPT", "Name your pet")
 	_progress_label.text = ""
 
 # =========================================================
@@ -648,7 +666,7 @@ func _show_waiting_name() -> void:
 
 func _show_ready_to_hatch() -> void:
 
-	_task_label.text = "TRỨNG SẴN SÀNG NỞ"
+	_task_label.text = LocalizationManager.text("EGG_READY_TO_HATCH", "EGG READY TO HATCH")
 	_progress_label.text = ""
 
 # =========================================================
@@ -675,7 +693,10 @@ func _format_progress(
 
 		"warm", "rest":
 			return (
-				"%.1f / %.1f giây"
+				LocalizationManager.text(
+					"EGG_SECONDS_FORMAT",
+					"%.1f / %.1f seconds"
+				)
 				% [
 					progress,
 					target
@@ -756,3 +777,7 @@ func _show_empty() -> void:
 		_egg_view.has_method("clear_egg")
 	):
 		_egg_view.call("clear_egg")
+
+
+func _on_language_changed(_language: String) -> void:
+	_force_refresh()
