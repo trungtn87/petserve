@@ -7,6 +7,8 @@ signal submitted(
 )
 
 
+var _title_label: Label
+var _description_label: Label
 var _name_input: LineEdit
 var _error_label: Label
 var _confirm_button: Button
@@ -17,6 +19,10 @@ var _built: bool = false
 func _ready() -> void:
 	_build_ui()
 
+	if not LocalizationManager.language_changed.is_connected(_on_language_changed):
+		LocalizationManager.language_changed.connect(_on_language_changed)
+
+	_apply_localized_texts()
 	close_dialog()
 
 
@@ -212,20 +218,18 @@ func _build_ui() -> void:
 	# TITLE
 	# =====================================================
 
-	var title: Label = Label.new()
+	_title_label = Label.new()
 
-	title.text = "✦  TRỨNG SẮP NỞ  ✦"
-
-	title.horizontal_alignment = (
+	_title_label.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
-	title.add_theme_font_size_override(
+	_title_label.add_theme_font_size_override(
 		"font_size",
 		22
 	)
 
-	title.add_theme_color_override(
+	_title_label.add_theme_color_override(
 		"font_color",
 		Color(
 			1.0,
@@ -236,7 +240,7 @@ func _build_ui() -> void:
 	)
 
 	content.add_child(
-		title
+		_title_label
 	)
 
 
@@ -244,22 +248,18 @@ func _build_ui() -> void:
 	# DESCRIPTION
 	# =====================================================
 
-	var description: Label = Label.new()
+	_description_label = Label.new()
 
-	description.text = (
-		"Đặt tên cho sinh mệnh mới"
-	)
-
-	description.horizontal_alignment = (
+	_description_label.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 
-	description.add_theme_font_size_override(
+	_description_label.add_theme_font_size_override(
 		"font_size",
 		14
 	)
 
-	description.add_theme_color_override(
+	_description_label.add_theme_color_override(
 		"font_color",
 		Color(
 			0.86,
@@ -270,7 +270,7 @@ func _build_ui() -> void:
 	)
 
 	content.add_child(
-		description
+		_description_label
 	)
 
 
@@ -280,8 +280,9 @@ func _build_ui() -> void:
 
 	_name_input = LineEdit.new()
 
-	_name_input.placeholder_text = (
-		"Tên của pet..."
+	_name_input.placeholder_text = LocalizationManager.text(
+		"HATCH_NAME_PLACEHOLDER",
+		"Pet name..."
 	)
 
 	_name_input.max_length = 16
@@ -417,7 +418,7 @@ func _build_ui() -> void:
 
 	_confirm_button = Button.new()
 
-	_confirm_button.text = "XÁC NHẬN"
+	_confirm_button.text = LocalizationManager.text("HATCH_CONFIRM", "CONFIRM")
 
 	_confirm_button.custom_minimum_size = Vector2(
 		0.0,
@@ -523,6 +524,29 @@ func _build_ui() -> void:
 	_name_input.text_submitted.connect(
 		_on_text_submitted
 	)
+func _apply_localized_texts() -> void:
+	if _title_label == null:
+		return
+
+	_title_label.text = LocalizationManager.text(
+		"HATCH_DIALOG_TITLE",
+		"✦  EGG ABOUT TO HATCH  ✦"
+	)
+	_description_label.text = LocalizationManager.text(
+		"HATCH_DIALOG_DESCRIPTION",
+		"Name the new life"
+	)
+	_name_input.placeholder_text = LocalizationManager.text(
+		"HATCH_NAME_PLACEHOLDER",
+		"Pet name..."
+	)
+	_confirm_button.text = LocalizationManager.text("HATCH_CONFIRM", "CONFIRM")
+
+
+func _on_language_changed(_language: String) -> void:
+	_apply_localized_texts()
+
+
 func open_dialog() -> void:
 	if visible:
 		return
