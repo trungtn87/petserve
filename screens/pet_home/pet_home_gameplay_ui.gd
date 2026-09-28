@@ -7,6 +7,7 @@ signal entertainment_requested
 
 var _facade: InfantGameFacade
 var _pet_name_label: Label
+var _stage_label: Label
 var _growth_bar: ProgressBar
 var _growth_label: Label
 var _food_label: Label
@@ -19,6 +20,7 @@ var _title: Label
 var _list: VBoxContainer
 var _filters: HBoxContainer
 var _toast: Label
+var _last_snapshot: Dictionary = {}
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -26,6 +28,9 @@ func _ready() -> void:
 	_build_hud()
 	_build_overlay()
 	_build_toast()
+
+	if not LocalizationManager.language_changed.is_connected(_on_language_changed):
+		LocalizationManager.language_changed.connect(_on_language_changed)
 
 func bind(facade: InfantGameFacade) -> void:
 	_facade = facade
@@ -37,30 +42,46 @@ func set_pet_identity(display_name: String) -> void:
 		_pet_name_label.text = display_name
 
 func refresh_status(s: Dictionary) -> void:
+	_last_snapshot = s.duplicate(true)
+
 	var percent := int(s.get("growth_percent", 0))
 	_growth_bar.value = percent
-	_growth_label.text = "Trưởng thành  %d%%" % percent
-	_food_label.text = "Thức ăn  " + _duration(int(s.get("food_seconds", 0)))
+	_growth_label.text = LocalizationManager.text(
+		"INFANT_GROWTH",
+		"Growth  %d%%"
+	) % percent
+	_food_label.text = LocalizationManager.text(
+		"INFANT_FOOD",
+		"Food  %s"
+	) % _duration(int(s.get("food_seconds", 0)))
 	_state_label.text = (
-		"Sẵn sàng tiến hóa"
+		LocalizationManager.text("INFANT_READY_EVOLVE", "Ready to evolve")
 		if bool(s.get("ready_to_evolve", false))
-		else "Còn ~" + _duration(int(s.get("growth_remaining_seconds", 0)))
+		else LocalizationManager.text("INFANT_REMAINING", "~%s left")
+		% _duration(int(s.get("growth_remaining_seconds", 0)))
 	)
 	var pending := int(s.get("pending_chests", 0))
-	_chest_button.text = "RƯƠNG • %d" % pending if pending > 0 else "RƯƠNG"
+	_chest_button.text = (
+		LocalizationManager.text("INFANT_CHEST_COUNT", "CHEST • %d") % pending
+		if pending > 0
+		else LocalizationManager.text("INFANT_CHEST", "CHEST")
+	)
 	_chest_button.disabled = pending <= 0
-	_inventory_button.text = "KHO • %d" % int(s.get("inventory_count", 0))
+	_inventory_button.text = LocalizationManager.text(
+		"INFANT_INVENTORY_COUNT",
+		"INVENTORY • %d"
+	) % int(s.get("inventory_count", 0))
 
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
-	_title.text = "KHO ĐỒ"
+	_title.text = LocalizationManager.text("INFANT_INVENTORY_TITLE", "INVENTORY")
 	_filters.visible = true
 	_fill(_facade.inventory(filter_type), true)
 	_overlay.visible = true
 
 func show_chest_rewards(items: Array[Dictionary]) -> void:
-	_title.text = "RƯƠNG"
+	_title.text = LocalizationManager.text("INFANT_CHEST", "CHEST")
 	_filters.visible = false
 	_fill(items, false)
 	_overlay.visible = true
@@ -96,10 +117,10 @@ func _build_hud() -> void:
 	_pet_name_label.add_theme_font_size_override("font_size", 14)
 	box.add_child(_pet_name_label)
 
-	var stage := Label.new()
-	stage.text = "ẤU THỂ"
-	stage.add_theme_font_size_override("font_size", 11)
-	box.add_child(stage)
+	_stage_label = Label.new()
+	_stage_label.text = LocalizationManager.text("INFANT_STAGE", "INFANT")
+	_stage_label.add_theme_font_size_override("font_size", 11)
+	box.add_child(_stage_label)
 
 	_growth_bar = ProgressBar.new()
 	_growth_bar.max_value = 100
@@ -133,15 +154,15 @@ func _build_hud() -> void:
 	actions.add_theme_constant_override("separation", 8)
 	add_child(actions)
 
-	_chest_button = _action_button("RƯƠNG")
+	_chest_button = _action_button(LocalizationManager.text("INFANT_CHEST", "CHEST"))
 	_chest_button.pressed.connect(_emit_chest_open)
 	actions.add_child(_chest_button)
 
-	_inventory_button = _action_button("KHO")
+	_inventory_button = _action_button(LocalizationManager.text("INFANT_INVENTORY", "INVENTORY"))
 	_inventory_button.pressed.connect(_open_inventory_all)
 	actions.add_child(_inventory_button)
 
-	_entertainment_button = _action_button("CHƠI")
+	_entertainment_button = _action_button(LocalizationManager.text("INFANT_PLAY", "PLAY"))
 	_entertainment_button.pressed.connect(_emit_entertainment)
 	actions.add_child(_entertainment_button)
 
@@ -187,10 +208,10 @@ func _build_overlay() -> void:
 
 	_filters = HBoxContainer.new()
 	root.add_child(_filters)
-	_add_filter("Tất cả", &"")
-	_add_filter("Ăn", ItemGenerator.TYPE_FOOD)
-	_add_filter("Lớn", ItemGenerator.TYPE_GROWTH)
-	_add_filter("Khác", ItemGenerator.TYPE_FUTURE_FRAGMENT)
+	_add_filter(LocalizationManager.text("INFANT_FILTER_ALL", "All"), &"")
+	_add_filter(LocalizationManager.text("INFANT_FILTER_FOOD", "Food"), ItemGenerator.TYPE_FOOD)
+	_add_filter(LocalizationManager.text("INFANT_FILTER_GROWTH", "Growth"), ItemGenerator.TYPE_GROWTH)
+	_add_filter(LocalizationManager.text("INFANT_FILTER_OTHER", "Other"), ItemGenerator.TYPE_FUTURE_FRAGMENT)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -218,7 +239,7 @@ func _fill(items: Array[Dictionary], allow_use: bool) -> void:
 		child.queue_free()
 	if items.is_empty():
 		var empty := Label.new()
-		empty.text = "Không có vật phẩm."
+		empty.text = LocalizationManager.text("COMMON_NO_ITEMS", "No items.")
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_list.add_child(empty)
 		return
@@ -237,7 +258,7 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 	row.add_child(info)
 
 	var name := Label.new()
-	name.text = String(item.get("display_name", "Vật phẩm"))
+	name.text = _facade.item_name(item)
 	name.add_theme_font_size_override("font_size", 14)
 	info.add_child(name)
 
@@ -266,7 +287,7 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 	if allow_use:
 		var usable := String(item.get("usable_stage","")) == "infant"
 		var button := Button.new()
-		button.text = "Dùng" if usable else "Khóa"
+		button.text = (LocalizationManager.text("COMMON_USE", "Use") if usable else LocalizationManager.text("COMMON_LOCKED", "Locked"))
 		button.disabled = not usable
 		if usable:
 			button.pressed.connect(
@@ -331,11 +352,28 @@ func _duration(seconds: int) -> String:
 	var safe := max(0, seconds)
 	var h := int(safe / 3600)
 	var m := int((safe % 3600) / 60)
+
 	if h > 0:
-		return "%dh %02dm" % [h, m]
+		return LocalizationManager.text("TIME_HOURS_MINUTES", "%dh %02dm") % [h, m]
+
 	if m > 0:
-		return "%dm" % m
-	return "<1m"
+		return LocalizationManager.text("TIME_MINUTES", "%dm") % m
+
+	return LocalizationManager.text("TIME_LT_MINUTE", "<1m")
+
+
+func _on_language_changed(_language: String) -> void:
+	if _stage_label != null:
+		_stage_label.text = LocalizationManager.text("INFANT_STAGE", "INFANT")
+
+	if _entertainment_button != null:
+		_entertainment_button.text = LocalizationManager.text("INFANT_PLAY", "PLAY")
+
+	if _overlay != null and _overlay.visible:
+		_overlay.visible = false
+
+	if not _last_snapshot.is_empty():
+		refresh_status(_last_snapshot)
 
 
 func _hide_toast() -> void:
