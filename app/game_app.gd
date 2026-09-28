@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const NEXT_PHASE_SCENE: PackedScene = preload(
-	"res://scenes/pet/pet_home_3d.tscn"
+	"res://scenes/evolution_placeholder.tscn"
 )
 
 
@@ -139,5 +139,5 @@ func _enter_next_phase() -> void:
 
 	if error != OK:
 		push_error(
-			"GameApp: Không chuyển được sang next phase3D."
+			"GameApp: Không chuyển được sang phase gameplay kế tiếp."
 		)
