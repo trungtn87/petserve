@@ -51,3 +51,19 @@ PetGenome does not expose mutable internal collections. A later evolution servic
 
 ## EVO-011 — M2 contains no evolution probability
 Mutation rarity, compatibility, item influence and next-evolution selection are explicitly deferred to the Evolution Rules milestone.
+
+
+## EVO-012 — One M3 step changes one trait
+An EvolutionDelta changes exactly one genome trait and appends exactly one mutation ID. Stage and body-growth progression are not silently bundled into the same mutation step.
+
+## EVO-013 — Mutation selection is deterministic
+The same stable identity, genome state and mutation catalog must select the same next mutation. Mutation selection cannot depend on AI output.
+
+## EVO-014 — Mutation definitions are data-driven
+Mutation identity, target trait, prerequisites, stage constraints, weights, allowed species/elements and conflicts belong in mutation data rather than hard-coded identity condition chains.
+
+## EVO-015 — Existing mutation IDs cannot repeat within one genome
+A mutation already recorded on a pet is not eligible again. Absolute uniqueness between different pets is a separate future signature/registry capability.
+
+## EVO-016 — Evolution applies by snapshot replacement
+Applying an EvolutionDelta creates a new PetGenome snapshot. The old genome remains unchanged.

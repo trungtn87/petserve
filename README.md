@@ -4,36 +4,42 @@ Godot Android portrait project.
 
 ## Current milestone
 
-M2 adds `PetGenome`, the mutable-by-evolution state that is kept separate from the stable `PetIdentity`.
-
-Current Evolution Core:
+M3 introduces deterministic Evolution Rules.
 
 ```text
-PetIdentity  = which individual this is
-PetGenome    = what this individual has developed into
+PetIdentity
+    +
+PetGenome
+    +
+Mutation data
+    ↓
+EvolutionDelta
+    ↓
+new PetGenome
 ```
 
-M2 genome intentionally stays small:
+Each M3 step changes exactly one trait and records exactly one new mutation.
 
-- stage;
-- body_growth;
-- extensible visual traits;
-- mutation IDs.
+Current separation:
 
-No AI rendering, mutation probability or evolution rules are implemented yet.
+- M1 PetIdentity = which individual this is;
+- M2 PetGenome = what this individual currently looks/develops like;
+- M3 Evolution Rules = which single controlled mutation happens next.
+
+AI image generation is still deliberately outside the gameplay domain.
 
 ## Preserved baseline
 
-- Core infrastructure and local save/load.
 - Egg incubation v1.1.
 - Hatch and naming flow.
-- Main UI and Android project configuration.
-- Independent feature branches remain untouched.
+- Core save/random infrastructure.
+- Side gameplay branches remain untouched.
 
 ## Test status
 
-M1/M2 include headless test scripts, but local Godot execution is deferred and will be run later on the user's machine.
+M1/M2/M3 include test scripts. Local Godot execution is deferred until later as requested.
 
 See:
 - `docs/evolution/M1_PET_IDENTITY.md`
 - `docs/evolution/M2_PET_GENOME.md`
+- `docs/evolution/M3_EVOLUTION_RULES.md`

@@ -93,3 +93,35 @@ PetIdentity   PetGenome
 ```
 
 PetGenome does not depend on renderer, UI, Pet Home, AI models, item systems or mutation probability logic.
+
+
+## M3 evolution-rule layer
+
+```text
+features/evolution/
+├── domain/
+│   └── evolution_delta.gd
+└── rules/
+    ├── mutation_definition.gd
+    ├── mutation_catalog.gd
+    ├── evolution_rule_engine.gd
+    └── genome_delta_applier.gd
+```
+
+Dependency direction:
+
+```text
+PetIdentity + PetGenome
+          ↓
+MutationDefinition data
+          ↓
+EvolutionRuleEngine
+          ↓
+EvolutionDelta
+          ↓
+GenomeDeltaApplier
+          ↓
+new PetGenome
+```
+
+The rule layer has no dependency on AI/image rendering, UI, Pet Home, chest/inventory or entertainment modules.
