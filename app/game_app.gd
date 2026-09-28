@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const NEXT_PHASE_SCENE: PackedScene = preload(
-	"res://scenes/evolution_initial.tscn"
+	"res://scenes/evolution_transition.tscn"
 )
 
 
@@ -121,7 +121,7 @@ func get_hatch() -> HatchFacade:
 func _enter_next_phase() -> void:
 	if _root == null:
 		push_error(
-			"GameApp: Root không tồn tại khi vào next phase."
+			"GameApp: Root không tồn tại khi vào EvolutionTransition."
 		)
 		return
 
@@ -139,5 +139,5 @@ func _enter_next_phase() -> void:
 
 	if error != OK:
 		push_error(
-			"GameApp: Không chuyển được sang phase gameplay kế tiếp."
+			"GameApp: Không chuyển được sang EvolutionTransition."
 		)
