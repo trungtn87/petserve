@@ -640,7 +640,7 @@ func _finish_success(
 	)
 
 	_detail_label.text = (
-		"Đã dùng lại ảnh pet đã lưu."
+		"Đã dùng lại PetHome đã lưu."
 		if reused
 		else "Ảnh pet mới đã được tạo và lưu."
 	)
