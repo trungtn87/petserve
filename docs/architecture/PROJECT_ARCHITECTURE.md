@@ -22,7 +22,7 @@ res://
 ├── UI/                  # main screen/components/theme
 ├── scenes/
 │   ├── main.tscn
-│   └── evolution_placeholder.tscn
+│   └── evolution_initial.tscn
 └── tools/               # generic project tooling only
 ```
 
@@ -156,3 +156,53 @@ future renderer adapter
 ```
 
 The visual layer may read evolution results but must never choose mutation probability, eligibility or gameplay outcomes.
+
+
+## M5/M6 render boundary
+
+```text
+features/evolution/
+├── render/
+│   ├── pet_render_request.gd
+│   ├── pet_render_result.gd
+│   ├── pet_renderer.gd
+│   ├── pet_render_config.gd
+│   ├── pet_render_service.gd
+│   ├── mock_pet_renderer.gd
+│   └── openai_image_renderer.gd
+├── persistence/
+│   └── evolution_save_service.gd
+├── service/
+│   ├── evolution_bootstrap_service.gd
+│   └── initial_pet_render_coordinator.gd
+└── visual/
+    ├── initial_pet_visual_spec.gd
+    ├── initial_species_profile.gd
+    ├── initial_species_catalog.gd
+    ├── initial_pet_visual_spec_builder.gd
+    └── initial_pet_prompt_builder.gd
+```
+
+Runtime flow:
+
+```text
+Egg/Hatch save
+      ↓
+EvolutionBootstrapService
+      ↓
+PetIdentity + initial PetGenome
+      ↓
+InitialPetVisualSpec
+      ↓
+INITIAL_TEXT_TO_IMAGE PetRenderRequest
+      ↓
+PetRenderer adapter
+      ↓
+PNG saved under user://pet_renders
+      ↓
+PetVisualRecord + evolution_pet_v1.json
+      ↓
+EvolutionInitialScreen
+```
+
+The initial request intentionally has no source image. Future evolution editing will reuse the same renderer contract with EVOLUTION_IMAGE_EDIT and the previous PetVisualRecord as source.

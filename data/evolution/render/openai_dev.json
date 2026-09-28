@@ -1,0 +1,11 @@
+{
+  "endpoint": "https://api.openai.com/v1/images/generations",
+  "api_key_env": "OPENAI_API_KEY",
+  "initial_model": "gpt-image-2.5-flare",
+  "edit_model": "gpt-image-2.5-sunburst",
+  "size": "1024x1024",
+  "quality": "high",
+  "background": "transparent",
+  "output_format": "png",
+  "timeout_seconds": 180
+}

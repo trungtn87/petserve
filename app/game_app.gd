@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const NEXT_PHASE_SCENE: PackedScene = preload(
-	"res://scenes/evolution_placeholder.tscn"
+	"res://scenes/evolution_initial.tscn"
 )
 
 

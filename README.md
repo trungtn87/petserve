@@ -4,37 +4,70 @@ Godot Android portrait project.
 
 ## Current milestone
 
-M4 adds a renderer-neutral Galaxy visual specification and prompt builder.
+M5 + M6 are wired into the Godot runtime.
+
+After Hatch, the app now opens the Evolution Initial screen and builds a real infant render request from:
 
 ```text
-M1 PetIdentity
-        +
-M2 PetGenome
-        +
-M3 EvolutionDelta
+Egg element + run seed
         ↓
-M4 PetVisualSpec
+PetIdentity
+        +
+initial PetGenome
         ↓
-fixed Galaxy prompt contract
+Galaxy infant visual spec
+        ↓
+text-to-image request
 ```
 
-M4 still does not call an AI image model.
+The first render intentionally uses **no reference image**. It establishes the first visual identity for that pet.
 
-It guarantees that the future renderer is instructed to:
-- keep the same individual pet;
-- keep the Galaxy Fantasy Chibi art family;
-- apply only one M3 mutation;
-- preserve unrelated traits;
-- use restrained edit strength.
+Current infant constraints:
+- species: cat;
+- stage: 1;
+- body_growth: 0;
+- all traits: base;
+- mutations: empty;
+- Galaxy Fantasy Chibi style;
+- advanced mutation features explicitly forbidden.
 
-Gameplay mutation rules and visual prompt wording remain separate data layers.
+## Development renderer
+
+The branch includes a direct OpenAI Images API adapter for local development only.
+
+It reads:
+
+```text
+OPENAI_API_KEY
+```
+
+from the environment. No API key is stored in the repo.
+
+If the key is missing, the Godot screen still runs, shows the complete generated prompt, and reports that rendering is waiting for the key instead of crashing.
+
+A successful render is cached in:
+
+```text
+user://pet_renders/
+```
+
+and linked to the pet in:
+
+```text
+user://evolution_pet_v1.json
+```
+
+## Android
+
+Internet permission is enabled for later network rendering. A production APK must not contain a provider API key; the direct adapter is a development bridge until a server/proxy render path is added.
 
 ## Test status
 
-M1–M4 include headless tests. Local execution is deferred until later as requested.
+M1–M6 include headless/runtime test hooks. Local execution remains deferred until convenient.
 
 See:
 - `docs/evolution/M1_PET_IDENTITY.md`
 - `docs/evolution/M2_PET_GENOME.md`
 - `docs/evolution/M3_EVOLUTION_RULES.md`
 - `docs/evolution/M4_VISUAL_SPEC.md`
+- `docs/evolution/M5_M6_INITIAL_RENDER.md`

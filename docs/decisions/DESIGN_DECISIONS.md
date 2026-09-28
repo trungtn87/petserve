@@ -86,3 +86,19 @@ A visual spec is produced only when the M3 transition changes one target trait a
 
 ## EVO-022 — Galaxy detail stays restrained
 Galaxy style uses nebula gradients, glow and small stellar details as integrated accents. Full-body noisy star texture is explicitly rejected.
+
+
+## EVO-023 — Initial infant render is text-to-image
+The first infant visual is created without a source image. It establishes the visual identity that every later edit must preserve.
+
+## EVO-024 — Initial infant is intentionally mutation-free
+The M6 base pet requires stage 1, body_growth 0, base traits and an empty mutation history. Advanced visual mutations are explicitly excluded from the initial prompt.
+
+## EVO-025 — Renderer is behind an adapter
+Gameplay and visual-spec layers do not call a provider API directly. PetRenderRequest / PetRenderer / PetRenderResult form the provider boundary.
+
+## EVO-026 — Direct OpenAI renderer is development-only
+The direct Images API adapter reads its API key only from an environment variable and no key is committed to the repository. A production Android build must later use a controlled backend/proxy rather than shipping a provider secret in the client.
+
+## EVO-027 — Rendered initial art is cached
+A successful initial render is saved under user:// and linked to PetIdentity + PetGenome through EvolutionSaveService. Re-entering the screen reuses the saved image for the same pet unless the user explicitly regenerates it.
