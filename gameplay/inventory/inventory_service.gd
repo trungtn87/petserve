@@ -52,7 +52,7 @@ func get_item(uid: String) -> Dictionary:
 		if typeof(raw_item) != TYPE_DICTIONARY:
 			continue
 
-		var item := raw_item as Dictionary
+		var item: Dictionary = raw_item
 
 		if String(item.get("uid", "")) == uid:
 			return item.duplicate(true)
@@ -69,7 +69,7 @@ func remove_item(uid: String) -> bool:
 		if typeof(raw_item) != TYPE_DICTIONARY:
 			continue
 
-		var item := raw_item as Dictionary
+		var item: Dictionary = raw_item
 
 		if String(item.get("uid", "")) != uid:
 			continue
@@ -82,7 +82,9 @@ func remove_item(uid: String) -> bool:
 
 
 func count() -> int:
-	var stored: Array = _meta.get("inventory", [])\n\n\treturn stored.size()
+	var stored: Array = _meta.get("inventory", [])
+
+	return stored.size()
 
 
 func can_use_in_infant(item: Dictionary) -> bool:
