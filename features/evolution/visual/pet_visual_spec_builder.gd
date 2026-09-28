@@ -8,7 +8,8 @@ func build(
 	next_genome: PetGenome,
 	delta: EvolutionDelta,
 	style: MythicStyleProfile,
-	visual: MutationVisualDefinition
+	visual: MutationVisualDefinition,
+	visual_stage: int = -1
 ) -> PetVisualSpec:
 	if not _validate_inputs(
 		identity,
@@ -38,11 +39,17 @@ func build(
 		+ "."
 	)
 
+	var stage_for_prompt := (
+		visual_stage
+		if visual_stage > 0
+		else next_genome.stage()
+	)
+
 	var state_prompt := (
 		"Current form: evolution stage %d, body development %.0f%%. "
 		+ "Use the provided previous pet image as the visual source of truth."
 	) % [
-		next_genome.stage(),
+		stage_for_prompt,
 		next_genome.body_growth() * 100.0,
 	]
 
