@@ -37,9 +37,7 @@ var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
 
-var _title_label: Label
 var _status_label: Label
-var _detail_label: Label
 var _result_image: TextureRect
 
 var _effect_time: float = 0.0
@@ -64,6 +62,17 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_effect_time += maxf(delta, 0.0)
+
+	if _status_label != null and not _completed and not _fatal:
+		_status_label.modulate.a = (
+			0.72
+			+ 0.28
+			* (
+				0.5
+				+ 0.5 * sin(_effect_time * 2.0)
+			)
+		)
+
 	queue_redraw()
 
 
@@ -210,74 +219,43 @@ func _draw() -> void:
 
 
 func _build_ui() -> void:
-	_title_label = Label.new()
-	_title_label.name = "TitleLabel"
-	_title_label.text = "ĐANG TIẾN HÓA"
-	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title_label.add_theme_font_size_override(
-		"font_size",
-		24
-	)
-	_title_label.set_anchors_preset(
-		Control.PRESET_TOP_WIDE
-	)
-	_title_label.offset_top = 42.0
-	_title_label.offset_bottom = 86.0
-	add_child(_title_label)
-
 	_result_image = TextureRect.new()
 	_result_image.name = "ResultImage"
 	_result_image.visible = false
 	_result_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_result_image.stretch_mode = (
-		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	)
-	_result_image.anchor_left = 0.08
-	_result_image.anchor_top = 0.16
-	_result_image.anchor_right = 0.92
-	_result_image.anchor_bottom = 0.72
+	_result_image.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
 	_result_image.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_result_image.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_result_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_result_image)
 
 	_status_label = Label.new()
-	_status_label.name = "StatusLabel"
-	_status_label.text = "Đang chuẩn bị hình thái..."
+	_status_label.name = "GameStatusLabel"
+	_status_label.text = "Đang thức tỉnh..."
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status_label.anchor_left = 0.08
-	_status_label.anchor_top = 0.77
+	_status_label.anchor_top = 0.82
 	_status_label.anchor_right = 0.92
-	_status_label.anchor_bottom = 0.86
+	_status_label.anchor_bottom = 0.90
 	_status_label.add_theme_font_size_override(
 		"font_size",
-		15
+		16
+	)
+	_status_label.add_theme_constant_override(
+		"outline_size",
+		3
+	)
+	_status_label.add_theme_color_override(
+		"font_outline_color",
+		Color(0.04, 0.03, 0.08, 0.85)
 	)
 	add_child(_status_label)
-
-	_detail_label = Label.new()
-	_detail_label.name = "DetailLabel"
-	_detail_label.text = ""
-	_detail_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_detail_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_detail_label.anchor_left = 0.08
-	_detail_label.anchor_top = 0.87
-	_detail_label.anchor_right = 0.92
-	_detail_label.anchor_bottom = 0.94
-	_detail_label.modulate = Color(
-		0.78,
-		0.76,
-		0.86,
-		1.0
-	)
-	_detail_label.add_theme_font_size_override(
-		"font_size",
-		11
-	)
-	add_child(_detail_label)
 
 
 func _begin_transition() -> void:
@@ -297,9 +275,7 @@ func _begin_transition() -> void:
 
 
 func _run_initial_birth() -> void:
-	_status_label.text = (
-		"Đang xác định hình thái ban đầu..."
-	)
+	_status_label.text = "Đang thức tỉnh..."
 
 	var data := (
 		EvolutionBootstrapService.new()
@@ -334,21 +310,11 @@ func _run_initial_birth() -> void:
 		)
 		return
 
-	if not _pet_name.is_empty():
-		_title_label.text = (
-			"ĐANG HÌNH THÀNH • "
-			+ _pet_name
-		)
 
 	var existing_path := _get_existing_visual_path()
 
 	if not existing_path.is_empty():
-		_status_label.text = (
-			"Đang ổn định hình thái..."
-		)
-		_detail_label.text = (
-			"Đang đồng bộ hình thái đã lưu."
-		)
+		_status_label.text = "Đang trở về..."
 
 		await _wait_for_minimum_duration()
 
@@ -408,20 +374,9 @@ func _render_until_success(
 
 	while is_inside_tree():
 		if _retry_count == 0:
-			_status_label.text = (
-				"Đang tạo PetHome..."
-			)
-			_detail_label.text = (
-				"AI đang tạo pet và môi trường trong cùng một ảnh."
-			)
+			_status_label.text = "Đang định hình thế giới..."
 		else:
-			_status_label.text = (
-				"Đang thử tạo ảnh lại..."
-			)
-			_detail_label.text = (
-				"Lần thử %d"
-				% (_retry_count + 1)
-			)
+			_status_label.text = "Dòng năng lượng đang ổn định lại..."
 
 		var result: PetRenderResult = await (
 			_coordinator.render_initial(
@@ -454,16 +409,15 @@ func _render_until_success(
 			_retry_count
 		)
 
-		_status_label.text = (
-			"Tạo ảnh chưa thành công."
-		)
-		_detail_label.text = (
-			"Tự thử lại sau %.0f giây • lỗi: %s"
+		push_warning(
+			"Evolution render retry %d after %.0fs: %s"
 			% [
+				_retry_count,
 				retry_delay,
 				result.error_message,
 			]
 		)
+		_status_label.text = "Dòng năng lượng đang ổn định lại..."
 
 		await get_tree().create_timer(
 			retry_delay
@@ -633,30 +587,12 @@ func _finish_success(
 ) -> void:
 	_completed = true
 	_fatal = false
+	_effect_strength = 0.0
 
-	_title_label.text = (
-		_pet_name
-		if not _pet_name.is_empty()
-		else "PET"
-	)
+	_status_label.visible = false
+	_result_image.visible = true
 
-	_status_label.text = (
-		"Hình thái đã hoàn tất."
-	)
-
-	_detail_label.text = (
-		"Đã dùng lại PetHome đã lưu."
-		if reused
-		else "Ảnh pet mới đã được tạo và lưu."
-	)
-
-	var tween := create_tween()
-	tween.tween_property(
-		self,
-		"_effect_strength",
-		0.18,
-		0.35
-	)
+	queue_redraw()
 
 	transition_completed.emit(
 		image_path
@@ -670,11 +606,12 @@ func _show_fatal(
 	_completed = false
 	_effect_strength = 0.45
 
-	_title_label.text = "KHÔNG THỂ TIẾP TỤC"
-	_status_label.text = message
-	_detail_label.text = (
-		"Lỗi này không tự retry để tránh gửi request sai liên tục."
+	push_error(
+		"EvolutionTransition: " + message
 	)
+
+	_status_label.modulate.a = 1.0
+	_status_label.text = "Kết nối thế giới bị gián đoạn."
 
 
 func _retry_delay(
