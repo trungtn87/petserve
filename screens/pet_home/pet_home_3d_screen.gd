@@ -15,6 +15,7 @@ const REFERENCE_PET: PetDefinition = preload("res://data/pet/dark_pet_3d.tres")
 @onready var pet_anchor: Node3D = $ViewportContainer/SubViewport/WorldRoot/PetAnchor
 @onready var camera: Camera3D = $ViewportContainer/SubViewport/WorldRoot/Camera3D
 @onready var ui_layer: CanvasLayer = $UILayer
+@onready var gameplay_ui: PetHomeGameplayUI = $UILayer/GameplayUI
 @onready var home_menu: PetHomeMenu = $UILayer/MenuOverlay
 
 
@@ -22,6 +23,9 @@ var _home_host: HomeHost3D = HomeHost3D.new()
 var _pet_actor_host: PetActor3DHost = PetActor3DHost.new()
 var _pet_state: PetState = PetState.new()
 var _behavior: PetBehaviorController = PetBehaviorController.new()
+
+var _infant_game: InfantGameFacade = InfantGameFacade.new()
+var _hud_accumulator: float = 0.0
 
 
 func _ready() -> void:
@@ -32,11 +36,32 @@ func _ready() -> void:
 			_on_menu_action_requested
 		)
 
+	if gameplay_ui != null:
+		gameplay_ui.chest_open_requested.connect(
+			_on_chest_open_requested
+		)
+		gameplay_ui.item_use_requested.connect(
+			_on_item_use_requested
+		)
+
+	var run_snapshot := RunManager.get_snapshot()
+	var run_id := int(run_snapshot.get("run_id", 0))
+
+	if run_id <= 0:
+		run_id = int(Time.get_unix_time_from_system())
+
+	if not _infant_game.setup(run_id):
+		push_error("PetHome3DScreen: infant gameplay save setup failed.")
+
+	if gameplay_ui != null:
+		gameplay_ui.bind(_infant_game)
+
 	if not apply_home(DEFAULT_HOME):
 		push_error("PetHome3DScreen: default home could not be applied.")
 		return
 
 	var actor: PetActor3D = spawn_pet(REFERENCE_PET)
+
 	if actor == null:
 		push_error("PetHome3DScreen: reference pet could not be spawned.")
 		return
@@ -47,10 +72,27 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var next_state: StringName = _behavior.tick(delta)
+
 	if not next_state.is_empty():
 		_present_state(next_state)
 
+	_infant_game.tick(delta)
+
+	_hud_accumulator += delta
+
+	if _hud_accumulator >= 0.5:
+		_hud_accumulator = 0.0
+
+		if gameplay_ui != null:
+			gameplay_ui.refresh_status(
+				_infant_game.snapshot()
+			)
+
 	_update_pet_look_target()
+
+
+func _exit_tree() -> void:
+	_infant_game.save()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -59,10 +101,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
+
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT:
 			_react_to_touch()
+
 	elif event is InputEventScreenTouch:
 		var touch_event := event as InputEventScreenTouch
+
 		if touch_event.pressed:
 			_react_to_touch()
 
@@ -99,6 +144,7 @@ func get_pet_actor() -> PetActor3D:
 
 func _update_pet_look_target() -> void:
 	var actor: PetActor3D = get_pet_actor()
+
 	if actor == null or not actor.has_capability(&"look_target"):
 		return
 
@@ -113,6 +159,7 @@ func _update_pet_look_target() -> void:
 
 func _react_to_touch() -> void:
 	var actor: PetActor3D = get_pet_actor()
+
 	if actor == null or not actor.has_capability(&"tap_reaction"):
 		return
 
@@ -127,10 +174,42 @@ func _present_state(state_id: StringName) -> void:
 	_pet_state.set_primary(state_id)
 
 	var actor: PetActor3D = get_pet_actor()
+
 	if actor != null:
 		actor.present_state(_pet_state)
 
 
+func _on_chest_open_requested() -> void:
+	var rewards := _infant_game.open_next_chest()
+
+	if rewards.is_empty():
+		gameplay_ui.show_message("Không có rương để mở.")
+		return
+
+	gameplay_ui.show_chest_rewards(rewards)
+
+
+func _on_item_use_requested(uid: String) -> void:
+	var result := _infant_game.use_item(uid)
+	gameplay_ui.show_message(
+		String(result.get("message", ""))
+	)
+	gameplay_ui.refresh_status(
+		_infant_game.snapshot()
+	)
+
+	if bool(result.get("ok", false)):
+		gameplay_ui.open_inventory()
+
+
 func _on_menu_action_requested(action_id: StringName) -> void:
-	action_requested.emit(action_id)
-	print("PetHome3D action requested: ", action_id)
+	match action_id:
+		&"food":
+			gameplay_ui.open_inventory(
+				ItemGenerator.TYPE_FOOD
+			)
+		&"items":
+			gameplay_ui.open_inventory()
+		_:
+			action_requested.emit(action_id)
+			print("PetHome3D action requested: ", action_id)
