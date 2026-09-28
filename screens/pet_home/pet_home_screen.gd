@@ -8,6 +8,9 @@ const PetHomeThemeScript = preload(
 const PetHomeDrawerScript = preload(
 	"res://screens/pet_home/pet_home_drawer.gd"
 )
+const PetHomeLogoScript = preload(
+	"res://screens/pet_home/pet_home_logo.gd"
+)
 const PetSceneProfileScript = preload(
 	"res://features/evolution/domain/pet_scene_profile.gd"
 )
@@ -185,29 +188,29 @@ func _build_main_hud() -> void:
 	panel.name = "PetSummary"
 	panel.anchor_left = 0.045
 	panel.anchor_top = 0.035
-	panel.anchor_right = 0.72
-	panel.anchor_bottom = 0.205
+	panel.anchor_right = 0.50
+	panel.anchor_bottom = 0.195
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var panel_color: Color = _theme.get(
 		"panel",
 		Color("#171229")
 	)
-	panel_color.a = 0.84
+	panel_color.a = 0.82
 
 	var accent: Color = _theme.get(
 		"accent",
 		Color.WHITE
 	)
 	var soft_accent := accent
-	soft_accent.a = 0.65
+	soft_accent.a = 0.62
 
 	panel.add_theme_stylebox_override(
 		"panel",
 		PetHomeThemeScript.panel_style(
 			panel_color,
 			soft_accent,
-			16
+			15
 		)
 	)
 	add_child(panel)
@@ -215,28 +218,46 @@ func _build_main_hud() -> void:
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(
 		"margin_left",
-		14
+		10
 	)
 	margin.add_theme_constant_override(
 		"margin_top",
-		10
+		8
 	)
 	margin.add_theme_constant_override(
 		"margin_right",
-		14
+		10
 	)
 	margin.add_theme_constant_override(
 		"margin_bottom",
-		10
+		8
 	)
 	panel.add_child(margin)
 
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(
 		"separation",
-		6
+		4
 	)
 	margin.add_child(box)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override(
+		"separation",
+		7
+	)
+	box.add_child(header)
+
+	var logo = PetHomeLogoScript.new()
+	logo.custom_minimum_size = Vector2(
+		28,
+		28
+	)
+	logo.configure(
+		accent,
+		panel_color
+	)
+	header.add_child(logo)
 
 	_name_label = Label.new()
 	_name_label.text = str(
@@ -245,9 +266,15 @@ func _build_main_hud() -> void:
 			"PET"
 		)
 	)
+	_name_label.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_name_label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
 	_name_label.add_theme_font_size_override(
 		"font_size",
-		20
+		17
 	)
 	_name_label.add_theme_color_override(
 		"font_color",
@@ -256,7 +283,7 @@ func _build_main_hud() -> void:
 			Color.WHITE
 		)
 	)
-	box.add_child(_name_label)
+	header.add_child(_name_label)
 
 	_growth_bar = _add_meter(
 		box,
@@ -275,13 +302,13 @@ func _build_main_hud() -> void:
 	_menu_button.name = "MenuButton"
 	_menu_button.text = "☰"
 	_menu_button.focus_mode = Control.FOCUS_NONE
-	_menu_button.anchor_left = 0.84
+	_menu_button.anchor_left = 0.855
 	_menu_button.anchor_top = 0.035
 	_menu_button.anchor_right = 0.955
-	_menu_button.anchor_bottom = 0.105
+	_menu_button.anchor_bottom = 0.100
 	_menu_button.add_theme_font_size_override(
 		"font_size",
-		22
+		19
 	)
 	_menu_button.add_theme_color_override(
 		"font_color",
@@ -291,14 +318,22 @@ func _build_main_hud() -> void:
 		)
 	)
 	var menu_bg := panel_color
-	menu_bg.a = 0.86
+	menu_bg.a = 0.80
 
 	_menu_button.add_theme_stylebox_override(
 		"normal",
 		PetHomeThemeScript.panel_style(
 			menu_bg,
 			accent,
-			14
+			13
+		)
+	)
+	_menu_button.add_theme_stylebox_override(
+		"hover",
+		PetHomeThemeScript.panel_style(
+			panel_color.lightened(0.08),
+			accent,
+			13
 		)
 	)
 	_menu_button.pressed.connect(
