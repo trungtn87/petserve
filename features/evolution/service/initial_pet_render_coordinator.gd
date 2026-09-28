@@ -5,6 +5,9 @@ extends Node
 const ProxyPetRendererScript = preload(
 	"res://features/evolution/render/proxy_pet_renderer.gd"
 )
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
 
 
 var _render_service: PetRenderService
@@ -18,7 +21,7 @@ func _ready() -> void:
 func build_request(
 	identity: PetIdentity,
 	genome: PetGenome,
-	scene_profile: PetSceneProfile = null
+	scene_profile = null
 ) -> Dictionary:
 	var style := MythicStyleProfile.load_default()
 
@@ -30,7 +33,7 @@ func build_request(
 
 	if scene_profile == null:
 		scene_profile = (
-			PetSceneProfileFactory.new()
+			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
 
