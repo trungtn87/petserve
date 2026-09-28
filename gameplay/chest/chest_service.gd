@@ -27,7 +27,7 @@ func ensure_hatch_chest(run_id: int) -> void:
 		if typeof(raw_chest) != TYPE_DICTIONARY:
 			continue
 
-		var chest := raw_chest as Dictionary
+		var chest: Dictionary = raw_chest
 
 		if (
 			StringName(chest.get("chest_type", "")) == CHEST_HATCH
@@ -53,7 +53,7 @@ func pending_count() -> int:
 		if typeof(raw_chest) != TYPE_DICTIONARY:
 			continue
 
-		var chest := raw_chest as Dictionary
+		var chest: Dictionary = raw_chest
 
 		if not bool(chest.get("opened", false)):
 			count += 1
@@ -68,7 +68,7 @@ func peek_next() -> Dictionary:
 		if typeof(raw_chest) != TYPE_DICTIONARY:
 			continue
 
-		var chest := raw_chest as Dictionary
+		var chest: Dictionary = raw_chest
 
 		if not bool(chest.get("opened", false)):
 			return chest.duplicate(true)
@@ -85,7 +85,7 @@ func open_next() -> Array[Dictionary]:
 		if typeof(raw_chest) != TYPE_DICTIONARY:
 			continue
 
-		var chest := raw_chest as Dictionary
+		var chest: Dictionary = raw_chest
 
 		if bool(chest.get("opened", false)):
 			continue
