@@ -54,7 +54,10 @@ func claim_caro_win(run_id: int) -> Dictionary:
 		return {
 			"ok": false,
 			"rewarded": false,
-			"message": "Đã nhận đủ 4 Rương Ấu thể từ Caro.",
+			"message": LocalizationManager.text(
+				"CARO_REWARD_LIMIT",
+				"All 4 Infant Chests from Tic-Tac-Toe have been claimed."
+			),
 		}
 
 	var reward_index := claimed + 1
@@ -67,7 +70,10 @@ func claim_caro_win(run_id: int) -> Dictionary:
 		return {
 			"ok": false,
 			"rewarded": false,
-			"message": "Không thể tạo Rương Ấu thể.",
+			"message": LocalizationManager.text(
+				"CARO_REWARD_CREATE_ERROR",
+				"Could not create an Infant Chest."
+			),
 		}
 
 	caro["claimed"] = reward_index
@@ -78,7 +84,10 @@ func claim_caro_win(run_id: int) -> Dictionary:
 	return {
 		"ok": true,
 		"rewarded": true,
-		"message": "Thắng Caro • nhận 1 Rương Ấu thể.",
+		"message": LocalizationManager.text(
+			"CARO_REWARD_GAINED",
+			"Tic-Tac-Toe win • received 1 Infant Chest."
+		),
 		"claimed": reward_index,
 		"max": MAX_INFANT_CARO_REWARDS,
 	}
