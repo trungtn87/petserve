@@ -2,6 +2,11 @@ class_name PetHomeDrawer
 extends Control
 
 
+const PetHomeThemeScript = preload(
+	"res://screens/pet_home/pet_home_theme.gd"
+)
+
+
 signal action_requested(action_id: StringName)
 
 
@@ -266,7 +271,7 @@ func _separator() -> HSeparator:
 
 func _apply_theme() -> void:
 	if _theme.is_empty():
-		_theme = PetHomeTheme.for_element(
+		_theme = PetHomeThemeScript.for_element(
 			&"dark"
 		)
 
@@ -296,7 +301,7 @@ func _apply_theme() -> void:
 
 	_panel.add_theme_stylebox_override(
 		"panel",
-		PetHomeTheme.panel_style(
+		PetHomeThemeScript.panel_style(
 			panel_color,
 			accent,
 			0
@@ -343,17 +348,20 @@ func _apply_theme() -> void:
 				0.10
 			)
 
+			var soft_accent := accent
+			soft_accent.a = 0.35
+
 			button.add_theme_stylebox_override(
 				"normal",
-				PetHomeTheme.panel_style(
+				PetHomeThemeScript.panel_style(
 					normal,
-					Color(accent, 0.35),
+					soft_accent,
 					12
 				)
 			)
 			button.add_theme_stylebox_override(
 				"hover",
-				PetHomeTheme.panel_style(
+				PetHomeThemeScript.panel_style(
 					hover,
 					accent,
 					12
