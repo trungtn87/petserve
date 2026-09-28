@@ -66,9 +66,9 @@ func show_message(message: String) -> void:
 	tween.tween_interval(1.0)
 	tween.tween_property(_toast, "modulate:a", 0.0, 0.2)
 	tween.tween_callback(
-\t\tfunc() -> void:
-\t\t\t_toast.visible = false
-\t)
+		func() -> void:
+			_toast.visible = false
+	)
 
 func _build_hud() -> void:
 	var panel := PanelContainer.new()
@@ -125,16 +125,16 @@ func _build_hud() -> void:
 
 	_chest_button = _action_button("RƯƠNG")
 	_chest_button.pressed.connect(
-\t\tfunc() -> void:
-\t\t\tchest_open_requested.emit()
-\t)
+		func() -> void:
+			chest_open_requested.emit()
+	)
 	actions.add_child(_chest_button)
 
 	_inventory_button = _action_button("KHO")
 	_inventory_button.pressed.connect(
-\t\tfunc() -> void:
-\t\t\topen_inventory()
-\t)
+		func() -> void:
+			open_inventory()
+	)
 	actions.add_child(_inventory_button)
 
 func _build_overlay() -> void:
@@ -175,9 +175,9 @@ func _build_overlay() -> void:
 	var close := Button.new()
 	close.text = "X"
 	close.pressed.connect(
-\t\tfunc() -> void:
-\t\t\t_overlay.visible = false
-\t)
+		func() -> void:
+			_overlay.visible = false
+	)
 	header.add_child(close)
 
 	_filters = HBoxContainer.new()
@@ -265,9 +265,9 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 		button.disabled = not usable
 		if usable:
 			button.pressed.connect(
-\t\t\t\tfunc() -> void:
-\t\t\t\t\titem_use_requested.emit(String(item.get("uid", "")))
-\t\t\t)
+				func() -> void:
+					item_use_requested.emit(String(item.get("uid", "")))
+			)
 		row.add_child(button)
 	return panel
 
@@ -284,9 +284,9 @@ func _add_filter(label: String, filter_type: StringName) -> void:
 	button.text = label
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.pressed.connect(
-\t\tfunc() -> void:
-\t\t\topen_inventory(filter_type)
-\t)
+		func() -> void:
+			open_inventory(filter_type)
+	)
 	_filters.add_child(button)
 
 func _action_button(label: String) -> Button:
