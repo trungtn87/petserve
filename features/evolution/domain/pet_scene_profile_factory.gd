@@ -171,32 +171,29 @@ func create_initial(
 	):
 		return null
 
-	var seed := identity.lineage_seed()
-
 	var environments: Array = ENVIRONMENTS[key]
 	var palettes: Array = PALETTES[key]
 	var lighting: Array = LIGHTING[key]
 	var motifs: Array = MOTIFS[key]
 
-	var environment_index := _pick_index(
-		seed,
-		environments.size(),
-		17
+	var rng := RandomNumberGenerator.new()
+	rng.seed = _scene_seed(identity)
+
+	var environment_index := rng.randi_range(
+		0,
+		environments.size() - 1
 	)
-	var palette_index := _pick_index(
-		seed,
-		palettes.size(),
-		31
+	var palette_index := rng.randi_range(
+		0,
+		palettes.size() - 1
 	)
-	var lighting_index := _pick_index(
-		seed,
-		lighting.size(),
-		47
+	var lighting_index := rng.randi_range(
+		0,
+		lighting.size() - 1
 	)
-	var motif_index := _pick_index(
-		seed,
-		motifs.size(),
-		61
+	var motif_index := rng.randi_range(
+		0,
+		motifs.size() - 1
 	)
 
 	var palette: Array = palettes[palette_index]
@@ -228,26 +225,6 @@ func create_initial(
 	)
 
 	return profile if profile.is_valid() else null
-
-
-func _pick_index(
-	seed: int,
-	size: int,
-	salt: int
-) -> int:
-	if size <= 0:
-		return 0
-
-	var mixed := (
-		seed * 31
-		+ salt * 17
-		+ int(seed / 7)
-	)
-
-	if mixed < 0:
-		mixed = -mixed
-
-	return int(mixed % size)
 
 
 func _scene_seed(
