@@ -42,7 +42,7 @@ func build(
 	for key_value in genome.traits_snapshot().keys():
 		var key := StringName(str(key_value))
 
-		if genome.trait(key) != &"base":
+		if genome.get_trait(key) != &"base":
 			return null
 
 	var spec := InitialPetVisualSpec.new()

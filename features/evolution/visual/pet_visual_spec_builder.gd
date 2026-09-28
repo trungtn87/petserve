@@ -138,7 +138,7 @@ func _validate_inputs(
 		return false
 
 	if (
-		previous_genome.trait(
+		previous_genome.get_trait(
 			delta.target_trait(),
 			&"base"
 		)
@@ -147,7 +147,7 @@ func _validate_inputs(
 		return false
 
 	if (
-		next_genome.trait(
+		next_genome.get_trait(
 			delta.target_trait(),
 			&"base"
 		)
@@ -202,11 +202,11 @@ func _only_target_trait_changed(
 			continue
 
 		if (
-			previous_genome.trait(
+			previous_genome.get_trait(
 				key,
 				&"base"
 			)
-			!= next_genome.trait(
+			!= next_genome.get_trait(
 				key,
 				&"base"
 			)

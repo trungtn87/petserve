@@ -22,7 +22,7 @@ func apply(
 	):
 		return null
 
-	var current_trait := genome.trait(
+	var current_trait := genome.get_trait(
 		delta.target_trait(),
 		&"base"
 	)

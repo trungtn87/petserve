@@ -142,7 +142,7 @@ func is_compatible(
 		if genome.has_mutation(conflict_id):
 			return false
 
-	var current_trait := genome.trait(
+	var current_trait := genome.get_trait(
 		_target_trait,
 		&"base"
 	)

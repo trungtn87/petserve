@@ -63,7 +63,7 @@ func _test_initial_genome() -> void:
 		&"mark",
 	]:
 		_expect(
-			genome.trait(trait_id) == &"base",
+			genome.get_trait(trait_id) == &"base",
 			"initial trait must be base: %s"
 			% String(trait_id)
 		)
@@ -106,7 +106,7 @@ func _test_extensible_trait() -> void:
 
 	_expect(
 		genome != null
-		and genome.trait(
+		and genome.get_trait(
 			&"horn",
 			&"none"
 		) == &"tiny_crescent",
@@ -153,7 +153,7 @@ func _test_copy_safety() -> void:
 	traits["fur"] = "changed_outside"
 
 	_expect(
-		genome.trait(&"fur") == &"base",
+		genome.get_trait(&"fur") == &"base",
 		"traits_snapshot must not expose internal state"
 	)
 

@@ -32,7 +32,7 @@ func body_growth() -> float:
 	return _body_growth
 
 
-func trait(
+func get_trait(
 	trait_id: StringName,
 	fallback: StringName = &"base"
 ) -> StringName:

@@ -166,7 +166,7 @@ func _test_apply_one_small_delta() -> void:
 	)
 
 	_expect(
-		next_genome.trait(
+		next_genome.get_trait(
 			delta.target_trait()
 		) == delta.to_trait(),
 		"delta must change exactly its target trait"
