@@ -48,6 +48,11 @@ func _ready() -> void:
 	var run_id := int(run_snapshot.get("run_id", 0))
 
 	if run_id <= 0:
+		var meta := SaveManager.load_meta()
+		var infant_state: Dictionary = meta.get("infant_state", {})
+		run_id = int(infant_state.get("run_id", 0))
+
+	if run_id <= 0:
 		run_id = int(Time.get_unix_time_from_system())
 
 	if not _infant_game.setup(run_id):
