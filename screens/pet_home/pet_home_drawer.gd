@@ -362,7 +362,12 @@ func _apply_theme() -> void:
 	)
 
 	for child in _content.get_children():
-		if child is PetHomeMenuDecor:
+		if (
+			child.name == "Decor"
+			and child.has_method(
+				"configure"
+			)
+		):
 			child.configure(
 				accent,
 				secondary
