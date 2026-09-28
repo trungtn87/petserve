@@ -5,6 +5,7 @@ signal chest_open_requested
 signal item_use_requested(uid: String)
 
 var _facade: InfantGameFacade
+var _pet_name_label: Label
 var _growth_bar: ProgressBar
 var _growth_label: Label
 var _food_label: Label
@@ -27,6 +28,11 @@ func _ready() -> void:
 func bind(facade: InfantGameFacade) -> void:
 	_facade = facade
 	refresh_status(_facade.snapshot())
+
+
+func set_pet_identity(display_name: String) -> void:
+	if _pet_name_label != null:
+		_pet_name_label.text = display_name
 
 func refresh_status(s: Dictionary) -> void:
 	var percent := int(s.get("growth_percent", 0))
@@ -65,10 +71,7 @@ func show_message(message: String) -> void:
 	var tween := create_tween()
 	tween.tween_interval(1.0)
 	tween.tween_property(_toast, "modulate:a", 0.0, 0.2)
-	tween.tween_callback(
-		func() -> void:
-			_toast.visible = false
-	)
+	tween.tween_callback(_hide_toast)
 
 func _build_hud() -> void:
 	var panel := PanelContainer.new()
@@ -86,9 +89,14 @@ func _build_hud() -> void:
 	box.add_theme_constant_override("separation", 4)
 	margin.add_child(box)
 
+	_pet_name_label = Label.new()
+	_pet_name_label.text = "PET"
+	_pet_name_label.add_theme_font_size_override("font_size", 14)
+	box.add_child(_pet_name_label)
+
 	var stage := Label.new()
 	stage.text = "ẤU THỂ"
-	stage.add_theme_font_size_override("font_size", 14)
+	stage.add_theme_font_size_override("font_size", 11)
 	box.add_child(stage)
 
 	_growth_bar = ProgressBar.new()
@@ -124,17 +132,11 @@ func _build_hud() -> void:
 	add_child(actions)
 
 	_chest_button = _action_button("RƯƠNG")
-	_chest_button.pressed.connect(
-		func() -> void:
-			chest_open_requested.emit()
-	)
+	_chest_button.pressed.connect(_emit_chest_open)
 	actions.add_child(_chest_button)
 
 	_inventory_button = _action_button("KHO")
-	_inventory_button.pressed.connect(
-		func() -> void:
-			open_inventory()
-	)
+	_inventory_button.pressed.connect(_open_inventory_all)
 	actions.add_child(_inventory_button)
 
 func _build_overlay() -> void:
@@ -174,10 +176,7 @@ func _build_overlay() -> void:
 	header.add_child(_title)
 	var close := Button.new()
 	close.text = "X"
-	close.pressed.connect(
-		func() -> void:
-			_overlay.visible = false
-	)
+	close.pressed.connect(_close_overlay)
 	header.add_child(close)
 
 	_filters = HBoxContainer.new()
@@ -265,8 +264,7 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 		button.disabled = not usable
 		if usable:
 			button.pressed.connect(
-				func() -> void:
-					item_use_requested.emit(String(item.get("uid", "")))
+				_emit_item_use.bind(String(item.get("uid", "")))
 			)
 		row.add_child(button)
 	return panel
@@ -284,8 +282,7 @@ func _add_filter(label: String, filter_type: StringName) -> void:
 	button.text = label
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.pressed.connect(
-		func() -> void:
-			open_inventory(filter_type)
+		_open_filter.bind(filter_type)
 	)
 	_filters.add_child(button)
 
@@ -333,3 +330,27 @@ func _duration(seconds: int) -> String:
 	if m > 0:
 		return "%dm" % m
 	return "<1m"
+
+
+func _hide_toast() -> void:
+	_toast.visible = false
+
+
+func _emit_chest_open() -> void:
+	chest_open_requested.emit()
+
+
+func _open_inventory_all() -> void:
+	open_inventory()
+
+
+func _close_overlay() -> void:
+	_overlay.visible = false
+
+
+func _emit_item_use(uid: String) -> void:
+	item_use_requested.emit(uid)
+
+
+func _open_filter(filter_type: StringName) -> void:
+	open_inventory(filter_type)
