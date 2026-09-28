@@ -16,6 +16,7 @@ var _pet_turn_pending: bool = false
 var _reward_claimed: int = 0
 var _reward_max: int = 4
 var _reward_enabled: bool = true
+var _turn_ticket: int = 0
 
 var _status_label: Label
 var _reward_label: Label
@@ -40,15 +41,14 @@ func open_hub(
 	_reward_max = max(0, reward_max)
 	_reward_enabled = reward_enabled
 	_update_reward_label()
-
-	if _game.result() != TicTacToeGame.RESULT_PLAYING:
-		_start_new_round()
-
 	visible = true
 	_is_open = true
+	_start_new_round()
 
 
 func close_hub() -> void:
+	_turn_ticket += 1
+	_pet_turn_pending = false
 	visible = false
 	_is_open = false
 
@@ -174,6 +174,7 @@ func _build_ui() -> void:
 
 
 func _start_new_round() -> void:
+	_turn_ticket += 1
 	_game.reset()
 	_pet_turn_pending = false
 	_status_label.text = "Lượt của bạn"
@@ -204,15 +205,16 @@ func _on_cell_pressed(index: int) -> void:
 	_status_label.text = "Pet đang nghĩ..."
 	_render_board()
 
+	var ticket := _turn_ticket
+
 	get_tree().create_timer(PET_THINK_DELAY).timeout.connect(
-		_pet_turn,
+		_pet_turn.bind(ticket),
 		CONNECT_ONE_SHOT
 	)
 
 
-func _pet_turn() -> void:
-	if not _is_open:
-		_pet_turn_pending = false
+func _pet_turn(ticket: int) -> void:
+	if ticket != _turn_ticket or not _is_open:
 		return
 
 	_game.pet_move()
@@ -276,7 +278,7 @@ func _render_board() -> void:
 			or value != TicTacToeGame.EMPTY
 		)
 
-	_new_round_button.disabled = false
+	_new_round_button.disabled = _pet_turn_pending
 
 
 func _update_reward_label() -> void:
