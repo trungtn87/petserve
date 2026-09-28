@@ -22,6 +22,12 @@ const QUALITY_WEIGHTS := {
 	"perfect": 5.0,
 }
 
+const BASIC_INFANT_QUALITY_WEIGHTS := {
+	"poor": 20.0,
+	"normal": 65.0,
+	"good": 15.0,
+}
+
 const QUALITY_MULTIPLIER := {
 	"broken": 0.35,
 	"poor": 0.65,
@@ -92,6 +98,32 @@ func generate(
 			return _generate_future_fragment(rng, rarity, quality, seed_value)
 		_:
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
+			return {}
+
+
+func generate_basic_infant(
+	item_type: StringName,
+	seed_value: int
+) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(1, abs(seed_value))
+
+	var rarity := "common"
+	var quality: String = _roll_weighted(
+		rng,
+		BASIC_INFANT_QUALITY_WEIGHTS
+	)
+
+	match item_type:
+		TYPE_FOOD:
+			return _generate_food(rng, rarity, quality, seed_value)
+		TYPE_GROWTH:
+			return _generate_growth(rng, rarity, quality, seed_value)
+		_:
+			push_error(
+				"ItemGenerator: unsupported basic infant type: "
+				+ String(item_type)
+			)
 			return {}
 
 
