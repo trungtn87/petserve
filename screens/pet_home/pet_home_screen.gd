@@ -809,9 +809,10 @@ func _close_section() -> void:
 func _setup_gameplay() -> void:
 	var identity: PetIdentity = _data.get("_identity_object")
 	var genome: PetGenome = _data.get("_genome_object")
-	_game.setup(identity.lineage_seed())
-	if genome.stage() > 1:
-		_game.complete_infant()
+	_game.setup(
+		identity.lineage_seed(),
+		genome.stage()
+	)
 	theme = PetHomeGameplayTheme.build(_theme)
 	_hud = PetHomeGameplayUI.new()
 	_hud.palette = _theme
@@ -841,7 +842,25 @@ func _refresh_gameplay() -> void:
 	var state := _game.snapshot()
 	_hud.refresh_status(state)
 	_growth_bar.value = int(state.get("growth_percent", 0))
-	_fullness_bar.value = clampf(float(state.get("food_seconds", 0)) / InfantLifecycle.DURATION_SECONDS * 100.0, 0, 100)
+	var duration_seconds := maxi(
+		1,
+		int(
+			state.get(
+				"duration_seconds",
+				1
+			)
+		)
+	)
+	_fullness_bar.value = clampf(
+		float(
+			state.get(
+				"food_seconds",
+				0
+			)
+		) / float(duration_seconds) * 100.0,
+		0,
+		100
+	)
 	for bar in [_growth_bar, _fullness_bar]:
 		var label: Label = bar.get_meta("value_label")
 		label.text = "%d%%" % int(bar.value)
@@ -856,7 +875,11 @@ func _notification(what: int) -> void:
 		_game.save()
 	if what == NOTIFICATION_APPLICATION_RESUMED:
 		var identity: PetIdentity = _data.get("_identity_object")
-		_game.setup(identity.lineage_seed())
+		var genome: PetGenome = _data.get("_genome_object")
+		_game.setup(
+			identity.lineage_seed(),
+			genome.stage()
+		)
 		_paused = false
 		_skip_tick = true
 
@@ -912,12 +935,42 @@ func _open_evolution() -> void:
 	_add_info_row("Giai đoạn", PetHomeTheme.stage_label(int(state.get("stage_index", 1))))
 	_add_info_row("Trưởng thành", "%d%%" % int(state.get("growth_percent", 0)))
 	_add_info_row("Thức ăn", "%d phút" % int(int(state.get("food_seconds", 0)) / 60))
-	if bool(state.get("ready_to_evolve", false)):
-		_section_button("TIẾN HÓA", _evolve)
-	elif int(state.get("stage_index", 1)) == 1:
-		_add_info_row("Tiến độ còn", "~%d phút tăng trưởng" % int(ceil(float(state.get("growth_remaining_seconds", 0)) / 60.0)))
+	var stage_index := int(
+		state.get(
+			"stage_index",
+			1
+		)
+	)
+	if stage_index >= StageLifecycle.FINAL_STAGE:
+		_add_info_row(
+			"Trạng thái",
+			"Đã đạt hình thái cuối"
+		)
+	elif bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	):
+		_section_button(
+			"TIẾN HÓA",
+			_evolve
+		)
 	else:
-		_add_info_row("Ấu thể", "Đã hoàn tất")
+		_add_info_row(
+			"Tiến độ còn",
+			"~%d phút tăng trưởng"
+			% int(
+				ceil(
+					float(
+						state.get(
+							"growth_remaining_seconds",
+							0
+						)
+					) / 60.0
+				)
+			)
+		)
 	_section_overlay.visible = true
 
 func _evolve() -> void:
