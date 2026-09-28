@@ -138,3 +138,19 @@ M3 continues to describe one same-stage mutation delta. M7 supplies the next vis
 
 ## EVO-038 — PetHome world continuity is part of M7 identity preservation
 An evolution edit preserves the previous environment, palette, lighting, camera/framing and UI-safe composition while changing only the selected biological target plus normal maturity implied by the next stage.
+
+
+## EVO-039 — M8 generalizes growth lifecycle instead of adding parallel stage code
+Stage 1, Stage 2 and Stage 3 use one StageLifecycle with stage timing supplied by data. Stage-specific timers must not be duplicated inside PetHome UI or separate services.
+
+## EVO-040 — Stage timing after infancy is tunable data
+The current Stage 2 = 2 days and Stage 3 = 3 days values come from the gameplay design's initial framework and are not hard-locked balance constants. Stage 1 keeps the existing 2-hour tutorial/prototype duration.
+
+## EVO-041 — The same M7 transaction powers all three evolutions
+Evolution I, II and III use StageEvolutionService + EvolutionEditCoordinator. Each transition advances exactly one stage, adds one deterministic mutation and starts from the previous PetHome image.
+
+## EVO-042 — M8 ends at Stage 4
+Stage 4 is a stable final form with no further M8 growth/evolution timer. Aging, natural death, neglect death, Legacy Chest and inheritance belong to later milestones.
+
+## EVO-043 — M8 does not invent item-influence balance
+Food and Growth remain timing resources. Element influence, gene influence, rare unlocks and fragment crafting are not added until their own gameplay milestone.
