@@ -58,6 +58,8 @@ var _score: int = 0
 var _lives: int = STARTING_LIVES
 var _ghost_chain: int = 1
 var _result: StringName = RESULT_PLAYING
+var _match_sequence: int = 0
+var _match_id: String = ""
 
 
 func _init() -> void:
@@ -66,6 +68,21 @@ func _init() -> void:
 
 
 func reset() -> void:
+	_match_sequence += 1
+	_match_id = (
+		"maze_%s_%s_%s"
+		% [
+			str(
+				Time.get_unix_time_from_system()
+			),
+			str(
+				Time.get_ticks_usec()
+			),
+			str(
+				_match_sequence
+			),
+		]
+	)
 	_walls.clear()
 	_orbs.clear()
 	_power_orbs.clear()
@@ -134,6 +151,10 @@ func result() -> StringName:
 	return _result
 
 
+func match_id() -> String:
+	return _match_id
+
+
 func score() -> int:
 	return _score
 
@@ -199,6 +220,7 @@ func reward_tier() -> int:
 
 func snapshot() -> Dictionary:
 	return {
+		"match_id": _match_id,
 		"result": String(_result),
 		"score": _score,
 		"lives": _lives,
