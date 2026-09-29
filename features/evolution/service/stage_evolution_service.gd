@@ -727,6 +727,26 @@ func commit(
 	).is_empty():
 		return false
 
+	var expected_request := build_request(
+		data
+	)
+
+	if expected_request == null:
+		return false
+
+	if (
+		result.metadata.has(
+			"seed"
+		)
+		and int(
+			result.metadata.get(
+				"seed",
+				0
+			)
+		) != expected_request.seed
+	):
+		return false
+
 	var identity := PetIdentity.from_dict(
 		data.get(
 			"identity",

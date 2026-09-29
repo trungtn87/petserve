@@ -564,6 +564,42 @@ func _test_tampered_plan_is_rejected() -> void:
 		"plan validator must explain a tampered Stage 1 plan"
 	)
 
+	var prompt_tampered: Dictionary = (
+		prepared.get(
+			"data",
+			{}
+		) as Dictionary
+	).duplicate(true)
+	var prompt_pending: Dictionary = prompt_tampered.get(
+		"pending_evolution",
+		{}
+	)
+	var render_request: Dictionary = prompt_pending.get(
+		"render_request",
+		{}
+	)
+	render_request["positive_prompt"] = (
+		String(
+			render_request.get(
+				"positive_prompt",
+				""
+			)
+		)
+		+ "\nINJECT AN UNPLANNED HORN."
+	)
+	prompt_pending["render_request"] = render_request
+	prompt_tampered["pending_evolution"] = prompt_pending
+
+	_expect(
+		service.build_request(
+			prompt_tampered
+		) == null
+		and not validator.validate(
+			prompt_tampered
+		).is_empty(),
+		"tampered prompt must be rejected even when phenotype metadata is unchanged"
+	)
+
 
 func _test_legacy_stage_one_pending_is_rebuilt() -> void:
 	_cleanup()

@@ -45,7 +45,17 @@ func render(
 
 	var cached_path := _output_path(request.output_key)
 	if FileAccess.file_exists(cached_path) and Image.load_from_file(cached_path) != null:
-		return PetRenderResult.ok(cached_path, renderer_id(), StringName(_config.model_id), {"cached": true})
+		return PetRenderResult.ok(
+			cached_path,
+			renderer_id(),
+			StringName(
+				_config.model_id
+			),
+			{
+				"cached": true,
+				"seed": request.seed,
+			}
+		)
 	var reference_base64 := ""
 	if request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT:
 		var reference := Image.load_from_file(request.source_image_path)

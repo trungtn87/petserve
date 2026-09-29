@@ -94,6 +94,12 @@ func validate(
 			{}
 		)
 	)
+	var scene_profile := PetSceneProfile.from_dict(
+		data.get(
+			"scene_profile",
+			{}
+		)
+	)
 
 	if (
 		source_visual == null
@@ -101,6 +107,13 @@ func validate(
 			!= identity.pet_id()
 	):
 		return "Pending Stage 1 có source visual sai identity."
+
+	if (
+		scene_profile == null
+		or scene_profile.element
+			!= identity.element()
+	):
+		return "Pending Stage 1 có Scene Profile không hợp lệ."
 
 	var request_value: Variant = pending.get(
 		"render_request",
@@ -119,10 +132,12 @@ func validate(
 		or request.pet_id != identity.pet_id()
 		or request.source_image_path
 			!= source_visual.image_path
-		or not request.output_key.ends_with(
-			"_pethome_v5_stage_%d"
-			% to_stage
-		)
+		or request.output_key
+			!= (
+				identity.pet_id()
+				+ "_pethome_v5_stage_%d"
+				% to_stage
+			)
 	):
 		return "Pending Stage 1 có render request không khớp plan."
 
@@ -165,18 +180,26 @@ func validate(
 	match mode:
 		StageEvolutionResolver.MODE_NATURAL:
 			return _validate_natural(
+				identity,
 				current,
 				next,
 				pending,
-				request
+				request,
+				source_visual,
+				scene_profile,
+				to_stage
 			)
 
 		StageEvolutionResolver.MODE_GENE:
 			return _validate_gene(
+				identity,
 				current,
 				next,
 				pending,
-				request
+				request,
+				source_visual,
+				scene_profile,
+				to_stage
 			)
 
 		_:
@@ -184,10 +207,14 @@ func validate(
 
 
 func _validate_natural(
+	identity: PetIdentity,
 	current: PetGenome,
 	next: PetGenome,
 	pending: Dictionary,
-	request: PetRenderRequest
+	request: PetRenderRequest,
+	source_visual: PetVisualRecord,
+	scene_profile: PetSceneProfile,
+	to_stage: int
 ) -> String:
 	var delta_value: Variant = pending.get(
 		"delta",
@@ -214,14 +241,42 @@ func _validate_natural(
 	if request.target_region != EvolutionEditCoordinator.NATURAL_TARGET_REGION:
 		return "Natural Growth request có target region không hợp lệ."
 
+	var expected_plan := EvolutionEditCoordinator.new().build_natural_request(
+		identity,
+		current,
+		source_visual,
+		to_stage,
+		scene_profile
+	)
+	var expected_request := expected_plan.get(
+		"request"
+	) as PetRenderRequest
+
+	if (
+		not bool(
+			expected_plan.get(
+				"ok",
+				false
+			)
+		)
+		or expected_request == null
+		or expected_request.to_debug_dict()
+			!= request.to_debug_dict()
+	):
+		return "Natural Growth render request đã drift khỏi canonical plan."
+
 	return ""
 
 
 func _validate_gene(
+	identity: PetIdentity,
 	current: PetGenome,
 	next: PetGenome,
 	pending: Dictionary,
-	request: PetRenderRequest
+	request: PetRenderRequest,
+	source_visual: PetVisualRecord,
+	scene_profile: PetSceneProfile,
+	to_stage: int
 ) -> String:
 	var delta_value: Variant = pending.get(
 		"delta",
@@ -340,6 +395,58 @@ func _validate_gene(
 
 	if request.target_region != target_trait:
 		return "Gene render target region không khớp EvolutionDelta."
+
+	var delta_object := EvolutionDelta.new(
+		mutation_id,
+		target_trait,
+		from_trait,
+		to_trait,
+		int(
+			delta.get(
+				"step_index",
+				0
+			)
+		)
+	)
+
+	if not delta_object.is_valid():
+		return "Gene EvolutionDelta object không hợp lệ."
+
+	var mutated := PetGenome.new(
+		current.stage(),
+		current.body_growth(),
+		next.traits_snapshot(),
+		next.mutation_ids()
+	)
+
+	if not mutated.is_valid():
+		return "Không rebuild được mutated Genome để validate request."
+
+	var expected_plan := EvolutionEditCoordinator.new().build_request(
+		identity,
+		current,
+		mutated,
+		delta_object,
+		source_visual,
+		to_stage,
+		scene_profile
+	)
+	var expected_request := expected_plan.get(
+		"request"
+	) as PetRenderRequest
+
+	if (
+		not bool(
+			expected_plan.get(
+				"ok",
+				false
+			)
+		)
+		or expected_request == null
+		or expected_request.to_debug_dict()
+			!= request.to_debug_dict()
+	):
+		return "Gene render request đã drift khỏi canonical plan."
 
 	return ""
 

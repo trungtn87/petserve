@@ -50,3 +50,11 @@ Cloudflare FLUX.2 klein supports a seed parameter for generation/edit requests. 
 - old requests without a seed remain readable with seed = 0.
 
 The current FLUX.2 klein schema does not expose a native target-region, mask, or edit-strength parameter. Therefore target_region/edit_strength remain internal contracts and prompt guidance; they must not be described as provider-enforced controls.
+
+## M9.5.6 — Render-request binding
+
+Stage 1 pending validation now rebuilds the canonical render request from Identity + Genome + delta + Scene Profile and requires exact equality with the serialized pending request.
+
+This binds prompt, negative prompt, source image path, target region, edit-strength contract, deterministic seed and output key to the code-selected evolution plan. Editing only the stored prompt is therefore rejected even if phenotype metadata was left untouched.
+
+When render metadata contains a seed, commit also rejects a seed mismatch. Cached proxy results now retain the request seed in metadata.
