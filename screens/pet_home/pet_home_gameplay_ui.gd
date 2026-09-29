@@ -65,6 +65,12 @@ func refresh_status(s: Dictionary) -> void:
 			false
 		)
 	)
+	var can_evolve := bool(
+		s.get(
+			"can_evolve",
+			ready
+		)
+	)
 	var final_form := bool(
 		s.get(
 			"final_form",
@@ -73,7 +79,7 @@ func refresh_status(s: Dictionary) -> void:
 	)
 	_evolve_button.visible = (
 		not dialogs_only
-		and ready
+		and can_evolve
 		and not final_form
 	)
 
@@ -108,12 +114,16 @@ func refresh_status(s: Dictionary) -> void:
 			"Sẵn sàng tiến hóa"
 			if ready
 			else (
-				"Còn ~"
-				+ _duration(
-					int(
-						s.get(
-							"growth_remaining_seconds",
-							0
+				"Có thể tiến hóa ngay [TEST]"
+				if can_evolve
+				else (
+					"Còn ~"
+					+ _duration(
+						int(
+							s.get(
+								"growth_remaining_seconds",
+								0
+							)
 						)
 					)
 				)

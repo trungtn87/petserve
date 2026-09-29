@@ -3,6 +3,7 @@ extends RefCounted
 
 
 const META_SCHEMA: int = 2
+const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 
 
 var _meta: Dictionary = {}
@@ -34,6 +35,8 @@ func setup(
 		}
 	else:
 		_meta["schema"] = META_SCHEMA
+
+	_ensure_default_test_talent()
 
 	_inventory.setup(
 		_meta
@@ -78,6 +81,29 @@ func save() -> bool:
 
 func snapshot() -> Dictionary:
 	var state := _lifecycle.snapshot()
+	var has_instant_evolution := _has_talent(
+		DEV_INSTANT_EVOLUTION_TALENT
+	)
+
+	state["talents"] = _talent_ids()
+	state["instant_evolution_talent"] = has_instant_evolution
+	state["can_evolve"] = (
+		not bool(
+			state.get(
+				"final_form",
+				false
+			)
+		)
+		and (
+			bool(
+				state.get(
+					"ready_to_evolve",
+					false
+				)
+			)
+			or has_instant_evolution
+		)
+	)
 
 	state["pending_chests"] = (
 		_chests.pending_count()
@@ -346,6 +372,51 @@ func advance_to_stage(
 		stage_index
 	)
 	return save()
+
+
+func _ensure_default_test_talent() -> void:
+	var talents := _talent_ids()
+
+	if not talents.has(
+		String(
+			DEV_INSTANT_EVOLUTION_TALENT
+		)
+	):
+		talents.append(
+			String(
+				DEV_INSTANT_EVOLUTION_TALENT
+			)
+		)
+
+	_meta["talents"] = talents
+
+
+func _talent_ids() -> Array:
+	var value: Variant = _meta.get(
+		"talents",
+		[]
+	)
+
+	if typeof(value) != TYPE_ARRAY:
+		return []
+
+	return (
+		value as Array
+	).duplicate(true)
+
+
+func _has_talent(
+	talent_id: StringName
+) -> bool:
+	var expected := String(
+		talent_id
+	)
+
+	for value in _talent_ids():
+		if str(value) == expected:
+			return true
+
+	return false
 
 
 func _restore(

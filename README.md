@@ -102,3 +102,12 @@ Stage 2 and Stage 3 use the provisional 2-day / 3-day design baselines; Stage 1 
 `StageEvolutionService` reuses the M7 image-edit contract for all three evolution transactions. Stage 4 is the M8 final-form boundary; aging, death and legacy are deferred.
 
 See `docs/evolution/M8_STAGE_LIFECYCLE.md`.
+
+
+## Development test talent
+
+During stage-by-stage gameplay testing, every pet is temporarily assigned the talent `dev_instant_evolution`.
+
+This talent does not complete growth and does not consume the stage timer. It only exposes the evolution action immediately through `can_evolve`, so Food, Growth items, chests and other stage interactions remain testable before choosing to evolve.
+
+This is a development-only shortcut. The real Talent system and production talent balance are intentionally deferred.

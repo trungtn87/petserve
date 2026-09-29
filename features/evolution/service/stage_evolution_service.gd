@@ -50,12 +50,20 @@ func prepare(
 			"error": "Lifecycle và Genome đang lệch giai đoạn.",
 		}
 
-	if not bool(
+	var naturally_ready := bool(
 		state.get(
 			"ready_to_evolve",
 			false
 		)
-	):
+	)
+	var can_evolve := bool(
+		state.get(
+			"can_evolve",
+			naturally_ready
+		)
+	)
+
+	if not can_evolve:
 		return {
 			"ok": false,
 			"error": "Pet chưa đủ điều kiện tiến hóa.",
