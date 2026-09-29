@@ -3,7 +3,6 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 4
-const STAGE_ONE: int = 1
 const PENDING_SCHEMA: int = 6
 
 
@@ -85,8 +84,7 @@ func prepare(
 			)
 
 		if (
-			current_stage == STAGE_ONE
-			and int(
+			int(
 				existing.get(
 					"schema",
 					0
@@ -101,7 +99,7 @@ func prepare(
 				data
 			):
 				return _error(
-					"Không migrate được pending Stage 1 cũ."
+					"Không migrate được pending evolution cũ."
 				)
 		else:
 			var pending_error := _plan_validator.validate(
@@ -142,18 +140,9 @@ func prepare(
 			"Không đọc được PetHome Scene Profile."
 		)
 
-	if current_stage == STAGE_ONE:
-		return _prepare_stage_one(
-			data,
-			state,
-			identity,
-			genome,
-			source_visual,
-			scene_profile
-		)
-
-	return _prepare_legacy_stage(
+	return _prepare_resolved_stage(
 		data,
+		state,
 		identity,
 		genome,
 		source_visual,
@@ -161,7 +150,7 @@ func prepare(
 	)
 
 
-func _prepare_stage_one(
+func _prepare_resolved_stage(
 	data: Dictionary,
 	state: Dictionary,
 	identity: PetIdentity,
@@ -214,7 +203,7 @@ func _prepare_stage_one(
 			String(
 				resolution.get(
 					"error",
-					"Không resolve được tiến hóa Stage 1."
+					"Không resolve được tiến hóa theo Gene/Natural policy."
 				)
 			)
 		)
@@ -287,7 +276,7 @@ func _prepare_stage_one(
 			str(
 				plan.get(
 					"error",
-					"Không tạo được Stage 1 full-regenerate plan."
+					"Không tạo được evolution render plan."
 				)
 			)
 		)
@@ -298,7 +287,7 @@ func _prepare_stage_one(
 
 	if request == null:
 		return _error(
-			"Stage 1 render request bị rỗng."
+			"Evolution render request bị rỗng."
 		)
 
 	var next := PetGenome.new(
@@ -341,101 +330,6 @@ func _prepare_stage_one(
 				next.visual_traits_snapshot()
 			)
 		),
-		"source_visual": source_visual.to_dict(),
-		"render_request": (
-			coordinator.serialize_request(
-				request
-			)
-		),
-	}
-
-	return _persist_plan(
-		data
-	)
-
-
-func _prepare_legacy_stage(
-	data: Dictionary,
-	identity: PetIdentity,
-	genome: PetGenome,
-	source_visual: PetVisualRecord,
-	scene_profile: PetSceneProfile
-) -> Dictionary:
-	var delta := (
-		EvolutionRuleEngine.new()
-		.choose_next(
-			identity,
-			genome,
-			MutationCatalog.new()
-			.load_default()
-		)
-	)
-
-	if delta == null:
-		return _error(
-			"Chưa có mutation tiến hóa hợp lệ."
-		)
-
-	var changed := GenomeDeltaApplier.new().apply(
-		genome,
-		delta
-	)
-
-	if changed == null:
-		return _error(
-			"Không áp dụng được mutation tiến hóa."
-		)
-
-	var target_stage := genome.stage() + 1
-	var coordinator := EvolutionEditCoordinator.new()
-	var plan := coordinator.build_request(
-		identity,
-		genome,
-		changed,
-		delta,
-		source_visual,
-		target_stage,
-		scene_profile
-	)
-
-	if not bool(
-		plan.get(
-			"ok",
-			false
-		)
-	):
-		return _error(
-			str(
-				plan.get(
-					"error",
-					"Không tạo được evolution image-edit plan."
-				)
-			)
-		)
-
-	var request := plan.get(
-		"request"
-	) as PetRenderRequest
-
-	if request == null:
-		return _error(
-			"Evolution render request bị rỗng."
-		)
-
-	var next := PetGenome.new(
-		target_stage,
-		0.0,
-		changed.traits_snapshot(),
-		changed.mutation_ids()
-	)
-
-	data["pending_evolution"] = {
-		"schema": 3,
-		"from_stage": genome.stage(),
-		"to_stage": target_stage,
-		"resolution_mode": "legacy_mutation",
-		"genome": next.to_dict(),
-		"delta": delta.to_dict(),
 		"source_visual": source_visual.to_dict(),
 		"render_request": (
 			coordinator.serialize_request(
@@ -554,6 +448,24 @@ func _serializable_gene_resolution(
 			resolution.get(
 				"selected_direction",
 				""
+			)
+		),
+		"resolved_trait": String(
+			resolution.get(
+				"resolved_trait",
+				""
+			)
+		),
+		"reinforced": bool(
+			resolution.get(
+				"reinforced",
+				false
+			)
+		),
+		"candidate_count": int(
+			resolution.get(
+				"candidate_count",
+				0
 			)
 		),
 		"selected_item_uid": String(
