@@ -167,12 +167,16 @@ func snapshot() -> Dictionary:
 		state["gene_tag_influences"] = (
 			_gene_state.tag_influences_snapshot()
 		)
+		state["gene_development"] = (
+			_gene_state.to_dict()
+		)
 	else:
 		state["gene_items_used"] = 0
 		state["gene_item_limit"] = 0
 		state["gene_slots_remaining"] = 0
 		state["gene_influences"] = {}
 		state["gene_tag_influences"] = {}
+		state["gene_development"] = {}
 
 	var entertainment_state := (
 		_entertainment.snapshot(

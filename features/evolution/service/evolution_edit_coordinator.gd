@@ -3,6 +3,9 @@ extends RefCounted
 
 
 const PLAN_SCHEMA: int = 1
+const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
+const NATURAL_EDIT_STRENGTH: float = 0.18
+const SEED_MODULUS: int = 2147483647
 
 
 func build_request(
@@ -111,6 +114,11 @@ func build_request(
 	request.edit_strength = (
 		spec.edit_strength()
 	)
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		delta.mutation_id()
+	)
 	request.output_key = (
 		identity.pet_id()
 		+ "_pethome_v5_stage_%d"
@@ -127,6 +135,144 @@ func build_request(
 		"ok": true,
 		"schema": PLAN_SCHEMA,
 		"spec": spec,
+		"request": request,
+	}
+
+
+func build_natural_request(
+	identity: PetIdentity,
+	current_genome: PetGenome,
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile = null
+) -> Dictionary:
+	var error := _validate_natural(
+		identity,
+		current_genome,
+		source_visual,
+		target_stage,
+		scene_profile
+	)
+
+	if not error.is_empty():
+		return {
+			"ok": false,
+			"error": error,
+		}
+
+	var style := MythicStyleProfile.load_default()
+
+	if style == null:
+		return {
+			"ok": false,
+			"error": "Không load được MythicStyleProfile.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new()
+	var positive_prompt := (
+		"[IDENTITY LOCK]\n"
+		+ style.identity_lock()
+		+ " Species: "
+		+ String(
+			identity.species()
+		)
+		+ ". Element family: "
+		+ String(
+			identity.element()
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[MYTHIC ELEMENTAL STYLE]\n"
+		+ style.base_style()
+		+ " Element lineage appearance: "
+		+ style.accent_for(
+			identity.element()
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[CURRENT PHENOTYPE — SOURCE OF TRUTH]\n"
+		+ phenotype.describe(
+			current_genome
+		)
+	)
+
+	positive_prompt += (
+		"\n\n[NATURAL GROWTH ONLY]\n"
+		+ (
+			"Advance this exact same individual naturally from life stage %d "
+			+ "to life stage %d. Make only age-appropriate maturation changes: "
+			+ "slightly older proportions, a modestly more developed body, limbs "
+			+ "and fur, while preserving the same face and recognizable individual. "
+			+ "Do NOT introduce any new Gene, mutation, marking, horn, aura, tail "
+			+ "type, eye type, ear type, coat pattern or other special phenotype. "
+			+ "All 12 phenotype values above must remain semantically unchanged. "
+			+ "The body locus is a Gene channel; natural age/proportion maturation "
+			+ "does not count as changing that body Gene."
+		) % [
+			current_genome.stage(),
+			target_stage,
+		]
+	)
+
+	positive_prompt += (
+		"\n\n[PRESERVE]\n"
+		+ style.preserve_rule()
+		+ " Preserve all established visual loci exactly: "
+		+ phenotype.describe(
+			current_genome
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
+		)
+		+ " Keep the same full-body portrait framing, small subject scale, "
+		+ "and low-detail UI-safe areas near the top and bottom. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
+	)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = (
+		style.negative_prompt()
+		+ ", new gene trait, random mutation, new horn, new marking, "
+		+ "new aura, extra tail, changed tail type, changed eye type, "
+		+ "changed ear type, changed coat pattern, redesigned face"
+	)
+	request.source_image_path = source_visual.image_path
+	request.target_region = NATURAL_TARGET_REGION
+	request.edit_strength = NATURAL_EDIT_STRENGTH
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		&"natural_growth"
+	)
+	request.output_key = (
+		identity.pet_id()
+		+ "_pethome_v5_stage_%d"
+		% target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Natural Growth image-edit request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
 		"request": request,
 	}
 
@@ -153,6 +299,7 @@ func serialize_request(
 			request.target_region
 		),
 		"edit_strength": request.edit_strength,
+		"seed": request.seed,
 		"output_key": request.output_key,
 	}
 
@@ -193,6 +340,12 @@ func request_from_dict(
 	request.edit_strength = float(
 		data.get("edit_strength", 0.0)
 	)
+	request.seed = int(
+		data.get(
+			"seed",
+			0
+		)
+	)
 	request.output_key = str(
 		data.get("output_key", "")
 	)
@@ -201,6 +354,52 @@ func request_from_dict(
 		return null
 
 	return request
+
+
+func _validate_natural(
+	identity: PetIdentity,
+	current_genome: PetGenome,
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile
+) -> String:
+	if (
+		identity == null
+		or current_genome == null
+		or source_visual == null
+	):
+		return "Thiếu dữ liệu Natural Growth image-edit."
+
+	if (
+		not identity.is_valid()
+		or not current_genome.is_valid()
+		or not source_visual.is_valid()
+	):
+		return "Dữ liệu Natural Growth image-edit không hợp lệ."
+
+	if source_visual.pet_id != identity.pet_id():
+		return "Ảnh nguồn không thuộc đúng pet."
+
+	if (
+		source_visual.image_path.is_empty()
+		or not FileAccess.file_exists(
+			source_visual.image_path
+		)
+	):
+		return "Không tìm thấy ảnh PetHome nguồn."
+
+	if target_stage != current_genome.stage() + 1:
+		return "Natural Growth phải tiến đúng một life stage."
+
+	if scene_profile != null:
+		if (
+			not scene_profile.is_valid()
+			or scene_profile.element
+				!= identity.element()
+		):
+			return "PetHome Scene Profile không hợp lệ."
+
+	return ""
 
 
 func _validate(
@@ -256,6 +455,53 @@ func _validate(
 			return "PetHome Scene Profile không hợp lệ."
 
 	return ""
+
+
+func _request_seed(
+	identity: PetIdentity,
+	target_stage: int,
+	change_id: StringName
+) -> int:
+	var value := posmod(
+		identity.lineage_seed(),
+		SEED_MODULUS
+	)
+
+	value = _mix_seed(
+		value,
+		identity.generation() + 1
+	)
+	value = _mix_seed(
+		value,
+		target_stage
+	)
+
+	for index in range(
+		String(change_id).length()
+	):
+		value = _mix_seed(
+			value,
+			String(change_id).unicode_at(
+				index
+			)
+		)
+
+	return max(
+		1,
+		value
+	)
+
+
+func _mix_seed(
+	current: int,
+	input_value: int
+) -> int:
+	return posmod(
+		current * 1103515245
+		+ input_value * 12345
+		+ 1013904223,
+		SEED_MODULUS
+	)
 
 
 func _scene_continuity_prompt(

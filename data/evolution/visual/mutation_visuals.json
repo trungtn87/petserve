@@ -1,10 +1,17 @@
 [
   {
-    "mutation_id": "galaxy_eye_ring",
-    "target_region": "eyes",
-    "instruction": "Evolve both irises with one thin mystical luminous ring and a subtle elemental gradient. Keep the existing eye size, shape, placement and expression intact. Do not turn the eyes into a galaxy texture.",
-    "preserve_hint": "Do not enlarge, relocate or redesign the eyes.",
-    "edit_strength": 0.18
+    "mutation_id": "astral_neck_fur",
+    "target_region": "neck",
+    "instruction": "Develop a slightly fuller guardian-like neck ruff with soft elemental shading and restrained spirit glow.",
+    "preserve_hint": "Keep the head size, shoulder width and overall body proportions unchanged.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "constellation_freckles",
+    "target_region": "cheeks",
+    "instruction": "Add a tiny asymmetric group of soft magical freckles across the cheek fur. Keep them subtle and personal, not constellation-shaped or starfield-like.",
+    "preserve_hint": "Keep the face shape, eyes, muzzle and expression unchanged.",
+    "edit_strength": 0.14
   },
   {
     "mutation_id": "ear_star_tips",
@@ -14,11 +21,95 @@
     "edit_strength": 0.16
   },
   {
-    "mutation_id": "tail_long_fluffy",
+    "mutation_id": "eclipse_forehead_mark",
+    "target_region": "mark",
+    "instruction": "Evolve the existing awakened lineage sigil into a more refined ascended mythic sigil while preserving its original position, scale family and elemental identity.",
+    "preserve_hint": "Do not add unrelated facial symbols or alter the face.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "galaxy_eye_ring",
+    "target_region": "eyes",
+    "instruction": "Evolve both irises with one thin mystical luminous ring and a subtle elemental gradient. Keep the existing eye size, shape, placement and expression intact. Do not turn the eyes into a galaxy texture.",
+    "preserve_hint": "Do not enlarge, relocate or redesign the eyes.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "gene_expr_coat_nebula_s1",
+    "target_region": "coat",
+    "instruction": "Introduce sparse localized nebula-like color variation as a subtle coat pattern, with only a few soft mystical gradients and no dense starfield texture.",
+    "preserve_hint": "Keep the base coat identity dominant and do not turn the whole body into galaxy or cosmic wallpaper.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "gene_expr_coat_shadow_s1",
+    "target_region": "coat",
+    "instruction": "Introduce a restrained shadow-toned secondary coat pattern that follows the existing fur naturally and remains subordinate to the pet's base elemental palette.",
+    "preserve_hint": "Keep fur length, body silhouette and all existing non-coat features unchanged; avoid covering the whole body in black.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "gene_expr_ears_long_s1",
+    "target_region": "ears",
+    "instruction": "Make the same pair of ears moderately longer in a natural juvenile proportion while preserving their base position, angle and elemental identity.",
+    "preserve_hint": "Do not add extra ears, horns, antennae or change the head silhouette beyond the ear length.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_ears_tufted_s1",
+    "target_region": "ears",
+    "instruction": "Develop small soft fur tufts at the existing ear tips, integrated into the same fur and elemental palette.",
+    "preserve_hint": "Keep ear length, angle and count unchanged; the tufts must not resemble horns.",
+    "edit_strength": 0.16
+  },
+  {
+    "mutation_id": "gene_expr_eyes_luminous_s1",
+    "target_region": "eyes",
+    "instruction": "Evolve only the existing irises into a soft luminous form with restrained elemental glow. Keep the exact eye size, shape, placement, pupil geometry and facial expression.",
+    "preserve_hint": "Do not enlarge the eyes, move them, alter the muzzle, or add facial markings.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "gene_expr_eyes_moon_s1",
+    "target_region": "eyes",
+    "instruction": "Evolve only the existing irises toward a subtle lunar quality: a refined moonlit ring or crescent-like reflection inside the iris, still natural to the same eyes. Do not place moon symbols on the face.",
+    "preserve_hint": "Keep eye anatomy, eye color family, face shape and expression recognizable.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "gene_expr_fur_fluffy_s1",
+    "target_region": "fur",
+    "instruction": "Make the existing coat moderately fluffier and fuller with soft juvenile fur volume while preserving the established colors and markings.",
+    "preserve_hint": "Do not change body anatomy, coat pattern, face fur layout or add mane-like structures.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_fur_sleek_s1",
+    "target_region": "fur",
+    "instruction": "Refine the existing coat into a smoother, sleeker plush fur texture with cleaner flow while preserving the established colors and markings.",
+    "preserve_hint": "Do not make the pet hairless, change body shape, or redesign the coat pattern.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "gene_expr_tail_fluffy_s1",
     "target_region": "tail",
-    "instruction": "Make the same tail moderately longer and fuller while preserving its root position, direction, elemental effect and recognizable fur style.",
-    "preserve_hint": "Do not add another tail or change the body pose.",
-    "edit_strength": 0.24
+    "instruction": "Make the same single tail noticeably fuller and fluffier like a soft plume while preserving its current length family, root position and elemental effect.",
+    "preserve_hint": "Do not lengthen excessively, split the tail, add another tail or move the tail root.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_tail_long_s1",
+    "target_region": "tail",
+    "instruction": "Make the same single tail moderately longer while preserving its root position, direction, thickness family, fur style and elemental effect.",
+    "preserve_hint": "Do not add another tail, split the tail, or change the pet's pose.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "luminous_paws",
+    "target_region": "paws",
+    "instruction": "Add a soft elemental spirit glow around the paw tips, as if gentle magical energy is held inside the fur.",
+    "preserve_hint": "Keep paw anatomy, leg length, stance and body proportions unchanged.",
+    "edit_strength": 0.15
   },
   {
     "mutation_id": "moon_forehead_mark",
@@ -32,14 +123,7 @@
     "target_region": "fur",
     "instruction": "Introduce sparse soft spirit-light traces and subtle elemental color variation inside the existing fur. Keep the effect localized and natural, never as a galaxy or starfield texture across the body.",
     "preserve_hint": "Keep the base fur color structure, fur length and silhouette recognizable.",
-    "edit_strength": 0.20
-  },
-  {
-    "mutation_id": "luminous_paws",
-    "target_region": "paws",
-    "instruction": "Add a soft elemental spirit glow around the paw tips, as if gentle magical energy is held inside the fur.",
-    "preserve_hint": "Keep paw anatomy, leg length, stance and body proportions unchanged.",
-    "edit_strength": 0.15
+    "edit_strength": 0.2
   },
   {
     "mutation_id": "starlight_whiskers",
@@ -49,18 +133,11 @@
     "edit_strength": 0.13
   },
   {
-    "mutation_id": "constellation_freckles",
-    "target_region": "cheeks",
-    "instruction": "Add a tiny asymmetric group of soft magical freckles across the cheek fur. Keep them subtle and personal, not constellation-shaped or starfield-like.",
-    "preserve_hint": "Keep the face shape, eyes, muzzle and expression unchanged.",
-    "edit_strength": 0.14
-  },
-  {
-    "mutation_id": "astral_neck_fur",
-    "target_region": "neck",
-    "instruction": "Develop a slightly fuller guardian-like neck ruff with soft elemental shading and restrained spirit glow.",
-    "preserve_hint": "Keep the head size, shoulder width and overall body proportions unchanged.",
-    "edit_strength": 0.22
+    "mutation_id": "tail_long_fluffy",
+    "target_region": "tail",
+    "instruction": "Make the same tail moderately longer and fuller while preserving its root position, direction, elemental effect and recognizable fur style.",
+    "preserve_hint": "Do not add another tail or change the body pose.",
+    "edit_strength": 0.24
   },
   {
     "mutation_id": "tail_twin_tip",
@@ -68,12 +145,5 @@
     "instruction": "Evolve only the far end of the existing long fluffy tail into two soft distinct tips that share the same tail base and flow naturally together. Preserve the established elemental aura.",
     "preserve_hint": "Do not create two separate tails and do not move the tail root.",
     "edit_strength": 0.23
-  },
-  {
-    "mutation_id": "eclipse_forehead_mark",
-    "target_region": "mark",
-    "instruction": "Evolve the existing awakened lineage sigil into a more refined ascended mythic sigil while preserving its original position, scale family and elemental identity.",
-    "preserve_hint": "Do not add unrelated facial symbols or alter the face.",
-    "edit_strength": 0.17
   }
 ]

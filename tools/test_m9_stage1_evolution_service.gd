@@ -1,0 +1,861 @@
+extends SceneTree
+
+
+var _failures: int = 0
+
+
+func _initialize() -> void:
+	_test_natural_stage_one_plan()
+	_test_gene_stage_one_plan()
+	_test_gene_details_cannot_be_silently_dropped()
+	_test_tampered_plan_is_rejected()
+	_test_legacy_stage_one_pending_is_rebuilt()
+	_test_stage_one_gene_visual_matrix()
+	_cleanup()
+
+	if _failures == 0:
+		print(
+			"M9.5 Stage 1 Evolution Service: PASS"
+		)
+		quit(0)
+		return
+
+	push_error(
+		"M9.5 Stage 1 Evolution Service: FAIL (%d)"
+		% _failures
+	)
+	quit(1)
+
+
+func _test_natural_stage_one_plan() -> void:
+	_cleanup()
+	var fixture := _save_stage_one_fixture(
+		9501
+	)
+
+	if not fixture:
+		return
+
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	_expect(
+		bool(
+			prepared.get(
+				"ok",
+				false
+			)
+		),
+		"Natural Stage 1 plan must prepare"
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var data: Dictionary = prepared.get(
+		"data",
+		{}
+	)
+	var pending: Dictionary = data.get(
+		"pending_evolution",
+		{}
+	)
+	var next := PetGenome.from_dict(
+		pending.get(
+			"genome",
+			{}
+		)
+	)
+
+	_expect(
+		String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "natural"
+		and (
+			pending.get(
+				"delta",
+				{}
+			) as Dictionary
+		).is_empty(),
+		"Natural plan must store natural mode with no delta"
+	)
+
+	_expect(
+		next != null
+		and next.stage() == 2
+		and next.get_trait(
+			&"tail",
+			&"missing"
+		) == &"base"
+		and next.get_trait(
+			&"aura",
+			&"missing"
+		) == &"base",
+		"Natural plan must preserve phenotype into Stage 2"
+	)
+
+	var request := service.build_request(
+		data
+	)
+
+	_expect(
+		request != null
+		and request.target_region
+			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
+		and request.positive_prompt.contains(
+			"[NATURAL GROWTH ONLY]"
+		)
+		and request.positive_prompt.contains(
+			"body=base"
+		)
+		and request.positive_prompt.contains(
+			"aura=base"
+		)
+		and request.seed > 0,
+		"Natural request must carry full phenotype and explicit no-Gene contract"
+	)
+
+	var first_request := (
+		request.to_debug_dict()
+		if request != null
+		else {}
+	)
+	var retry := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+	var retry_request := service.build_request(
+		retry.get(
+			"data",
+			{}
+		)
+	)
+
+	_expect(
+		bool(
+			retry.get(
+				"ok",
+				false
+			)
+		)
+		and retry_request != null
+		and retry_request.to_debug_dict()
+			== first_request,
+		"Pending Natural plan must be byte-stable across retry"
+	)
+
+	if retry_request != null:
+		var image_path := String(
+			(
+				data.get(
+					"current_visual",
+					{}
+				) as Dictionary
+			).get(
+				"image_path",
+				""
+			)
+		)
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{}
+				)
+			),
+			"Natural Stage 1 result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+		var current_visual: Dictionary = committed.get(
+			"current_visual",
+			{}
+		)
+		var history: Array = committed.get(
+			"evolution_history",
+			[]
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 2
+			and not committed.has(
+				"pending_evolution"
+			)
+			and String(
+				current_visual.get(
+					"mutation_id",
+					""
+				)
+			).is_empty()
+			and history.size() == 1
+			and String(
+				(
+					history[0] as Dictionary
+				).get(
+					"resolution_mode",
+					""
+				)
+			) == "natural",
+			"Natural commit must advance stage without inventing mutation"
+		)
+
+
+func _test_gene_stage_one_plan() -> void:
+	_cleanup()
+	var fixture := _save_stage_one_fixture(
+		9502
+	)
+
+	if not fixture:
+		return
+
+	var policy := StageGenePolicy.load_default()
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var recorded := gene_state.record_gene_item(
+		policy,
+		"gene_tail_runtime",
+		&"tail_long",
+		&"tail",
+		&"long",
+		20.0,
+		{
+			"agile": 6.0,
+		}
+	)
+
+	_expect(
+		bool(
+			recorded.get(
+				"ok",
+				false
+			)
+		),
+		"Gene runtime fixture must record"
+	)
+
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 1,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	_expect(
+		bool(
+			prepared.get(
+				"ok",
+				false
+			)
+		),
+		"Gene Stage 1 plan must prepare"
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var data: Dictionary = prepared.get(
+		"data",
+		{}
+	)
+	var pending: Dictionary = data.get(
+		"pending_evolution",
+		{}
+	)
+	var delta: Dictionary = pending.get(
+		"delta",
+		{}
+	)
+	var next := PetGenome.from_dict(
+		pending.get(
+			"genome",
+			{}
+		)
+	)
+
+	_expect(
+		String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "gene"
+		and String(
+			delta.get(
+				"mutation_id",
+				""
+			)
+		) == "gene_expr_tail_long_s1"
+		and String(
+			delta.get(
+				"target_trait",
+				""
+			)
+		) == "tail",
+		"Gene plan must persist the code-selected delta"
+	)
+
+	_expect(
+		next != null
+		and next.stage() == 2
+		and next.get_trait(
+			&"tail",
+			&"base"
+		) == &"long",
+		"Gene plan must persist the selected phenotype into Stage 2 Genome"
+	)
+
+	var request := service.build_request(
+		data
+	)
+
+	_expect(
+		request != null
+		and request.target_region == &"tail"
+		and request.positive_prompt.contains(
+			"Current phenotype (all 12 visual loci)"
+		)
+		and request.positive_prompt.contains(
+			"tail=base"
+		)
+		and request.positive_prompt.contains(
+			"tail=long"
+		)
+		and request.positive_prompt.contains(
+			"Do not invent any other gene trait"
+		)
+		and request.seed > 0,
+		"Gene request must expose full current/target phenotype and one-change contract"
+	)
+
+	var gene_resolution: Dictionary = pending.get(
+		"gene_resolution",
+		{}
+	)
+	_expect(
+		String(
+			gene_resolution.get(
+				"selected_gene_id",
+				""
+			)
+		) == "tail_long"
+		and is_equal_approx(
+			float(
+				(
+					gene_resolution.get(
+						"tag_influences",
+						{}
+					) as Dictionary
+				).get(
+					"agile",
+					0.0
+				)
+			),
+			6.0
+		),
+		"Pending plan must preserve Gene provenance and hidden influence"
+	)
+
+	if request != null:
+		var image_path := String(
+			(
+				data.get(
+					"current_visual",
+					{}
+				) as Dictionary
+			).get(
+				"image_path",
+				""
+			)
+		)
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{}
+				)
+			),
+			"Gene Stage 1 result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+		var current_visual: Dictionary = committed.get(
+			"current_visual",
+			{}
+		)
+		var history: Array = committed.get(
+			"evolution_history",
+			[]
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 2
+			and committed_genome.get_trait(
+				&"tail",
+				&"base"
+			) == &"long"
+			and String(
+				current_visual.get(
+					"mutation_id",
+					""
+				)
+			) == "gene_expr_tail_long_s1"
+			and history.size() == 1
+			and String(
+				(
+					history[0] as Dictionary
+				).get(
+					"resolution_mode",
+					""
+				)
+			) == "gene",
+			"Gene commit must advance Stage 2 with the resolved phenotype"
+		)
+
+
+func _test_gene_details_cannot_be_silently_dropped() -> void:
+	_cleanup()
+	if not _save_stage_one_fixture(
+		9503
+	):
+		return
+
+	var result := StageEvolutionService.new().prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 1,
+	})
+
+	_expect(
+		not bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and String(
+			result.get(
+				"error",
+				""
+			)
+		).contains(
+			"thiếu GeneDevelopmentState"
+		),
+		"used Gene input must never silently fall back to Natural Growth"
+	)
+
+
+func _test_tampered_plan_is_rejected() -> void:
+	_cleanup()
+	if not _save_stage_one_fixture(
+		9504
+	):
+		return
+
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		_expect(
+			false,
+			"tamper fixture must prepare"
+		)
+		return
+
+	var tampered: Dictionary = (
+		prepared.get(
+			"data",
+			{}
+		) as Dictionary
+	).duplicate(true)
+	var pending: Dictionary = tampered.get(
+		"pending_evolution",
+		{}
+	)
+	var target: Dictionary = pending.get(
+		"target_phenotype",
+		{}
+	)
+	target["tail"] = "hacked_tail"
+	pending["target_phenotype"] = target
+	tampered["pending_evolution"] = pending
+
+	_expect(
+		service.build_request(
+			tampered
+		) == null,
+		"tampered phenotype must invalidate the persisted render plan"
+	)
+
+	var validator := StageEvolutionPlanValidator.new()
+	_expect(
+		not validator.validate(
+			tampered
+		).is_empty(),
+		"plan validator must explain a tampered Stage 1 plan"
+	)
+
+	var prompt_tampered: Dictionary = (
+		prepared.get(
+			"data",
+			{}
+		) as Dictionary
+	).duplicate(true)
+	var prompt_pending: Dictionary = prompt_tampered.get(
+		"pending_evolution",
+		{}
+	)
+	var render_request: Dictionary = prompt_pending.get(
+		"render_request",
+		{}
+	)
+	render_request["positive_prompt"] = (
+		String(
+			render_request.get(
+				"positive_prompt",
+				""
+			)
+		)
+		+ "\nINJECT AN UNPLANNED HORN."
+	)
+	prompt_pending["render_request"] = render_request
+	prompt_tampered["pending_evolution"] = prompt_pending
+
+	_expect(
+		service.build_request(
+			prompt_tampered
+		) == null
+		and not validator.validate(
+			prompt_tampered
+		).is_empty(),
+		"tampered prompt must be rejected even when phenotype metadata is unchanged"
+	)
+
+
+func _test_legacy_stage_one_pending_is_rebuilt() -> void:
+	_cleanup()
+	if not _save_stage_one_fixture(
+		9505
+	):
+		return
+
+	var save := EvolutionSaveService.new()
+	var data := save.load_data()
+	data["pending_evolution"] = {
+		"schema": 3,
+		"from_stage": 1,
+		"to_stage": 2,
+	}
+	_expect(
+		save.save_data(
+			data
+		),
+		"save legacy Stage 1 pending fixture"
+	)
+
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var result := StageEvolutionService.new().prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	var pending: Dictionary = (
+		result.get(
+			"data",
+			{}
+		) as Dictionary
+	).get(
+		"pending_evolution",
+		{}
+	)
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and int(
+			pending.get(
+				"schema",
+				0
+			)
+		) == StageEvolutionService.PENDING_SCHEMA
+		and String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "natural",
+		"legacy Stage 1 pending must be discarded and rebuilt under M9.5 rules"
+	)
+
+
+func _test_stage_one_gene_visual_matrix() -> void:
+	var identity := PetIdentityFactory.new().create_initial(
+		9510,
+		&"dark"
+	)
+	var genome := PetGenomeFactory.new().create_initial()
+	var policy := StageGenePolicy.load_default()
+	var genes := GeneCatalog.new().load_default()
+	var visuals := MutationVisualCatalog.new().load_default()
+
+	_expect(
+		genes.size() == 10,
+		"Stage 1 Gene matrix fixture must contain 10 definitions"
+	)
+
+	for definition in genes:
+		var state := GeneDevelopmentState.new(
+			1
+		)
+		var recorded := state.record_gene_item(
+			policy,
+			"matrix_%s"
+			% String(
+				definition.id()
+			),
+			definition.id(),
+			definition.locus(),
+			definition.direction(),
+			definition.primary_influence(),
+			definition.influence_tags()
+		)
+		var resolved := StageEvolutionResolver.new().resolve(
+			identity,
+			genome,
+			state
+		)
+		var delta := resolved.get(
+			"delta"
+		) as EvolutionDelta
+
+		_expect(
+			bool(
+				recorded.get(
+					"ok",
+					false
+				)
+			)
+			and bool(
+				resolved.get(
+					"ok",
+					false
+				)
+			)
+			and delta != null,
+			"every Stage 1 Gene must resolve: %s"
+			% String(
+				definition.id()
+			)
+		)
+
+		if delta == null:
+			continue
+
+		var visual := MutationVisualCatalog.new().find_by_id(
+			visuals,
+			delta.mutation_id()
+		)
+
+		_expect(
+			visual != null
+			and visual.target_region()
+				== definition.locus(),
+			"every Stage 1 Gene delta must have a curated matching visual: %s"
+			% String(
+				definition.id()
+			)
+		)
+
+	var phenotype_text := PhenotypePromptBuilder.new().describe(
+		genome
+	)
+
+	for locus in PetGenomeSchema.VISUAL_LOCI:
+		_expect(
+			phenotype_text.contains(
+				String(locus)
+				+ "=base"
+			),
+			"full phenotype prompt must include locus: %s"
+			% String(locus)
+		)
+
+
+func _save_stage_one_fixture(
+	seed_value: int
+) -> bool:
+	var image := Image.create(
+		32,
+		48,
+		false,
+		Image.FORMAT_RGBA8
+	)
+	image.fill(
+		Color(
+			0.12,
+			0.08,
+			0.18,
+			1.0
+		)
+	)
+	var image_path := (
+		"user://m9_5_source_%d.png"
+		% seed_value
+	)
+
+	_expect(
+		image.save_png(
+			image_path
+		) == OK,
+		"create Stage 1 source PNG"
+	)
+
+	var identity := PetIdentityFactory.new().create_initial(
+		seed_value,
+		&"dark"
+	)
+	var genome := PetGenomeFactory.new().create_initial()
+	var scene := PetSceneProfileFactory.new().create_initial(
+		identity
+	)
+	var visual := PetVisualRecord.new()
+
+	if (
+		identity == null
+		or genome == null
+		or scene == null
+	):
+		_expect(
+			false,
+			"create Stage 1 evolution fixture"
+		)
+		return false
+
+	visual.pet_id = identity.pet_id()
+	visual.visual_index = 0
+	visual.image_path = image_path
+	visual.source_mode = (
+		&"initial_pethome_v5_text_to_image"
+	)
+	visual.renderer_id = &"test"
+	visual.model_id = &"test"
+
+	var saved := EvolutionSaveService.new().save_initial(
+		identity,
+		genome,
+		visual,
+		"M9.5 Test",
+		scene
+	)
+
+	_expect(
+		saved,
+		"save Stage 1 evolution fixture"
+	)
+	return saved
+
+
+func _cleanup() -> void:
+	var save_path := EvolutionSaveService.SAVE_PATH
+
+	if FileAccess.file_exists(
+		save_path
+	):
+		DirAccess.remove_absolute(
+			ProjectSettings.globalize_path(
+				save_path
+			)
+		)
+
+
+func _expect(
+	condition: bool,
+	message: String
+) -> void:
+	if condition:
+		return
+
+	_failures += 1
+	push_error(
+		message
+	)

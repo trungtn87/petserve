@@ -17,6 +17,7 @@ var negative_prompt: String = ""
 var source_image_path: String = ""
 var target_region: StringName = &""
 var edit_strength: float = 0.0
+var seed: int = 0
 
 var output_key: String = ""
 
@@ -39,6 +40,7 @@ func is_valid() -> bool:
 				and not String(target_region).is_empty()
 				and edit_strength > 0.0
 				and edit_strength <= 1.0
+				and seed >= 0
 			)
 
 	return false
@@ -53,5 +55,6 @@ func to_debug_dict() -> Dictionary:
 		"source_image_path": source_image_path,
 		"target_region": String(target_region),
 		"edit_strength": edit_strength,
+		"seed": seed,
 		"output_key": output_key,
 	}
