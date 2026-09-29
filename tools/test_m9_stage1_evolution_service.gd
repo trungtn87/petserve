@@ -122,6 +122,9 @@ func _test_natural_stage_one_plan() -> void:
 		and request.mode
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
+		and request.output_key.ends_with(
+			"_pethome_v6_stage_2"
+		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
 		and request.positive_prompt.contains(
@@ -232,6 +235,12 @@ func _test_natural_stage_one_plan() -> void:
 					""
 				)
 			).is_empty()
+			and String(
+				current_visual.get(
+					"source_mode",
+					""
+				)
+			) == "evolution_pethome_v6_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -369,6 +378,9 @@ func _test_gene_stage_one_plan() -> void:
 		and request.mode
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
+		and request.output_key.ends_with(
+			"_pethome_v6_stage_2"
+		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
 			"[STAGE 2 FULL REGENERATE]"
@@ -479,6 +491,12 @@ func _test_gene_stage_one_plan() -> void:
 					""
 				)
 			) == "gene_expr_tail_long_s1"
+			and String(
+				current_visual.get(
+					"source_mode",
+					""
+				)
+			) == "evolution_pethome_v6_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
