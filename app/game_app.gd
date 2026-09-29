@@ -167,9 +167,12 @@ func _current_pet_visual_state() -> StringName:
 		visual.source_mode in [
 			&"initial_pethome_v5_text_to_image",
 			&"initial_pethome_v6_text_to_image",
+			&"initial_pethome_v7_text_to_image",
 			&"evolution_pethome_v5_image_edit",
 			&"evolution_pethome_v7_full_regenerate",
 			&"evolution_pethome_v7_image_edit",
+			&"evolution_pethome_v8_full_regenerate",
+			&"evolution_pethome_v8_image_edit",
 		]
 	):
 		return &"current"
