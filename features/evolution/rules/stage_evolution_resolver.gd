@@ -510,7 +510,7 @@ func _selection_seed(
 						)
 					)
 					+ "|"
-					+ ",".join(
+					+ str(
 						item_uids
 					)
 				)
