@@ -126,7 +126,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v7_stage_2"
+			"_pethome_v8_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
@@ -134,7 +134,7 @@ func _test_natural_stage_one_plan() -> void:
 			"[STAGE 2 FULL REGENERATE]"
 		)
 		and request.positive_prompt.contains(
-			"visibly older and larger than Stage 1"
+			"visibly older and more physically mature than Stage 1"
 		)
 		and request.positive_prompt.contains(
 			"[ELEMENT MORPHOLOGY STAGE 2]"
@@ -255,7 +255,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v7_full_regenerate"
+			) == "evolution_pethome_v8_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -394,7 +394,7 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v7_stage_2"
+			"_pethome_v8_stage_2"
 		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
@@ -523,7 +523,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v7_full_regenerate"
+			) == "evolution_pethome_v8_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -1225,7 +1225,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v7_full_regenerate"
+		&"evolution_pethome_v8_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
