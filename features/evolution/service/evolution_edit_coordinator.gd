@@ -221,10 +221,13 @@ func build_natural_request(
 		current_genome.stage() != 1
 		or target_stage != 2
 	):
-		return {
-			"ok": false,
-			"error": "Natural Growth full-regenerate chỉ áp dụng cho Stage 1 -> 2.",
-		}
+		return _build_later_natural_edit(
+			identity,
+			current_genome,
+			source_visual,
+			target_stage,
+			scene_profile
+		)
 
 	var style := MythicStyleProfile.load_default()
 
@@ -346,6 +349,125 @@ func build_natural_request(
 		return {
 			"ok": false,
 			"error": "Stage 1 Natural full-regenerate request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
+
+func _build_later_natural_edit(
+	identity: PetIdentity,
+	current_genome: PetGenome,
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile
+) -> Dictionary:
+	var style := MythicStyleProfile.load_default()
+
+	if style == null:
+		return {
+			"ok": false,
+			"error": "Không load được MythicStyleProfile.",
+		}
+
+	var stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if stage_detail.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho %s Stage %d."
+			% [
+				String(identity.element()),
+				target_stage,
+			],
+		}
+
+	var phenotype := PhenotypePromptBuilder.new().describe(
+		current_genome
+	)
+	var positive_prompt := (
+		"[IDENTITY LOCK]\n"
+		+ style.identity_lock()
+		+ " Species: "
+		+ String(identity.species())
+		+ ". Element family: "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[NATURAL STAGE ADVANCE]\n"
+		+ (
+			"Advance this same individual naturally from Stage %d to Stage %d. "
+			+ "No Gene Item was selected for this transition. Keep every existing Gene locus unchanged. "
+			+ "Current and target phenotype are identical: %s. "
+			+ "Only age, proportions, fur maturity and restrained elemental presentation may develop."
+		) % [
+			current_genome.stage(),
+			target_stage,
+			phenotype,
+		]
+	)
+
+	positive_prompt += (
+		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
+		+ stage_detail
+		+ " This is natural stage presentation, not a new Gene. "
+		+ "Do not create a new visual locus, appendage, marking or mutation."
+	)
+
+	positive_prompt += _anatomy_lock_section()
+	positive_prompt += (
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
+		)
+	)
+	positive_prompt += (
+		" Keep the same camera and full-body portrait composition. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
+	)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = _append_negative_guard(
+		style.negative_prompt()
+		+ ", new gene trait, random mutation, unrelated marking, "
+		+ "extra appendage, redesigned species, changed existing gene locus"
+	)
+	request.source_image_path = source_visual.image_path
+	request.target_region = NATURAL_TARGET_REGION
+	request.edit_strength = NATURAL_EDIT_STRENGTH
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		StringName(
+			"natural_stage_%d"
+			% target_stage
+		)
+	)
+	request.output_key = _stage_one_output_key(
+		identity,
+		target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Natural Stage image-edit request không hợp lệ.",
 		}
 
 	return {
