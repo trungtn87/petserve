@@ -1,0 +1,114 @@
+[
+  {
+    "id": "eyes_luminous",
+    "display_name": "Gene Mắt Phát Sáng",
+    "locus": "eyes",
+    "direction": "luminous",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "eyes_moon",
+    "display_name": "Gene Mắt Nguyệt",
+    "locus": "eyes",
+    "direction": "moon",
+    "primary_influence": 20,
+    "influence_tags": {
+      "lunar": 10,
+      "mystic": 4
+    },
+    "rarity": "rare"
+  },
+  {
+    "id": "ears_long",
+    "display_name": "Gene Tai Dài",
+    "locus": "ears",
+    "direction": "long",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 5
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "ears_tufted",
+    "display_name": "Gene Tai Tua",
+    "locus": "ears",
+    "direction": "tufted",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 4
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "fur_fluffy",
+    "display_name": "Gene Lông Dày",
+    "locus": "fur",
+    "direction": "fluffy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "fur_sleek",
+    "display_name": "Gene Lông Mượt",
+    "locus": "fur",
+    "direction": "sleek",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 4
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "coat_shadow",
+    "display_name": "Gene Vân Bóng Tối",
+    "locus": "coat",
+    "direction": "shadow",
+    "primary_influence": 20,
+    "influence_tags": {
+      "dark": 10
+    },
+    "rarity": "rare"
+  },
+  {
+    "id": "coat_nebula",
+    "display_name": "Gene Vân Tinh Vân",
+    "locus": "coat",
+    "direction": "nebula",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6,
+      "mutation": 3
+    },
+    "rarity": "rare"
+  },
+  {
+    "id": "tail_long",
+    "display_name": "Gene Đuôi Dài",
+    "locus": "tail",
+    "direction": "long",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 6
+    },
+    "rarity": "uncommon"
+  },
+  {
+    "id": "tail_fluffy",
+    "display_name": "Gene Đuôi Xù",
+    "locus": "tail",
+    "direction": "fluffy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4
+    },
+    "rarity": "uncommon"
+  }
+]

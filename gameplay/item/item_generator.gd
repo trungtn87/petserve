@@ -4,6 +4,7 @@ extends RefCounted
 
 const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
+const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
 
 const RARITY_WEIGHTS := {
@@ -101,6 +102,83 @@ func generate(
 			return {}
 
 
+func generate_gene(
+	definition: GeneDefinition,
+	seed_value: int
+) -> Dictionary:
+	if (
+		definition == null
+		or not definition.is_valid()
+	):
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(
+		1,
+		abs(
+			seed_value
+		)
+	)
+
+	var quality := "normal"
+	var rarity := definition.rarity()
+
+	return {
+		"uid": (
+			"gene_%s_%s"
+			% [
+				String(
+					definition.id()
+				),
+				str(
+					abs(
+						seed_value
+					)
+				),
+			]
+		),
+		"definition_id": String(
+			definition.id()
+		),
+		"item_type": String(
+			TYPE_GENE
+		),
+		"display_name": (
+			definition.display_name()
+		),
+		"rarity": rarity,
+		"quality": quality,
+		"gene_id": String(
+			definition.id()
+		),
+		"gene_locus": String(
+			definition.locus()
+		),
+		"gene_direction": String(
+			definition.direction()
+		),
+		"gene_influence": (
+			definition.primary_influence()
+		),
+		"influence_tags": (
+			definition.influence_tags()
+		),
+		"main_value_seconds": 0,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"salvage_type": "gene_dust",
+		"salvage_value": _salvage_value(
+			rarity,
+			quality,
+			rng
+		),
+		"generated_seed": seed_value,
+		"usable_stage": "gene",
+	}
+
+
 func generate_basic_infant(
 	item_type: StringName,
 	seed_value: int
@@ -152,6 +230,37 @@ func describe(item: Dictionary) -> String:
 			if food_delta < 0:
 				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
 			return text
+
+		TYPE_GENE:
+			return (
+				"Gene "
+				+ String(
+					item.get(
+						"gene_locus",
+						"?"
+					)
+				)
+				+ " → "
+				+ String(
+					item.get(
+						"gene_direction",
+						"?"
+					)
+				)
+				+ " • Influence +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"gene_influence",
+									0.0
+								)
+							)
+						)
+					)
+				)
+			)
 
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
