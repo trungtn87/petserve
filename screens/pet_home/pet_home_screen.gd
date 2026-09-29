@@ -736,8 +736,306 @@ func _open_pet_info() -> void:
 			" "
 		).capitalize()
 	)
+	_add_current_trait_rows(
+		genome
+	)
+	_add_last_evolution_row()
 
 	_section_overlay.visible = true
+
+
+func _add_current_trait_rows(
+	genome: PetGenome
+) -> void:
+	if genome == null:
+		return
+
+	var added := 0
+
+	for locus in PetGenomeSchema.VISUAL_LOCI:
+		var trait := genome.get_trait(
+			locus,
+			PetGenomeSchema.BASE_TRAIT
+		)
+
+		if trait == PetGenomeSchema.BASE_TRAIT:
+			continue
+
+		_add_info_row(
+			(
+				"Trait"
+				if added == 0
+				else ""
+			),
+			"%s: %s"
+			% [
+				_trait_label(
+					locus
+				),
+				_trait_value(
+					trait
+				),
+			]
+		)
+		added += 1
+
+	if added == 0:
+		_add_info_row(
+			"Trait",
+			"Cơ bản"
+		)
+
+
+func _add_gene_choice_rows(
+	state: Dictionary
+) -> void:
+	var used := int(
+		state.get(
+			"gene_items_used",
+			0
+		)
+	)
+	var limit := int(
+		state.get(
+			"gene_item_limit",
+			0
+		)
+	)
+
+	_add_info_row(
+		"Gene Item",
+		"%d / %d"
+		% [
+			used,
+			limit,
+		]
+	)
+
+	var development_value: Variant = state.get(
+		"gene_development",
+		{}
+	)
+
+	if typeof(
+		development_value
+	) != TYPE_DICTIONARY:
+		return
+
+	var items_value: Variant = (
+		development_value as Dictionary
+	).get(
+		"gene_items",
+		[]
+	)
+
+	if typeof(items_value) != TYPE_ARRAY:
+		return
+
+	var index := 0
+
+	for raw_value in items_value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
+
+		var item := raw_value as Dictionary
+		var locus := StringName(
+			str(
+				item.get(
+					"locus",
+					""
+				)
+			)
+		)
+		var direction := StringName(
+			str(
+				item.get(
+					"direction",
+					""
+				)
+			)
+		)
+		var influence := float(
+			item.get(
+				"influence",
+				0.0
+			)
+		)
+
+		_add_info_row(
+			(
+				"Định hướng"
+				if index == 0
+				else ""
+			),
+			"%s → %s (+%.0f)"
+			% [
+				_trait_label(
+					locus
+				),
+				_trait_value(
+					direction
+				),
+				influence,
+			]
+		)
+		index += 1
+
+
+func _add_last_evolution_row() -> void:
+	var history_value: Variant = _data.get(
+		"evolution_history",
+		[]
+	)
+
+	if (
+		typeof(history_value) != TYPE_ARRAY
+		or (history_value as Array).is_empty()
+	):
+		return
+
+	var raw_value: Variant = (
+		history_value as Array
+	).back()
+
+	if typeof(raw_value) != TYPE_DICTIONARY:
+		return
+
+	var plan := raw_value as Dictionary
+	var mode := StringName(
+		str(
+			plan.get(
+				"resolution_mode",
+				""
+			)
+		)
+	)
+
+	if mode == StageEvolutionResolver.MODE_NATURAL:
+		_add_info_row(
+			"Tiến hóa gần nhất",
+			"Tự nhiên • giữ nguyên Gene trait"
+		)
+		return
+
+	var delta_value: Variant = plan.get(
+		"delta",
+		{}
+	)
+
+	if typeof(delta_value) != TYPE_DICTIONARY:
+		return
+
+	var delta := delta_value as Dictionary
+
+	if delta.is_empty():
+		return
+
+	var locus := StringName(
+		str(
+			delta.get(
+				"target_trait",
+				""
+			)
+		)
+	)
+	var from_trait := StringName(
+		str(
+			delta.get(
+				"from_trait",
+				""
+			)
+		)
+	)
+	var to_trait := StringName(
+		str(
+			delta.get(
+				"to_trait",
+				""
+			)
+		)
+	)
+	var gene_resolution: Dictionary = plan.get(
+		"gene_resolution",
+		{}
+	)
+	var suffix := (
+		" • củng cố"
+		if bool(
+			gene_resolution.get(
+				"reinforced",
+				false
+			)
+		)
+		else ""
+	)
+
+	_add_info_row(
+		"Tiến hóa gần nhất",
+		"%s: %s → %s%s"
+		% [
+			_trait_label(
+				locus
+			),
+			_trait_value(
+				from_trait
+			),
+			_trait_value(
+				to_trait
+			),
+			suffix,
+		]
+	)
+
+
+func _trait_label(
+	locus: StringName
+) -> String:
+	match locus:
+		&"body":
+			return "Cơ thể"
+		&"eyes":
+			return "Mắt"
+		&"ears":
+			return "Tai"
+		&"whiskers":
+			return "Râu"
+		&"fur":
+			return "Lông"
+		&"coat":
+			return "Vân lông"
+		&"tail":
+			return "Đuôi"
+		&"paws":
+			return "Bàn chân"
+		&"mane":
+			return "Bờm"
+		&"mark":
+			return "Dấu"
+		&"structure":
+			return "Cấu trúc"
+		&"aura":
+			return "Hào quang"
+		_:
+			return String(
+				locus
+			).replace(
+				"_",
+				" "
+			).capitalize()
+
+
+func _trait_value(
+	trait: StringName
+) -> String:
+	if trait == PetGenomeSchema.BASE_TRAIT:
+		return "Cơ bản"
+
+	return String(
+		trait
+	).replace(
+		"_",
+		" "
+	).capitalize()
 
 
 func _open_placeholder(
@@ -1134,6 +1432,17 @@ func _open_evolution() -> void:
 			"can_evolve",
 			naturally_ready
 		)
+	)
+	var genome := _data.get(
+		"_genome_object"
+	) as PetGenome
+
+	if genome != null:
+		_add_current_trait_rows(
+			genome
+		)
+	_add_gene_choice_rows(
+		state
 	)
 
 	if stage_index >= StageLifecycle.FINAL_STAGE:
