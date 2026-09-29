@@ -908,7 +908,7 @@ func _get_existing_visual_path() -> String:
 
 	if (
 		visual == null
-		or visual.source_mode not in [&"initial_pethome_v6_text_to_image", &"evolution_pethome_v7_full_regenerate", &"evolution_pethome_v7_image_edit", &"evolution_pethome_v5_image_edit"]
+		or visual.source_mode not in [&"initial_pethome_v6_text_to_image", &"initial_pethome_v5_text_to_image", &"evolution_pethome_v7_full_regenerate", &"evolution_pethome_v7_image_edit", &"evolution_pethome_v5_image_edit"]
 	):
 		return ""
 
