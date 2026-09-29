@@ -159,15 +159,18 @@ func _initialize() -> void:
 
 	_expect(
 		request.positive_prompt.to_lower().contains(
-			"12 to 15 percent"
+			"35 percent"
 		)
 		and request.positive_prompt.to_lower().contains(
-			"camera pulled much farther back"
+			"10 percent"
+		)
+		and request.positive_prompt.to_lower().contains(
+			"90 percent"
 		)
 		and request.negative_prompt.to_lower().contains(
 			"close-up portrait"
 		),
-		"PetHome render must use a very wide V5 composition with a small full-body pet"
+		"PetHome render must lock pet height to 35% with feet 10% above the bottom edge"
 	)
 
 	var renderer = MockPetRendererScript.new()
