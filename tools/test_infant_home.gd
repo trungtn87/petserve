@@ -29,6 +29,20 @@ func run() -> void:
 	check(game.setup(456), "setup save")
 	var items := game.open_next_chest()
 	check(items.size() == 6, "hatch chest six slots")
+	var hatch_has_gene := false
+	for item in items:
+		if StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		) == ItemGenerator.TYPE_GENE:
+			hatch_has_gene = true
+			break
+	check(
+		hatch_has_gene,
+		"hatch chest provides a normal Stage 1 Gene source"
+	)
 	var daily_items := game.open_next_chest()
 	check(daily_items.size() == 2, "daily chest two slots")
 	check(game.open_next_chest().is_empty(), "opened chest queue is exhausted")
