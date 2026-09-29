@@ -12,6 +12,7 @@ var _inventory: InventoryService = InventoryService.new()
 var _chests: ChestService = ChestService.new()
 var _lifecycle: StageLifecycle = StageLifecycle.new()
 var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
+var _evolution_save: EvolutionSaveService = EvolutionSaveService.new()
 var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
 var _gene_definitions: Array[GeneDefinition] = []
@@ -135,6 +136,9 @@ func snapshot() -> Dictionary:
 	state["inventory_count"] = (
 		_inventory.count()
 	)
+	state["evolution_plan_pending"] = (
+		_has_pending_evolution()
+	)
 
 	if (
 		_gene_policy != null
@@ -246,7 +250,8 @@ func claim_caro_win_reward() -> Dictionary:
 
 
 func claim_maze_hunt_reward(
-	score: int
+	score: int,
+	match_id: String
 ) -> Dictionary:
 	var lifecycle_state := (
 		_lifecycle.snapshot()
@@ -282,7 +287,8 @@ func claim_maze_hunt_reward(
 			maxi(
 				0,
 				score
-			)
+			),
+			match_id
 		)
 	)
 
@@ -306,7 +312,8 @@ func claim_maze_hunt_reward(
 
 
 func claim_snake_hunt_reward(
-	score: int
+	score: int,
+	match_id: String
 ) -> Dictionary:
 	var lifecycle_state := (
 		_lifecycle.snapshot()
@@ -342,7 +349,8 @@ func claim_snake_hunt_reward(
 			maxi(
 				0,
 				score
-			)
+			),
+			match_id
 		)
 	)
 
@@ -405,6 +413,18 @@ func can_use_item(
 			_stage_index
 		)
 	)
+	var item_type := StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	)
+
+	if (
+		item_type == ItemGenerator.TYPE_GENE
+		and _has_pending_evolution()
+	):
+		return false
 
 	if bool(
 		state.get(
@@ -421,12 +441,7 @@ func can_use_item(
 	):
 		return false
 
-	if StringName(
-		item.get(
-			"item_type",
-			""
-		)
-	) == ItemGenerator.TYPE_GENE:
+	if item_type == ItemGenerator.TYPE_GENE:
 		return (
 			_gene_state != null
 			and _gene_state.can_record(
@@ -459,6 +474,22 @@ func use_item(
 			"message": "Không tìm thấy vật phẩm.",
 		}
 
+	var item_type := StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	)
+
+	if (
+		item_type == ItemGenerator.TYPE_GENE
+		and _has_pending_evolution()
+	):
+		return {
+			"ok": false,
+			"message": "Đang chờ hoàn tất tiến hóa. Gene Item được giữ trong Hòm Item.",
+		}
+
 	var stage_index := int(
 		_lifecycle.snapshot().get(
 			"stage_index",
@@ -480,12 +511,7 @@ func use_item(
 		true
 	)
 
-	if StringName(
-		item.get(
-			"item_type",
-			""
-		)
-	) == ItemGenerator.TYPE_GENE:
+	if item_type == ItemGenerator.TYPE_GENE:
 		return _use_gene_item(
 			item,
 			before
@@ -806,6 +832,19 @@ func _has_talent(
 			return true
 
 	return false
+
+
+func _has_pending_evolution() -> bool:
+	var data := _evolution_save.load_data()
+	var value: Variant = data.get(
+		"pending_evolution",
+		{}
+	)
+
+	return (
+		typeof(value) == TYPE_DICTIONARY
+		and not (value as Dictionary).is_empty()
+	)
 
 
 func _restore(
