@@ -14,8 +14,8 @@ const SnakeHuntActivityScript = preload(
 
 
 signal caro_win_reward_requested
-signal maze_reward_requested(score: int)
-signal snake_reward_requested(score: int)
+signal maze_reward_requested(score: int, match_id: String)
+signal snake_reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
 
@@ -738,18 +738,22 @@ func _on_caro_reward_requested() -> void:
 
 
 func _on_maze_reward_requested(
-	score: int
+	score: int,
+	match_id: String
 ) -> void:
 	maze_reward_requested.emit(
-		score
+		score,
+		match_id
 	)
 
 
 func _on_snake_reward_requested(
-	score: int
+	score: int,
+	match_id: String
 ) -> void:
 	snake_reward_requested.emit(
-		score
+		score,
+		match_id
 	)
 
 
