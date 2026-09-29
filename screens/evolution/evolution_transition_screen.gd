@@ -730,7 +730,7 @@ func _render_until_success(
 	if not is_inside_tree():
 		return
 	if result == null or not result.success:
-		_show_fatal("Không tạo được hình thái. Tiến trình đã được giữ lại.")
+		_show_fatal(_render_failure_message(result))
 		return
 	if mode == TransitionMode.EVOLUTION_UPDATE:
 		if not StageEvolutionService.new().commit(result):
@@ -741,6 +741,30 @@ func _render_until_success(
 		_finish_success(result.image_path, false)
 	else:
 		await _complete_initial_render(result)
+
+func _render_failure_message(
+	result: PetRenderResult
+) -> String:
+	if result == null:
+		return (
+			"Không tạo được hình thái [null_result]. "
+			+ "Renderer không trả kết quả."
+		)
+
+	var code := String(result.error_code).strip_edges()
+	var detail := result.error_message.strip_edges()
+
+	if code.is_empty():
+		code = "render_failed"
+
+	if detail.is_empty():
+		detail = "Renderer không cung cấp chi tiết lỗi."
+
+	return (
+		"Không tạo được hình thái [%s]: %s"
+		% [code, detail]
+	)
+
 
 func _run_evolution() -> void:
 	var saved := EvolutionSaveService.new().load_data()
