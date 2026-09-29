@@ -68,7 +68,9 @@ func setup(
 	_chests.ensure_hatch_chest(
 		run_id
 	)
-	_chests.ensure_daily_chest()
+	_chests.ensure_daily_chest(
+		_stage_index
+	)
 	_lifecycle.setup(
 		_meta,
 		run_id,
