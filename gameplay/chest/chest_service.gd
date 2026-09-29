@@ -3,6 +3,8 @@ extends RefCounted
 
 
 const CHEST_HATCH: StringName = &"hatch"
+const CHEST_DAILY: StringName = &"daily"
+const CHEST_EVOLUTION: StringName = &"evolution"
 const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
 const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
 
@@ -45,6 +47,97 @@ func ensure_hatch_chest(run_id: int) -> void:
 	})
 
 	_meta["chest_queue"] = queue
+
+
+func ensure_daily_chest() -> bool:
+	var date := Time.get_date_dict_from_system()
+	var day_key := (
+		"%04d-%02d-%02d"
+		% [
+			int(date.get("year", 0)),
+			int(date.get("month", 0)),
+			int(date.get("day", 0)),
+		]
+	)
+	var uid := "daily_%s" % day_key
+	var queue: Array = _meta.get(
+		"chest_queue",
+		[]
+	)
+
+	for raw_chest in queue:
+		if typeof(raw_chest) != TYPE_DICTIONARY:
+			continue
+
+		var chest := raw_chest as Dictionary
+
+		if String(
+			chest.get(
+				"uid",
+				""
+			)
+		) == uid:
+			return true
+
+	queue.append({
+		"uid": uid,
+		"chest_type": String(CHEST_DAILY),
+		"day_key": day_key,
+		"opened": false,
+	})
+	_meta["chest_queue"] = queue
+	return true
+
+
+func ensure_evolution_chest(
+	run_id: int,
+	from_stage: int,
+	to_stage: int
+) -> bool:
+	if (
+		from_stage < 1
+		or to_stage != from_stage + 1
+		or to_stage > StageLifecycle.FINAL_STAGE
+	):
+		return false
+
+	var uid := (
+		"evolution_%s_%s_%s"
+		% [
+			run_id,
+			from_stage,
+			to_stage,
+		]
+	)
+	var queue: Array = _meta.get(
+		"chest_queue",
+		[]
+	)
+
+	for raw_chest in queue:
+		if typeof(raw_chest) != TYPE_DICTIONARY:
+			continue
+
+		var chest := raw_chest as Dictionary
+
+		if String(
+			chest.get(
+				"uid",
+				""
+			)
+		) == uid:
+			return true
+
+	queue.append({
+		"uid": uid,
+		"chest_type": String(CHEST_EVOLUTION),
+		"run_id": run_id,
+		"from_stage": from_stage,
+		"to_stage": to_stage,
+		"opened": false,
+	})
+	_meta["chest_queue"] = queue
+	return true
 
 
 func ensure_infant_activity_chest(
@@ -194,6 +287,10 @@ func _roll_rewards(chest: Dictionary) -> Array[Dictionary]:
 	match chest_type:
 		CHEST_HATCH:
 			return _roll_hatch_chest(chest)
+		CHEST_DAILY:
+			return _roll_daily_chest(chest)
+		CHEST_EVOLUTION:
+			return _roll_evolution_chest(chest)
 		CHEST_INFANT_ACTIVITY:
 			return _roll_infant_activity_chest(chest)
 		CHEST_STAGE_ACTIVITY:
@@ -222,7 +319,7 @@ func _roll_hatch_chest(chest: Dictionary) -> Array[Dictionary]:
 		ItemGenerator.TYPE_FOOD,
 		ItemGenerator.TYPE_GROWTH,
 		ItemGenerator.TYPE_GROWTH,
-		ItemGenerator.TYPE_FUTURE_FRAGMENT,
+		ItemGenerator.TYPE_GENE,
 	]
 
 	var rewards: Array[Dictionary] = []
@@ -235,13 +332,146 @@ func _roll_hatch_chest(chest: Dictionary) -> Array[Dictionary]:
 		if slot_seed == 0:
 			slot_seed = index + 1
 
-		var item := _generator.generate(
-			slot_types[index],
-			slot_seed
+		var item := (
+			_generate_gene_for_stage(
+				1,
+				slot_seed
+			)
+			if slot_types[index] == ItemGenerator.TYPE_GENE
+			else _generator.generate(
+				slot_types[index],
+				slot_seed
+			)
 		)
 
 		if not item.is_empty():
 			rewards.append(item)
+
+	return rewards
+
+
+func _roll_daily_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(
+		chest.get(
+			"uid",
+			"daily"
+		)
+	)
+	var seed_value := absi(
+		hash(uid)
+	)
+
+	if seed_value == 0:
+		seed_value = 1
+
+	var rewards: Array[Dictionary] = []
+
+	for index in range(2):
+		var item_type: StringName = (
+			ItemGenerator.TYPE_FOOD
+			if index == 0
+			else ItemGenerator.TYPE_GROWTH
+		)
+		var item_seed := absi(
+			hash(
+				"%s:%s"
+				% [
+					seed_value,
+					index,
+				]
+			)
+		)
+
+		if item_seed == 0:
+			item_seed = seed_value + index + 1
+
+		var item := _generator.generate(
+			item_type,
+			item_seed
+		)
+
+		if not item.is_empty():
+			rewards.append(
+				item
+			)
+
+	return rewards
+
+
+func _roll_evolution_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(
+		chest.get(
+			"uid",
+			"evolution"
+		)
+	)
+	var to_stage := int(
+		chest.get(
+			"to_stage",
+			1
+		)
+	)
+	var seed_value := absi(
+		hash(uid)
+	)
+
+	if seed_value == 0:
+		seed_value = 1
+
+	var rewards: Array[Dictionary] = []
+	var item_types: Array[StringName] = [
+		ItemGenerator.TYPE_FOOD,
+		ItemGenerator.TYPE_GROWTH,
+		ItemGenerator.TYPE_GENE,
+	]
+
+	for index in range(
+		item_types.size()
+	):
+		var item_seed := absi(
+			hash(
+				"%s:%s:%s"
+				% [
+					seed_value,
+					to_stage,
+					index,
+				]
+			)
+		)
+
+		if item_seed == 0:
+			item_seed = seed_value + index + 1
+
+		var item_type := item_types[index]
+		var item := (
+			_generate_gene_for_stage(
+				to_stage,
+				item_seed
+			)
+			if item_type == ItemGenerator.TYPE_GENE
+			else _generator.generate(
+				item_type,
+				item_seed
+			)
+		)
+
+		if (
+			item.is_empty()
+			and item_type == ItemGenerator.TYPE_GENE
+		):
+			item = _generator.generate(
+				ItemGenerator.TYPE_FUTURE_FRAGMENT,
+				item_seed
+			)
+
+		if not item.is_empty():
+			rewards.append(
+				item
+			)
 
 	return rewards
 
@@ -390,6 +620,53 @@ func _roll_stage_activity_chest(
 			)
 
 	return rewards
+
+
+func _generate_gene_for_stage(
+	stage_index: int,
+	seed_value: int
+) -> Dictionary:
+	var policy := StageGenePolicy.load_default()
+
+	if policy == null:
+		return {}
+
+	var definitions := GeneCatalog.new().load_default()
+	var candidates: Array[GeneDefinition] = []
+
+	for definition in definitions:
+		if (
+			definition != null
+			and policy.can_accept_gene(
+				stage_index,
+				definition.locus()
+			)
+		):
+			candidates.append(
+				definition
+			)
+
+	if candidates.is_empty():
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(
+		1,
+		abs(
+			seed_value
+		)
+	)
+	var definition := candidates[
+		rng.randi_range(
+			0,
+			candidates.size() - 1
+		)
+	]
+
+	return _generator.generate_gene(
+		definition,
+		seed_value
+	)
 
 
 func _reward_uids(rewards: Array[Dictionary]) -> Array[String]:
