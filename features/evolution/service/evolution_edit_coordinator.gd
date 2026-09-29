@@ -253,7 +253,9 @@ func build_natural_request(
 		+ " Species: "
 		+ String(identity.species())
 		+ ". Element family: "
-		+ String(identity.element())
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
 		+ "."
 	)
 
@@ -494,7 +496,9 @@ func _build_stage_one_gene_regenerate(
 		+ " Species: "
 		+ String(identity.species())
 		+ ". Element family: "
-		+ String(identity.element())
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
 		+ "."
 	)
 
