@@ -63,7 +63,9 @@ func _bootstrap() -> void:
 		"%s • %s • INFANT"
 		% [
 			String(_identity.species()).to_upper(),
-			String(_identity.element()).to_upper(),
+			PetElementCatalog.display_name_upper(
+			_identity.element()
+		),
 		]
 	)
 
@@ -151,7 +153,9 @@ func _start_generate(
 	_generate_button.disabled = true
 	_status_label.text = (
 		"Đang tạo PetHome %s từ một prompt..."
-		% String(_identity.element()).to_upper()
+		% PetElementCatalog.display_name_upper(
+			_identity.element()
+		)
 	)
 
 	var result: PetRenderResult = await (
