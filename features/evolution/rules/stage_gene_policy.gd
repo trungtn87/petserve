@@ -6,6 +6,9 @@ const DEFAULT_PATH: String = (
 	"res://data/evolution/gene/stage_gene_policy.json"
 )
 
+const FIRST_STAGE: int = 1
+const FINAL_STAGE: int = 4
+
 
 var _stages: Dictionary = {}
 
@@ -68,8 +71,12 @@ func can_accept_gene(
 	stage_index: int,
 	locus: StringName
 ) -> bool:
-	if not PetGenomeSchema.is_visual_locus(
+	var normalized_locus := _normalize_name(
 		locus
+	)
+
+	if not PetGenomeSchema.is_visual_locus(
+		normalized_locus
 	):
 		return false
 
@@ -81,7 +88,7 @@ func can_accept_gene(
 	return allowed_loci(
 		stage_index
 	).has(
-		locus
+		normalized_locus
 	)
 
 
@@ -152,7 +159,8 @@ static func load_from_path(
 		)
 
 		if (
-			stage_index < 1
+			stage_index < FIRST_STAGE
+			or stage_index > FINAL_STAGE
 			or max_items < 0
 			or policy._stages.has(
 				stage_index
@@ -199,7 +207,24 @@ static func load_from_path(
 			"allowed_loci": loci,
 		}
 
-	if policy._stages.is_empty():
-		return null
+	for required_stage in range(
+		FIRST_STAGE,
+		FINAL_STAGE + 1
+	):
+		if not policy.has_stage(
+			required_stage
+		):
+			return null
 
 	return policy
+
+
+static func _normalize_name(
+	value: StringName
+) -> StringName:
+	return StringName(
+		String(value)
+			.strip_edges()
+			.to_lower()
+			.replace(" ", "_")
+	)

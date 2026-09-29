@@ -12,10 +12,7 @@ var _gene_items: Array[Dictionary] = []
 func _init(
 	stage_index: int = 1
 ) -> void:
-	_stage_index = maxi(
-		1,
-		stage_index
-	)
+	_stage_index = stage_index
 
 
 func stage_index() -> int:
@@ -142,6 +139,8 @@ func record_gene_item(
 		or String(normalized_gene).is_empty()
 		or String(normalized_locus).is_empty()
 		or String(normalized_direction).is_empty()
+		or normalized_direction
+		== PetGenomeSchema.BASE_TRAIT
 		or influence <= 0.0
 	):
 		return _error(
@@ -199,7 +198,10 @@ func record_gene_item(
 func reset_for_stage(
 	stage_index: int
 ) -> bool:
-	if stage_index < 1:
+	if (
+		stage_index < StageGenePolicy.FIRST_STAGE
+		or stage_index > StageGenePolicy.FINAL_STAGE
+	):
 		return false
 
 	_stage_index = stage_index
@@ -210,7 +212,18 @@ func reset_for_stage(
 func is_valid(
 	policy: StageGenePolicy = null
 ) -> bool:
-	if _stage_index < 1:
+	if (
+		_stage_index < StageGenePolicy.FIRST_STAGE
+		or _stage_index > StageGenePolicy.FINAL_STAGE
+	):
+		return false
+
+	if (
+		policy != null
+		and not policy.has_stage(
+			_stage_index
+		)
+	):
 		return false
 
 	var seen_uids: Dictionary = {}
@@ -314,7 +327,8 @@ static func from_dict(
 	)
 
 	if (
-		stage_index < 1
+		stage_index < StageGenePolicy.FIRST_STAGE
+		or stage_index > StageGenePolicy.FINAL_STAGE
 		or typeof(items_value) != TYPE_ARRAY
 	):
 		return null
@@ -401,8 +415,9 @@ func _normalize_name(
 ) -> StringName:
 	return StringName(
 		String(value)
-		.strip_edges()
-		.to_lower()
+			.strip_edges()
+			.to_lower()
+			.replace(" ", "_")
 	)
 
 
