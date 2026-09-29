@@ -733,10 +733,16 @@ func _migrate_stage_age(
 	var now := int(
 		Time.get_unix_time_from_system()
 	)
+	var last_update := int(
+		state.get(
+			"last_update_unix",
+			now
+		)
+	)
 	var started := int(
 		state.get(
 			"started_at_unix",
-			now
+			last_update
 		)
 	)
 	var age_elapsed := maxf(
@@ -744,7 +750,7 @@ func _migrate_stage_age(
 		float(
 			maxi(
 				0,
-				now - started
+				last_update - started
 			)
 		)
 	)
