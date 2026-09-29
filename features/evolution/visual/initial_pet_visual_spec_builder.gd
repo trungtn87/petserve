@@ -85,7 +85,9 @@ func build(
 		+ "Species: "
 		+ String(identity.species())
 		+ ". Element family: "
-		+ String(identity.element())
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
 		+ ". This Stage 1 image establishes the canonical face identity and elemental lineage "
 		+ "that later stages inherit. The pet and PetHome environment must be rendered together "
 		+ "as one coherent scene, not as separate assets."
