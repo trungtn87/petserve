@@ -631,10 +631,24 @@ func complete_infant() -> bool:
 func advance_to_stage(
 	stage_index: int
 ) -> bool:
+	var previous_stage := int(
+		_lifecycle.snapshot().get(
+			"stage_index",
+			_stage_index
+		)
+	)
+
 	_stage_index = stage_index
 	_lifecycle.advance_to_stage(
 		stage_index
 	)
+
+	if stage_index == previous_stage + 1:
+		_chests.ensure_evolution_chest(
+			_run_id,
+			previous_stage,
+			stage_index
+		)
 
 	if _gene_state == null:
 		_gene_state = GeneDevelopmentState.new(
