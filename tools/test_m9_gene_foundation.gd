@@ -22,6 +22,12 @@ func _initialize() -> void:
 		_test_stage_two_state(
 			policy
 		)
+		_test_stage_three_state(
+			policy
+		)
+		_test_invalid_stage_guards(
+			policy
+		)
 		_test_final_stage(
 			policy
 		)
@@ -134,6 +140,15 @@ func _test_stage_policy(
 		),
 		"Stage 1 must reject body"
 	)
+
+	for stage_index in range(
+		StageGenePolicy.FIRST_STAGE,
+		StageGenePolicy.FINAL_STAGE + 1
+	):
+		_expect(
+			policy.has_stage(stage_index),
+			"StageGenePolicy must define every lifecycle stage"
+		)
 
 
 func _test_stage_one_state(
@@ -331,6 +346,114 @@ func _test_stage_two_state(
 			)
 		),
 		"the same Gene Item UID cannot be consumed twice"
+	)
+
+
+func _test_stage_three_state(
+	policy: StageGenePolicy
+) -> void:
+	var state := GeneDevelopmentState.new(3)
+
+	for gene_data in [
+		[
+			"gene_item_s3_structure",
+			&"horn_gene",
+			&"structure",
+			&"horn",
+			15.0,
+		],
+		[
+			"gene_item_s3_aura",
+			&"dark_aura",
+			&"aura",
+			&"mist",
+			18.0,
+		],
+		[
+			"gene_item_s3_body",
+			&"large_body",
+			&"body",
+			&"large",
+			10.0,
+		],
+	]:
+		_expect(
+			bool(
+				state.record_gene_item(
+					policy,
+					gene_data[0],
+					gene_data[1],
+					gene_data[2],
+					gene_data[3],
+					gene_data[4]
+				).get(
+					"ok",
+					false
+				)
+			),
+			"Stage 3 must accept all three unlocked Gene Item slots"
+		)
+
+	_expect(
+		state.item_count() == 3
+		and is_equal_approx(
+			state.influence_for(
+				&"structure",
+				&"horn"
+			),
+			15.0
+		)
+		and is_equal_approx(
+			state.influence_for(
+				&"aura",
+				&"mist"
+			),
+			18.0
+		),
+		"Stage 3 must record advanced structure/aura influence"
+	)
+
+
+func _test_invalid_stage_guards(
+	policy: StageGenePolicy
+) -> void:
+	var state := GeneDevelopmentState.new(1)
+
+	_expect(
+		not state.reset_for_stage(5),
+		"GeneDevelopmentState must reject stages outside the 1..4 lifecycle"
+	)
+
+	_expect(
+		GeneDevelopmentState.from_dict(
+			{
+				"stage_index": 5,
+				"gene_items": [],
+			},
+			policy
+		) == null,
+		"save data outside the 1..4 lifecycle must be rejected"
+	)
+
+	var base_direction := GeneDevelopmentState.new(
+		1
+	).record_gene_item(
+		policy,
+		"gene_item_base_direction",
+		&"invalid_base_gene",
+		&"tail",
+		&"base",
+		10.0
+	)
+
+	_expect(
+		not bool(
+			base_direction.get(
+				"ok",
+				false
+			)
+		),
+		"Gene Item direction cannot be the base allele"
 	)
 
 
