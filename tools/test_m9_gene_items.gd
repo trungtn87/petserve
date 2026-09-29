@@ -29,9 +29,37 @@ func _test_catalog_and_item_contract() -> void:
 	var definitions := catalog.load_default()
 
 	_expect(
-		definitions.size() == 10,
-		"Stage 1 reference catalog must contain 10 Gene definitions"
+		definitions.size() == 15,
+		"Gene catalog must contain 15 definitions across the ten Stage 2 loci"
 	)
+
+	var stage_two_loci := StageGenePolicy.load_default().allowed_loci(
+		2
+	)
+	_expect(
+		stage_two_loci.size() == 10,
+		"Stage 2 policy must expose exactly ten Gene loci"
+	)
+
+	for required_locus in [
+		&"body",
+		&"eyes",
+		&"ears",
+		&"whiskers",
+		&"fur",
+		&"coat",
+		&"tail",
+		&"paws",
+		&"mane",
+		&"mark",
+	]:
+		_expect(
+			stage_two_loci.has(
+				required_locus
+			),
+			"Stage 2 missing Gene locus: %s"
+			% String(required_locus)
+		)
 
 	var seen: Dictionary = {}
 
@@ -65,8 +93,13 @@ func _test_catalog_and_item_contract() -> void:
 		and is_equal_approx(
 			tail.primary_influence(),
 			20.0
-		),
-		"tail_long definition contract"
+		)
+		and tail.expression_chain() == [
+			&"long",
+			&"elongated",
+			&"regal_long",
+		],
+		"tail_long definition and reinforcement chain contract"
 	)
 
 	if tail == null:
