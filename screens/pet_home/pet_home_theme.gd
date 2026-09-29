@@ -67,23 +67,9 @@ static func for_element(
 static func element_label(
 	element: StringName
 ) -> String:
-	match String(element).to_lower():
-		"metal":
-			return "Kim"
-		"wood":
-			return "Mộc"
-		"water":
-			return "Thủy"
-		"fire":
-			return "Hỏa"
-		"earth":
-			return "Thổ"
-		"light":
-			return "Quang"
-		"dark":
-			return "Ám"
-		_:
-			return String(element)
+	return PetElementCatalog.display_name(
+		element
+	)
 
 
 static func stage_label(
