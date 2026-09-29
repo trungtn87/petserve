@@ -49,9 +49,11 @@ func _draw() -> void:
 		Color.WHITE
 	)
 
+	var board_color := panel_color
+	board_color.a = 0.96
 	draw_rect(
 		Rect2(origin, board_size),
-		Color(panel_color, 0.96),
+		board_color,
 		true
 	)
 
@@ -98,10 +100,12 @@ func _draw() -> void:
 	var pet_color := accent
 
 	if game.power_left() > 0.0:
+		var aura_color := accent
+		aura_color.a = 0.22
 		draw_circle(
 			pet_center,
 			cell_size * 0.46,
-			Color(accent, 0.22)
+			aura_color
 		)
 
 	draw_circle(
