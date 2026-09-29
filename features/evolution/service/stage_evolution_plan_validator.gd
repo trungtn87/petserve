@@ -2,7 +2,8 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const STAGE_ONE_SCHEMA: int = 6
+const PLAN_SCHEMA: int = 6
+const FINAL_STAGE: int = 4
 
 
 func validate(
@@ -21,25 +22,13 @@ func validate(
 	if pending.is_empty():
 		return "Không có pending evolution."
 
-	var schema := int(
+	if int(
 		pending.get(
 			"schema",
 			0
 		)
-	)
-
-	# Legacy M7/M8 plans remain supported for Stage 2/3 until migrated.
-	# Stage 1 legacy plans must be rebuilt by StageEvolutionService.
-	if schema != STAGE_ONE_SCHEMA:
-		if int(
-			pending.get(
-				"from_stage",
-				-1
-			)
-		) == 1:
-			return "Pending Stage 1 cũ phải được migrate sang schema M9.5."
-
-		return ""
+	) != PLAN_SCHEMA:
+		return "Pending evolution cũ phải được rebuild theo Gene/Natural policy mới."
 
 	var identity := PetIdentity.from_dict(
 		data.get(
@@ -65,7 +54,7 @@ func validate(
 		or current == null
 		or next == null
 	):
-		return "Pending Stage 1 thiếu Identity/Genome hợp lệ."
+		return "Pending evolution thiếu Identity/Genome hợp lệ."
 
 	var from_stage := int(
 		pending.get(
@@ -81,12 +70,13 @@ func validate(
 	)
 
 	if (
-		from_stage != 1
+		from_stage < 1
+		or from_stage >= FINAL_STAGE
 		or current.stage() != from_stage
 		or to_stage != from_stage + 1
 		or next.stage() != to_stage
 	):
-		return "Pending Stage 1 có stage transition không hợp lệ."
+		return "Pending evolution có stage transition không hợp lệ."
 
 	var source_visual := PetVisualRecord.from_dict(
 		pending.get(
@@ -106,14 +96,14 @@ func validate(
 		or source_visual.pet_id
 			!= identity.pet_id()
 	):
-		return "Pending Stage 1 có source visual sai identity."
+		return "Pending evolution có source visual sai identity."
 
 	if (
 		scene_profile == null
 		or scene_profile.element
 			!= identity.element()
 	):
-		return "Pending Stage 1 có Scene Profile không hợp lệ."
+		return "Pending evolution có Scene Profile không hợp lệ."
 
 	var request_value: Variant = pending.get(
 		"render_request",
@@ -121,18 +111,17 @@ func validate(
 	)
 
 	if typeof(request_value) != TYPE_DICTIONARY:
-		return "Pending Stage 1 thiếu serialized render request."
+		return "Pending evolution thiếu serialized render request."
 
 	var request := EvolutionEditCoordinator.new().request_from_dict(
 		request_value as Dictionary
 	)
 
+	if request == null:
+		return "Pending evolution có render request không hợp lệ."
+
 	if (
-		request == null
-		or request.pet_id != identity.pet_id()
-		or request.mode
-			!= PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		or not request.source_image_path.is_empty()
+		request.pet_id != identity.pet_id()
 		or request.output_key
 			!= (
 				identity.pet_id()
@@ -140,7 +129,23 @@ func validate(
 				% to_stage
 			)
 	):
-		return "Pending Stage 1 có full-regenerate request không khớp plan."
+		return "Pending evolution có render request không khớp identity/stage."
+
+	if from_stage == 1:
+		if (
+			request.mode
+				!= PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+			or not request.source_image_path.is_empty()
+		):
+			return "Stage 1 -> 2 phải dùng full-regenerate."
+	else:
+		if (
+			request.mode
+				!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			or request.source_image_path
+				!= source_visual.image_path
+		):
+			return "Stage 2+ phải dùng image-edit từ visual hiện tại."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(
@@ -156,10 +161,10 @@ func validate(
 	)
 
 	if source_phenotype.is_empty():
-		return "Pending Stage 1 thiếu source phenotype."
+		return "Pending evolution thiếu source phenotype."
 
 	if target_phenotype.is_empty():
-		return "Pending Stage 1 thiếu target phenotype."
+		return "Pending evolution thiếu target phenotype."
 
 	if source_phenotype != _genome_phenotype(
 		current
@@ -204,7 +209,7 @@ func validate(
 			)
 
 		_:
-			return "Pending Stage 1 có resolution_mode không hợp lệ."
+			return "Pending evolution có resolution_mode không hợp lệ."
 
 
 func _validate_natural(
@@ -238,12 +243,6 @@ func _validate_natural(
 
 	if current.mutation_ids() != next.mutation_ids():
 		return "Natural Growth không được tự thêm mutation history."
-
-	if request.mode != PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE:
-		return "Natural Growth Stage 1 phải dùng full-regenerate."
-
-	if not request.source_image_path.is_empty():
-		return "Natural Growth full-regenerate không được gửi ảnh nguồn."
 
 	if request.target_region != EvolutionEditCoordinator.NATURAL_TARGET_REGION:
 		return "Natural Growth request có target region không hợp lệ."
@@ -318,6 +317,12 @@ func _validate_gene(
 			""
 		)
 	)
+	var step_index := int(
+		delta.get(
+			"step_index",
+			0
+		)
+	)
 
 	if (
 		String(mutation_id).is_empty()
@@ -327,6 +332,7 @@ func _validate_gene(
 		or String(from_trait).is_empty()
 		or String(to_trait).is_empty()
 		or from_trait == to_trait
+		or step_index < 1
 	):
 		return "Gene EvolutionDelta không hợp lệ."
 
@@ -351,22 +357,22 @@ func _validate_gene(
 		changed.size() != 1
 		or changed[0] != target_trait
 	):
-		return "Gene Stage 1 phải thay đúng một visual locus."
+		return "Gene evolution phải thay đúng một visual locus."
 
 	var current_mutations := current.mutation_ids()
 	var next_mutations := next.mutation_ids()
 
 	if next_mutations.size() != current_mutations.size() + 1:
-		return "Gene Stage 1 mutation history phải tăng đúng một entry."
+		return "Gene mutation history phải tăng đúng một entry."
 
 	for index in range(
 		current_mutations.size()
 	):
 		if next_mutations[index] != current_mutations[index]:
-			return "Gene Stage 1 đã sửa mutation history cũ."
+			return "Gene evolution đã sửa mutation history cũ."
 
 	if next_mutations.back() != mutation_id:
-		return "Gene Stage 1 mutation history không khớp EvolutionDelta."
+		return "Gene mutation history không khớp EvolutionDelta."
 
 	var resolution_value: Variant = pending.get(
 		"gene_resolution",
@@ -374,9 +380,27 @@ func _validate_gene(
 	)
 
 	if typeof(resolution_value) != TYPE_DICTIONARY:
-		return "Gene Stage 1 thiếu provenance."
+		return "Gene plan thiếu provenance."
 
 	var resolution := resolution_value as Dictionary
+	var selected_direction := StringName(
+		resolution.get(
+			"selected_direction",
+			""
+		)
+	)
+	var resolved_trait := StringName(
+		resolution.get(
+			"resolved_trait",
+			""
+		)
+	)
+	var reinforced := bool(
+		resolution.get(
+			"reinforced",
+			false
+		)
+	)
 
 	if (
 		String(
@@ -391,20 +415,16 @@ func _validate_gene(
 				""
 			)
 		) != target_trait
-		or StringName(
-			resolution.get(
-				"selected_direction",
-				""
-			)
-		) != to_trait
+		or String(selected_direction).is_empty()
+		or resolved_trait != to_trait
 	):
 		return "Gene provenance không khớp EvolutionDelta."
 
-	if request.mode != PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE:
-		return "Gene Stage 1 phải dùng full-regenerate."
-
-	if not request.source_image_path.is_empty():
-		return "Gene Stage 1 full-regenerate không được gửi ảnh nguồn."
+	if (
+		not reinforced
+		and selected_direction != to_trait
+	):
+		return "Gene branch mới phải biểu hiện đúng selected direction."
 
 	if request.target_region != target_trait:
 		return "Gene render target region không khớp EvolutionDelta."
@@ -414,12 +434,7 @@ func _validate_gene(
 		target_trait,
 		from_trait,
 		to_trait,
-		int(
-			delta.get(
-				"step_index",
-				0
-			)
-		)
+		step_index
 	)
 
 	if not delta_object.is_valid():
