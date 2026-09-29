@@ -163,13 +163,13 @@ func refresh_status(s: Dictionary) -> void:
 	var pending := int(s.get("pending_chests", 0))
 	_chest_button.text = "RƯƠNG • %d" % pending if pending > 0 else "RƯƠNG"
 	_chest_button.disabled = pending <= 0
-	_inventory_button.text = "KHO • %d" % int(s.get("inventory_count", 0))
+	_inventory_button.text = "ITEM • %d" % int(s.get("inventory_count", 0))
 
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
 	_hide_item_detail()
-	_title.text = "KHO ĐỒ"
+	_title.text = "HÒM ITEM"
 	_filters.visible = true
 	_fill(_facade.inventory(filter_type), true)
 	_layout_overlay()
@@ -270,7 +270,7 @@ func _build_hud() -> void:
 	_chest_button.pressed.connect(_emit_chest_open)
 	actions.add_child(_chest_button)
 
-	_inventory_button = _action_button("KHO")
+	_inventory_button = _action_button("HÒM ITEM")
 	_inventory_button.pressed.connect(_open_inventory_all)
 	actions.add_child(_inventory_button)
 
@@ -336,6 +336,7 @@ func _build_overlay() -> void:
 	_add_filter("Tất cả", &"")
 	_add_filter("Ăn", ItemGenerator.TYPE_FOOD)
 	_add_filter("Lớn", ItemGenerator.TYPE_GROWTH)
+	_add_filter("Gene", ItemGenerator.TYPE_GENE)
 	_add_filter("Khác", ItemGenerator.TYPE_FUTURE_FRAGMENT)
 
 	var scroll := ScrollContainer.new()
