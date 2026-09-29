@@ -19,6 +19,7 @@ var _chest_button: Button
 var _inventory_button: Button
 var _entertainment_button: Button
 var _overlay: Control
+var _overlay_panel: PanelContainer
 var _title: Label
 var _list: VBoxContainer
 var _filters: HBoxContainer
@@ -29,13 +30,26 @@ var _stage_index: int = 1
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
 	_build_hud()
 	if dialogs_only:
 		for child in get_children():
 			child.hide()
 	_build_overlay()
 	_build_toast()
+
+	if not resized.is_connected(
+		_layout_overlay
+	):
+		resized.connect(
+			_layout_overlay
+		)
+
+	call_deferred(
+		"_layout_overlay"
+	)
 
 func bind(facade: InfantGameFacade) -> void:
 	_facade = facade
@@ -141,12 +155,14 @@ func open_inventory(filter_type: StringName = &"") -> void:
 	_title.text = "KHO ĐỒ"
 	_filters.visible = true
 	_fill(_facade.inventory(filter_type), true)
+	_layout_overlay()
 	_overlay.visible = true
 
 func show_chest_rewards(items: Array[Dictionary]) -> void:
 	_title.text = "RƯƠNG"
 	_filters.visible = false
 	_fill(items, false)
+	_layout_overlay()
 	_overlay.visible = true
 	refresh_status(_facade.snapshot())
 
@@ -246,30 +262,43 @@ func _build_hud() -> void:
 
 func _build_overlay() -> void:
 	_overlay = Control.new()
-	_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_overlay)
+	_overlay.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
 	_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
 	_overlay.visible = false
-	add_child(_overlay)
 
 	var scrim := ColorRect.new()
-	scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scrim.color = Color(0.01,0.01,0.02,0.78)
 	_overlay.add_child(scrim)
+	scrim.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	scrim.color = Color(0.01,0.01,0.02,0.78)
 
-	var panel := PanelContainer.new()
-	panel.anchor_left = 0.05
-	panel.anchor_top = 0.10
-	panel.anchor_right = 0.95
-	panel.anchor_bottom = 0.91
-	panel.add_theme_stylebox_override("panel", _style(Color(0.07,0.045,0.13,0.99), Color(0.52,0.38,0.78,0.95)))
-	_overlay.add_child(panel)
+	_overlay_panel = PanelContainer.new()
+	_overlay.add_child(_overlay_panel)
+	_overlay_panel.set_anchors_preset(
+		Control.PRESET_TOP_LEFT
+	)
+	_overlay_panel.add_theme_stylebox_override(
+		"panel",
+		_style(
+			Color(0.07,0.045,0.13,0.99),
+			Color(0.52,0.38,0.78,0.95)
+		)
+	)
 
 	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for side in ["margin_left","margin_top","margin_right","margin_bottom"]:
 		margin.add_theme_constant_override(side, 14)
-	panel.add_child(margin)
+	_overlay_panel.add_child(margin)
 
 	var root := VBoxContainer.new()
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_theme_constant_override("separation", 8)
 	margin.add_child(root)
 
@@ -292,6 +321,7 @@ func _build_overlay() -> void:
 	_add_filter("Khác", ItemGenerator.TYPE_FUTURE_FRAGMENT)
 
 	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(scroll)
@@ -299,6 +329,58 @@ func _build_overlay() -> void:
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 7)
 	scroll.add_child(_list)
+
+
+func _layout_overlay() -> void:
+	if (
+		_overlay == null
+		or _overlay_panel == null
+	):
+		return
+
+	_overlay.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+
+	var viewport_size := size
+
+	if (
+		viewport_size.x <= 1.0
+		or viewport_size.y <= 1.0
+	):
+		return
+
+	var side_margin := maxf(
+		12.0,
+		viewport_size.x * 0.05
+	)
+	var top_margin := maxf(
+		18.0,
+		viewport_size.y * 0.08
+	)
+	var bottom_margin := maxf(
+		18.0,
+		viewport_size.y * 0.07
+	)
+
+	_overlay_panel.position = Vector2(
+		side_margin,
+		top_margin
+	)
+	_overlay_panel.size = Vector2(
+		maxf(
+			1.0,
+			viewport_size.x
+			- side_margin * 2.0
+		),
+		maxf(
+			180.0,
+			viewport_size.y
+			- top_margin
+			- bottom_margin
+		)
+	)
+
 
 func _build_toast() -> void:
 	_toast = Label.new()
@@ -314,6 +396,7 @@ func _build_toast() -> void:
 
 func _fill(items: Array[Dictionary], allow_use: bool) -> void:
 	for child in _list.get_children():
+		_list.remove_child(child)
 		child.queue_free()
 	if items.is_empty():
 		var empty := Label.new()
