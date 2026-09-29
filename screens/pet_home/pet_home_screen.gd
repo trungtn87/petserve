@@ -694,7 +694,26 @@ func _open_pet_info() -> void:
 			genome.stage()
 		)
 	)
-	_add_info_row("Trưởng thành", "%d%%" % int(_game.snapshot().get("growth_percent", 0)))
+	var gameplay_state := _game.snapshot()
+	_add_info_row(
+		"Trưởng thành",
+		"%d%%" % int(
+			gameplay_state.get(
+				"growth_percent",
+				0
+			)
+		)
+	)
+	if bool(
+		gameplay_state.get(
+			"instant_evolution_talent",
+			false
+		)
+	):
+		_add_info_row(
+			"Thiên phú",
+			"Bẻ cong thời gian [TEST]"
+		)
 	_add_info_row(
 		"Loài",
 		String(
@@ -864,7 +883,27 @@ func _refresh_gameplay() -> void:
 	for bar in [_growth_bar, _fullness_bar]:
 		var label: Label = bar.get_meta("value_label")
 		label.text = "%d%%" % int(bar.value)
-	_growth_bar.tooltip_text = "Sẵn sàng tiến hóa" if bool(state.get("ready_to_evolve", false)) else "Trưởng thành theo thời gian và vật phẩm"
+	var naturally_ready := bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	var can_evolve := bool(
+		state.get(
+			"can_evolve",
+			naturally_ready
+		)
+	)
+	_growth_bar.tooltip_text = (
+		"Sẵn sàng tiến hóa"
+		if naturally_ready
+		else (
+			"Có thể tiến hóa ngay nhờ thiên phú TEST"
+			if can_evolve
+			else "Trưởng thành theo thời gian và vật phẩm"
+		)
+	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
 
 func _notification(what: int) -> void:
@@ -941,17 +980,38 @@ func _open_evolution() -> void:
 			1
 		)
 	)
+	var naturally_ready := bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	var can_evolve := bool(
+		state.get(
+			"can_evolve",
+			naturally_ready
+		)
+	)
+
 	if stage_index >= StageLifecycle.FINAL_STAGE:
 		_add_info_row(
 			"Trạng thái",
 			"Đã đạt hình thái cuối"
 		)
-	elif bool(
-		state.get(
-			"ready_to_evolve",
-			false
-		)
-	):
+	elif can_evolve:
+		if (
+			not naturally_ready
+			and bool(
+				state.get(
+					"instant_evolution_talent",
+					false
+				)
+			)
+		):
+			_add_info_row(
+				"Thiên phú TEST",
+				"Bỏ qua thời gian chờ"
+			)
 		_section_button(
 			"TIẾN HÓA",
 			_evolve
@@ -974,8 +1034,21 @@ func _open_evolution() -> void:
 	_section_overlay.visible = true
 
 func _evolve() -> void:
-	if bool(_game.snapshot().get("ready_to_evolve", false)) and _game.save():
-		get_tree().change_scene_to_file("res://scenes/evolution_update.tscn")
+	var state := _game.snapshot()
+	var can_evolve := bool(
+		state.get(
+			"can_evolve",
+			state.get(
+				"ready_to_evolve",
+				false
+			)
+		)
+	)
+
+	if can_evolve and _game.save():
+		get_tree().change_scene_to_file(
+			"res://scenes/evolution_update.tscn"
+		)
 
 func _open_settings() -> void:
 	_prepare_section("Cài đặt")
