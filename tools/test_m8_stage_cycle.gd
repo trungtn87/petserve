@@ -152,6 +152,44 @@ func _test_stage_lifecycle() -> void:
 		"stage 2 becomes ready"
 	)
 
+	var starved_meta: Dictionary = {}
+	var starved := StageLifecycle.new()
+	starved.setup(
+		starved_meta,
+		501,
+		2
+	)
+	starved.tick(
+		float(
+			duration_two
+		)
+	)
+	var starved_state := starved.snapshot()
+	check(
+		int(
+			starved_state.get(
+				"growth_percent",
+				0
+			)
+		) == 75,
+		"stage 2 starvation keeps growth at 75 percent"
+	)
+	check(
+		bool(
+			starved_state.get(
+				"deadline_reached",
+				false
+			)
+		)
+		and bool(
+			starved_state.get(
+				"ready_to_evolve",
+				false
+			)
+		),
+		"stage 2 age deadline makes pet ready independently of growth"
+	)
+
 	life.advance_to_stage(
 		3
 	)
