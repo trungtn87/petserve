@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const STAGE_ONE_SCHEMA: int = 4
+const STAGE_ONE_SCHEMA: int = 5
 
 
 func validate(
@@ -130,16 +130,17 @@ func validate(
 	if (
 		request == null
 		or request.pet_id != identity.pet_id()
-		or request.source_image_path
-			!= source_visual.image_path
+		or request.mode
+			!= PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		or not request.source_image_path.is_empty()
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v5_stage_%d"
+				+ "_pethome_v6_stage_%d"
 				% to_stage
 			)
 	):
-		return "Pending Stage 1 có render request không khớp plan."
+		return "Pending Stage 1 có full-regenerate request không khớp plan."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(
@@ -237,6 +238,12 @@ func _validate_natural(
 
 	if current.mutation_ids() != next.mutation_ids():
 		return "Natural Growth không được tự thêm mutation history."
+
+	if request.mode != PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE:
+		return "Natural Growth Stage 1 phải dùng full-regenerate."
+
+	if not request.source_image_path.is_empty():
+		return "Natural Growth full-regenerate không được gửi ảnh nguồn."
 
 	if request.target_region != EvolutionEditCoordinator.NATURAL_TARGET_REGION:
 		return "Natural Growth request có target region không hợp lệ."
@@ -392,6 +399,12 @@ func _validate_gene(
 		) != to_trait
 	):
 		return "Gene provenance không khớp EvolutionDelta."
+
+	if request.mode != PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE:
+		return "Gene Stage 1 phải dùng full-regenerate."
+
+	if not request.source_image_path.is_empty():
+		return "Gene Stage 1 full-regenerate không được gửi ảnh nguồn."
 
 	if request.target_region != target_trait:
 		return "Gene render target region không khớp EvolutionDelta."
