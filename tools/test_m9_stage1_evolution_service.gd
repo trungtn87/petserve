@@ -11,6 +11,7 @@ func _initialize() -> void:
 	_test_tampered_plan_is_rejected()
 	_test_legacy_stage_one_pending_is_rebuilt()
 	_test_stage_one_gene_visual_matrix()
+	_test_element_stage_profiles()
 	_cleanup()
 
 	if _failures == 0:
@@ -123,7 +124,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v6_stage_2"
+			"_pethome_v7_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
@@ -131,7 +132,16 @@ func _test_natural_stage_one_plan() -> void:
 			"[STAGE 2 FULL REGENERATE]"
 		)
 		and request.positive_prompt.contains(
-			"visibly older and larger Stage 2 form"
+			"visibly older and larger than Stage 1"
+		)
+		and request.positive_prompt.contains(
+			"[ELEMENT MORPHOLOGY STAGE 2]"
+		)
+		and request.positive_prompt.contains(
+			"[QUADRUPED BODY PLAN]"
+		)
+		and request.positive_prompt.contains(
+			"[PETHOME SCALE LOCK]"
 		)
 		and request.positive_prompt.contains(
 			"body=base"
@@ -144,6 +154,9 @@ func _test_natural_stage_one_plan() -> void:
 		)
 		and request.negative_prompt.contains(
 			"extra legs"
+		)
+		and request.negative_prompt.contains(
+			"bipedal"
 		)
 		and request.seed > 0,
 		"Natural request must carry full phenotype and explicit no-Gene contract"
@@ -240,7 +253,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v6_full_regenerate"
+			) == "evolution_pethome_v7_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -379,11 +392,20 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v6_stage_2"
+			"_pethome_v7_stage_2"
 		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
 			"[STAGE 2 FULL REGENERATE]"
+		)
+		and request.positive_prompt.contains(
+			"[ELEMENT MORPHOLOGY STAGE 2]"
+		)
+		and request.positive_prompt.contains(
+			"[QUADRUPED BODY PLAN]"
+		)
+		and request.positive_prompt.contains(
+			"[PETHOME SCALE LOCK]"
 		)
 		and request.positive_prompt.contains(
 			"[SOURCE PHENOTYPE BLUEPRINT]"
@@ -405,6 +427,9 @@ func _test_gene_stage_one_plan() -> void:
 		)
 		and request.negative_prompt.contains(
 			"extra legs"
+		)
+		and request.negative_prompt.contains(
+			"bipedal"
 		)
 		and request.seed > 0,
 		"Gene request must expose full current/target phenotype and one-change contract"
@@ -496,7 +521,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v6_full_regenerate"
+			) == "evolution_pethome_v7_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -656,7 +681,7 @@ func _test_legacy_stage_one_pending_is_rebuilt() -> void:
 	var save := EvolutionSaveService.new()
 	var data := save.load_data()
 	data["pending_evolution"] = {
-		"schema": 4,
+		"schema": 5,
 		"from_stage": 1,
 		"to_stage": 2,
 	}
@@ -803,6 +828,53 @@ func _test_stage_one_gene_visual_matrix() -> void:
 			),
 			"full phenotype prompt must include locus: %s"
 			% String(locus)
+		)
+
+
+func _test_element_stage_profiles() -> void:
+	var catalog := ElementStageVisualCatalog.new()
+	var profiles := catalog.load_default()
+	var elements := [
+		&"metal",
+		&"wood",
+		&"water",
+		&"fire",
+		&"earth",
+		&"dark",
+		&"light",
+	]
+
+	_expect(
+		profiles.size() == elements.size(),
+		"Element Stage profile catalog must contain exactly seven elements"
+	)
+
+	for element in elements:
+		var profile := catalog.find_by_element(
+			profiles,
+			element
+		)
+
+		_expect(
+			not profile.is_empty()
+			and not catalog.prompt_for_stage(
+				profile,
+				1
+			).is_empty()
+			and not catalog.prompt_for_stage(
+				profile,
+				2
+			).is_empty()
+			and not catalog.prompt_for_stage(
+				profile,
+				3
+			).is_empty()
+			and not catalog.prompt_for_stage(
+				profile,
+				4
+			).is_empty(),
+			"Element must define Stage 1 face, Stage 2 morphology and Stage 3/4 detail: %s"
+			% String(element)
 		)
 
 
