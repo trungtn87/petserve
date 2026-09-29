@@ -4,6 +4,7 @@ extends RefCounted
 
 const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
+const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
 
 const RARITY_WEIGHTS := {
@@ -229,6 +230,37 @@ func describe(item: Dictionary) -> String:
 			if food_delta < 0:
 				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
 			return text
+
+		TYPE_GENE:
+			return (
+				"Gene "
+				+ String(
+					item.get(
+						"gene_locus",
+						"?"
+					)
+				)
+				+ " → "
+				+ String(
+					item.get(
+						"gene_direction",
+						"?"
+					)
+				)
+				+ " • Influence +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"gene_influence",
+									0.0
+								)
+							)
+						)
+					)
+				)
+			)
 
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"

@@ -137,7 +137,8 @@ func count() -> int:
 
 func can_use_in_stage(
 	item: Dictionary,
-	stage_index: int
+	stage_index: int,
+	gene_policy: StageGenePolicy = null
 ) -> bool:
 	if stage_index < 1 or stage_index >= StageLifecycle.FINAL_STAGE:
 		return false
