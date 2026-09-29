@@ -1,6 +1,12 @@
 class_name PetHomeGameplayUI
 extends Control
 
+
+const PetHomeItemIconScript = preload(
+	"res://screens/pet_home/pet_home_item_icon.gd"
+)
+
+
 var palette: Dictionary = {}
 var dialogs_only: bool = false
 
@@ -21,9 +27,19 @@ var _entertainment_button: Button
 var _overlay: Control
 var _overlay_panel: PanelContainer
 var _title: Label
-var _list: VBoxContainer
+var _list: GridContainer
 var _filters: HBoxContainer
 var _toast: Label
+var _detail_overlay: Control
+var _detail_panel: PanelContainer
+var _detail_icon_host: CenterContainer
+var _detail_title: Label
+var _detail_meta: Label
+var _detail_effect: Label
+var _detail_mods: Label
+var _detail_use_button: Button
+var _detail_item: Dictionary = {}
+var _detail_allow_use: bool = false
 var _evolve_button: Button
 var _stage_label: Label
 var _stage_index: int = 1
@@ -152,6 +168,7 @@ func refresh_status(s: Dictionary) -> void:
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
+	_hide_item_detail()
 	_title.text = "KHO ĐỒ"
 	_filters.visible = true
 	_fill(_facade.inventory(filter_type), true)
@@ -159,6 +176,7 @@ func open_inventory(filter_type: StringName = &"") -> void:
 	_overlay.visible = true
 
 func show_chest_rewards(items: Array[Dictionary]) -> void:
+	_hide_item_detail()
 	_title.text = "RƯƠNG"
 	_filters.visible = false
 	_fill(items, false)
@@ -325,10 +343,14 @@ func _build_overlay() -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	root.add_child(scroll)
-	_list = VBoxContainer.new()
+	_list = GridContainer.new()
+	_list.columns = 3
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_list.add_theme_constant_override("separation", 7)
+	_list.add_theme_constant_override("h_separation", 8)
+	_list.add_theme_constant_override("v_separation", 8)
 	scroll.add_child(_list)
+
+	_build_item_detail()
 
 
 func _layout_overlay() -> void:
@@ -367,19 +389,55 @@ func _layout_overlay() -> void:
 		side_margin,
 		top_margin
 	)
-	_overlay_panel.size = Vector2(
-		maxf(
-			1.0,
-			viewport_size.x
-			- side_margin * 2.0
-		),
-		maxf(
-			180.0,
-			viewport_size.y
-			- top_margin
-			- bottom_margin
-		)
+	var panel_width := maxf(
+		1.0,
+		viewport_size.x
+		- side_margin * 2.0
 	)
+	var panel_height := maxf(
+		180.0,
+		viewport_size.y
+		- top_margin
+		- bottom_margin
+	)
+
+	_overlay_panel.size = Vector2(
+		panel_width,
+		panel_height
+	)
+
+	if _list != null:
+		var usable_width := maxf(
+			1.0,
+			panel_width - 28.0
+		)
+		_list.columns = clampi(
+			int(
+				floor(
+					usable_width / 88.0
+				)
+			),
+			2,
+			4
+		)
+
+	if _detail_panel != null:
+		var detail_width := minf(
+			panel_width - 24.0,
+			300.0
+		)
+		var detail_height := minf(
+			panel_height - 36.0,
+			430.0
+		)
+		_detail_panel.position = Vector2(
+			(viewport_size.x - detail_width) * 0.5,
+			(viewport_size.y - detail_height) * 0.5
+		)
+		_detail_panel.size = Vector2(
+			detail_width,
+			detail_height
+		)
 
 
 func _build_toast() -> void:
@@ -398,66 +456,504 @@ func _fill(items: Array[Dictionary], allow_use: bool) -> void:
 	for child in _list.get_children():
 		_list.remove_child(child)
 		child.queue_free()
+
 	if items.is_empty():
 		var empty := Label.new()
 		empty.text = "Không có vật phẩm."
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty.custom_minimum_size = Vector2(
+			240,
+			72
+		)
 		_list.add_child(empty)
 		return
+
 	for item in items:
-		_list.add_child(_item_card(item, allow_use))
+		_list.add_child(
+			_item_tile(
+				item,
+				allow_use
+			)
+		)
 
-func _item_card(item: Dictionary, allow_use: bool) -> Control:
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _style(Color(0.11,0.07,0.18,0.96), _rarity_color(String(item.get("rarity","common")))))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	panel.add_child(row)
 
-	var info := VBoxContainer.new()
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(info)
+func _item_tile(
+	item: Dictionary,
+	allow_use: bool
+) -> Control:
+	var rarity := String(
+		item.get(
+			"rarity",
+			"common"
+		)
+	)
+	var tile := Button.new()
+	tile.custom_minimum_size = Vector2(
+		82,
+		104
+	)
+	tile.focus_mode = Control.FOCUS_NONE
+	tile.mouse_default_cursor_shape = (
+		Control.CURSOR_POINTING_HAND
+	)
+	tile.add_theme_stylebox_override(
+		"normal",
+		_style(
+			Color(
+				0.11,
+				0.07,
+				0.18,
+				0.96
+			),
+			_rarity_color(
+				rarity
+			)
+		)
+	)
+	tile.add_theme_stylebox_override(
+		"hover",
+		_style(
+			Color(
+				0.16,
+				0.11,
+				0.24,
+				0.98
+			),
+			_rarity_color(
+				rarity
+			)
+		)
+	)
+	tile.pressed.connect(
+		_show_item_detail.bind(
+			item.duplicate(true),
+			allow_use
+		)
+	)
+
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	for side in [
+		"margin_left",
+		"margin_top",
+		"margin_right",
+		"margin_bottom"
+	]:
+		margin.add_theme_constant_override(
+			side,
+			5
+		)
+	tile.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override(
+		"separation",
+		3
+	)
+	margin.add_child(box)
+
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.custom_minimum_size.y = 64
+	box.add_child(center)
+
+	var icon = PetHomeItemIconScript.new()
+	icon.custom_minimum_size = Vector2(
+		58,
+		58
+	)
+	icon.configure(
+		item,
+		palette
+	)
+	center.add_child(icon)
 
 	var name := Label.new()
-	name.text = String(item.get("display_name", "Vật phẩm"))
-	name.add_theme_font_size_override("font_size", 14)
-	info.add_child(name)
+	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name.text = String(
+		item.get(
+			"display_name",
+			"Vật phẩm"
+		)
+	)
+	name.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	name.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	name.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	name.add_theme_font_size_override(
+		"font_size",
+		9
+	)
+	name.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	box.add_child(name)
 
-	var rarity := String(item.get("rarity","common"))
-	var quality := String(item.get("quality","normal"))
-	var meta := Label.new()
-	meta.text = "%s • %s" % [_facade.rarity_label(rarity), _facade.quality_label(quality)]
-	meta.add_theme_color_override("font_color", _rarity_color(rarity))
-	meta.add_theme_font_size_override("font_size", 12)
-	info.add_child(meta)
+	return tile
 
-	var effect := Label.new()
-	effect.text = _facade.describe_item(item)
-	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	effect.add_theme_font_size_override("font_size", 12)
-	info.add_child(effect)
 
-	var mods := _mods(item)
-	if not mods.is_empty():
-		var mod_label := Label.new()
-		mod_label.text = mods
-		mod_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		mod_label.add_theme_font_size_override("font_size", 12)
-		info.add_child(mod_label)
+func _build_item_detail() -> void:
+	_detail_overlay = Control.new()
+	_overlay.add_child(
+		_detail_overlay
+	)
+	_detail_overlay.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_detail_overlay.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+	_detail_overlay.visible = false
 
-	if allow_use:
-		var usable := _facade.can_use_item(
+	var scrim := ColorRect.new()
+	_detail_overlay.add_child(
+		scrim
+	)
+	scrim.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	scrim.color = Color(
+		0.01,
+		0.01,
+		0.02,
+		0.68
+	)
+
+	_detail_panel = PanelContainer.new()
+	_detail_overlay.add_child(
+		_detail_panel
+	)
+	_detail_panel.set_anchors_preset(
+		Control.PRESET_TOP_LEFT
+	)
+	_detail_panel.add_theme_stylebox_override(
+		"panel",
+		_style(
+			Color(
+				0.07,
+				0.045,
+				0.13,
+				0.995
+			),
+			Color(
+				0.52,
+				0.38,
+				0.78,
+				0.95
+			)
+		)
+	)
+
+	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	margin.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	for side in [
+		"margin_left",
+		"margin_top",
+		"margin_right",
+		"margin_bottom"
+	]:
+		margin.add_theme_constant_override(
+			side,
+			14
+		)
+	_detail_panel.add_child(
+		margin
+	)
+
+	var root := VBoxContainer.new()
+	root.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	root.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	root.add_theme_constant_override(
+		"separation",
+		8
+	)
+	margin.add_child(
+		root
+	)
+
+	var header := HBoxContainer.new()
+	root.add_child(
+		header
+	)
+
+	var heading := Label.new()
+	heading.text = "VẬT PHẨM"
+	heading.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	heading.add_theme_font_size_override(
+		"font_size",
+		12
+	)
+	heading.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	header.add_child(
+		heading
+	)
+
+	var close := Button.new()
+	close.text = "×"
+	close.focus_mode = Control.FOCUS_NONE
+	close.custom_minimum_size = Vector2(
+		38,
+		38
+	)
+	close.pressed.connect(
+		_hide_item_detail
+	)
+	header.add_child(
+		close
+	)
+
+	_detail_icon_host = CenterContainer.new()
+	_detail_icon_host.custom_minimum_size.y = 118
+	root.add_child(
+		_detail_icon_host
+	)
+
+	_detail_title = Label.new()
+	_detail_title.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	_detail_title.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_detail_title.add_theme_font_size_override(
+		"font_size",
+		18
+	)
+	root.add_child(
+		_detail_title
+	)
+
+	_detail_meta = Label.new()
+	_detail_meta.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	_detail_meta.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	root.add_child(
+		_detail_meta
+	)
+
+	var separator := HSeparator.new()
+	separator.modulate = palette.get(
+		"accent",
+		Color.WHITE
+	)
+	separator.modulate.a = 0.42
+	root.add_child(
+		separator
+	)
+
+	_detail_effect = Label.new()
+	_detail_effect.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_detail_effect.add_theme_font_size_override(
+		"font_size",
+		12
+	)
+	root.add_child(
+		_detail_effect
+	)
+
+	_detail_mods = Label.new()
+	_detail_mods.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_detail_mods.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	_detail_mods.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	root.add_child(
+		_detail_mods
+	)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	root.add_child(
+		spacer
+	)
+
+	_detail_use_button = Button.new()
+	_detail_use_button.text = "DÙNG"
+	_detail_use_button.custom_minimum_size.y = 46
+	_detail_use_button.focus_mode = Control.FOCUS_NONE
+	_detail_use_button.pressed.connect(
+		_on_detail_use
+	)
+	root.add_child(
+		_detail_use_button
+	)
+
+
+func _show_item_detail(
+	item: Dictionary,
+	allow_use: bool
+) -> void:
+	if (
+		_facade == null
+		or _detail_overlay == null
+	):
+		return
+
+	_detail_item = item.duplicate(true)
+	_detail_allow_use = allow_use
+
+	for child in _detail_icon_host.get_children():
+		_detail_icon_host.remove_child(
+			child
+		)
+		child.queue_free()
+
+	var icon = PetHomeItemIconScript.new()
+	icon.custom_minimum_size = Vector2(
+		104,
+		104
+	)
+	icon.configure(
+		item,
+		palette
+	)
+	_detail_icon_host.add_child(
+		icon
+	)
+
+	var rarity := String(
+		item.get(
+			"rarity",
+			"common"
+		)
+	)
+	var quality := String(
+		item.get(
+			"quality",
+			"normal"
+		)
+	)
+
+	_detail_title.text = String(
+		item.get(
+			"display_name",
+			"Vật phẩm"
+		)
+	)
+	_detail_meta.text = (
+		"%s • %s"
+		% [
+			_facade.rarity_label(
+				rarity
+			),
+			_facade.quality_label(
+				quality
+			),
+		]
+	)
+	_detail_meta.add_theme_color_override(
+		"font_color",
+		_rarity_color(
+			rarity
+		)
+	)
+	_detail_effect.text = _facade.describe_item(
+		item
+	)
+
+	var mods := _mods(
+		item
+	)
+	_detail_mods.text = (
+		mods
+		if not mods.is_empty()
+		else "Không có thuộc tính phụ."
+	)
+
+	var usable := (
+		allow_use
+		and _facade.can_use_item(
 			item
 		)
-		var button := Button.new()
-		button.text = "Dùng" if usable else "Khóa"
-		button.disabled = not usable
-		if usable:
-			button.pressed.connect(
-				_emit_item_use.bind(String(item.get("uid", "")))
-			)
-		row.add_child(button)
-	return panel
+	)
+	_detail_use_button.visible = allow_use
+	_detail_use_button.disabled = not usable
+	_detail_use_button.text = (
+		"DÙNG"
+		if usable
+		else "CHƯA THỂ DÙNG"
+	)
+
+	_layout_overlay()
+	_detail_overlay.visible = true
+
+
+func _hide_item_detail() -> void:
+	if _detail_overlay != null:
+		_detail_overlay.visible = false
+
+	_detail_item = {}
+	_detail_allow_use = false
+
+
+func _on_detail_use() -> void:
+	if (
+		_detail_item.is_empty()
+		or not _detail_allow_use
+	):
+		return
+
+	var uid := String(
+		_detail_item.get(
+			"uid",
+			""
+		)
+	)
+
+	if uid.is_empty():
+		return
+
+	_hide_item_detail()
+	_emit_item_use(
+		uid
+	)
 
 func _mods(item: Dictionary) -> String:
 	var parts: Array[String] = []
@@ -525,6 +1021,7 @@ func _open_inventory_all() -> void:
 
 
 func _close_overlay() -> void:
+	_hide_item_detail()
 	_overlay.visible = false
 
 
