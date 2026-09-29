@@ -64,6 +64,9 @@ func setup(
 			)
 		)
 
+	_migrate_stage_age(
+		current
+	)
 	_state = current
 	_apply_offline_progress()
 	_sync_meta()
@@ -256,6 +259,20 @@ func snapshot() -> Dictionary:
 		0.0,
 		duration - elapsed
 	)
+	var age_elapsed := clampf(
+		float(
+			_state.get(
+				"age_elapsed_seconds",
+				0.0
+			)
+		),
+		0.0,
+		duration
+	)
+	var age_remaining := maxf(
+		0.0,
+		duration - age_elapsed
+	)
 	var ratio := (
 		elapsed / duration
 		if duration > 0.0
@@ -279,6 +296,29 @@ func snapshot() -> Dictionary:
 			round(
 				remaining
 			)
+		),
+		"age_elapsed_seconds": int(
+			round(
+				age_elapsed
+			)
+		),
+		"age_remaining_seconds": int(
+			round(
+				age_remaining
+			)
+		),
+		"age_percent": int(
+			round(
+				(
+					age_elapsed / duration
+					if duration > 0.0
+					else 1.0
+				) * 100.0
+			)
+		),
+		"deadline_reached": (
+			duration > 0.0
+			and age_elapsed >= duration
 		),
 		"food_seconds": int(
 			round(
@@ -343,6 +383,10 @@ func restore_state() -> void:
 	_state = _load_saved_state(
 		stage_index
 	)
+	_migrate_stage_age(
+		_state
+	)
+	_update_ready()
 
 
 func _load_saved_state(
@@ -430,6 +474,7 @@ func _new_stage_state(
 			"last_update_unix": now,
 			"duration_seconds": 0,
 			"growth_elapsed_seconds": 0.0,
+			"age_elapsed_seconds": 0.0,
 			"food_seconds": carry_food_seconds,
 			"ready_to_evolve": false,
 			"tutorial_protected": true,
@@ -448,6 +493,7 @@ func _new_stage_state(
 			)
 		),
 		"growth_elapsed_seconds": 0.0,
+		"age_elapsed_seconds": 0.0,
 		"food_seconds": (
 			carry_food_seconds
 			if carry_food_seconds > 0.0
@@ -501,6 +547,40 @@ func _apply_progress(
 			0.75
 		)
 	)
+	var duration := maxf(
+		0.0,
+		float(
+			_state.get(
+				"duration_seconds",
+				0.0
+			)
+		)
+	)
+	var age_elapsed := maxf(
+		0.0,
+		float(
+			_state.get(
+				"age_elapsed_seconds",
+				0.0
+			)
+		)
+	)
+	var progress_delta := maxf(
+		0.0,
+		delta
+	)
+
+	if duration > 0.0:
+		progress_delta = minf(
+			progress_delta,
+			maxf(
+				0.0,
+				duration - age_elapsed
+			)
+		)
+
+	if progress_delta <= 0.0:
+		return
 
 	var food_seconds := float(
 		_state.get(
@@ -516,7 +596,7 @@ func _apply_progress(
 	)
 
 	var fed_delta := minf(
-		delta,
+		progress_delta,
 		maxf(
 			0.0,
 			food_seconds
@@ -524,20 +604,22 @@ func _apply_progress(
 	)
 	var hungry_delta := maxf(
 		0.0,
-		delta - fed_delta
+		progress_delta - fed_delta
 	)
 
 	food_seconds = maxf(
 		0.0,
-		food_seconds - delta
+		food_seconds - progress_delta
 	)
 	growth_elapsed += fed_delta
 	growth_elapsed += (
 		hungry_delta * multiplier
 	)
+	age_elapsed += progress_delta
 
 	_state["food_seconds"] = food_seconds
 	_state["growth_elapsed_seconds"] = growth_elapsed
+	_state["age_elapsed_seconds"] = age_elapsed
 
 
 func _apply_offline_progress() -> void:
@@ -583,22 +665,97 @@ func _update_ready() -> void:
 		_state["ready_to_evolve"] = false
 		return
 
-	var duration := float(
-		_state.get(
-			"duration_seconds",
-			0.0
+	var duration := maxf(
+		0.0,
+		float(
+			_state.get(
+				"duration_seconds",
+				0.0
+			)
 		)
 	)
-	var elapsed := float(
-		_state.get(
-			"growth_elapsed_seconds",
-			0.0
+	var growth_elapsed := maxf(
+		0.0,
+		float(
+			_state.get(
+				"growth_elapsed_seconds",
+				0.0
+			)
+		)
+	)
+	var age_elapsed := maxf(
+		0.0,
+		float(
+			_state.get(
+				"age_elapsed_seconds",
+				0.0
+			)
 		)
 	)
 
-	if elapsed >= duration:
+	if duration <= 0.0:
+		_state["ready_to_evolve"] = true
+		return
+
+	if growth_elapsed >= duration:
 		_state["growth_elapsed_seconds"] = duration
 		_state["ready_to_evolve"] = true
+		return
+
+	if age_elapsed >= duration:
+		_state["age_elapsed_seconds"] = duration
+		_state["ready_to_evolve"] = true
+		return
+
+	_state["ready_to_evolve"] = false
+
+
+func _migrate_stage_age(
+	state: Dictionary
+) -> void:
+	if (
+		state.is_empty()
+		or state.has(
+			"age_elapsed_seconds"
+		)
+	):
+		return
+
+	var duration := maxf(
+		0.0,
+		float(
+			state.get(
+				"duration_seconds",
+				0.0
+			)
+		)
+	)
+	var now := int(
+		Time.get_unix_time_from_system()
+	)
+	var started := int(
+		state.get(
+			"started_at_unix",
+			now
+		)
+	)
+	var age_elapsed := maxf(
+		0.0,
+		float(
+			maxi(
+				0,
+				now - started
+			)
+		)
+	)
+
+	if duration > 0.0:
+		age_elapsed = minf(
+			age_elapsed,
+			duration
+		)
+
+	state["age_elapsed_seconds"] = age_elapsed
 
 
 func _sync_meta() -> void:
