@@ -87,6 +87,38 @@ func influence_for(
 	)
 
 
+func tag_influences_snapshot() -> Dictionary:
+	var result: Dictionary = {}
+
+	for item in _gene_items:
+		var tags_value: Variant = item.get(
+			"influence_tags",
+			{}
+		)
+
+		if typeof(tags_value) != TYPE_DICTIONARY:
+			continue
+
+		for key_value in (
+			tags_value as Dictionary
+		).keys():
+			var key := String(
+				key_value
+			)
+			result[key] = float(
+				result.get(
+					key,
+					0.0
+				)
+			) + float(
+				(tags_value as Dictionary)[
+					key_value
+				]
+			)
+
+	return result
+
+
 func can_record(
 	policy: StageGenePolicy,
 	locus: StringName
@@ -114,7 +146,8 @@ func record_gene_item(
 	gene_id: StringName,
 	locus: StringName,
 	direction: StringName,
-	influence: float
+	influence: float,
+	influence_tags: Dictionary = {}
 ) -> Dictionary:
 	var normalized_uid := (
 		item_uid.strip_edges()
@@ -127,6 +160,9 @@ func record_gene_item(
 	)
 	var normalized_direction := _normalize_name(
 		direction
+	)
+	var normalized_tags := _normalize_influence_tags(
+		influence_tags
 	)
 
 	if policy == null:
@@ -142,6 +178,9 @@ func record_gene_item(
 		or normalized_direction
 		== PetGenomeSchema.BASE_TRAIT
 		or influence <= 0.0
+		or not _valid_influence_tags(
+			influence_tags
+		)
 	):
 		return _error(
 			"Gene Item không hợp lệ."
@@ -182,6 +221,7 @@ func record_gene_item(
 		"locus": String(normalized_locus),
 		"direction": String(normalized_direction),
 		"influence": influence,
+		"influence_tags": normalized_tags,
 	})
 
 	return {
@@ -192,6 +232,9 @@ func record_gene_item(
 			_stage_index
 		),
 		"influences": influences_snapshot(),
+		"tag_influences": (
+			tag_influences_snapshot()
+		),
 	}
 
 
@@ -265,12 +308,20 @@ func is_valid(
 				0.0
 			)
 		)
+		var tags_value: Variant = item.get(
+			"influence_tags",
+			{}
+		)
 
 		if (
 			uid.is_empty()
 			or String(gene_id).is_empty()
 			or String(direction).is_empty()
 			or influence <= 0.0
+			or typeof(tags_value) != TYPE_DICTIONARY
+			or not _valid_influence_tags(
+				tags_value as Dictionary
+			)
 			or not PetGenomeSchema.is_visual_locus(
 				locus
 			)
@@ -385,6 +436,23 @@ static func from_dict(
 					0.0
 				)
 			),
+			"influence_tags": (
+				state._normalize_influence_tags(
+					(
+						raw.get(
+							"influence_tags",
+							{}
+						)
+						if typeof(
+							raw.get(
+								"influence_tags",
+								{}
+							)
+						) == TYPE_DICTIONARY
+						else {}
+					) as Dictionary
+				)
+			),
 		})
 
 	if not state.is_valid(
@@ -393,6 +461,48 @@ static func from_dict(
 		return null
 
 	return state
+
+
+func _normalize_influence_tags(
+	source: Dictionary
+) -> Dictionary:
+	var result: Dictionary = {}
+
+	for key_value in source.keys():
+		var key := String(
+			key_value
+		).strip_edges().to_lower().replace(
+			" ",
+			"_"
+		)
+
+		if key.is_empty():
+			continue
+
+		result[key] = float(
+			source[key_value]
+		)
+
+	return result
+
+
+func _valid_influence_tags(
+	source: Dictionary
+) -> bool:
+	for key_value in source.keys():
+		var key := String(
+			key_value
+		).strip_edges()
+
+		if (
+			key.is_empty()
+			or float(
+				source[key_value]
+			) <= 0.0
+		):
+			return false
+
+	return true
 
 
 func _has_item_uid(

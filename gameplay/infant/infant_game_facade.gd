@@ -2,7 +2,7 @@ class_name InfantGameFacade
 extends RefCounted
 
 
-const META_SCHEMA: int = 2
+const META_SCHEMA: int = 3
 const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 
 
@@ -12,6 +12,10 @@ var _inventory: InventoryService = InventoryService.new()
 var _chests: ChestService = ChestService.new()
 var _lifecycle: StageLifecycle = StageLifecycle.new()
 var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
+var _gene_policy: StageGenePolicy
+var _gene_catalog: GeneCatalog = GeneCatalog.new()
+var _gene_definitions: Array[GeneDefinition] = []
+var _gene_state: GeneDevelopmentState
 var _run_id: int = 0
 var _stage_index: int = 1
 
@@ -38,6 +42,17 @@ func setup(
 
 	_ensure_default_test_talent()
 
+	_gene_policy = StageGenePolicy.load_default()
+	_gene_definitions = (
+		_gene_catalog.load_default()
+	)
+
+	if (
+		_gene_policy == null
+		or _gene_definitions.is_empty()
+	):
+		return false
+
 	_inventory.setup(
 		_meta
 	)
@@ -52,6 +67,14 @@ func setup(
 		_meta,
 		run_id,
 		_stage_index
+	)
+	_setup_gene_state(
+		int(
+			_lifecycle.snapshot().get(
+				"stage_index",
+				_stage_index
+			)
+		)
 	)
 	_entertainment.setup(
 		_meta,
@@ -74,6 +97,7 @@ func tick(
 
 
 func save() -> bool:
+	_sync_gene_meta()
 	return SaveManager.save_meta(
 		_meta
 	)
@@ -111,6 +135,44 @@ func snapshot() -> Dictionary:
 	state["inventory_count"] = (
 		_inventory.count()
 	)
+
+	if (
+		_gene_policy != null
+		and _gene_state != null
+	):
+		var gene_limit := (
+			_gene_policy.max_gene_items(
+				int(
+					state.get(
+						"stage_index",
+						_stage_index
+					)
+				)
+			)
+		)
+		state["gene_items_used"] = (
+			_gene_state.item_count()
+		)
+		state["gene_item_limit"] = (
+			gene_limit
+		)
+		state["gene_slots_remaining"] = max(
+			0,
+			gene_limit
+			- _gene_state.item_count()
+		)
+		state["gene_influences"] = (
+			_gene_state.influences_snapshot()
+		)
+		state["gene_tag_influences"] = (
+			_gene_state.tag_influences_snapshot()
+		)
+	else:
+		state["gene_items_used"] = 0
+		state["gene_item_limit"] = 0
+		state["gene_slots_remaining"] = 0
+		state["gene_influences"] = {}
+		state["gene_tag_influences"] = {}
 
 	var entertainment_state := (
 		_entertainment.snapshot(
@@ -220,18 +282,44 @@ func can_use_item(
 		)
 	)
 
-	return (
-		not bool(
-			state.get(
-				"ready_to_evolve",
-				false
+	if bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	):
+		return false
+
+	if not _inventory.can_use_in_stage(
+		item,
+		stage_index,
+		_gene_policy
+	):
+		return false
+
+	if StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	) == ItemGenerator.TYPE_GENE:
+		return (
+			_gene_state != null
+			and _gene_state.can_record(
+				_gene_policy,
+				StringName(
+					item.get(
+						"gene_locus",
+						""
+					)
+				)
 			)
+			and _gene_definition_for_item(
+				item
+			) != null
 		)
-		and _inventory.can_use_in_stage(
-			item,
-			stage_index
-		)
-	)
+
+	return true
 
 
 func use_item(
@@ -256,7 +344,8 @@ func use_item(
 
 	if not _inventory.can_use_in_stage(
 		item,
-		stage_index
+		stage_index,
+		_gene_policy
 	):
 		return {
 			"ok": false,
@@ -266,6 +355,18 @@ func use_item(
 	var before := _meta.duplicate(
 		true
 	)
+
+	if StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	) == ItemGenerator.TYPE_GENE:
+		return _use_gene_item(
+			item,
+			before
+		)
+
 	var result := _lifecycle.apply_item(
 		item
 	)
@@ -357,11 +458,9 @@ func defect_label(
 
 
 func complete_infant() -> bool:
-	_stage_index = 2
-	_lifecycle.advance_to_stage(
+	return advance_to_stage(
 		2
 	)
-	return save()
 
 
 func advance_to_stage(
@@ -371,7 +470,173 @@ func advance_to_stage(
 	_lifecycle.advance_to_stage(
 		stage_index
 	)
+
+	if _gene_state == null:
+		_gene_state = GeneDevelopmentState.new(
+			stage_index
+		)
+	else:
+		_gene_state.reset_for_stage(
+			stage_index
+		)
+
+	_sync_gene_meta()
 	return save()
+
+
+func _use_gene_item(
+	item: Dictionary,
+	before: Dictionary
+) -> Dictionary:
+	if (
+		_gene_policy == null
+		or _gene_state == null
+	):
+		return {
+			"ok": false,
+			"message": "Hệ Gene chưa sẵn sàng.",
+		}
+
+	var definition := _gene_definition_for_item(
+		item
+	)
+
+	if definition == null:
+		return {
+			"ok": false,
+			"message": "Gene Item không có định nghĩa hợp lệ.",
+		}
+
+	var result := _gene_state.record_gene_item(
+		_gene_policy,
+		String(
+			item.get(
+				"uid",
+				""
+			)
+		),
+		definition.id(),
+		definition.locus(),
+		definition.direction(),
+		definition.primary_influence(),
+		definition.influence_tags()
+	)
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return result
+
+	if not _inventory.remove_item(
+		String(
+			item.get(
+				"uid",
+				""
+			)
+		)
+	):
+		_restore(
+			before
+		)
+		return {
+			"ok": false,
+			"message": "Không thể cập nhật Hòm Item.",
+		}
+
+	_meta["gene_items_used_total"] = int(
+		_meta.get(
+			"gene_items_used_total",
+			0
+		)
+	) + 1
+	_sync_gene_meta()
+
+	if not save():
+		_restore(
+			before
+		)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được. Gene Item vẫn còn trong Hòm Item.",
+		}
+
+	result["message"] = (
+		"Đã sử dụng "
+		+ String(
+			item.get(
+				"display_name",
+				"Gene Item"
+			)
+		)
+	)
+	return result
+
+
+func _gene_definition_for_item(
+	item: Dictionary
+) -> GeneDefinition:
+	if StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	) != ItemGenerator.TYPE_GENE:
+		return null
+
+	return _gene_catalog.find_by_id(
+		_gene_definitions,
+		StringName(
+			item.get(
+				"definition_id",
+				item.get(
+					"gene_id",
+					""
+				)
+			)
+		)
+	)
+
+
+func _setup_gene_state(
+	stage_index: int
+) -> void:
+	var value: Variant = _meta.get(
+		"gene_development",
+		{}
+	)
+	var restored: GeneDevelopmentState = null
+
+	if typeof(value) == TYPE_DICTIONARY:
+		restored = (
+			GeneDevelopmentState.from_dict(
+				value as Dictionary,
+				_gene_policy
+			)
+		)
+
+	if (
+		restored == null
+		or restored.stage_index()
+			!= stage_index
+	):
+		restored = GeneDevelopmentState.new(
+			stage_index
+		)
+
+	_gene_state = restored
+	_sync_gene_meta()
+
+
+func _sync_gene_meta() -> void:
+	if _gene_state == null:
+		return
+
+	_meta["gene_development"] = (
+		_gene_state.to_dict()
+	)
 
 
 func _ensure_default_test_talent() -> void:
@@ -431,3 +696,13 @@ func _restore(
 		_meta
 	)
 	_lifecycle.restore_state()
+
+	if _gene_policy != null:
+		_setup_gene_state(
+			int(
+				_lifecycle.snapshot().get(
+					"stage_index",
+					_stage_index
+				)
+			)
+		)

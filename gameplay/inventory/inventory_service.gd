@@ -149,6 +149,20 @@ func can_use_in_stage(
 		)
 	)
 
+	if item_type == ItemGenerator.TYPE_GENE:
+		if gene_policy == null:
+			return false
+
+		return gene_policy.can_accept_gene(
+			stage_index,
+			StringName(
+				item.get(
+					"gene_locus",
+					""
+				)
+			)
+		)
+
 	if (
 		item_type != ItemGenerator.TYPE_FOOD
 		and item_type != ItemGenerator.TYPE_GROWTH
