@@ -824,7 +824,7 @@ func commit(
 		&"evolution_pethome_v7_full_regenerate"
 		if expected_request.mode
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		else &"evolution_pethome_v5_image_edit"
+		else &"evolution_pethome_v7_image_edit"
 	)
 	visual.image_path = result.image_path
 	visual.renderer_id = result.renderer_id
