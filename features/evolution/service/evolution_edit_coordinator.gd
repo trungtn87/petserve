@@ -106,11 +106,35 @@ func build_request(
 	positive_prompt += (
 		"\n\n[STAGE ADVANCE]\n"
 		+ "Advance this same individual to evolution stage %d. "
-		+ "The mutation above is the only newly introduced biological feature."
+		+ "The code-selected mutation is the only new Gene change."
 	) % target_stage
 
+	var stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if stage_detail.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho %s Stage %d."
+			% [
+				String(identity.element()),
+				target_stage,
+			],
+		}
+
+	positive_prompt += (
+		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
+		+ stage_detail
+		+ " This is stage presentation detail, not a new Gene. It may refine "
+		+ "existing fur edges, markings, material feel and restrained aura across "
+		+ "the current silhouette, but must not create new limbs or replace the body plan."
+	)
+
 	positive_prompt += _local_edit_boundary(
-		spec.target_region()
+		spec.target_region(),
+		target_stage
 	)
 	positive_prompt += _anatomy_lock_section()
 
@@ -154,7 +178,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v5_stage_%d"
+		+ "_pethome_v7_stage_%d"
 		% target_stage
 	)
 
@@ -210,6 +234,18 @@ func build_natural_request(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
+	var stage_two_morphology := _element_stage_prompt(
+		identity.element(),
+		2
+	)
+
+	if stage_two_morphology.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
+			% String(identity.element()),
+		}
+
 	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
 		"[IDENTITY BLUEPRINT]\n"
@@ -233,30 +269,39 @@ func build_natural_request(
 
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet. "
-		+ "Do not use infant body geometry as a template. The pet must read immediately "
-		+ "as a visibly older and larger Stage 2 form: a larger torso, longer correctly "
-		+ "attached legs, more developed shoulders and chest, a clearly lower head-to-body "
-		+ "ratio than the infant form, and a stable natural four-legged stance. "
-		+ "Keep the youthful species identity, but remove tiny-baby proportions. "
-		+ "This is a whole-body age transition, not a local image edit."
+		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
+		+ "Do not copy infant body geometry. Stage 2 must be visibly older and larger than Stage 1, "
+		+ "with a mature juvenile body rather than a giant baby head on the same tiny body. "
+		+ "This is a whole-body age transition, so secondary morphology is intentionally allowed to change."
 	)
 
 	positive_prompt += (
-		"\n\n[PHENOTYPE LOCK]\n"
-		+ "Preserve every established Gene/visual locus semantically. Target phenotype: "
+		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
+		+ stage_two_morphology
+		+ " Let elemental lineage shape the silhouette and body language, not just the colors. "
+		+ "The seven elements should remain distinguishable in grayscale."
+	)
+
+	positive_prompt += (
+		"\n\n[PHENOTYPE GUIDANCE]\n"
+		+ "Existing Gene values remain canonical constraints, but they are not a literal pixel-shape lock. "
+		+ "Target phenotype: "
 		+ phenotype.describe(
 			current_genome
 		)
-		+ ". Do not introduce any new Gene, mutation, marking, horn, aura, tail type, "
-		+ "eye type, ear type, coat pattern or other special phenotype."
+		+ ". You may redesign secondary fur silhouette, ear styling, tail fur contour and body proportions "
+		+ "according to the Stage 2 element morphology above, as long as these Gene values do not change. "
+		+ "Do not invent an unrelated Gene, extra appendage or different species."
 	)
 
 	positive_prompt += (
-		"\n\n[ANATOMY REQUIREMENT]\n"
-		+ "Render one anatomically coherent pet with exactly one head, one torso, "
-		+ "four naturally attached legs/paws and one tail unless the phenotype explicitly "
-		+ "states otherwise. No duplicated or floating limbs."
+		"\n\n[QUADRUPED BODY PLAN]\n"
+		+ _stage_two_body_plan_prompt()
+	)
+
+	positive_prompt += (
+		"\n\n[PETHOME SCALE LOCK]\n"
+		+ _stage_two_composition_prompt()
 	)
 
 	positive_prompt += (
@@ -265,8 +310,7 @@ func build_natural_request(
 			scene_profile
 		)
 		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Keep a full-body portrait, comfortable small subject scale, and "
-		+ "low-detail UI-safe areas near the top and bottom. Return one pet + background "
+		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
 		+ "portrait with no text or UI."
 	)
 
@@ -280,8 +324,9 @@ func build_natural_request(
 		style.negative_prompt()
 		+ ", infant proportions, tiny baby body, oversized baby head, "
 		+ "unchanged infant body, extra tail, new gene trait, random mutation, "
-		+ "new horn, new marking, new aura, changed tail type, changed eye type, "
-		+ "changed ear type, changed coat pattern, redesigned species"
+		+ "new horn, unrelated new marking, unrelated new aura, changed Gene tail type, changed Gene eye type, "
+		+ "changed Gene ear type, changed Gene coat pattern, redesigned species, "
+		+ _stage_two_negative_prompt()
 	)
 	request.target_region = NATURAL_TARGET_REGION
 	request.edit_strength = 0.0
@@ -430,6 +475,18 @@ func _build_stage_one_gene_regenerate(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
+	var stage_two_morphology := _element_stage_prompt(
+		identity.element(),
+		2
+	)
+
+	if stage_two_morphology.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
+			% String(identity.element()),
+		}
+
 	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
 		"[IDENTITY BLUEPRINT]\n"
@@ -453,12 +510,16 @@ func _build_stage_one_gene_regenerate(
 
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet. "
-		+ "Do not use infant body geometry as a template. The Stage 2 pet must be visibly "
-		+ "older and larger: larger torso, longer correctly attached legs, more developed "
-		+ "shoulders and chest, a clearly lower head-to-body ratio than the infant form, "
-		+ "and a stable natural four-legged stance. Keep the species recognizable and "
-		+ "youthful, but remove tiny-baby proportions. This is a whole-body age transition."
+		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
+		+ "Do not copy infant body geometry. Stage 2 must be visibly older and larger than Stage 1, "
+		+ "with a mature juvenile body. Secondary morphology is intentionally allowed to change."
+	)
+
+	positive_prompt += (
+		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
+		+ stage_two_morphology
+		+ " Let elemental lineage reshape the silhouette and body language, not just the colors. "
+		+ "The seven elements should remain distinguishable in grayscale."
 	)
 
 	positive_prompt += (
@@ -488,10 +549,20 @@ func _build_stage_one_gene_regenerate(
 	)
 
 	positive_prompt += (
+		"\n\n[QUADRUPED BODY PLAN]\n"
+		+ _stage_two_body_plan_prompt()
+	)
+
+	positive_prompt += (
+		"\n\n[PETHOME SCALE LOCK]\n"
+		+ _stage_two_composition_prompt()
+	)
+
+	positive_prompt += (
 		"\n\n[ANATOMY REQUIREMENT]\n"
-		+ "Render one anatomically coherent pet with exactly one head, one torso, "
-		+ "four naturally attached legs/paws and one tail unless the selected Gene "
-		+ "explicitly changes tail structure. No duplicated or floating limbs."
+		+ "Render one anatomically coherent pet with exactly one head, one torso and four natural legs. "
+		+ "Keep one tail unless the selected Gene explicitly changes tail structure. "
+		+ "No duplicated, floating or human-like limbs."
 	)
 
 	positive_prompt += (
@@ -500,8 +571,7 @@ func _build_stage_one_gene_regenerate(
 			scene_profile
 		)
 		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Keep a full-body portrait, comfortable small subject scale, and "
-		+ "low-detail UI-safe areas near the top and bottom. Return one pet + background "
+		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
 		+ "portrait with no text or UI."
 	)
 
@@ -515,7 +585,8 @@ func _build_stage_one_gene_regenerate(
 		style.negative_prompt()
 		+ ", infant proportions, tiny baby body, oversized baby head, "
 		+ "unchanged infant body, unrelated gene trait, random mutation, "
-		+ "unplanned horn, unplanned marking, redesigned species"
+		+ "unplanned horn, unrelated unplanned marking, redesigned species, "
+		+ _stage_two_negative_prompt()
 	)
 	request.target_region = visual.target_region()
 	request.edit_strength = 0.0
@@ -644,15 +715,29 @@ func _validate(
 
 
 func _local_edit_boundary(
-	target_region: StringName
+	target_region: StringName,
+	target_stage: int
 ) -> String:
+	if target_stage >= 3:
+		return (
+			"\n\n[EDIT BOUNDARY]\n"
+			+ (
+				"Apply the code-selected Gene change clearly in target region '%s'. "
+				+ "Outside that region, preserve anatomy, limb count, pose, camera, face identity "
+				+ "and the established Stage 2 body silhouette. The ELEMENTAL DETAIL PROGRESSION "
+				+ "may add restrained surface-level fur contour, markings, material feel and aura "
+				+ "across existing body surfaces, but it may not create new limbs, a humanoid pose "
+				+ "or a different body plan."
+			) % String(target_region)
+		)
+
 	return (
 		"\n\n[LOCAL EDIT BOUNDARY]\n"
 		+ (
 			"Apply the selected evolution only inside or immediately around "
 			+ "target region '%s'. Outside that region, keep anatomy topology, "
 			+ "limb count, paw count, pose, face identity, markings, silhouette "
-			+ "and scene composition unchanged. Do not reinterpret the whole pet."
+			+ "and scene composition unchanged."
 		) % String(target_region)
 	)
 
@@ -679,13 +764,62 @@ func _append_negative_guard(
 	)
 
 
+func _element_stage_prompt(
+	element: StringName,
+	stage: int
+) -> String:
+	var catalog := ElementStageVisualCatalog.new()
+	var profile := catalog.find_by_element(
+		catalog.load_default(),
+		element
+	)
+
+	return catalog.prompt_for_stage(
+		profile,
+		stage
+	)
+
+
+func _stage_two_body_plan_prompt() -> String:
+	return (
+		"Natural feline quadruped only. Keep the spine and torso horizontally organized like a cat, "
+		+ "with two forelegs and two hind legs attached in anatomically correct positions. "
+		+ "The pet must be supported naturally on four paws or in a clearly four-legged feline pose. "
+		+ "Never stand upright on two legs, never use human shoulders or arms, never use a mascot pose, "
+		+ "and never make the forelegs hang like human hands. The body may differ by element, "
+		+ "but all seven elements remain coherent four-legged cats."
+	)
+
+
+func _stage_two_composition_prompt() -> String:
+	return (
+		"Use a wide vertical 9:16 environmental establishing shot, not a character portrait. "
+		+ "Show the complete pet from ears through all paws and the full tail with comfortable margins. "
+		+ "The Stage 2 pet should occupy about 18 to 24 percent of total image height: visibly larger "
+		+ "than the Stage 1 infant, but still a small resident inside a large PetHome world. "
+		+ "The environment should occupy at least about 75 percent of the frame with clear foreground, "
+		+ "midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
+		+ "Do not zoom in, do not crop paws or tail, and do not replace the PetHome with a studio backdrop."
+	)
+
+
+func _stage_two_negative_prompt() -> String:
+	return (
+		"bipedal, two-legged stance, standing upright, humanoid pose, anthropomorphic body, "
+		+ "human arms, mascot pose, front paws used as hands, vertical human torso, close-up portrait, "
+		+ "medium portrait, bust shot, giant pet, oversized character, pet filling the frame, cropped paws, "
+		+ "cropped tail, plain studio background, gray studio background, empty backdrop, missing environment, "
+		+ "color-swap-only element design, identical silhouette across all elements"
+	)
+
+
 func _stage_one_output_key(
 	identity: PetIdentity,
 	target_stage: int
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v6_stage_%d"
+		+ "_pethome_v7_stage_%d"
 		% target_stage
 	)
 
