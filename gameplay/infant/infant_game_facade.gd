@@ -498,7 +498,7 @@ func use_item(
 
 	if (
 		item_type == ItemGenerator.TYPE_GENE
-		and _has_pending_evolution()
+		and _evolution_plan_pending
 	):
 		return {
 			"ok": false,
