@@ -129,7 +129,8 @@ func _test_natural_stage_one_plan() -> void:
 		)
 		and request.positive_prompt.contains(
 			"aura=base"
-		),
+		)
+		and request.seed > 0,
 		"Natural request must carry full phenotype and explicit no-Gene contract"
 	)
 
@@ -365,7 +366,8 @@ func _test_gene_stage_one_plan() -> void:
 		)
 		and request.positive_prompt.contains(
 			"Do not invent any other gene trait"
-		),
+		)
+		and request.seed > 0,
 		"Gene request must expose full current/target phenotype and one-change contract"
 	)
 

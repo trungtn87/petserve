@@ -5,6 +5,7 @@ extends RefCounted
 const PLAN_SCHEMA: int = 1
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
+const SEED_MODULUS: int = 2147483647
 
 
 func build_request(
@@ -112,6 +113,11 @@ func build_request(
 	)
 	request.edit_strength = (
 		spec.edit_strength()
+	)
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		delta.mutation_id()
 	)
 	request.output_key = (
 		identity.pet_id()
@@ -247,6 +253,11 @@ func build_natural_request(
 	request.source_image_path = source_visual.image_path
 	request.target_region = NATURAL_TARGET_REGION
 	request.edit_strength = NATURAL_EDIT_STRENGTH
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		&"natural_growth"
+	)
 	request.output_key = (
 		identity.pet_id()
 		+ "_pethome_v5_stage_%d"
@@ -288,6 +299,7 @@ func serialize_request(
 			request.target_region
 		),
 		"edit_strength": request.edit_strength,
+		"seed": request.seed,
 		"output_key": request.output_key,
 	}
 
@@ -327,6 +339,12 @@ func request_from_dict(
 	)
 	request.edit_strength = float(
 		data.get("edit_strength", 0.0)
+	)
+	request.seed = int(
+		data.get(
+			"seed",
+			0
+		)
 	)
 	request.output_key = str(
 		data.get("output_key", "")
@@ -437,6 +455,53 @@ func _validate(
 			return "PetHome Scene Profile không hợp lệ."
 
 	return ""
+
+
+func _request_seed(
+	identity: PetIdentity,
+	target_stage: int,
+	change_id: StringName
+) -> int:
+	var value := posmod(
+		identity.lineage_seed(),
+		SEED_MODULUS
+	)
+
+	value = _mix_seed(
+		value,
+		identity.generation() + 1
+	)
+	value = _mix_seed(
+		value,
+		target_stage
+	)
+
+	for index in range(
+		String(change_id).length()
+	):
+		value = _mix_seed(
+			value,
+			String(change_id).unicode_at(
+				index
+			)
+		)
+
+	return max(
+		1,
+		value
+	)
+
+
+func _mix_seed(
+	current: int,
+	input_value: int
+) -> int:
+	return posmod(
+		current * 1103515245
+		+ input_value * 12345
+		+ 1013904223,
+		SEED_MODULUS
+	)
 
 
 func _scene_continuity_prompt(

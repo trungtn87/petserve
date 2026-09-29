@@ -38,3 +38,15 @@ Corrupted or tampered pending plans are rejected instead of being rendered or co
 - Natural and Gene Stage 1 plans are tested through commit, not only prepare.
 - The ten Stage 1 Gene definitions are checked as a matrix: every Gene must resolve to one delta and every delta must have a curated visual definition targeting the same locus.
 - The full phenotype prompt contract is checked against all 12 Genome V1 loci.
+
+## M9.5.5 — Provider retry determinism
+
+Cloudflare FLUX.2 klein supports a seed parameter for generation/edit requests. Evolution requests now derive a stable positive seed from lineage identity + target stage + selected change id.
+
+- the seed is serialized inside the pending render request;
+- retrying the same pending plan sends the same seed;
+- ProxyPetRenderer forwards the seed to the Worker;
+- the Worker forwards the seed to Workers AI;
+- old requests without a seed remain readable with seed = 0.
+
+The current FLUX.2 klein schema does not expose a native target-region, mask, or edit-strength parameter. Therefore target_region/edit_strength remain internal contracts and prompt guidance; they must not be described as provider-enforced controls.

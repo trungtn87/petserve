@@ -76,6 +76,9 @@ func render(
 		"height": _config.height,
 	}
 
+	if request.seed > 0:
+		payload["seed"] = request.seed
+
 	var endpoint := _config.proxy_url
 	if request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT:
 		payload["source_image"] = reference_base64
@@ -262,6 +265,7 @@ func render(
 			"width": image.get_width(),
 			"height": image.get_height(),
 			"provider": "cloudflare_worker_proxy",
+			"seed": request.seed,
 		}
 	)
 
