@@ -9,6 +9,7 @@ var _direction: StringName = &""
 var _primary_influence: float = 0.0
 var _influence_tags: Dictionary = {}
 var _rarity: String = "uncommon"
+var _expression_chain: Array[StringName] = []
 
 
 func _init(
@@ -18,7 +19,8 @@ func _init(
 	direction: StringName = &"",
 	primary_influence: float = 0.0,
 	influence_tags: Dictionary = {},
-	rarity: String = "uncommon"
+	rarity: String = "uncommon",
+	expression_chain: Array = []
 ) -> void:
 	_id = _normalize_token(id)
 	_display_name = display_name.strip_edges()
@@ -29,6 +31,10 @@ func _init(
 		influence_tags
 	)
 	_rarity = rarity.strip_edges().to_lower()
+	_expression_chain = _normalize_chain(
+		expression_chain,
+		_direction
+	)
 
 
 func id() -> StringName:
@@ -61,6 +67,50 @@ func rarity() -> String:
 	return _rarity
 
 
+func expression_chain() -> Array[StringName]:
+	return _expression_chain.duplicate()
+
+
+func next_expression(
+	current_trait: StringName
+) -> StringName:
+	var current := _normalize_token(
+		current_trait
+	)
+
+	if current == PetGenomeSchema.BASE_TRAIT:
+		return _direction
+
+	var index := _expression_chain.find(
+		current
+	)
+
+	if index < 0:
+		return _direction
+
+	if index + 1 >= _expression_chain.size():
+		return &""
+
+	return _expression_chain[
+		index + 1
+	]
+
+
+func reinforces(
+	current_trait: StringName
+) -> bool:
+	var current := _normalize_token(
+		current_trait
+	)
+
+	return (
+		current != PetGenomeSchema.BASE_TRAIT
+		and _expression_chain.has(
+			current
+		)
+	)
+
+
 func is_valid() -> bool:
 	if (
 		String(_id).is_empty()
@@ -73,8 +123,22 @@ func is_valid() -> bool:
 			== PetGenomeSchema.BASE_TRAIT
 		or _primary_influence <= 0.0
 		or _rarity.is_empty()
+		or _expression_chain.is_empty()
+		or _expression_chain[0] != _direction
 	):
 		return false
+
+	var seen: Dictionary = {}
+
+	for trait in _expression_chain:
+		if (
+			String(trait).is_empty()
+			or trait == PetGenomeSchema.BASE_TRAIT
+			or seen.has(trait)
+		):
+			return false
+
+		seen[trait] = true
 
 	for key_value in _influence_tags.keys():
 		var key := String(
@@ -93,6 +157,13 @@ func is_valid() -> bool:
 
 
 func to_dict() -> Dictionary:
+	var chain: Array[String] = []
+
+	for trait in _expression_chain:
+		chain.append(
+			String(trait)
+		)
+
 	return {
 		"id": String(_id),
 		"display_name": _display_name,
@@ -107,6 +178,7 @@ func to_dict() -> Dictionary:
 			influence_tags()
 		),
 		"rarity": _rarity,
+		"expression_chain": chain,
 	}
 
 
@@ -117,8 +189,15 @@ static func from_dict(
 		"influence_tags",
 		{}
 	)
+	var chain_value: Variant = data.get(
+		"expression_chain",
+		[]
+	)
 
-	if typeof(tags_value) != TYPE_DICTIONARY:
+	if (
+		typeof(tags_value) != TYPE_DICTIONARY
+		or typeof(chain_value) != TYPE_ARRAY
+	):
 		return null
 
 	var definition := GeneDefinition.new(
@@ -164,7 +243,8 @@ static func from_dict(
 				"rarity",
 				"uncommon"
 			)
-		)
+		),
+		chain_value as Array
 	)
 
 	if not definition.is_valid():
@@ -202,6 +282,42 @@ static func _normalize_tags(
 
 		result[key] = float(
 			source[key_value]
+		)
+
+	return result
+
+
+static func _normalize_chain(
+	source: Array,
+	direction: StringName
+) -> Array[StringName]:
+	var result: Array[StringName] = []
+
+	for value in source:
+		var trait := _normalize_token(
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			String(trait).is_empty()
+			or trait == PetGenomeSchema.BASE_TRAIT
+			or result.has(trait)
+		):
+			continue
+
+		result.append(
+			trait
+		)
+
+	if result.is_empty():
+		result.append(
+			direction
+		)
+	elif result[0] != direction:
+		result.push_front(
+			direction
 		)
 
 	return result
