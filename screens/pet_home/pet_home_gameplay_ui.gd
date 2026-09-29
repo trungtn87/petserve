@@ -295,7 +295,9 @@ func _item_card(item: Dictionary, allow_use: bool) -> Control:
 		info.add_child(mod_label)
 
 	if allow_use:
-		var usable := String(item.get("usable_stage","")) == "infant" and _stage_index == 1 and not bool(_facade.snapshot().get("ready_to_evolve", false))
+		var usable := _facade.can_use_item(
+			item
+		)
 		var button := Button.new()
 		button.text = "Dùng" if usable else "Khóa"
 		button.disabled = not usable
