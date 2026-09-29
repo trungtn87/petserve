@@ -331,7 +331,7 @@ func _roll_stage_activity_chest(
 		if tier >= 3
 		else 1
 	)
-	var fragment_chance := {
+	var fragment_chance: float = float({
 		1: 0.00,
 		2: 0.08,
 		3: 0.16,
@@ -339,7 +339,7 @@ func _roll_stage_activity_chest(
 	}.get(
 		tier,
 		0.0
-	)
+	))
 	var rewards: Array[Dictionary] = []
 
 	for index in range(
