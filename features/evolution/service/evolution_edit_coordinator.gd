@@ -954,7 +954,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v7_stage_%d"
+		+ "_pethome_v8_stage_%d"
 		% target_stage
 	)
 
