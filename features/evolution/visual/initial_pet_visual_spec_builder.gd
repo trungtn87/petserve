@@ -62,6 +62,19 @@ func build(
 		if genome.get_trait(key) != &"base":
 			return null
 
+	var stage_catalog := ElementStageVisualCatalog.new()
+	var element_profile := stage_catalog.find_by_element(
+		stage_catalog.load_default(),
+		identity.element()
+	)
+	var stage_one_face := stage_catalog.prompt_for_stage(
+		element_profile,
+		1
+	)
+
+	if stage_one_face.is_empty():
+		return null
+
 	var spec := InitialPetVisualSpec.new()
 
 	spec.pet_id = identity.pet_id()
@@ -73,8 +86,9 @@ func build(
 		+ String(identity.species())
 		+ ". Element family: "
 		+ String(identity.element())
-		+ ". This image establishes the permanent visual identity that all later evolution images must preserve. "
-		+ "The pet and its PetHome environment must be rendered together as one coherent scene, not as separate assets."
+		+ ". This Stage 1 image establishes the canonical face identity and elemental lineage "
+		+ "that later stages inherit. The pet and PetHome environment must be rendered together "
+		+ "as one coherent scene, not as separate assets."
 	)
 
 	spec.style_section = (
@@ -86,7 +100,15 @@ func build(
 		+ "."
 	)
 
-	spec.form_section = species_profile.infant_form
+	spec.form_section = (
+		species_profile.infant_form
+		+ " Stage 1 elemental face identity: "
+		+ stage_one_face
+		+ " Keep the body clearly infant and compact. Element differences at this stage should "
+		+ "be strongest in face shape language, eye design, ear silhouette, cheek/forehead fur, "
+		+ "lineage sigil and restrained tail cues. The seven elements must not look like simple "
+		+ "recolors of one identical kitten; their faces should remain distinguishable in grayscale."
+	)
 
 	spec.scene_section = (
 		"PetHome environment: "
@@ -122,15 +144,17 @@ func build(
 
 	spec.future_space_section = (
 		"This is the clean infant base form before any mutation. "
-		+ "The pet should already look polished, lovable and mythic, but remain visually simple enough for many later evolution steps. "
-		+ "Element lineage cues are allowed only as stable base identity: palette, eye color, one small forehead sigil and one restrained tail-centered effect. "
-		+ "The PetHome world should also remain recognizable in later evolution images so the same pet feels like it continues living in the same world. "
+		+ "Stage 1 may already have a distinctive elemental face and small lineage-specific fur cues, "
+		+ "but it must not use the mature Stage 2 body morphology or advanced Stage 3/4 detail language. "
+		+ "Keep enough visual simplicity for later evolution while making the element recognizable without color alone. "
+		+ "The PetHome world should remain recognizable in later stages so the same pet feels like it continues living in the same world. "
 		+ species_profile.forbidden_advanced_features
 	)
 
 	spec.negative_prompt = (
 		style.negative_prompt()
-		+ ", adult body, mature proportions, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
+		+ ", adult body, mature proportions, Stage 2 body morphology, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
+		+ ", generic identical face across all elements, color-swap-only element design, same silhouette for every element"
 		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
 		+ ", close-up portrait, medium close shot, bust shot, oversized pet, pet filling more than one fifth of the frame, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges"
 	)
