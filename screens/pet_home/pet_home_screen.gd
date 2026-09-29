@@ -942,12 +942,12 @@ func _section_button(text: String, callback: Callable) -> void:
 	_section_body.add_child(button)
 
 func _open_storage() -> void:
-	_prepare_section("Rương đồ")
+	_prepare_section("Kho tài nguyên")
 	var state := _game.snapshot()
 	_add_info_row("Rương", str(state.get("pending_chests", 0)))
 	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
-	_section_button("Mở rương", _open_chest)
-	_section_button("Kho vật phẩm", func(): _close_section(); _hud.open_inventory())
+	_section_button("RƯƠNG • Mở rương kế tiếp", _open_chest)
+	_section_button("HÒM ITEM", func(): _close_section(); _hud.open_inventory())
 	_section_overlay.visible = true
 
 func _open_chest() -> void:
