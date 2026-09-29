@@ -245,6 +245,66 @@ func claim_caro_win_reward() -> Dictionary:
 	return result
 
 
+func claim_maze_hunt_reward(
+	score: int
+) -> Dictionary:
+	var lifecycle_state := (
+		_lifecycle.snapshot()
+	)
+	var stage_index := int(
+		lifecycle_state.get(
+			"stage_index",
+			1
+		)
+	)
+
+	if (
+		stage_index != 2
+		or bool(
+			lifecycle_state.get(
+				"ready_to_evolve",
+				false
+			)
+		)
+	):
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Rương Maze Hunt chỉ nhận được trong Stage 2.",
+		}
+
+	var before := _meta.duplicate(
+		true
+	)
+	var result := (
+		_entertainment.claim_maze_hunt(
+			_run_id,
+			maxi(
+				0,
+				score
+			)
+		)
+	)
+
+	if bool(
+		result.get(
+			"rewarded",
+			false
+		)
+	):
+		if not save():
+			_restore(
+				before
+			)
+			return {
+				"ok": false,
+				"rewarded": false,
+				"message": "Chưa lưu được phần thưởng. Hãy thử lại.",
+			}
+
+	return result
+
+
 func inventory(
 	filter_type: StringName = &""
 ) -> Array[Dictionary]:
