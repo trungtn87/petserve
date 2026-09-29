@@ -363,7 +363,22 @@ func request_from_dict(
 		return null
 
 	var request := PetRenderRequest.new()
-	request.mode = mode_value as PetRenderRequest.RenderMode
+
+	match mode_value:
+		int(
+			PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		):
+			request.mode = (
+				PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+			)
+
+		int(
+			PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		):
+			request.mode = (
+				PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			)
+
 	request.pet_id = str(
 		data.get("pet_id", "")
 	)
