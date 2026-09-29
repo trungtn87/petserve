@@ -3,6 +3,8 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 4
+const STAGE_ONE: int = 1
+const PENDING_SCHEMA: int = 4
 
 
 var _save := EvolutionSaveService.new()
@@ -26,18 +28,16 @@ func prepare(
 	)
 
 	if identity == null or genome == null:
-		return {
-			"ok": false,
-			"error": "Không đọc được dữ liệu pet.",
-		}
+		return _error(
+			"Không đọc được dữ liệu pet."
+		)
 
 	var current_stage := genome.stage()
 
 	if current_stage >= FINAL_STAGE:
-		return {
-			"ok": false,
-			"error": "Pet đã đạt hình thái cuối.",
-		}
+		return _error(
+			"Pet đã đạt hình thái cuối."
+		)
 
 	if int(
 		state.get(
@@ -45,10 +45,9 @@ func prepare(
 			current_stage
 		)
 	) != current_stage:
-		return {
-			"ok": false,
-			"error": "Lifecycle và Genome đang lệch giai đoạn.",
-		}
+		return _error(
+			"Lifecycle và Genome đang lệch giai đoạn."
+		)
 
 	var naturally_ready := bool(
 		state.get(
@@ -64,10 +63,9 @@ func prepare(
 	)
 
 	if not can_evolve:
-		return {
-			"ok": false,
-			"error": "Pet chưa đủ điều kiện tiến hóa.",
-		}
+		return _error(
+			"Pet chưa đủ điều kiện tiến hóa."
+		)
 
 	var existing: Dictionary = data.get(
 		"pending_evolution",
@@ -81,16 +79,258 @@ func prepare(
 				-1
 			)
 		) != current_stage:
-			return {
-				"ok": false,
-				"error": "Có pending evolution không khớp stage hiện tại.",
-			}
+			return _error(
+				"Có pending evolution không khớp stage hiện tại."
+			)
 
 		return {
 			"ok": true,
 			"data": data,
 		}
 
+	var source_visual := PetVisualRecord.from_dict(
+		data.get(
+			"current_visual",
+			{}
+		)
+	)
+
+	if source_visual == null:
+		return _error(
+			"Không đọc được ảnh PetHome hiện tại."
+		)
+
+	var scene_profile := PetSceneProfile.from_dict(
+		data.get(
+			"scene_profile",
+			{}
+		)
+	)
+
+	if scene_profile == null:
+		return _error(
+			"Không đọc được PetHome Scene Profile."
+		)
+
+	if current_stage == STAGE_ONE:
+		return _prepare_stage_one(
+			data,
+			state,
+			identity,
+			genome,
+			source_visual,
+			scene_profile
+		)
+
+	return _prepare_legacy_stage(
+		data,
+		identity,
+		genome,
+		source_visual,
+		scene_profile
+	)
+
+
+func _prepare_stage_one(
+	data: Dictionary,
+	state: Dictionary,
+	identity: PetIdentity,
+	genome: PetGenome,
+	source_visual: PetVisualRecord,
+	scene_profile: PetSceneProfile
+) -> Dictionary:
+	var gene_state_result := _gene_state_from_runtime(
+		state,
+		genome.stage()
+	)
+
+	if not bool(
+		gene_state_result.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			String(
+				gene_state_result.get(
+					"error",
+					"Không đọc được GeneDevelopmentState."
+				)
+			)
+		)
+
+	var gene_state := gene_state_result.get(
+		"gene_state"
+	) as GeneDevelopmentState
+
+	if gene_state == null:
+		return _error(
+			"GeneDevelopmentState bị rỗng."
+		)
+
+	var resolution := StageEvolutionResolver.new().resolve(
+		identity,
+		genome,
+		gene_state
+	)
+
+	if not bool(
+		resolution.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			String(
+				resolution.get(
+					"error",
+					"Không resolve được tiến hóa Stage 1."
+				)
+			)
+		)
+
+	var resolved_genome := resolution.get(
+		"genome"
+	) as PetGenome
+
+	if resolved_genome == null:
+		return _error(
+			"Resolver không trả về PetGenome hợp lệ."
+		)
+
+	var target_stage := genome.stage() + 1
+	var mode := StringName(
+		resolution.get(
+			"mode",
+			""
+		)
+	)
+	var delta := resolution.get(
+		"delta"
+	) as EvolutionDelta
+	var coordinator := EvolutionEditCoordinator.new()
+	var plan: Dictionary = {}
+
+	match mode:
+		StageEvolutionResolver.MODE_NATURAL:
+			if delta != null:
+				return _error(
+					"Natural Growth không được có EvolutionDelta."
+				)
+
+			plan = coordinator.build_natural_request(
+				identity,
+				genome,
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+
+		StageEvolutionResolver.MODE_GENE:
+			if delta == null:
+				return _error(
+					"Gene Expression thiếu EvolutionDelta."
+				)
+
+			plan = coordinator.build_request(
+				identity,
+				genome,
+				resolved_genome,
+				delta,
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+
+		_:
+			return _error(
+				"Evolution Resolver trả về mode không hợp lệ."
+			)
+
+	if not bool(
+		plan.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			str(
+				plan.get(
+					"error",
+					"Không tạo được Stage 1 image-edit plan."
+				)
+			)
+		)
+
+	var request := plan.get(
+		"request"
+	) as PetRenderRequest
+
+	if request == null:
+		return _error(
+			"Stage 1 render request bị rỗng."
+		)
+
+	var next := PetGenome.new(
+		target_stage,
+		0.0,
+		resolved_genome.traits_snapshot(),
+		resolved_genome.mutation_ids()
+	)
+
+	if not next.is_valid():
+		return _error(
+			"Không tạo được Genome Stage 2."
+		)
+
+	data["pending_evolution"] = {
+		"schema": PENDING_SCHEMA,
+		"from_stage": genome.stage(),
+		"to_stage": target_stage,
+		"resolution_mode": String(
+			mode
+		),
+		"genome": next.to_dict(),
+		"delta": (
+			delta.to_dict()
+			if delta != null
+			else {}
+		),
+		"gene_resolution": (
+			_serializable_gene_resolution(
+				resolution
+			)
+		),
+		"source_phenotype": (
+			_string_key_dict(
+				genome.visual_traits_snapshot()
+			)
+		),
+		"target_phenotype": (
+			_string_key_dict(
+				next.visual_traits_snapshot()
+			)
+		),
+		"source_visual": source_visual.to_dict(),
+		"render_request": (
+			coordinator.serialize_request(
+				request
+			)
+		),
+	}
+
+	return _persist_plan(
+		data
+	)
+
+
+func _prepare_legacy_stage(
+	data: Dictionary,
+	identity: PetIdentity,
+	genome: PetGenome,
+	source_visual: PetVisualRecord,
+	scene_profile: PetSceneProfile
+) -> Dictionary:
 	var delta := (
 		EvolutionRuleEngine.new()
 		.choose_next(
@@ -102,59 +342,22 @@ func prepare(
 	)
 
 	if delta == null:
-		return {
-			"ok": false,
-			"error": "Chưa có mutation tiến hóa hợp lệ.",
-		}
-
-	var changed := (
-		GenomeDeltaApplier.new()
-		.apply(
-			genome,
-			delta
+		return _error(
+			"Chưa có mutation tiến hóa hợp lệ."
 		)
+
+	var changed := GenomeDeltaApplier.new().apply(
+		genome,
+		delta
 	)
 
 	if changed == null:
-		return {
-			"ok": false,
-			"error": "Không áp dụng được mutation tiến hóa.",
-		}
-
-	var source_visual := (
-		PetVisualRecord.from_dict(
-			data.get(
-				"current_visual",
-				{}
-			)
+		return _error(
+			"Không áp dụng được mutation tiến hóa."
 		)
-	)
 
-	if source_visual == null:
-		return {
-			"ok": false,
-			"error": "Không đọc được ảnh PetHome hiện tại.",
-		}
-
-	var scene_profile := (
-		PetSceneProfile.from_dict(
-			data.get(
-				"scene_profile",
-				{}
-			)
-		)
-	)
-
-	if scene_profile == null:
-		return {
-			"ok": false,
-			"error": "Không đọc được PetHome Scene Profile.",
-		}
-
-	var target_stage := current_stage + 1
-	var coordinator := (
-		EvolutionEditCoordinator.new()
-	)
+	var target_stage := genome.stage() + 1
+	var coordinator := EvolutionEditCoordinator.new()
 	var plan := coordinator.build_request(
 		identity,
 		genome,
@@ -171,28 +374,23 @@ func prepare(
 			false
 		)
 	):
-		return {
-			"ok": false,
-			"error": str(
+		return _error(
+			str(
 				plan.get(
 					"error",
 					"Không tạo được evolution image-edit plan."
 				)
-			),
-		}
-
-	var request := (
-		plan.get(
-			"request"
+			)
 		)
-		as PetRenderRequest
-	)
+
+	var request := plan.get(
+		"request"
+	) as PetRenderRequest
 
 	if request == null:
-		return {
-			"ok": false,
-			"error": "Evolution render request bị rỗng.",
-		}
+		return _error(
+			"Evolution render request bị rỗng."
+		)
 
 	var next := PetGenome.new(
 		target_stage,
@@ -203,8 +401,9 @@ func prepare(
 
 	data["pending_evolution"] = {
 		"schema": 3,
-		"from_stage": current_stage,
+		"from_stage": genome.stage(),
 		"to_stage": target_stage,
+		"resolution_mode": "legacy_mutation",
 		"genome": next.to_dict(),
 		"delta": delta.to_dict(),
 		"source_visual": source_visual.to_dict(),
@@ -215,18 +414,149 @@ func prepare(
 		),
 	}
 
+	return _persist_plan(
+		data
+	)
+
+
+func _persist_plan(
+	data: Dictionary
+) -> Dictionary:
 	if not _save.save_data(
 		data
 	):
-		return {
-			"ok": false,
-			"error": "Chưa lưu được evolution plan. Chưa gửi yêu cầu tạo ảnh.",
-		}
+		return _error(
+			"Chưa lưu được evolution plan. Chưa gửi yêu cầu tạo ảnh."
+		)
 
 	return {
 		"ok": true,
 		"data": data,
 	}
+
+
+func _gene_state_from_runtime(
+	state: Dictionary,
+	stage_index: int
+) -> Dictionary:
+	var value: Variant = state.get(
+		"gene_development",
+		null
+	)
+
+	if typeof(value) == TYPE_DICTIONARY:
+		var restored := GeneDevelopmentState.from_dict(
+			value as Dictionary,
+			StageGenePolicy.load_default()
+		)
+
+		if restored == null:
+			return {
+				"ok": false,
+				"error": "GeneDevelopmentState runtime không hợp lệ.",
+			}
+
+		if restored.stage_index() != stage_index:
+			return {
+				"ok": false,
+				"error": "GeneDevelopmentState runtime lệch Stage.",
+			}
+
+		return {
+			"ok": true,
+			"gene_state": restored,
+		}
+
+	if int(
+		state.get(
+			"gene_items_used",
+			0
+		)
+	) > 0:
+		return {
+			"ok": false,
+			"error": (
+				"Có Gene Item đã dùng nhưng thiếu GeneDevelopmentState chi tiết. "
+				+ "Từ chối Natural Growth để tránh làm mất hướng phát triển."
+			),
+		}
+
+	return {
+		"ok": true,
+		"gene_state": GeneDevelopmentState.new(
+			stage_index
+		),
+	}
+
+
+func _serializable_gene_resolution(
+	resolution: Dictionary
+) -> Dictionary:
+	return {
+		"mode": String(
+			resolution.get(
+				"mode",
+				""
+			)
+		),
+		"selected_gene_id": String(
+			resolution.get(
+				"selected_gene_id",
+				""
+			)
+		),
+		"selected_locus": String(
+			resolution.get(
+				"selected_locus",
+				""
+			)
+		),
+		"selected_direction": String(
+			resolution.get(
+				"selected_direction",
+				""
+			)
+		),
+		"selected_item_uid": String(
+			resolution.get(
+				"selected_item_uid",
+				""
+			)
+		),
+		"primary_influence": float(
+			resolution.get(
+				"primary_influence",
+				0.0
+			)
+		),
+		"gene_influences": (
+			resolution.get(
+				"gene_influences",
+				{}
+			) as Dictionary
+		).duplicate(true),
+		"tag_influences": (
+			resolution.get(
+				"tag_influences",
+				{}
+			) as Dictionary
+		).duplicate(true),
+	}
+
+
+func _string_key_dict(
+	source: Dictionary
+) -> Dictionary:
+	var result: Dictionary = {}
+
+	for key_value in source.keys():
+		result[String(
+			key_value
+		)] = String(
+			source[key_value]
+		)
+
+	return result
 
 
 func build_request(
@@ -258,7 +588,7 @@ func build_request(
 		if restored != null:
 			return restored
 
-	# Compatibility with pre-M7 pending Stage 1 plans.
+	# Compatibility with pre-M7 pending plans.
 	var identity := PetIdentity.from_dict(
 		data.get(
 			"identity",
@@ -391,12 +721,10 @@ func commit(
 	):
 		return false
 
-	var previous_visual := (
-		PetVisualRecord.from_dict(
-			pending.get(
-				"source_visual",
-				{}
-			)
+	var previous_visual := PetVisualRecord.from_dict(
+		pending.get(
+			"source_visual",
+			{}
 		)
 	)
 
@@ -448,3 +776,12 @@ func commit(
 	return _save.save_data(
 		data
 	)
+
+
+func _error(
+	message: String
+) -> Dictionary:
+	return {
+		"ok": false,
+		"error": message,
+	}
