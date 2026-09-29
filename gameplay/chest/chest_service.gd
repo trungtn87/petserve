@@ -4,6 +4,7 @@ extends RefCounted
 
 const CHEST_HATCH: StringName = &"hatch"
 const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
+const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
 
 
 var _meta: Dictionary = {}
@@ -83,6 +84,52 @@ func ensure_infant_activity_chest(
 	return true
 
 
+func ensure_stage_activity_chest(
+	run_id: int,
+	stage_index: int,
+	game_id: String,
+	reward_index: int,
+	reward_tier: int
+) -> bool:
+	if (
+		stage_index < 2
+		or reward_index <= 0
+	):
+		return false
+
+	var queue: Array = _meta.get("chest_queue", [])
+	var tier := clampi(reward_tier, 1, 4)
+	var uid := "stage_activity_%s_%s_%s_%s" % [
+		run_id,
+		stage_index,
+		game_id,
+		reward_index,
+	]
+
+	for raw_chest in queue:
+		if typeof(raw_chest) != TYPE_DICTIONARY:
+			continue
+
+		var chest: Dictionary = raw_chest
+
+		if String(chest.get("uid", "")) == uid:
+			return true
+
+	queue.append({
+		"uid": uid,
+		"chest_type": String(CHEST_STAGE_ACTIVITY),
+		"run_id": run_id,
+		"stage_index": stage_index,
+		"game_id": game_id,
+		"reward_index": reward_index,
+		"reward_tier": tier,
+		"opened": false,
+	})
+
+	_meta["chest_queue"] = queue
+	return true
+
+
 func pending_count() -> int:
 	var count := 0
 	var queue: Array = _meta.get("chest_queue", [])
@@ -149,6 +196,8 @@ func _roll_rewards(chest: Dictionary) -> Array[Dictionary]:
 			return _roll_hatch_chest(chest)
 		CHEST_INFANT_ACTIVITY:
 			return _roll_infant_activity_chest(chest)
+		CHEST_STAGE_ACTIVITY:
+			return _roll_stage_activity_chest(chest)
 		_:
 			push_error("ChestService: unsupported chest: " + String(chest_type))
 			return []
@@ -235,6 +284,112 @@ func _roll_infant_activity_chest(
 		return []
 
 	return [item]
+
+
+func _roll_stage_activity_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(
+		chest.get(
+			"uid",
+			"stage_activity"
+		)
+	)
+	var tier := clampi(
+		int(
+			chest.get(
+				"reward_tier",
+				1
+			)
+		),
+		1,
+		4
+	)
+	var channel := StringName(
+		"stage_activity_%s"
+		% uid
+	)
+	var chest_seed := 0
+
+	if RandomManager.current_seed > 0:
+		chest_seed = RandomManager.derive_seed(
+			channel
+		)
+	else:
+		chest_seed = abs(
+			hash(uid)
+		)
+
+	if chest_seed == 0:
+		chest_seed = 1
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = chest_seed
+
+	var reward_count := (
+		2
+		if tier >= 3
+		else 1
+	)
+	var fragment_chance := {
+		1: 0.00,
+		2: 0.08,
+		3: 0.16,
+		4: 0.24,
+	}.get(
+		tier,
+		0.0
+	)
+	var rewards: Array[Dictionary] = []
+
+	for index in range(
+		reward_count
+	):
+		var roll := rng.randf()
+		var item_type: StringName
+
+		if roll <= fragment_chance:
+			item_type = (
+				ItemGenerator.TYPE_FUTURE_FRAGMENT
+			)
+		elif roll <= fragment_chance + 0.42:
+			item_type = (
+				ItemGenerator.TYPE_GROWTH
+			)
+		else:
+			item_type = (
+				ItemGenerator.TYPE_FOOD
+			)
+
+		var item_seed := absi(
+			hash(
+				"%s:%s:%s"
+				% [
+					chest_seed,
+					tier,
+					index,
+				]
+			)
+		)
+
+		if item_seed == 0:
+			item_seed = (
+				chest_seed
+				+ index
+				+ 1
+			)
+
+		var item := _generator.generate(
+			item_type,
+			item_seed
+		)
+
+		if not item.is_empty():
+			rewards.append(
+				item
+			)
+
+	return rewards
 
 
 func _reward_uids(rewards: Array[Dictionary]) -> Array[String]:
