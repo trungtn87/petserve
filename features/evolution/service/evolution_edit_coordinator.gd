@@ -6,6 +6,20 @@ const PLAN_SCHEMA: int = 1
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
 const SEED_MODULUS: int = 2147483647
+const ANATOMY_LOCK_PROMPT: String = (
+	"Preserve the reference pet's anatomy exactly: same number of legs, paws, "
+	+ "ears, tails and all other body parts. Do not add, duplicate, remove or "
+	+ "invent limbs or appendages. Preserve limb attachment points, joint layout, "
+	+ "stance, body orientation and pose. A body part hidden by perspective must "
+	+ "remain hidden naturally instead of being duplicated or moved into view."
+)
+const ANATOMY_NEGATIVE_PROMPT: String = (
+	"extra leg, extra legs, extra limb, extra limbs, extra paw, extra paws, "
+	+ "duplicate leg, duplicated limb, duplicate paw, duplicated paw, "
+	+ "extra tail, duplicate tail, extra ear, duplicate ear, second body, "
+	+ "duplicated body parts, malformed anatomy, deformed legs, changed limb count, "
+	+ "changed paw count"
+)
 
 
 func build_request(
@@ -81,6 +95,11 @@ func build_request(
 		+ "The mutation above is the only newly introduced biological feature."
 	) % target_stage
 
+	positive_prompt += _local_edit_boundary(
+		spec.target_region()
+	)
+	positive_prompt += _anatomy_lock_section()
+
 	positive_prompt += (
 		"\n\n[PETHOME CONTINUITY]\n"
 		+ _scene_continuity_prompt(
@@ -100,7 +119,7 @@ func build_request(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = (
+	request.negative_prompt = _append_negative_guard(
 		prompt_builder.build_negative(
 			spec
 		)
@@ -205,8 +224,9 @@ func build_natural_request(
 		+ (
 			"Advance this exact same individual naturally from life stage %d "
 			+ "to life stage %d. Make only age-appropriate maturation changes: "
-			+ "slightly older proportions, a modestly more developed body, limbs "
-			+ "and fur, while preserving the same face and recognizable individual. "
+			+ "slightly older proportions and a modestly more developed body and "
+			+ "fur, while keeping every existing limb in the same count, attachment "
+			+ "layout and pose family, and preserving the same face and recognizable individual. "
 			+ "Do NOT introduce any new Gene, mutation, marking, horn, aura, tail "
 			+ "type, eye type, ear type, coat pattern or other special phenotype. "
 			+ "All 12 phenotype values above must remain semantically unchanged. "
@@ -217,6 +237,8 @@ func build_natural_request(
 			target_stage,
 		]
 	)
+
+	positive_prompt += _anatomy_lock_section()
 
 	positive_prompt += (
 		"\n\n[PRESERVE]\n"
@@ -244,7 +266,7 @@ func build_natural_request(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = (
+	request.negative_prompt = _append_negative_guard(
 		style.negative_prompt()
 		+ ", new gene trait, random mutation, new horn, new marking, "
 		+ "new aura, extra tail, changed tail type, changed eye type, "
@@ -455,6 +477,42 @@ func _validate(
 			return "PetHome Scene Profile không hợp lệ."
 
 	return ""
+
+
+func _local_edit_boundary(
+	target_region: StringName
+) -> String:
+	return (
+		"\n\n[LOCAL EDIT BOUNDARY]\n"
+		+ (
+			"Apply the selected evolution only inside or immediately around "
+			+ "target region '%s'. Outside that region, keep anatomy topology, "
+			+ "limb count, paw count, pose, face identity, markings, silhouette "
+			+ "and scene composition unchanged. Do not reinterpret the whole pet."
+		) % String(target_region)
+	)
+
+
+func _anatomy_lock_section() -> String:
+	return (
+		"\n\n[ANATOMY LOCK]\n"
+		+ ANATOMY_LOCK_PROMPT
+	)
+
+
+func _append_negative_guard(
+	base: String
+) -> String:
+	var negative := base.strip_edges()
+
+	if negative.is_empty():
+		return ANATOMY_NEGATIVE_PROMPT
+
+	return (
+		negative
+		+ ", "
+		+ ANATOMY_NEGATIVE_PROMPT
+	)
 
 
 func _request_seed(
