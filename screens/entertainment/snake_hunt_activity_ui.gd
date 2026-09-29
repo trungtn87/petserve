@@ -410,8 +410,7 @@ func _update_reward_label() -> void:
 
 	if not _reward_enabled:
 		_reward_label.text = (
-			"Snake Hunt mở từ Stage 2 • "
-			+ "rương thưởng dùng chung quota Stage 2."
+			"Chơi tự do • phần thưởng Snake Hunt chỉ có ở Stage 2."
 		)
 		return
 
