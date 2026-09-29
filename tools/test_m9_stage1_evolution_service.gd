@@ -932,7 +932,7 @@ func _save_stage_one_fixture(
 	visual.visual_index = 0
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"initial_pethome_v5_text_to_image"
+		&"initial_pethome_v6_text_to_image"
 	)
 	visual.renderer_id = &"test"
 	visual.model_id = &"test"
