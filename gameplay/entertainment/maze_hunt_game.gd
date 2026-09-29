@@ -278,12 +278,12 @@ func _choose_enemy_direction(
 	if _rng.randf() < 0.28:
 		return choices[_rng.randi_range(0, choices.size() - 1)]
 
-	var best := choices[0]
-	var best_distance := 1000000
+	var best: Vector2i = choices[0]
+	var best_distance: int = 1000000
 
 	for direction in choices:
-		var next := pos + direction
-		var distance := abs(next.x - _player_pos.x) + abs(next.y - _player_pos.y)
+		var next: Vector2i = pos + direction
+		var distance: int = absi(next.x - _player_pos.x) + absi(next.y - _player_pos.y)
 
 		if distance < best_distance:
 			best_distance = distance
