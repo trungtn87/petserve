@@ -172,9 +172,10 @@ func render(
 			)
 
 		push_warning(
-			"ProxyPetRenderer: transport %d (%s), "
-			+ "thử lại lần %d/%d."
-			% [
+			(
+				"ProxyPetRenderer: transport %d (%s), "
+				+ "thử lại lần %d/%d."
+			) % [
 				transport_result,
 				_transport_result_label(
 					transport_result
