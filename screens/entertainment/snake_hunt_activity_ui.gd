@@ -11,7 +11,7 @@ const SnakeHuntBoardScript = preload(
 
 
 signal back_requested
-signal reward_requested(score: int)
+signal reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
 
@@ -400,7 +400,8 @@ func _on_reward_pressed() -> void:
 
 	_reward_button.disabled = true
 	reward_requested.emit(
-		_game.score()
+		_game.score(),
+		_game.match_id()
 	)
 
 
