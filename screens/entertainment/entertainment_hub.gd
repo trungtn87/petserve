@@ -370,8 +370,8 @@ func _build_hub_screen(
 
 	_maze_card = _activity_card(
 		"Maze Hunt",
-		"Mở ở Stage 2",
-		false,
+		"Chạy mê cung cùng pet",
+		true,
 		_open_maze,
 		"◆"
 	)
@@ -381,8 +381,8 @@ func _build_hub_screen(
 
 	_snake_card = _activity_card(
 		"Snake Hunt",
-		"Mở ở Stage 2",
-		false,
+		"Rắn săn mồi",
+		true,
 		_open_snake,
 		"●"
 	)
@@ -616,9 +616,6 @@ func _open_caro() -> void:
 
 
 func _open_maze() -> void:
-	if _stage_index < 2:
-		return
-
 	_hide_activities()
 
 	if _hub_screen != null:
@@ -634,9 +631,6 @@ func _open_maze() -> void:
 
 
 func _open_snake() -> void:
-	if _stage_index < 2:
-		return
-
 	_hide_activities()
 
 	if _hub_screen != null:
@@ -690,43 +684,7 @@ func _sync_reward_state() -> void:
 				_stage2_reward_enabled
 			)
 
-	_sync_stage2_card(
-		_maze_card,
-		"Chạy mê cung cùng pet"
-	)
-	_sync_stage2_card(
-		_snake_card,
-		"Rắn săn mồi"
-	)
 	_update_hub_reward_label()
-
-
-func _sync_stage2_card(
-	card: Button,
-	unlocked_text: String
-) -> void:
-	if card == null:
-		return
-
-	var unlocked := _stage_index >= 2
-	card.disabled = not unlocked
-	card.mouse_default_cursor_shape = (
-		Control.CURSOR_POINTING_HAND
-		if unlocked
-		else Control.CURSOR_ARROW
-	)
-
-	var subtitle = card.get_meta(
-		"subtitle_label",
-		null
-	)
-
-	if subtitle is Label:
-		subtitle.text = (
-			unlocked_text
-			if unlocked
-			else "Mở ở Stage 2"
-		)
 
 
 func _update_hub_reward_label() -> void:
@@ -753,11 +711,7 @@ func _update_hub_reward_label() -> void:
 			"Caro: chơi tự do • không còn thưởng Stage 1"
 		)
 
-	if _stage_index < 2:
-		lines.append(
-			"Maze + Snake: khóa • mở khi đạt Stage 2"
-		)
-	elif _stage2_reward_enabled:
+	if _stage2_reward_enabled:
 		lines.append(
 			"Stage 2: Rương Hoạt động chung %d/%d"
 			% [
@@ -771,7 +725,7 @@ func _update_hub_reward_label() -> void:
 		)
 	else:
 		lines.append(
-			"Maze + Snake: chơi tự do • rương chỉ phát trong Stage 2"
+			"Maze + Snake: chơi tự do • thưởng chỉ có ở Stage 2"
 		)
 
 	_reward_label.text = "\n".join(
