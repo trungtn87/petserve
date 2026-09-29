@@ -8,10 +8,14 @@ const CaroActivityScript = preload(
 const MazeHuntActivityScript = preload(
 	"res://screens/entertainment/maze_hunt_activity_ui.gd"
 )
+const SnakeHuntActivityScript = preload(
+	"res://screens/entertainment/snake_hunt_activity_ui.gd"
+)
 
 
 signal caro_win_reward_requested
 signal maze_reward_requested(score: int)
+signal snake_reward_requested(score: int)
 signal match_finished(result: StringName)
 
 
@@ -24,14 +28,16 @@ var _caro_reward_claimed: int = 0
 var _caro_reward_max: int = 4
 var _caro_reward_enabled: bool = true
 
-var _maze_reward_claimed: int = 0
-var _maze_reward_max: int = 4
-var _maze_reward_enabled: bool = false
+var _stage2_reward_claimed: int = 0
+var _stage2_reward_max: int = 4
+var _stage2_reward_enabled: bool = false
 
 var _hub_screen: Control
 var _caro_activity
 var _maze_activity
+var _snake_activity
 var _maze_card: Button
+var _snake_card: Button
 var _reward_label: Label
 
 
@@ -49,17 +55,26 @@ func open_hub(
 	caro_max: int,
 	caro_enabled: bool,
 	stage_index: int = 1,
-	maze_claimed: int = 0,
-	maze_max: int = 4,
-	maze_enabled: bool = false
+	stage2_claimed: int = 0,
+	stage2_max: int = 4,
+	stage2_enabled: bool = false
 ) -> void:
 	_caro_reward_claimed = caro_claimed
-	_caro_reward_max = maxi(0, caro_max)
+	_caro_reward_max = maxi(
+		0,
+		caro_max
+	)
 	_caro_reward_enabled = caro_enabled
-	_stage_index = maxi(1, stage_index)
-	_maze_reward_claimed = maze_claimed
-	_maze_reward_max = maxi(0, maze_max)
-	_maze_reward_enabled = maze_enabled
+	_stage_index = maxi(
+		1,
+		stage_index
+	)
+	_stage2_reward_claimed = stage2_claimed
+	_stage2_reward_max = maxi(
+		0,
+		stage2_max
+	)
+	_stage2_reward_enabled = stage2_enabled
 	_sync_reward_state()
 	_show_hub_screen()
 	visible = true
@@ -72,6 +87,9 @@ func close_hub() -> void:
 
 	if _maze_activity != null:
 		_maze_activity.close_activity()
+
+	if _snake_activity != null:
+		_snake_activity.close_activity()
 
 	visible = false
 	_is_open = false
@@ -87,34 +105,56 @@ func set_reward_status(
 	reward_enabled: bool
 ) -> void:
 	_caro_reward_claimed = reward_claimed
-	_caro_reward_max = maxi(0, reward_max)
+	_caro_reward_max = maxi(
+		0,
+		reward_max
+	)
 	_caro_reward_enabled = reward_enabled
 	_sync_reward_state()
 
 
-func set_maze_reward_status(
+func set_stage2_reward_status(
 	reward_claimed: int,
 	reward_max: int,
 	reward_enabled: bool,
 	stage_index: int
 ) -> void:
-	_maze_reward_claimed = reward_claimed
-	_maze_reward_max = maxi(0, reward_max)
-	_maze_reward_enabled = reward_enabled
-	_stage_index = maxi(1, stage_index)
+	_stage2_reward_claimed = reward_claimed
+	_stage2_reward_max = maxi(
+		0,
+		reward_max
+	)
+	_stage2_reward_enabled = reward_enabled
+	_stage_index = maxi(
+		1,
+		stage_index
+	)
 	_sync_reward_state()
 
 
-func show_reward_message(message: String) -> void:
+func show_reward_message(
+	message: String
+) -> void:
 	if _caro_activity != null:
 		_caro_activity.show_reward_message(
 			message
 		)
 
 
-func show_maze_reward_message(message: String) -> void:
+func show_maze_reward_message(
+	message: String
+) -> void:
 	if _maze_activity != null:
 		_maze_activity.show_reward_message(
+			message
+		)
+
+
+func show_snake_reward_message(
+	message: String
+) -> void:
+	if _snake_activity != null:
+		_snake_activity.show_reward_message(
 			message
 		)
 
@@ -131,7 +171,9 @@ func _build_ui() -> void:
 		0.94
 	)
 	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(scrim)
+	add_child(
+		scrim
+	)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.05
@@ -155,7 +197,9 @@ func _build_ui() -> void:
 			)
 		)
 	)
-	add_child(panel)
+	add_child(
+		panel
+	)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override(
@@ -174,7 +218,9 @@ func _build_ui() -> void:
 		"margin_bottom",
 		14
 	)
-	panel.add_child(margin)
+	panel.add_child(
+		margin
+	)
 
 	var root := VBoxContainer.new()
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -183,10 +229,14 @@ func _build_ui() -> void:
 		"separation",
 		10
 	)
-	margin.add_child(root)
+	margin.add_child(
+		root
+	)
 
 	var header := HBoxContainer.new()
-	root.add_child(header)
+	root.add_child(
+		header
+	)
 
 	var title := Label.new()
 	title.text = "GIẢI TRÍ"
@@ -196,7 +246,9 @@ func _build_ui() -> void:
 		"font_size",
 		19
 	)
-	header.add_child(title)
+	header.add_child(
+		title
+	)
 
 	var close := Button.new()
 	close.text = "×"
@@ -208,27 +260,46 @@ func _build_ui() -> void:
 	close.pressed.connect(
 		close_hub
 	)
-	header.add_child(close)
+	header.add_child(
+		close
+	)
 
 	var body := Control.new()
 	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(body)
+	root.add_child(
+		body
+	)
 
-	_build_hub_screen(body)
-	_build_caro_activity(body)
-	_build_maze_activity(body)
+	_build_hub_screen(
+		body
+	)
+	_build_caro_activity(
+		body
+	)
+	_build_maze_activity(
+		body
+	)
+	_build_snake_activity(
+		body
+	)
 
 
-func _build_hub_screen(parent: Control) -> void:
+func _build_hub_screen(
+	parent: Control
+) -> void:
 	_hub_screen = Control.new()
-	parent.add_child(_hub_screen)
+	parent.add_child(
+		_hub_screen
+	)
 	_hub_screen.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
 
 	var root := VBoxContainer.new()
-	_hub_screen.add_child(root)
+	_hub_screen.add_child(
+		root
+	)
 	root.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
@@ -251,7 +322,9 @@ func _build_hub_screen(parent: Control) -> void:
 			Color.WHITE
 		)
 	)
-	root.add_child(intro)
+	root.add_child(
+		intro
+	)
 
 	var game_label := Label.new()
 	game_label.text = "TRÒ CHƠI"
@@ -266,7 +339,9 @@ func _build_hub_screen(parent: Control) -> void:
 			Color.WHITE
 		)
 	)
-	root.add_child(game_label)
+	root.add_child(
+		game_label
+	)
 
 	var grid := GridContainer.new()
 	grid.columns = 2
@@ -279,7 +354,9 @@ func _build_hub_screen(parent: Control) -> void:
 		"v_separation",
 		8
 	)
-	root.add_child(grid)
+	root.add_child(
+		grid
+	)
 
 	grid.add_child(
 		_activity_card(
@@ -298,46 +375,22 @@ func _build_hub_screen(parent: Control) -> void:
 		_open_maze,
 		"◆"
 	)
-	grid.add_child(_maze_card)
+	grid.add_child(
+		_maze_card
+	)
 
-	var more_label := Label.new()
-	more_label.text = "HOẠT ĐỘNG KHÁC"
-	more_label.add_theme_font_size_override(
-		"font_size",
-		11
+	_snake_card = _activity_card(
+		"Snake Hunt",
+		"Mở ở Stage 2",
+		false,
+		_open_snake,
+		"●"
 	)
-	more_label.add_theme_color_override(
-		"font_color",
-		palette.get(
-			"muted",
-			Color.WHITE
-		)
+	grid.add_child(
+		_snake_card
 	)
-	root.add_child(more_label)
 
-	var more_grid := GridContainer.new()
-	more_grid.columns = 2
-	more_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	more_grid.add_theme_constant_override(
-		"h_separation",
-		8
-	)
-	more_grid.add_theme_constant_override(
-		"v_separation",
-		8
-	)
-	root.add_child(more_grid)
-
-	more_grid.add_child(
-		_activity_card(
-			"Sắp mở",
-			"Hoạt động mới",
-			false,
-			Callable(),
-			"＋"
-		)
-	)
-	more_grid.add_child(
+	grid.add_child(
 		_activity_card(
 			"Sắp mở",
 			"Hoạt động mới",
@@ -349,7 +402,9 @@ func _build_hub_screen(parent: Control) -> void:
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(spacer)
+	root.add_child(
+		spacer
+	)
 
 	_reward_label = Label.new()
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -365,13 +420,19 @@ func _build_hub_screen(parent: Control) -> void:
 			Color.WHITE
 		)
 	)
-	root.add_child(_reward_label)
+	root.add_child(
+		_reward_label
+	)
 
 
-func _build_caro_activity(parent: Control) -> void:
+func _build_caro_activity(
+	parent: Control
+) -> void:
 	_caro_activity = CaroActivityScript.new()
 	_caro_activity.palette = palette
-	parent.add_child(_caro_activity)
+	parent.add_child(
+		_caro_activity
+	)
 	_caro_activity.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
@@ -387,10 +448,14 @@ func _build_caro_activity(parent: Control) -> void:
 	)
 
 
-func _build_maze_activity(parent: Control) -> void:
+func _build_maze_activity(
+	parent: Control
+) -> void:
 	_maze_activity = MazeHuntActivityScript.new()
 	_maze_activity.palette = palette
-	parent.add_child(_maze_activity)
+	parent.add_child(
+		_maze_activity
+	)
 	_maze_activity.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
@@ -402,6 +467,29 @@ func _build_maze_activity(parent: Control) -> void:
 		_show_hub_screen
 	)
 	_maze_activity.match_finished.connect(
+		_on_match_finished
+	)
+
+
+func _build_snake_activity(
+	parent: Control
+) -> void:
+	_snake_activity = SnakeHuntActivityScript.new()
+	_snake_activity.palette = palette
+	parent.add_child(
+		_snake_activity
+	)
+	_snake_activity.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_snake_activity.visible = false
+	_snake_activity.reward_requested.connect(
+		_on_snake_reward_requested
+	)
+	_snake_activity.back_requested.connect(
+		_show_hub_screen
+	)
+	_snake_activity.match_finished.connect(
 		_on_match_finished
 	)
 
@@ -454,7 +542,9 @@ func _activity_card(
 		"separation",
 		4
 	)
-	button.add_child(content)
+	button.add_child(
+		content
+	)
 
 	var icon := Label.new()
 	icon.text = icon_text
@@ -470,7 +560,9 @@ func _activity_card(
 			Color.WHITE
 		)
 	)
-	content.add_child(icon)
+	content.add_child(
+		icon
+	)
 
 	var title := Label.new()
 	title.text = title_text
@@ -479,7 +571,9 @@ func _activity_card(
 		"font_size",
 		12
 	)
-	content.add_child(title)
+	content.add_child(
+		title
+	)
 
 	var subtitle := Label.new()
 	subtitle.text = subtitle_text
@@ -495,7 +589,9 @@ func _activity_card(
 			Color.WHITE
 		)
 	)
-	content.add_child(subtitle)
+	content.add_child(
+		subtitle
+	)
 	button.set_meta(
 		"subtitle_label",
 		subtitle
@@ -505,11 +601,10 @@ func _activity_card(
 
 
 func _open_caro() -> void:
+	_hide_activities()
+
 	if _hub_screen != null:
 		_hub_screen.visible = false
-
-	if _maze_activity != null:
-		_maze_activity.close_activity()
 
 	if _caro_activity != null:
 		_caro_activity.set_reward_status(
@@ -524,32 +619,56 @@ func _open_maze() -> void:
 	if _stage_index < 2:
 		return
 
+	_hide_activities()
+
 	if _hub_screen != null:
 		_hub_screen.visible = false
 
-	if _caro_activity != null:
-		_caro_activity.close_activity()
-
 	if _maze_activity != null:
 		_maze_activity.set_reward_status(
-			_maze_reward_claimed,
-			_maze_reward_max,
-			_maze_reward_enabled
+			_stage2_reward_claimed,
+			_stage2_reward_max,
+			_stage2_reward_enabled
 		)
 		_maze_activity.open_activity()
 
 
+func _open_snake() -> void:
+	if _stage_index < 2:
+		return
+
+	_hide_activities()
+
+	if _hub_screen != null:
+		_hub_screen.visible = false
+
+	if _snake_activity != null:
+		_snake_activity.set_reward_status(
+			_stage2_reward_claimed,
+			_stage2_reward_max,
+			_stage2_reward_enabled
+		)
+		_snake_activity.open_activity()
+
+
 func _show_hub_screen() -> void:
+	_hide_activities()
+
+	if _hub_screen != null:
+		_hub_screen.visible = true
+
+	_sync_reward_state()
+
+
+func _hide_activities() -> void:
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
 	if _maze_activity != null:
 		_maze_activity.close_activity()
 
-	if _hub_screen != null:
-		_hub_screen.visible = true
-
-	_sync_reward_state()
+	if _snake_activity != null:
+		_snake_activity.close_activity()
 
 
 func _sync_reward_state() -> void:
@@ -560,33 +679,54 @@ func _sync_reward_state() -> void:
 			_caro_reward_enabled
 		)
 
-	if _maze_activity != null:
-		_maze_activity.set_reward_status(
-			_maze_reward_claimed,
-			_maze_reward_max,
-			_maze_reward_enabled
-		)
-
-	if _maze_card != null:
-		var unlocked := _stage_index >= 2
-		_maze_card.disabled = not unlocked
-		_maze_card.mouse_default_cursor_shape = (
-			Control.CURSOR_POINTING_HAND
-			if unlocked
-			else Control.CURSOR_ARROW
-		)
-		var subtitle = _maze_card.get_meta(
-			"subtitle_label",
-			null
-		)
-		if subtitle is Label:
-			subtitle.text = (
-				"Chạy mê cung cùng pet"
-				if unlocked
-				else "Mở ở Stage 2"
+	for activity in [
+		_maze_activity,
+		_snake_activity,
+	]:
+		if activity != null:
+			activity.set_reward_status(
+				_stage2_reward_claimed,
+				_stage2_reward_max,
+				_stage2_reward_enabled
 			)
 
+	_sync_stage2_card(
+		_maze_card,
+		"Chạy mê cung cùng pet"
+	)
+	_sync_stage2_card(
+		_snake_card,
+		"Rắn săn mồi"
+	)
 	_update_hub_reward_label()
+
+
+func _sync_stage2_card(
+	card: Button,
+	unlocked_text: String
+) -> void:
+	if card == null:
+		return
+
+	var unlocked := _stage_index >= 2
+	card.disabled = not unlocked
+	card.mouse_default_cursor_shape = (
+		Control.CURSOR_POINTING_HAND
+		if unlocked
+		else Control.CURSOR_ARROW
+	)
+
+	var subtitle = card.get_meta(
+		"subtitle_label",
+		null
+	)
+
+	if subtitle is Label:
+		subtitle.text = (
+			unlocked_text
+			if unlocked
+			else "Mở ở Stage 2"
+		)
 
 
 func _update_hub_reward_label() -> void:
@@ -615,26 +755,24 @@ func _update_hub_reward_label() -> void:
 
 	if _stage_index < 2:
 		lines.append(
-			"Maze Hunt: khóa • mở khi đạt Stage 2"
+			"Maze + Snake: khóa • mở khi đạt Stage 2"
+		)
+	elif _stage2_reward_enabled:
+		lines.append(
+			"Stage 2: Rương Hoạt động chung %d/%d"
+			% [
+				clampi(
+					_stage2_reward_claimed,
+					0,
+					_stage2_reward_max
+				),
+				_stage2_reward_max,
+			]
 		)
 	else:
-		var maze_claimed := clampi(
-			_maze_reward_claimed,
-			0,
-			_maze_reward_max
+		lines.append(
+			"Maze + Snake: chơi tự do • rương chỉ phát trong Stage 2"
 		)
-		if _maze_reward_enabled:
-			lines.append(
-				"Maze Hunt: Rương Hoạt động %d/%d"
-				% [
-					maze_claimed,
-					_maze_reward_max,
-				]
-			)
-		else:
-			lines.append(
-				"Maze Hunt: đã mở • rương chỉ phát trong Stage 2"
-			)
 
 	_reward_label.text = "\n".join(
 		lines
@@ -649,6 +787,14 @@ func _on_maze_reward_requested(
 	score: int
 ) -> void:
 	maze_reward_requested.emit(
+		score
+	)
+
+
+func _on_snake_reward_requested(
+	score: int
+) -> void:
+	snake_reward_requested.emit(
 		score
 	)
 
