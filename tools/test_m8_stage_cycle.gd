@@ -25,6 +25,7 @@ func check(
 
 func run() -> void:
 	_test_stage_lifecycle()
+	_test_stage_item_contract()
 	_test_evolution_two_and_three()
 
 	print(
@@ -244,6 +245,64 @@ func _test_stage_lifecycle() -> void:
 		),
 		"final form has no M8 growth timer"
 	)
+
+
+func _test_stage_item_contract() -> void:
+	SaveManager.delete_meta()
+
+	var game := InfantGameFacade.new()
+	check(
+		game.setup(
+			600,
+			2
+		),
+		"stage 2 facade setup"
+	)
+
+	var rewards := game.open_next_chest()
+	var growth_item: Dictionary = {}
+
+	for item in rewards:
+		var item_type := StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		)
+
+		if (
+			item_type == ItemGenerator.TYPE_FOOD
+			or item_type == ItemGenerator.TYPE_GROWTH
+		):
+			growth_item = item
+			break
+
+	check(
+		not growth_item.is_empty(),
+		"stage item fixture exists"
+	)
+
+	if not growth_item.is_empty():
+		check(
+			game.can_use_item(
+				growth_item
+			),
+			"growth item usable in stage 2"
+		)
+
+	game.advance_to_stage(
+		4
+	)
+
+	if not growth_item.is_empty():
+		check(
+			not game.can_use_item(
+				growth_item
+			),
+			"growth item locked in final form"
+		)
+
+	SaveManager.delete_meta()
 
 
 func _test_evolution_two_and_three() -> void:
