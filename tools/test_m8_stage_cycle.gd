@@ -430,7 +430,8 @@ func _test_evolution_two_and_three() -> void:
 	var service := StageEvolutionService.new()
 	var evolution_two := service.prepare({
 		"stage_index": 2,
-		"ready_to_evolve": true,
+		"ready_to_evolve": false,
+		"can_evolve": true,
 	})
 	check(
 		bool(
@@ -524,7 +525,8 @@ func _test_evolution_two_and_three() -> void:
 		StageEvolutionService.new()
 		.prepare({
 			"stage_index": 3,
-			"ready_to_evolve": true,
+			"ready_to_evolve": false,
+			"can_evolve": true,
 		})
 	)
 	check(
