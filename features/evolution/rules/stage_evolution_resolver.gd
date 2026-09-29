@@ -64,25 +64,14 @@ func resolve(
 			"GeneDevelopmentState không hợp lệ theo StageGenePolicy."
 		)
 
-	if genome.stage() != 1:
-		return {
-			"ok": false,
-			"mode": String(
-				MODE_GENE
-			),
-			"error": (
-				"Gene Expression policy của Stage này chưa được khóa."
-			),
-			"requires_stage_expression_policy": true,
-		}
-
 	var candidates := _valid_candidates(
+		genome,
 		gene_state
 	)
 
 	if candidates.is_empty():
 		return _error(
-			"Không có Gene Expression candidate hợp lệ."
+			"Không có Gene Expression candidate hợp lệ cho phenotype hiện tại."
 		)
 
 	var selected := _weighted_pick(
@@ -120,32 +109,26 @@ func resolve(
 			)
 		)
 	)
+	var resolved_trait := _normalize_token(
+		StringName(
+			selected.get(
+				"resolved_trait",
+				""
+			)
+		)
+	)
 	var current_trait := genome.get_trait(
 		locus,
 		PetGenomeSchema.BASE_TRAIT
 	)
 
-	if current_trait == direction:
-		return {
-			"ok": false,
-			"mode": String(
-				MODE_GENE
-			),
-			"error": (
-				"Gene direction đã biểu hiện. "
-				+ "Cần expression chain của Stage sau trước khi reinforce."
-			),
-			"requires_expression_chain": true,
-			"selected_gene_id": String(
-				gene_id
-			),
-			"selected_locus": String(
-				locus
-			),
-			"selected_direction": String(
-				direction
-			),
-		}
+	if (
+		String(resolved_trait).is_empty()
+		or resolved_trait == current_trait
+	):
+		return _error(
+			"Gene Expression không tạo được trait kế tiếp."
+		)
 
 	var delta_id := StringName(
 		"gene_expr_%s_s%d"
@@ -159,7 +142,7 @@ func resolve(
 		delta_id,
 		locus,
 		current_trait,
-		direction,
+		resolved_trait,
 		genome.mutation_ids().size()
 			+ 1
 	)
@@ -195,12 +178,28 @@ func resolve(
 		"selected_direction": String(
 			direction
 		),
+		"resolved_trait": String(
+			resolved_trait
+		),
+		"reinforced": bool(
+			selected.get(
+				"reinforced",
+				false
+			)
+		),
 		"selected_item_uid": String(
 			selected.get(
 				"item_uid",
 				""
 			)
 		),
+		"selected_item_uids": (
+			selected.get(
+				"item_uids",
+				[]
+			) as Array
+		).duplicate(true),
+		"candidate_count": candidates.size(),
 		"primary_influence": float(
 			selected.get(
 				"influence",
@@ -243,7 +242,11 @@ func _natural_resolution(
 		"selected_gene_id": "",
 		"selected_locus": "",
 		"selected_direction": "",
+		"resolved_trait": "",
+		"reinforced": false,
 		"selected_item_uid": "",
+		"selected_item_uids": [],
+		"candidate_count": 0,
 		"primary_influence": 0.0,
 		"gene_influences": {},
 		"tag_influences": {},
@@ -253,9 +256,12 @@ func _natural_resolution(
 
 
 func _valid_candidates(
+	genome: PetGenome,
 	gene_state: GeneDevelopmentState
 ) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+	var grouped: Dictionary = {}
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
 
 	for raw in gene_state.gene_items_snapshot():
 		var gene_id := _normalize_token(
@@ -288,34 +294,105 @@ func _valid_candidates(
 				0.0
 			)
 		)
+		var definition := catalog.find_by_id(
+			definitions,
+			gene_id
+		)
 
 		if (
-			String(gene_id).is_empty()
-			or not PetGenomeSchema.is_visual_locus(
-				locus
-			)
-			or String(direction).is_empty()
-			or direction
-				== PetGenomeSchema.BASE_TRAIT
+			definition == null
+			or definition.locus() != locus
+			or definition.direction() != direction
 			or influence <= 0.0
 		):
 			continue
 
-		var candidate := raw.duplicate(
-			true
+		var current_trait := genome.get_trait(
+			locus,
+			PetGenomeSchema.BASE_TRAIT
 		)
-		candidate["gene_id"] = String(
-			gene_id
+		var resolved_trait := definition.next_expression(
+			current_trait
 		)
-		candidate["locus"] = String(
-			locus
+
+		if (
+			String(resolved_trait).is_empty()
+			or resolved_trait == current_trait
+		):
+			continue
+
+		var key := (
+			String(gene_id)
+			+ "|"
+			+ String(locus)
+			+ "|"
+			+ String(resolved_trait)
 		)
-		candidate["direction"] = String(
-			direction
+		var candidate: Dictionary = grouped.get(
+			key,
+			{}
 		)
-		candidate["influence"] = influence
+
+		if candidate.is_empty():
+			candidate = {
+				"gene_id": String(gene_id),
+				"locus": String(locus),
+				"direction": String(direction),
+				"resolved_trait": String(
+					resolved_trait
+				),
+				"reinforced": definition.reinforces(
+					current_trait
+				),
+				"influence": 0.0,
+				"item_uid": "",
+				"item_uids": [],
+			}
+
+		candidate["influence"] = float(
+			candidate.get(
+				"influence",
+				0.0
+			)
+		) + influence
+
+		var item_uid := String(
+			raw.get(
+				"item_uid",
+				""
+			)
+		)
+		var item_uids: Array = candidate.get(
+			"item_uids",
+			[]
+		)
+
+		if (
+			not item_uid.is_empty()
+			and not item_uids.has(
+				item_uid
+			)
+		):
+			item_uids.append(
+				item_uid
+			)
+
+		item_uids.sort()
+		candidate["item_uids"] = item_uids
+		candidate["item_uid"] = (
+			String(item_uids[0])
+			if not item_uids.is_empty()
+			else ""
+		)
+		grouped[key] = candidate
+
+	var result: Array[Dictionary] = []
+
+	for value in grouped.values():
 		result.append(
-			candidate
+			(value as Dictionary).duplicate(
+				true
+			)
 		)
 
 	result.sort_custom(
@@ -397,6 +474,10 @@ func _selection_seed(
 	)
 
 	for candidate in candidates:
+		var item_uids: Array = candidate.get(
+			"item_uids",
+			[]
+		)
 		value = _mix(
 			value,
 			_stable_string_hash(
@@ -424,9 +505,13 @@ func _selection_seed(
 					+ "|"
 					+ String(
 						candidate.get(
-							"item_uid",
+							"resolved_trait",
 							""
 						)
+					)
+					+ "|"
+					+ ",".join(
+						item_uids
 					)
 				)
 			)
@@ -489,6 +574,13 @@ func _sort_candidate(
 	var a_key := (
 		String(
 			a.get(
+				"locus",
+				""
+			)
+		)
+		+ "|"
+		+ String(
+			a.get(
 				"gene_id",
 				""
 			)
@@ -496,13 +588,20 @@ func _sort_candidate(
 		+ "|"
 		+ String(
 			a.get(
-				"item_uid",
+				"resolved_trait",
 				""
 			)
 		)
 	)
 	var b_key := (
 		String(
+			b.get(
+				"locus",
+				""
+			)
+		)
+		+ "|"
+		+ String(
 			b.get(
 				"gene_id",
 				""
@@ -511,7 +610,7 @@ func _sort_candidate(
 		+ "|"
 		+ String(
 			b.get(
-				"item_uid",
+				"resolved_trait",
 				""
 			)
 		)
