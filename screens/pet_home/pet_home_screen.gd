@@ -37,7 +37,7 @@ var _section_body: VBoxContainer
 
 
 func _ready() -> void:
-	set_anchors_preset(
+	set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -837,11 +837,17 @@ func _setup_gameplay() -> void:
 	_hud.palette = _theme
 	_hud.dialogs_only = true
 	add_child(_hud)
+	_hud.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
 	_hud.bind(_game)
 	_hud.item_use_requested.connect(_use_item)
 	_hub = EntertainmentHubUI.new()
 	_hub.palette = _theme
 	add_child(_hub)
+	_hub.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
 	_hub.caro_win_reward_requested.connect(_reward)
 	_refresh_gameplay()
 
