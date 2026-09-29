@@ -30,3 +30,11 @@ Before a Stage 1 render request can be reused or committed, StageEvolutionPlanVa
 - Gene delta, target region, mutation history and Gene provenance all agree.
 
 Corrupted or tampered pending plans are rejected instead of being rendered or committed.
+
+## M9.5.4 — Compatibility and matrix checks
+
+- Legacy Stage 1 pending plans from the old random-mutation pipeline are discarded and rebuilt under M9.5 rules.
+- Legacy Stage 2/3 plans remain accepted until those stages are deliberately migrated.
+- Natural and Gene Stage 1 plans are tested through commit, not only prepare.
+- The ten Stage 1 Gene definitions are checked as a matrix: every Gene must resolve to one delta and every delta must have a curated visual definition targeting the same locus.
+- The full phenotype prompt contract is checked against all 12 Genome V1 loci.

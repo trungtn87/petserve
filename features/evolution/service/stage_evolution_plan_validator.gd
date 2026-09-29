@@ -28,8 +28,17 @@ func validate(
 		)
 	)
 
-	# Legacy M7/M8 plans remain supported until Stage 2/3 are migrated.
+	# Legacy M7/M8 plans remain supported for Stage 2/3 until migrated.
+	# Stage 1 legacy plans must be rebuilt by StageEvolutionService.
 	if schema != STAGE_ONE_SCHEMA:
+		if int(
+			pending.get(
+				"from_stage",
+				-1
+			)
+		) == 1:
+			return "Pending Stage 1 cũ phải được migrate sang schema M9.5."
+
 		return ""
 
 	var identity := PetIdentity.from_dict(

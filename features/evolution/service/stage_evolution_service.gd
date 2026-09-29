@@ -84,19 +84,39 @@ func prepare(
 				"Có pending evolution không khớp stage hiện tại."
 			)
 
-		var pending_error := _plan_validator.validate(
-			data
-		)
-
-		if not pending_error.is_empty():
-			return _error(
-				pending_error
+		if (
+			current_stage == STAGE_ONE
+			and int(
+				existing.get(
+					"schema",
+					0
+				)
+			) != PENDING_SCHEMA
+		):
+			data.erase(
+				"pending_evolution"
 			)
 
-		return {
-			"ok": true,
-			"data": data,
-		}
+			if not _save.save_data(
+				data
+			):
+				return _error(
+					"Không migrate được pending Stage 1 cũ."
+				)
+		else:
+			var pending_error := _plan_validator.validate(
+				data
+			)
+
+			if not pending_error.is_empty():
+				return _error(
+					pending_error
+				)
+
+			return {
+				"ok": true,
+				"data": data,
+			}
 
 	var source_visual := PetVisualRecord.from_dict(
 		data.get(

@@ -9,6 +9,8 @@ func _initialize() -> void:
 	_test_gene_stage_one_plan()
 	_test_gene_details_cannot_be_silently_dropped()
 	_test_tampered_plan_is_rejected()
+	_test_legacy_stage_one_pending_is_rebuilt()
+	_test_stage_one_gene_visual_matrix()
 	_cleanup()
 
 	if _failures == 0:
@@ -164,6 +166,70 @@ func _test_natural_stage_one_plan() -> void:
 			== first_request,
 		"Pending Natural plan must be byte-stable across retry"
 	)
+
+	if retry_request != null:
+		var image_path := String(
+			(
+				data.get(
+					"current_visual",
+					{}
+				) as Dictionary
+			).get(
+				"image_path",
+				""
+			)
+		)
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{}
+				)
+			),
+			"Natural Stage 1 result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+		var current_visual: Dictionary = committed.get(
+			"current_visual",
+			{}
+		)
+		var history: Array = committed.get(
+			"evolution_history",
+			[]
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 2
+			and not committed.has(
+				"pending_evolution"
+			)
+			and String(
+				current_visual.get(
+					"mutation_id",
+					""
+				)
+			).is_empty()
+			and history.size() == 1
+			and String(
+				(
+					history[0] as Dictionary
+				).get(
+					"resolution_mode",
+					""
+				)
+			) == "natural",
+			"Natural commit must advance stage without inventing mutation"
+		)
 
 
 func _test_gene_stage_one_plan() -> void:
@@ -331,6 +397,71 @@ func _test_gene_stage_one_plan() -> void:
 		"Pending plan must preserve Gene provenance and hidden influence"
 	)
 
+	if request != null:
+		var image_path := String(
+			(
+				data.get(
+					"current_visual",
+					{}
+				) as Dictionary
+			).get(
+				"image_path",
+				""
+			)
+		)
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{}
+				)
+			),
+			"Gene Stage 1 result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+		var current_visual: Dictionary = committed.get(
+			"current_visual",
+			{}
+		)
+		var history: Array = committed.get(
+			"evolution_history",
+			[]
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 2
+			and committed_genome.get_trait(
+				&"tail",
+				&"base"
+			) == &"long"
+			and String(
+				current_visual.get(
+					"mutation_id",
+					""
+				)
+			) == "gene_expr_tail_long_s1"
+			and history.size() == 1
+			and String(
+				(
+					history[0] as Dictionary
+				).get(
+					"resolution_mode",
+					""
+				)
+			) == "gene",
+			"Gene commit must advance Stage 2 with the resolved phenotype"
+		)
+
 
 func _test_gene_details_cannot_be_silently_dropped() -> void:
 	_cleanup()
@@ -430,6 +561,166 @@ func _test_tampered_plan_is_rejected() -> void:
 		).is_empty(),
 		"plan validator must explain a tampered Stage 1 plan"
 	)
+
+
+func _test_legacy_stage_one_pending_is_rebuilt() -> void:
+	_cleanup()
+	if not _save_stage_one_fixture(
+		9505
+	):
+		return
+
+	var save := EvolutionSaveService.new()
+	var data := save.load_data()
+	data["pending_evolution"] = {
+		"schema": 3,
+		"from_stage": 1,
+		"to_stage": 2,
+	}
+	_expect(
+		save.save_data(
+			data
+		),
+		"save legacy Stage 1 pending fixture"
+	)
+
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var result := StageEvolutionService.new().prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	var pending: Dictionary = (
+		result.get(
+			"data",
+			{}
+		) as Dictionary
+	).get(
+		"pending_evolution",
+		{}
+	)
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and int(
+			pending.get(
+				"schema",
+				0
+			)
+		) == StageEvolutionService.PENDING_SCHEMA
+		and String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "natural",
+		"legacy Stage 1 pending must be discarded and rebuilt under M9.5 rules"
+	)
+
+
+func _test_stage_one_gene_visual_matrix() -> void:
+	var identity := PetIdentityFactory.new().create_initial(
+		9510,
+		&"dark"
+	)
+	var genome := PetGenomeFactory.new().create_initial()
+	var policy := StageGenePolicy.load_default()
+	var genes := GeneCatalog.new().load_default()
+	var visuals := MutationVisualCatalog.new().load_default()
+
+	_expect(
+		genes.size() == 10,
+		"Stage 1 Gene matrix fixture must contain 10 definitions"
+	)
+
+	for definition in genes:
+		var state := GeneDevelopmentState.new(
+			1
+		)
+		var recorded := state.record_gene_item(
+			policy,
+			"matrix_%s"
+			% String(
+				definition.id()
+			),
+			definition.id(),
+			definition.locus(),
+			definition.direction(),
+			definition.primary_influence(),
+			definition.influence_tags()
+		)
+		var resolved := StageEvolutionResolver.new().resolve(
+			identity,
+			genome,
+			state
+		)
+		var delta := resolved.get(
+			"delta"
+		) as EvolutionDelta
+
+		_expect(
+			bool(
+				recorded.get(
+					"ok",
+					false
+				)
+			)
+			and bool(
+				resolved.get(
+					"ok",
+					false
+				)
+			)
+			and delta != null,
+			"every Stage 1 Gene must resolve: %s"
+			% String(
+				definition.id()
+			)
+		)
+
+		if delta == null:
+			continue
+
+		var visual := MutationVisualCatalog.new().find_by_id(
+			visuals,
+			delta.mutation_id()
+		)
+
+		_expect(
+			visual != null
+			and visual.target_region()
+				== definition.locus(),
+			"every Stage 1 Gene delta must have a curated matching visual: %s"
+			% String(
+				definition.id()
+			)
+		)
+
+	var phenotype_text := PhenotypePromptBuilder.new().describe(
+		genome
+	)
+
+	for locus in PetGenomeSchema.VISUAL_LOCI:
+		_expect(
+			phenotype_text.contains(
+				String(locus)
+				+ "=base"
+			),
+			"full phenotype prompt must include locus: %s"
+			% String(locus)
+		)
 
 
 func _save_stage_one_fixture(
