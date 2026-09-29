@@ -33,6 +33,8 @@ var _time_left: float = ROUND_SECONDS
 var _score: int = 0
 var _food_eaten: int = 0
 var _result: StringName = RESULT_PLAYING
+var _match_sequence: int = 0
+var _match_id: String = ""
 
 
 func _init() -> void:
@@ -41,6 +43,21 @@ func _init() -> void:
 
 
 func reset() -> void:
+	_match_sequence += 1
+	_match_id = (
+		"snake_%s_%s_%s"
+		% [
+			str(
+				Time.get_unix_time_from_system()
+			),
+			str(
+				Time.get_ticks_usec()
+			),
+			str(
+				_match_sequence
+			),
+		]
+	)
 	_snake = [
 		Vector2i(7, 9),
 		Vector2i(6, 9),
@@ -91,6 +108,10 @@ func request_direction(direction: Vector2i) -> void:
 
 func result() -> StringName:
 	return _result
+
+
+func match_id() -> String:
+	return _match_id
 
 
 func score() -> int:
@@ -147,6 +168,7 @@ func reward_tier() -> int:
 
 func snapshot() -> Dictionary:
 	return {
+		"match_id": _match_id,
 		"result": String(_result),
 		"score": _score,
 		"food_eaten": _food_eaten,
