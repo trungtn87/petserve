@@ -52,6 +52,30 @@ func resolve(
 			genome
 		)
 
+	var policy := StageGenePolicy.load_default()
+
+	if (
+		policy == null
+		or not gene_state.is_valid(
+			policy
+		)
+	):
+		return _error(
+			"GeneDevelopmentState không hợp lệ theo StageGenePolicy."
+		)
+
+	if genome.stage() != 1:
+		return {
+			"ok": false,
+			"mode": String(
+				MODE_GENE
+			),
+			"error": (
+				"Gene Expression policy của Stage này chưa được khóa."
+			),
+			"requires_stage_expression_policy": true,
+		}
+
 	var candidates := _valid_candidates(
 		gene_state
 	)

@@ -10,7 +10,7 @@ var _failures: int = 0
 func _initialize() -> void:
 	_test_natural_growth()
 	_test_stage_one_gene_expression()
-	_test_multiple_gene_choice_is_deterministic()
+	_test_later_stage_gene_waits_for_stage_policy()
 	_test_stage_mismatch_is_rejected()
 	_test_reinforcement_waits_for_expression_chain()
 
@@ -191,7 +191,7 @@ func _test_stage_one_gene_expression() -> void:
 	)
 
 
-func _test_multiple_gene_choice_is_deterministic() -> void:
+func _test_later_stage_gene_waits_for_stage_policy() -> void:
 	var identity := _identity()
 	var initial := PetGenomeFactory.new().create_initial()
 	var genome := PetGenomeFactory.new().create_snapshot(
@@ -214,67 +214,27 @@ func _test_multiple_gene_choice_is_deterministic() -> void:
 		12.0,
 		{}
 	)
-	state.record_gene_item(
-		policy,
-		"gene_mark_fixture",
-		&"mark_moon",
-		&"mark",
-		&"moon",
-		18.0,
-		{}
-	)
 
-	var engine := StageEvolutionResolver.new()
-	var first := engine.resolve(
+	var result := StageEvolutionResolver.new().resolve(
 		identity,
 		genome,
 		state
 	)
-	var second := engine.resolve(
-		identity,
-		genome,
-		state
-	)
-	var first_delta := first.get(
-		"delta"
-	) as EvolutionDelta
-	var second_delta := second.get(
-		"delta"
-	) as EvolutionDelta
 
 	_expect(
-		bool(
-			first.get(
+		not bool(
+			result.get(
 				"ok",
 				false
 			)
 		)
 		and bool(
-			second.get(
-				"ok",
+			result.get(
+				"requires_stage_expression_policy",
 				false
 			)
-		)
-		and first_delta != null
-		and second_delta != null
-		and first_delta.mutation_id()
-			== second_delta.mutation_id(),
-		"same identity + genome + Gene inputs must resolve deterministically"
-	)
-
-	if first_delta == null:
-		return
-
-	var changed := first.get(
-		"genome"
-	) as PetGenome
-	_expect(
-		changed != null
-		and _changed_visual_loci(
-			genome,
-			changed
-		) == 1,
-		"one evolution resolution may express only one visual locus"
+		),
+		"Stage 2/3 Gene expression must wait for their own locked Stage policy"
 	)
 
 
@@ -356,25 +316,6 @@ func _test_reinforcement_waits_for_expression_chain() -> void:
 		),
 		"reinforcing an expressed direction must wait for an explicit Stage expression chain"
 	)
-
-
-func _changed_visual_loci(
-	before: PetGenome,
-	after: PetGenome
-) -> int:
-	var count := 0
-
-	for locus in PetGenomeSchema.VISUAL_LOCI:
-		if before.get_trait(
-			locus,
-			PetGenomeSchema.BASE_TRAIT
-		) != after.get_trait(
-			locus,
-			PetGenomeSchema.BASE_TRAIT
-		):
-			count += 1
-
-	return count
 
 
 func _identity() -> PetIdentity:
