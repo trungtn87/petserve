@@ -8,6 +8,7 @@ func _initialize() -> void:
 	_test_natural_stage_one_plan()
 	_test_gene_stage_one_plan()
 	_test_gene_details_cannot_be_silently_dropped()
+	_test_tampered_plan_is_rejected()
 	_cleanup()
 
 	if _failures == 0:
@@ -361,6 +362,73 @@ func _test_gene_details_cannot_be_silently_dropped() -> void:
 			"thiếu GeneDevelopmentState"
 		),
 		"used Gene input must never silently fall back to Natural Growth"
+	)
+
+
+func _test_tampered_plan_is_rejected() -> void:
+	_cleanup()
+	if not _save_stage_one_fixture(
+		9504
+	):
+		return
+
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		_expect(
+			false,
+			"tamper fixture must prepare"
+		)
+		return
+
+	var tampered: Dictionary = (
+		prepared.get(
+			"data",
+			{}
+		) as Dictionary
+	).duplicate(true)
+	var pending: Dictionary = tampered.get(
+		"pending_evolution",
+		{}
+	)
+	var target: Dictionary = pending.get(
+		"target_phenotype",
+		{}
+	)
+	target["tail"] = "hacked_tail"
+	pending["target_phenotype"] = target
+	tampered["pending_evolution"] = pending
+
+	_expect(
+		service.build_request(
+			tampered
+		) == null,
+		"tampered phenotype must invalidate the persisted render plan"
+	)
+
+	var validator := StageEvolutionPlanValidator.new()
+	_expect(
+		not validator.validate(
+			tampered
+		).is_empty(),
+		"plan validator must explain a tampered Stage 1 plan"
 	)
 
 

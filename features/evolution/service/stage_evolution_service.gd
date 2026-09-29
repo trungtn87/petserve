@@ -8,6 +8,7 @@ const PENDING_SCHEMA: int = 4
 
 
 var _save := EvolutionSaveService.new()
+var _plan_validator := StageEvolutionPlanValidator.new()
 
 
 func prepare(
@@ -81,6 +82,15 @@ func prepare(
 		) != current_stage:
 			return _error(
 				"Có pending evolution không khớp stage hiện tại."
+			)
+
+		var pending_error := _plan_validator.validate(
+			data
+		)
+
+		if not pending_error.is_empty():
+			return _error(
+				pending_error
 			)
 
 		return {
@@ -422,6 +432,15 @@ func _prepare_legacy_stage(
 func _persist_plan(
 	data: Dictionary
 ) -> Dictionary:
+	var pending_error := _plan_validator.validate(
+		data
+	)
+
+	if not pending_error.is_empty():
+		return _error(
+			pending_error
+		)
+
 	if not _save.save_data(
 		data
 	):
@@ -570,6 +589,11 @@ func build_request(
 	if pending.is_empty():
 		return null
 
+	if not _plan_validator.validate(
+		data
+	).is_empty():
+		return null
+
 	var request_value: Variant = pending.get(
 		"render_request",
 		{}
@@ -676,6 +700,11 @@ func commit(
 	)
 
 	if pending.is_empty():
+		return false
+
+	if not _plan_validator.validate(
+		data
+	).is_empty():
 		return false
 
 	var identity := PetIdentity.from_dict(
