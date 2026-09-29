@@ -510,17 +510,17 @@ func _normalize_phenotype_dict(
 		):
 			return {}
 
-		var trait := String(
+		var trait_id := String(
 			source.get(
 				key,
 				""
 			)
 		).strip_edges().to_lower()
 
-		if trait.is_empty():
+		if trait_id.is_empty():
 			return {}
 
-		result[key] = trait
+		result[key] = trait_id
 
 	if result.size() != PetGenomeSchema.VISUAL_LOCI.size():
 		return {}
