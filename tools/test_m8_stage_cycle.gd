@@ -592,7 +592,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v5_stage_3"
+			"_pethome_v8_stage_3"
 		),
 		"Evolution II request"
 	)
@@ -689,7 +689,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v5_stage_4"
+			"_pethome_v8_stage_4"
 		),
 		"Evolution III request"
 	)
