@@ -54,6 +54,8 @@ func setup(
 	):
 		return false
 
+	var previous_stage := _saved_stage_index()
+
 	_inventory.setup(
 		_meta
 	)
@@ -64,11 +66,22 @@ func setup(
 	_chests.ensure_hatch_chest(
 		run_id
 	)
+	_chests.ensure_daily_chest()
 	_lifecycle.setup(
 		_meta,
 		run_id,
 		_stage_index
 	)
+
+	if (
+		previous_stage >= 1
+		and _stage_index == previous_stage + 1
+	):
+		_chests.ensure_evolution_chest(
+			run_id,
+			previous_stage,
+			_stage_index
+		)
 	_setup_gene_state(
 		int(
 			_lifecycle.snapshot().get(
@@ -832,6 +845,34 @@ func _has_talent(
 			return true
 
 	return false
+
+
+func _saved_stage_index() -> int:
+	for key in [
+		"life_state",
+		"infant_state",
+	]:
+		var value: Variant = _meta.get(
+			key,
+			{}
+		)
+
+		if typeof(value) != TYPE_DICTIONARY:
+			continue
+
+		var state := value as Dictionary
+
+		if state.is_empty():
+			continue
+
+		return int(
+			state.get(
+				"stage_index",
+				1
+			)
+		)
+
+	return 0
 
 
 func _has_pending_evolution() -> bool:
