@@ -267,7 +267,7 @@ func _try_load_existing_visual() -> bool:
 	if (
 		visual == null
 		or visual.source_mode
-			!= &"initial_pethome_v6_text_to_image"
+			!= &"initial_pethome_v7_text_to_image"
 	):
 		return false
 
