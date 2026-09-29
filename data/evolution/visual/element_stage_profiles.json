@@ -36,16 +36,16 @@
   },
   {
     "element": "dark",
-    "stage_1_face": "Give the infant a narrow expressive feline face, slightly longer pointed ears, deeper eye sockets with elegant eye corners, soft shadow-like cheek tufts and a small crescent forehead sigil. The face must read as Dark even in grayscale.",
+    "stage_1_face": "Give the infant a narrow expressive feline face, slightly longer pointed ears, deeper eye sockets with elegant eye corners, soft shadow-like cheek tufts and a small crescent forehead sigil. The face must read as Umbral (Ám) even in grayscale.",
     "stage_2_morphology": "Carry forward the narrow expressive face, pointed ear language, deep elegant eye shape and crescent forehead sigil established in Stage 1. Develop a lean elongated quadruped silhouette with a lower sleek torso, longer graceful legs, sharper shoulder fur, longer pointed ears and a long controlled shadow-plume tail. Keep the pet fully feline, four-legged and naturally grounded.",
-    "stage_3_detail": "Add restrained Dark lineage detail across existing surfaces: shadow-gradient fur breaks, crescent and orchid-like markings, soft mist hugging the tail and low-contrast rune traces. Preserve anatomy and avoid random spikes.",
-    "stage_4_final": "Refine the final Dark form with elegant layered shadow fur, stronger crescent geometry, mature mist ribbons close to the silhouette and a more mysterious facial presence without horns, wings or monstrous anatomy unless explicitly selected by a Gene."
+    "stage_3_detail": "Add restrained Umbral (Ám) lineage detail across existing surfaces: shadow-gradient fur breaks, crescent and orchid-like markings, soft mist hugging the tail and low-contrast rune traces. Preserve anatomy and avoid random spikes.",
+    "stage_4_final": "Refine the final Umbral (Ám) form with elegant layered shadow fur, stronger crescent geometry, mature mist ribbons close to the silhouette and a more mysterious facial presence without horns, wings or monstrous anatomy unless explicitly selected by a Gene."
   },
   {
     "element": "light",
-    "stage_1_face": "Give the infant a balanced elegant feline face, clean symmetrical cheek fur, upright graceful ears, open luminous eye shapes and a small radiant arc or halo-like forehead sigil. The facial silhouette should read as Light even in grayscale.",
+    "stage_1_face": "Give the infant a balanced elegant feline face, clean symmetrical cheek fur, upright graceful ears, open luminous eye shapes and a small radiant arc or halo-like forehead sigil. The facial silhouette should read as Radiant (Quang) even in grayscale.",
     "stage_2_morphology": "Carry forward the balanced elegant face, clean cheek fur, graceful upright ears and radiant arc forehead sigil established in Stage 1. Develop a graceful quadruped silhouette with a lifted but natural chest, longer clean legs, smooth balanced torso, elegant upright ears, feather-soft chest fur and a flowing single tail with radiant fur layering. Do not add wings or humanoid posture.",
-    "stage_3_detail": "Add refined Light lineage detail on existing surfaces: clean radiant arcs, soft halo-like markings integrated into fur, pearl edge highlights and restrained luminous accents around the chest, tail and selected mutation region.",
-    "stage_4_final": "Refine the final Light form with mature radiant fur layering, stronger elegant arc motifs, a clear luminous sigil language and controlled halo-like aura close to the body. Keep the silhouette feline and wingless unless a Gene explicitly says otherwise."
+    "stage_3_detail": "Add refined Radiant (Quang) lineage detail on existing surfaces: clean radiant arcs, soft halo-like markings integrated into fur, pearl edge highlights and restrained luminous accents around the chest, tail and selected mutation region.",
+    "stage_4_final": "Refine the final Radiant (Quang) form with mature radiant fur layering, stronger elegant arc motifs, a clear luminous sigil language and controlled halo-like aura close to the body. Keep the silhouette feline and wingless unless a Gene explicitly says otherwise."
   }
 ]
