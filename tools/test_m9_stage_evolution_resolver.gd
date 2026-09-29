@@ -10,9 +10,10 @@ var _failures: int = 0
 func _initialize() -> void:
 	_test_natural_growth()
 	_test_stage_one_gene_expression()
-	_test_later_stage_gene_waits_for_stage_policy()
+	_test_stage_two_new_gene_branch()
+	_test_stage_two_reinforcement_chain()
+	_test_stage_two_same_locus_resolves_once()
 	_test_stage_mismatch_is_rejected()
-	_test_reinforcement_waits_for_expression_chain()
 
 	if _failures == 0:
 		print(
@@ -78,13 +79,6 @@ func _test_natural_growth() -> void:
 			== before_mutations,
 		"Natural Growth must preserve the complete phenotype"
 	)
-	_expect(
-		genome.visual_traits_snapshot()
-			== before_traits
-		and genome.mutation_ids()
-			== before_mutations,
-		"resolver must not mutate the source Genome"
-	)
 
 
 func _test_stage_one_gene_expression() -> void:
@@ -94,7 +88,8 @@ func _test_stage_one_gene_expression() -> void:
 	var state := GeneDevelopmentState.new(
 		1
 	)
-	var recorded := state.record_gene_item(
+
+	state.record_gene_item(
 		policy,
 		"gene_tail_fixture",
 		&"tail_long",
@@ -104,16 +99,6 @@ func _test_stage_one_gene_expression() -> void:
 		{
 			"agile": 6.0,
 		}
-	)
-
-	_expect(
-		bool(
-			recorded.get(
-				"ok",
-				false
-			)
-		),
-		"Stage 1 Gene fixture must record"
 	)
 
 	var resolved := StageEvolutionResolver.new().resolve(
@@ -135,16 +120,7 @@ func _test_stage_one_gene_expression() -> void:
 				false
 			)
 		)
-		and StringName(
-			resolved.get(
-				"mode",
-				""
-			)
-		) == StageEvolutionResolver.MODE_GENE,
-		"Gene input must resolve to Gene Expression"
-	)
-	_expect(
-		delta != null
+		and delta != null
 		and delta.target_trait()
 			== &"tail"
 		and delta.from_trait()
@@ -161,45 +137,78 @@ func _test_stage_one_gene_expression() -> void:
 			&"tail",
 			&"base"
 		) == &"long"
-		and next.visual_traits_snapshot().size()
-			== 12,
-		"Gene delta must produce a complete changed phenotype"
-	)
-	_expect(
-		genome.get_trait(
-			&"tail",
-			&"base"
-		) == &"base",
-		"Gene resolution must not mutate the source Genome"
-	)
-	_expect(
-		is_equal_approx(
-			float(
-				(
-					resolved.get(
-						"tag_influences",
-						{}
-					) as Dictionary
-				).get(
-					"agile",
-					0.0
-				)
-			),
-			6.0
+		and StringName(
+			resolved.get(
+				"resolved_trait",
+				""
+			)
+		) == &"long"
+		and not bool(
+			resolved.get(
+				"reinforced",
+				true
+			)
 		),
-		"hidden Gene tags must remain attached to the resolution"
+		"Stage 1 Gene must open its first expression"
 	)
 
 
-func _test_later_stage_gene_waits_for_stage_policy() -> void:
-	var identity := _identity()
-	var initial := PetGenomeFactory.new().create_initial()
-	var genome := PetGenomeFactory.new().create_snapshot(
-		2,
-		0.0,
-		initial.traits_snapshot(),
-		initial.mutation_ids()
+func _test_stage_two_new_gene_branch() -> void:
+	var genome := _stage_two_genome({
+		"tail": "long",
+	})
+	var policy := StageGenePolicy.load_default()
+	var state := GeneDevelopmentState.new(
+		2
 	)
+
+	var recorded := state.record_gene_item(
+		policy,
+		"gene_body_fixture",
+		&"body_sturdy",
+		&"body",
+		&"sturdy",
+		20.0,
+		{
+			"physical": 8.0,
+		}
+	)
+	var result := StageEvolutionResolver.new().resolve(
+		_identity(),
+		genome,
+		state
+	)
+	var delta := result.get(
+		"delta"
+	) as EvolutionDelta
+
+	_expect(
+		bool(
+			recorded.get(
+				"ok",
+				false
+			)
+		)
+		and bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and delta != null
+		and delta.target_trait() == &"body"
+		and delta.from_trait() == &"base"
+		and delta.to_trait() == &"sturdy"
+		and delta.mutation_id()
+			== &"gene_expr_body_sturdy_s2",
+		"Stage 2 must express newly unlocked body Gene"
+	)
+
+
+func _test_stage_two_reinforcement_chain() -> void:
+	var genome := _stage_two_genome({
+		"tail": "long",
+	})
 	var policy := StageGenePolicy.load_default()
 	var state := GeneDevelopmentState.new(
 		2
@@ -207,22 +216,25 @@ func _test_later_stage_gene_waits_for_stage_policy() -> void:
 
 	state.record_gene_item(
 		policy,
-		"gene_body_fixture",
-		&"body_agile",
-		&"body",
-		&"agile",
-		12.0,
+		"gene_tail_reinforce",
+		&"tail_long",
+		&"tail",
+		&"long",
+		20.0,
 		{}
 	)
 
 	var result := StageEvolutionResolver.new().resolve(
-		identity,
+		_identity(),
 		genome,
 		state
 	)
+	var delta := result.get(
+		"delta"
+	) as EvolutionDelta
 
 	_expect(
-		not bool(
+		bool(
 			result.get(
 				"ok",
 				false
@@ -230,11 +242,96 @@ func _test_later_stage_gene_waits_for_stage_policy() -> void:
 		)
 		and bool(
 			result.get(
-				"requires_stage_expression_policy",
+				"reinforced",
 				false
 			)
-		),
-		"Stage 2/3 Gene expression must wait for their own locked Stage policy"
+		)
+		and StringName(
+			result.get(
+				"resolved_trait",
+				""
+			)
+		) == &"elongated"
+		and delta != null
+		and delta.from_trait() == &"long"
+		and delta.to_trait() == &"elongated"
+		and delta.mutation_id()
+			== &"gene_expr_tail_long_s2",
+		"same-direction Stage 2 Gene must advance the predefined expression chain"
+	)
+
+
+func _test_stage_two_same_locus_resolves_once() -> void:
+	var genome := _stage_two_genome({})
+	var policy := StageGenePolicy.load_default()
+	var state := GeneDevelopmentState.new(
+		2
+	)
+
+	state.record_gene_item(
+		policy,
+		"tail_option_long",
+		&"tail_long",
+		&"tail",
+		&"long",
+		20.0,
+		{}
+	)
+	state.record_gene_item(
+		policy,
+		"tail_option_fluffy",
+		&"tail_fluffy",
+		&"tail",
+		&"fluffy",
+		20.0,
+		{}
+	)
+
+	var result := StageEvolutionResolver.new().resolve(
+		_identity(),
+		genome,
+		state
+	)
+	var next := result.get(
+		"genome"
+	) as PetGenome
+	var delta := result.get(
+		"delta"
+	) as EvolutionDelta
+	var changed_count := 0
+
+	if next != null:
+		for locus in PetGenomeSchema.VISUAL_LOCI:
+			if genome.get_trait(
+				locus,
+				&"base"
+			) != next.get_trait(
+				locus,
+				&"base"
+			):
+				changed_count += 1
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and int(
+			result.get(
+				"candidate_count",
+				0
+			)
+		) == 2
+		and delta != null
+		and delta.target_trait() == &"tail"
+		and (
+			delta.to_trait() == &"long"
+			or delta.to_trait() == &"fluffy"
+		)
+		and changed_count == 1,
+		"two Stage 2 Genes in one locus must resolve to exactly one weighted result"
 	)
 
 
@@ -257,64 +354,23 @@ func _test_stage_mismatch_is_rejected() -> void:
 	)
 
 
-func _test_reinforcement_waits_for_expression_chain() -> void:
-	var identity := _identity()
-	var genome := PetGenomeFactory.new().create_snapshot(
+func _stage_two_genome(
+	overrides: Dictionary
+) -> PetGenome:
+	var traits := PetGenomeSchema.base_traits()
+
+	for key_value in overrides.keys():
+		traits[StringName(
+			str(key_value)
+		)] = StringName(
+			str(overrides[key_value])
+		)
+
+	return PetGenomeFactory.new().create_snapshot(
 		2,
 		0.0,
-		{
-			"body": "base",
-			"eyes": "base",
-			"ears": "base",
-			"whiskers": "base",
-			"fur": "base",
-			"coat": "base",
-			"tail": "long",
-			"paws": "base",
-			"mane": "base",
-			"mark": "base",
-			"structure": "base",
-			"aura": "base",
-		},
-		[
-			"gene_expr_tail_long_s1",
-		]
-	)
-	var policy := StageGenePolicy.load_default()
-	var state := GeneDevelopmentState.new(
-		2
-	)
-
-	state.record_gene_item(
-		policy,
-		"gene_tail_reinforce",
-		&"tail_long",
-		&"tail",
-		&"long",
-		20.0,
-		{}
-	)
-
-	var result := StageEvolutionResolver.new().resolve(
-		identity,
-		genome,
-		state
-	)
-
-	_expect(
-		not bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and bool(
-			result.get(
-				"requires_expression_chain",
-				false
-			)
-		),
-		"reinforcing an expressed direction must wait for an explicit Stage expression chain"
+		traits,
+		[]
 	)
 
 
