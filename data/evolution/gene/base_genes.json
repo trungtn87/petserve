@@ -8,7 +8,12 @@
     "influence_tags": {
       "mystic": 6
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "luminous",
+      "radiant",
+      "transcendent_luminous"
+    ]
   },
   {
     "id": "eyes_moon",
@@ -20,7 +25,12 @@
       "lunar": 10,
       "mystic": 4
     },
-    "rarity": "rare"
+    "rarity": "rare",
+    "expression_chain": [
+      "moon",
+      "crescent",
+      "eclipse"
+    ]
   },
   {
     "id": "ears_long",
@@ -31,7 +41,12 @@
     "influence_tags": {
       "agile": 5
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "long",
+      "elongated",
+      "regal_long"
+    ]
   },
   {
     "id": "ears_tufted",
@@ -42,7 +57,12 @@
     "influence_tags": {
       "mystic": 4
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "tufted",
+      "plume_tufted",
+      "spirit_tufted"
+    ]
   },
   {
     "id": "fur_fluffy",
@@ -53,7 +73,12 @@
     "influence_tags": {
       "physical": 4
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "fluffy",
+      "plush",
+      "guardian_ruff"
+    ]
   },
   {
     "id": "fur_sleek",
@@ -64,7 +89,12 @@
     "influence_tags": {
       "agile": 4
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "sleek",
+      "satin",
+      "ethereal_sleek"
+    ]
   },
   {
     "id": "coat_shadow",
@@ -75,7 +105,12 @@
     "influence_tags": {
       "dark": 10
     },
-    "rarity": "rare"
+    "rarity": "rare",
+    "expression_chain": [
+      "shadow",
+      "deep_shadow",
+      "living_shadow"
+    ]
   },
   {
     "id": "coat_nebula",
@@ -87,7 +122,12 @@
       "mystic": 6,
       "mutation": 3
     },
-    "rarity": "rare"
+    "rarity": "rare",
+    "expression_chain": [
+      "nebula",
+      "astral_nebula",
+      "cosmic_nebula"
+    ]
   },
   {
     "id": "tail_long",
@@ -98,7 +138,12 @@
     "influence_tags": {
       "agile": 6
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "long",
+      "elongated",
+      "regal_long"
+    ]
   },
   {
     "id": "tail_fluffy",
@@ -109,6 +154,94 @@
     "influence_tags": {
       "physical": 4
     },
-    "rarity": "uncommon"
+    "rarity": "uncommon",
+    "expression_chain": [
+      "fluffy",
+      "plume",
+      "grand_plume"
+    ]
+  },
+  {
+    "id": "body_sturdy",
+    "display_name": "Gene Thân Thể Cường Tráng",
+    "locus": "body",
+    "direction": "sturdy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 8
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "sturdy",
+      "powerful",
+      "guardian"
+    ]
+  },
+  {
+    "id": "whiskers_starlight",
+    "display_name": "Gene Râu Ánh Sao",
+    "locus": "whiskers",
+    "direction": "starlight",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "starlight",
+      "radiant",
+      "astral"
+    ]
+  },
+  {
+    "id": "paws_luminous",
+    "display_name": "Gene Bàn Chân Phát Sáng",
+    "locus": "paws",
+    "direction": "luminous",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 4,
+      "agile": 3
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "luminous",
+      "radiant",
+      "runic"
+    ]
+  },
+  {
+    "id": "mane_astral",
+    "display_name": "Gene Bờm Tinh Linh",
+    "locus": "mane",
+    "direction": "astral",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 7,
+      "physical": 2
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "astral",
+      "guardian",
+      "celestial"
+    ]
+  },
+  {
+    "id": "mark_moon",
+    "display_name": "Gene Ấn Nguyệt",
+    "locus": "mark",
+    "direction": "moon",
+    "primary_influence": 20,
+    "influence_tags": {
+      "lunar": 8,
+      "mystic": 3
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "moon",
+      "eclipse",
+      "ascended_eclipse"
+    ]
   }
 ]
