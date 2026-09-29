@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 6
+const PLAN_SCHEMA: int = 7
 const FINAL_STAGE: int = 4
 
 
