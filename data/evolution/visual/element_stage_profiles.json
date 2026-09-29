@@ -1,0 +1,51 @@
+[
+  {
+    "element": "metal",
+    "stage_1_face": "Give the infant a refined slightly angular feline face, clean wedge-shaped cheek fur, alert tapered ear tips, crisp eye corners and a small geometric forehead sigil. Keep the body infant-soft, but the face must read as Metal even without relying on color.",
+    "stage_2_morphology": "Develop a lean, precise quadruped silhouette with a compact athletic torso, clean shoulder line, slightly longer legs, tapered ear geometry, a controlled blade-like tail plume and small faceted fur ridges around the neck and tail base. These are organic fur and crystal-like growth cues, not armor.",
+    "stage_3_detail": "Add fine metallic lineage detailing on existing surfaces: thin geometric fur separations, small crystal facets, restrained silver arc motifs and precise reflective accents around the neck, tail and selected mutation region. Keep anatomy unchanged.",
+    "stage_4_final": "Refine the final Metal form with elegant mineral filigree, sharper but still organic fur facets, a stronger geometric sigil language and controlled crystalline radiance. The final form should look crafted by nature rather than dressed in armor."
+  },
+  {
+    "element": "wood",
+    "stage_1_face": "Give the infant a warm rounded feline face with soft leaf-like cheek tufts, gently curved ear edges, lively organic eye shapes and a small sprout or leaf forehead sigil. The face should feel unmistakably Wood even in grayscale.",
+    "stage_2_morphology": "Develop a supple organic quadruped silhouette with a slightly longer flexible torso, soft layered chest fur, leaf-like ear tufts, flowing flank fur and a fuller tail whose fur breaks into natural leaf-shaped clusters. Keep the structure feline and four-legged.",
+    "stage_3_detail": "Add living botanical detail to existing surfaces: subtle vein-like fur patterns, tiny sprout motifs, bark-soft texturing at selected fur edges and restrained luminous leaf accents. Do not grow branches, extra limbs or heavy plant masses.",
+    "stage_4_final": "Refine the final Wood form with richer layered leaf-fur geometry, elegant root and vine motifs woven into markings, mature spirit-leaf radiance and a stronger natural guardian identity while keeping the cat anatomy readable."
+  },
+  {
+    "element": "water",
+    "stage_1_face": "Give the infant a smooth oval feline face, gently flowing cheek fur, rounded fluid eye contours, soft wave-like ear fur and a small droplet or ripple forehead sigil. The facial silhouette should communicate Water even in grayscale.",
+    "stage_2_morphology": "Develop a sleek flexible quadruped body with a smooth back line, graceful longer legs, flowing chest and flank fur, softly swept ears and a long plume tail shaped like a controlled water current. Use fin-like fur edges only as fur, never as extra appendages.",
+    "stage_3_detail": "Add fluid lineage detail across existing surfaces: ripple markings, translucent edge highlights, small droplet motifs and flowing directional fur accents that follow anatomy. Keep effects attached to existing fur and tail.",
+    "stage_4_final": "Refine the final Water form with elegant current-like fur layering, stronger ripple geometry, pearl-like highlights and a mature flowing aura that wraps the existing silhouette without adding fins, limbs or a second tail."
+  },
+  {
+    "element": "fire",
+    "stage_1_face": "Give the infant a lively slightly sharper feline face, swept flame-like cheek tufts, energetic angled eye corners, pointed ear-tip fur and a small flame forehead sigil. Keep it cute, but make Fire recognizable from face shape and fur direction, not color alone.",
+    "stage_2_morphology": "Develop an athletic four-legged silhouette with a lifted chest, slightly longer springy legs, swept-back neck fur, sharper ear tufts and a dynamic single tail plume whose fur shape resembles a controlled flame. Keep it feline, grounded and non-humanoid.",
+    "stage_3_detail": "Add controlled Fire lineage detail: ember-like fur separations, flame-shaped surface markings, brighter tail and ear-edge energy and a few directional spark accents. Keep all detail attached to existing anatomy.",
+    "stage_4_final": "Refine the final Fire form with mature flame-fur geometry, stronger ember patterning, a confident radiant crest through existing fur and a concentrated living-flame aura around the tail and selected mutation features without becoming a fire blob."
+  },
+  {
+    "element": "earth",
+    "stage_1_face": "Give the infant a broader calm feline face, sturdy rounded cheek fur, slightly heavier brow shape, grounded rounded ears and a small diamond or stone forehead sigil. The face should feel stable and Earth-like even in grayscale.",
+    "stage_2_morphology": "Develop a sturdy quadruped silhouette with a broader chest, thicker shoulders, slightly shorter powerful legs, a solid neck, rounded ear geometry and a thick balanced tail. Add small rock-like fur ridges only as natural texture, not armor plates.",
+    "stage_3_detail": "Add grounded Earth lineage detail on existing surfaces: layered mineral markings, subtle stone-grain fur texture, tiny crystal seams and restrained geometric rock motifs around shoulders, tail and mutation region.",
+    "stage_4_final": "Refine the final Earth form with mature layered mineral patterning, stronger natural ridge geometry, warm crystal accents and a stable guardian silhouette. Keep surfaces organic and fur-based rather than turning the pet into a statue."
+  },
+  {
+    "element": "dark",
+    "stage_1_face": "Give the infant a narrow expressive feline face, slightly longer pointed ears, deeper eye sockets with elegant eye corners, soft shadow-like cheek tufts and a small crescent forehead sigil. The face must read as Dark even in grayscale.",
+    "stage_2_morphology": "Develop a lean elongated quadruped silhouette with a lower sleek torso, longer graceful legs, sharper shoulder fur, longer pointed ears and a long controlled shadow-plume tail. Keep the pet fully feline, four-legged and naturally grounded.",
+    "stage_3_detail": "Add restrained Dark lineage detail across existing surfaces: shadow-gradient fur breaks, crescent and orchid-like markings, soft mist hugging the tail and low-contrast rune traces. Preserve anatomy and avoid random spikes.",
+    "stage_4_final": "Refine the final Dark form with elegant layered shadow fur, stronger crescent geometry, mature mist ribbons close to the silhouette and a more mysterious facial presence without horns, wings or monstrous anatomy unless explicitly selected by a Gene."
+  },
+  {
+    "element": "light",
+    "stage_1_face": "Give the infant a balanced elegant feline face, clean symmetrical cheek fur, upright graceful ears, open luminous eye shapes and a small radiant arc or halo-like forehead sigil. The facial silhouette should read as Light even in grayscale.",
+    "stage_2_morphology": "Develop a graceful quadruped silhouette with a lifted but natural chest, longer clean legs, smooth balanced torso, elegant upright ears, feather-soft chest fur and a flowing single tail with radiant fur layering. Do not add wings or humanoid posture.",
+    "stage_3_detail": "Add refined Light lineage detail on existing surfaces: clean radiant arcs, soft halo-like markings integrated into fur, pearl edge highlights and restrained luminous accents around the chest, tail and selected mutation region.",
+    "stage_4_final": "Refine the final Light form with mature radiant fur layering, stronger elegant arc motifs, a clear luminous sigil language and controlled halo-like aura close to the body. Keep the silhouette feline and wingless unless a Gene explicitly says otherwise."
+  }
+]
