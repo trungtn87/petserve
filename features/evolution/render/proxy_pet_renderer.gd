@@ -142,13 +142,32 @@ func render(
 	)
 
 	if response_code < 200 or response_code >= 300:
+		var proxy_error := _extract_proxy_error(
+			parsed,
+			response_code,
+			body_text
+		)
+
+		if (
+			request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			and response_code == 404
+		):
+			return PetRenderResult.fail(
+				&"proxy_contract_outdated",
+				(
+					"Cloudflare Worker đang chạy bản cũ, chưa có "
+					+ "endpoint /v1/render/evolution. Deploy Worker "
+					+ "trong infrastructure/cloudflare/pet-render-proxy "
+					+ "rồi thử lại. Provider: "
+					+ proxy_error
+				),
+				renderer_id(),
+				StringName(_config.model_id)
+			)
+
 		return PetRenderResult.fail(
 			&"proxy_error",
-			_extract_proxy_error(
-				parsed,
-				response_code,
-				body_text
-			),
+			proxy_error,
 			renderer_id(),
 			StringName(_config.model_id)
 		)
