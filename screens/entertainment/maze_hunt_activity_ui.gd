@@ -127,7 +127,7 @@ func _build_ui() -> void:
 	back.text = "‹"
 	back.custom_minimum_size = Vector2(44, 42)
 	back.focus_mode = Control.FOCUS_NONE
-	back.pressed.connect(back_requested.emit)
+	back.pressed.connect(_on_back_pressed)
 	top.add_child(back)
 
 	var title := Label.new()
@@ -193,6 +193,10 @@ func _build_ui() -> void:
 	root.add_child(_message_label)
 
 	_update_reward_label()
+
+
+func _on_back_pressed() -> void:
+	back_requested.emit()
 
 
 func _direction_button(
