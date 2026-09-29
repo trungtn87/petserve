@@ -152,7 +152,8 @@ func claim_caro_win(
 
 func claim_maze_hunt(
 	run_id: int,
-	score: int
+	score: int,
+	match_id: String
 ) -> Dictionary:
 	return _claim_stage2_activity(
 		run_id,
@@ -161,13 +162,15 @@ func claim_maze_hunt(
 		score,
 		maze_reward_tier(
 			score
-		)
+		),
+		match_id
 	)
 
 
 func claim_snake_hunt(
 	run_id: int,
-	score: int
+	score: int,
+	match_id: String
 ) -> Dictionary:
 	return _claim_stage2_activity(
 		run_id,
@@ -176,7 +179,8 @@ func claim_snake_hunt(
 		score,
 		snake_reward_tier(
 			score
-		)
+		),
+		match_id
 	)
 
 
@@ -209,11 +213,21 @@ func _claim_stage2_activity(
 	game_id: StringName,
 	game_label: String,
 	score: int,
-	tier: int
+	tier: int,
+	match_id: String
 ) -> Dictionary:
 	_ensure_run(
 		run_id
 	)
+
+	var normalized_match_id := match_id.strip_edges()
+
+	if normalized_match_id.is_empty():
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Ván chơi không có mã hợp lệ.",
+		}
 
 	var state: Dictionary = _meta.get(
 		META_KEY,
@@ -245,6 +259,25 @@ func _claim_stage2_activity(
 			)
 		)
 	)
+	var ids_value: Variant = game.get(
+		"claimed_match_ids",
+		[]
+	)
+	var claimed_match_ids: Array = (
+		(ids_value as Array).duplicate(true)
+		if typeof(ids_value) == TYPE_ARRAY
+		else []
+	)
+
+	if claimed_match_ids.has(
+		normalized_match_id
+	):
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Phần thưởng của ván này đã được nhận.",
+		}
+
 	var reward_index := total_claimed + 1
 
 	if not _chests.ensure_stage_activity_chest(
@@ -267,6 +300,10 @@ func _claim_stage2_activity(
 		}
 
 	game["claimed"] = game_claimed + 1
+	claimed_match_ids.append(
+		normalized_match_id
+	)
+	game["claimed_match_ids"] = claimed_match_ids
 	game["best_score"] = maxi(
 		int(
 			game.get(
@@ -374,6 +411,7 @@ func _ensure_run(
 			):
 				state[String(game_id)] = {
 					"claimed": 0,
+					"claimed_match_ids": [],
 				}
 				changed = true
 
@@ -392,6 +430,7 @@ func _ensure_run(
 	]:
 		new_state[String(game_id)] = {
 			"claimed": 0,
+			"claimed_match_ids": [],
 		}
 
 	_meta[META_KEY] = new_state
