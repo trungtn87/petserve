@@ -146,6 +146,15 @@ func _test_natural_stage_one_plan() -> void:
 			"[PETHOME SCALE LOCK]"
 		)
 		and request.positive_prompt.contains(
+			"35 percent"
+		)
+		and request.positive_prompt.contains(
+			"10 percent"
+		)
+		and request.positive_prompt.contains(
+			"90 percent"
+		)
+		and request.positive_prompt.contains(
 			"body=base"
 		)
 		and request.positive_prompt.contains(
@@ -408,6 +417,15 @@ func _test_gene_stage_one_plan() -> void:
 		)
 		and request.positive_prompt.contains(
 			"[PETHOME SCALE LOCK]"
+		)
+		and request.positive_prompt.contains(
+			"35 percent"
+		)
+		and request.positive_prompt.contains(
+			"10 percent"
+		)
+		and request.positive_prompt.contains(
+			"90 percent"
 		)
 		and request.positive_prompt.contains(
 			"[SOURCE PHENOTYPE BLUEPRINT]"
