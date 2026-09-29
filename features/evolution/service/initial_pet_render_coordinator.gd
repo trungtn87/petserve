@@ -85,7 +85,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v6"
+		+ "_pethome_infant_v7"
 	)
 
 	if not request.is_valid():
