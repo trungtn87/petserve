@@ -593,6 +593,15 @@ func _test_evolution_two_and_three() -> void:
 		request_two != null
 		and request_two.output_key.ends_with(
 			"_pethome_v8_stage_3"
+		)
+		and request_two.positive_prompt.contains(
+			"[PETHOME SCALE LOCK]"
+		)
+		and request_two.positive_prompt.contains(
+			"35 percent"
+		)
+		and request_two.positive_prompt.contains(
+			"10 percent"
 		),
 		"Evolution II request"
 	)
@@ -690,6 +699,15 @@ func _test_evolution_two_and_three() -> void:
 		request_three != null
 		and request_three.output_key.ends_with(
 			"_pethome_v8_stage_4"
+		)
+		and request_three.positive_prompt.contains(
+			"[PETHOME SCALE LOCK]"
+		)
+		and request_three.positive_prompt.contains(
+			"35 percent"
+		)
+		and request_three.positive_prompt.contains(
+			"10 percent"
 		),
 		"Evolution III request"
 	)
