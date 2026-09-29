@@ -47,21 +47,79 @@ func set_pet_identity(display_name: String) -> void:
 		_pet_name_label.text = display_name
 
 func refresh_status(s: Dictionary) -> void:
-	_stage_index = int(s.get("stage_index", 1))
-	_stage_label.text = "ẤU THỂ" if _stage_index == 1 else "GIAI ĐOẠN 2"
-	_evolve_button.visible = not dialogs_only and bool(s.get("ready_to_evolve", false))
-	var percent := int(s.get("growth_percent", 0))
-	_growth_bar.value = percent
-	_growth_label.text = "Trưởng thành  %d%%" % percent
-	_food_label.text = "Thức ăn  " + _duration(int(s.get("food_seconds", 0)))
-	_state_label.text = (
-		"Sẵn sàng tiến hóa"
-		if bool(s.get("ready_to_evolve", false))
-		else "Còn ~" + _duration(int(s.get("growth_remaining_seconds", 0)))
+	_stage_index = int(
+		s.get(
+			"stage_index",
+			1
+		)
 	)
-	if _stage_index > 1:
-		_growth_label.text = "Đã hoàn thành tiến hóa đầu tiên"
+	_stage_label.text = (
+		PetHomeTheme.stage_label(
+			_stage_index
+		).to_upper()
+	)
+
+	var ready := bool(
+		s.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	var final_form := bool(
+		s.get(
+			"final_form",
+			false
+		)
+	)
+	_evolve_button.visible = (
+		not dialogs_only
+		and ready
+		and not final_form
+	)
+
+	var percent := int(
+		s.get(
+			"growth_percent",
+			0
+		)
+	)
+	_growth_bar.value = percent
+	_food_label.text = (
+		"Thức ăn  "
+		+ _duration(
+			int(
+				s.get(
+					"food_seconds",
+					0
+				)
+			)
+		)
+	)
+
+	if final_form:
+		_growth_label.text = "Hình thái cuối"
 		_state_label.text = ""
+	else:
+		_growth_label.text = (
+			"Trưởng thành  %d%%"
+			% percent
+		)
+		_state_label.text = (
+			"Sẵn sàng tiến hóa"
+			if ready
+			else (
+				"Còn ~"
+				+ _duration(
+					int(
+						s.get(
+							"growth_remaining_seconds",
+							0
+						)
+					)
+				)
+			)
+		)
+
 	var pending := int(s.get("pending_chests", 0))
 	_chest_button.text = "RƯƠNG • %d" % pending if pending > 0 else "RƯƠNG"
 	_chest_button.disabled = pending <= 0
