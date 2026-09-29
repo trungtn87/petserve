@@ -299,7 +299,7 @@ func _prepare_resolved_stage(
 
 	if not next.is_valid():
 		return _error(
-			"Không tạo được Genome Stage 2."
+			"Không tạo được Genome cho stage kế tiếp."
 		)
 
 	data["pending_evolution"] = {
