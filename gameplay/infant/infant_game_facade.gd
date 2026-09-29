@@ -183,6 +183,31 @@ func open_next_chest() -> Array[Dictionary]:
 	return rewards
 
 
+func can_use_item(
+	item: Dictionary
+) -> bool:
+	var state := _lifecycle.snapshot()
+	var stage_index := int(
+		state.get(
+			"stage_index",
+			_stage_index
+		)
+	)
+
+	return (
+		not bool(
+			state.get(
+				"ready_to_evolve",
+				false
+			)
+		)
+		and _inventory.can_use_in_stage(
+			item,
+			stage_index
+		)
+	)
+
+
 func use_item(
 	uid: String
 ) -> Dictionary:
