@@ -10,6 +10,8 @@ func _initialize() -> void:
 	_test_gene_details_cannot_be_silently_dropped()
 	_test_tampered_plan_is_rejected()
 	_test_legacy_stage_one_pending_is_rebuilt()
+	_test_stage_two_natural_plan()
+	_test_stage_two_gene_plan()
 	_test_stage_one_gene_visual_matrix()
 	_test_element_stage_profiles()
 	_cleanup()
@@ -738,6 +740,287 @@ func _test_legacy_stage_one_pending_is_rebuilt() -> void:
 	)
 
 
+func _test_stage_two_natural_plan() -> void:
+	_cleanup()
+	var image_path := _save_stage_two_fixture(
+		9520,
+		&"long"
+	)
+
+	if image_path.is_empty():
+		return
+
+	var gene_state := GeneDevelopmentState.new(
+		2
+	)
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 2,
+		"ready_to_evolve": true,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": gene_state.to_dict(),
+	})
+
+	_expect(
+		bool(
+			prepared.get(
+				"ok",
+				false
+			)
+		),
+		"Natural Stage 2 plan must prepare"
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var data: Dictionary = prepared.get(
+		"data",
+		{}
+	)
+	var pending: Dictionary = data.get(
+		"pending_evolution",
+		{}
+	)
+	var next := PetGenome.from_dict(
+		pending.get(
+			"genome",
+			{}
+		)
+	)
+	var request := service.build_request(
+		data
+	)
+
+	_expect(
+		int(
+			pending.get(
+				"schema",
+				0
+			)
+		) == StageEvolutionService.PENDING_SCHEMA
+		and String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "natural"
+		and (
+			pending.get(
+				"delta",
+				{}
+			) as Dictionary
+		).is_empty()
+		and next != null
+		and next.stage() == 3
+		and next.get_trait(
+			&"tail",
+			&"base"
+		) == &"long",
+		"Stage 2 without Gene must advance naturally and preserve traits"
+	)
+
+	_expect(
+		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == image_path
+		and request.target_region
+			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
+		and request.positive_prompt.contains(
+			"[NATURAL STAGE ADVANCE]"
+		)
+		and request.positive_prompt.contains(
+			"from Stage 2 to Stage 3"
+		),
+		"Natural Stage 2 must image-edit the current visual without inventing a Gene"
+	)
+
+
+func _test_stage_two_gene_plan() -> void:
+	_cleanup()
+	var image_path := _save_stage_two_fixture(
+		9521,
+		&"long"
+	)
+
+	if image_path.is_empty():
+		return
+
+	var policy := StageGenePolicy.load_default()
+	var gene_state := GeneDevelopmentState.new(
+		2
+	)
+	var recorded := gene_state.record_gene_item(
+		policy,
+		"stage2_tail_reinforce",
+		&"tail_long",
+		&"tail",
+		&"long",
+		20.0,
+		{
+			"agile": 6.0,
+		}
+	)
+
+	_expect(
+		bool(
+			recorded.get(
+				"ok",
+				false
+			)
+		),
+		"Stage 2 Gene fixture must record"
+	)
+
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 2,
+		"ready_to_evolve": true,
+		"can_evolve": true,
+		"gene_items_used": 1,
+		"gene_development": gene_state.to_dict(),
+	})
+
+	_expect(
+		bool(
+			prepared.get(
+				"ok",
+				false
+			)
+		),
+		"Gene Stage 2 plan must prepare"
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var data: Dictionary = prepared.get(
+		"data",
+		{}
+	)
+	var pending: Dictionary = data.get(
+		"pending_evolution",
+		{}
+	)
+	var delta: Dictionary = pending.get(
+		"delta",
+		{}
+	)
+	var provenance: Dictionary = pending.get(
+		"gene_resolution",
+		{}
+	)
+	var request := service.build_request(
+		data
+	)
+
+	_expect(
+		int(
+			pending.get(
+				"schema",
+				0
+			)
+		) == StageEvolutionService.PENDING_SCHEMA
+		and String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "gene"
+		and String(
+			delta.get(
+				"mutation_id",
+				""
+			)
+		) == "gene_expr_tail_long_s2"
+		and String(
+			delta.get(
+				"from_trait",
+				""
+			)
+		) == "long"
+		and String(
+			delta.get(
+				"to_trait",
+				""
+			)
+		) == "elongated"
+		and bool(
+			provenance.get(
+				"reinforced",
+				false
+			)
+		)
+		and String(
+			provenance.get(
+				"resolved_trait",
+				""
+			)
+		) == "elongated",
+		"Stage 2 plan must persist Gene reinforcement provenance"
+	)
+
+	_expect(
+		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == image_path
+		and request.target_region == &"tail"
+		and request.positive_prompt.contains(
+			"elongated"
+		),
+		"Stage 2 Gene plan must image-edit the current visual using resolved phenotype"
+	)
+
+	if request != null:
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{
+						"seed": request.seed,
+					}
+				)
+			),
+			"Stage 2 Gene result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 3
+			and committed_genome.get_trait(
+				&"tail",
+				&"base"
+			) == &"elongated"
+			and not committed.has(
+				"pending_evolution"
+			),
+			"Stage 2 Gene commit must advance to Stage 3 with resolved trait"
+		)
+
+
 func _test_stage_one_gene_visual_matrix() -> void:
 	var identity := PetIdentityFactory.new().create_initial(
 		9510,
@@ -876,6 +1159,96 @@ func _test_element_stage_profiles() -> void:
 			"Element must define Stage 1 face, Stage 2 morphology and Stage 3/4 detail: %s"
 			% String(element)
 		)
+
+
+func _save_stage_two_fixture(
+	seed_value: int,
+	tail_trait: StringName
+) -> String:
+	var image := Image.create(
+		32,
+		48,
+		false,
+		Image.FORMAT_RGBA8
+	)
+	image.fill(
+		Color(
+			0.09,
+			0.11,
+			0.2,
+			1.0
+		)
+	)
+	var image_path := (
+		"user://m9_5_stage2_source_%d.png"
+		% seed_value
+	)
+
+	_expect(
+		image.save_png(
+			image_path
+		) == OK,
+		"create Stage 2 source PNG"
+	)
+
+	var identity := PetIdentityFactory.new().create_initial(
+		seed_value,
+		&"dark"
+	)
+	var traits := PetGenomeSchema.base_traits()
+	traits[&"tail"] = tail_trait
+	var genome := PetGenomeFactory.new().create_snapshot(
+		2,
+		0.0,
+		traits,
+		[
+			&"gene_expr_tail_long_s1",
+		]
+	)
+	var scene := PetSceneProfileFactory.new().create_initial(
+		identity
+	)
+	var visual := PetVisualRecord.new()
+
+	if (
+		identity == null
+		or genome == null
+		or scene == null
+	):
+		_expect(
+			false,
+			"create Stage 2 evolution fixture"
+		)
+		return ""
+
+	visual.pet_id = identity.pet_id()
+	visual.visual_index = 1
+	visual.image_path = image_path
+	visual.source_mode = (
+		&"evolution_pethome_v7_full_regenerate"
+	)
+	visual.mutation_id = &"gene_expr_tail_long_s1"
+	visual.renderer_id = &"test"
+	visual.model_id = &"test"
+
+	var saved := EvolutionSaveService.new().save_initial(
+		identity,
+		genome,
+		visual,
+		"M9.5 Stage 2 Test",
+		scene
+	)
+
+	_expect(
+		saved,
+		"save Stage 2 evolution fixture"
+	)
+
+	return (
+		image_path
+		if saved
+		else ""
+	)
 
 
 func _save_stage_one_fixture(
