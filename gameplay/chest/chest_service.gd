@@ -49,7 +49,9 @@ func ensure_hatch_chest(run_id: int) -> void:
 	_meta["chest_queue"] = queue
 
 
-func ensure_daily_chest() -> bool:
+func ensure_daily_chest(
+	stage_index: int = 1
+) -> bool:
 	var date := Time.get_date_dict_from_system()
 	var day_key := (
 		"%04d-%02d-%02d"
@@ -83,6 +85,11 @@ func ensure_daily_chest() -> bool:
 		"uid": uid,
 		"chest_type": String(CHEST_DAILY),
 		"day_key": day_key,
+		"stage_index": clampi(
+			stage_index,
+			1,
+			StageLifecycle.FINAL_STAGE
+		),
 		"opened": false,
 	})
 	_meta["chest_queue"] = queue
@@ -387,9 +394,15 @@ func _roll_daily_chest(
 		if item_seed == 0:
 			item_seed = seed_value + index + 1
 
-		var item := _generator.generate(
+		var item := _generator.generate_for_stage(
 			item_type,
-			item_seed
+			item_seed,
+			int(
+				chest.get(
+					"stage_index",
+					1
+				)
+			)
 		)
 
 		if not item.is_empty():
@@ -453,9 +466,10 @@ func _roll_evolution_chest(
 				item_seed
 			)
 			if item_type == ItemGenerator.TYPE_GENE
-			else _generator.generate(
+			else _generator.generate_for_stage(
 				item_type,
-				item_seed
+				item_seed,
+				to_stage
 			)
 		)
 
@@ -609,9 +623,15 @@ func _roll_stage_activity_chest(
 				+ 1
 			)
 
-		var item := _generator.generate(
+		var item := _generator.generate_for_stage(
 			item_type,
-			item_seed
+			item_seed,
+			int(
+				chest.get(
+					"stage_index",
+					2
+				)
+			)
 		)
 
 		if not item.is_empty():
