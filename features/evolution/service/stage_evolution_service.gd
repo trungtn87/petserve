@@ -4,7 +4,7 @@ extends RefCounted
 
 const FINAL_STAGE: int = 4
 const STAGE_ONE: int = 1
-const PENDING_SCHEMA: int = 5
+const PENDING_SCHEMA: int = 6
 
 
 var _save := EvolutionSaveService.new()
@@ -821,7 +821,7 @@ func commit(
 		)
 	)
 	visual.source_mode = (
-		&"evolution_pethome_v6_full_regenerate"
+		&"evolution_pethome_v7_full_regenerate"
 		if expected_request.mode
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		else &"evolution_pethome_v5_image_edit"
