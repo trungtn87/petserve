@@ -1,3 +1,5 @@
+> Historical milestone note: this document describes the original Infant → Stage 2 integration. M8 now implements Stage 2/3 lifecycle timing and Evolution II/III in `docs/evolution/M8_STAGE_LIFECYCLE.md`.
+
 # PetHome / Ấu thể → Stage 2
 
 Baseline: `pethome` at `ec2ba4a`, integrating gameplay commit `0e0495a`.
