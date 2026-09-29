@@ -119,10 +119,16 @@ func _test_natural_stage_one_plan() -> void:
 
 	_expect(
 		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[NATURAL GROWTH ONLY]"
+			"[STAGE 2 FULL REGENERATE]"
+		)
+		and request.positive_prompt.contains(
+			"visibly older and larger Stage 2 form"
 		)
 		and request.positive_prompt.contains(
 			"body=base"
@@ -131,7 +137,7 @@ func _test_natural_stage_one_plan() -> void:
 			"aura=base"
 		)
 		and request.positive_prompt.contains(
-			"[ANATOMY LOCK]"
+			"[ANATOMY REQUIREMENT]"
 		)
 		and request.negative_prompt.contains(
 			"extra legs"
@@ -360,9 +366,15 @@ func _test_gene_stage_one_plan() -> void:
 
 	_expect(
 		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
-			"Current phenotype (all 12 visual loci)"
+			"[STAGE 2 FULL REGENERATE]"
+		)
+		and request.positive_prompt.contains(
+			"[SOURCE PHENOTYPE BLUEPRINT]"
 		)
 		and request.positive_prompt.contains(
 			"tail=base"
@@ -374,13 +386,10 @@ func _test_gene_stage_one_plan() -> void:
 			"Do not invent any other gene trait"
 		)
 		and request.positive_prompt.contains(
-			"[LOCAL EDIT BOUNDARY]"
+			"[ONE GENE EXPRESSION]"
 		)
 		and request.positive_prompt.contains(
-			"target region 'tail'"
-		)
-		and request.positive_prompt.contains(
-			"[ANATOMY LOCK]"
+			"[ANATOMY REQUIREMENT]"
 		)
 		and request.negative_prompt.contains(
 			"extra legs"
@@ -629,7 +638,7 @@ func _test_legacy_stage_one_pending_is_rebuilt() -> void:
 	var save := EvolutionSaveService.new()
 	var data := save.load_data()
 	data["pending_evolution"] = {
-		"schema": 3,
+		"schema": 4,
 		"from_stage": 1,
 		"to_stage": 2,
 	}
