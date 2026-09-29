@@ -111,16 +111,20 @@ func run() -> void:
 	home._hud.open_inventory()
 	home._open_games()
 	await get_tree().process_frame
-	check(not home._hub._maze_card.disabled, "maze playable at every stage")
-	check(not home._hub._snake_card.disabled, "snake playable at every stage")
+	home._hub.open_hub(0, 4, true, 1, 0, 4, false)
+	check(not home._hub._maze_card.disabled, "maze playable in stage one")
+	check(not home._hub._snake_card.disabled, "snake playable in stage one")
 	home._hub._open_maze()
 	await get_tree().process_frame
-	check(home._hub._maze_activity.visible, "maze opens outside reward stage")
+	check(home._hub._maze_activity.visible, "maze opens in stage one without reward")
 	home._hub._show_hub_screen()
 	home._hub._open_snake()
 	await get_tree().process_frame
-	check(home._hub._snake_activity.visible, "snake opens outside reward stage")
+	check(home._hub._snake_activity.visible, "snake opens in stage one without reward")
 	home._hub._show_hub_screen()
+	home._hub.open_hub(4, 4, false, 3, 4, 4, false)
+	check(not home._hub._maze_card.disabled, "maze playable after stage two")
+	check(not home._hub._snake_card.disabled, "snake playable after stage two")
 	home.queue_free()
 	await get_tree().process_frame
 	print("INFANT HOME failures=", failures)
