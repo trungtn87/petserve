@@ -17,6 +17,7 @@ var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
 var _gene_definitions: Array[GeneDefinition] = []
 var _gene_state: GeneDevelopmentState
+var _evolution_plan_pending: bool = false
 var _run_id: int = 0
 var _stage_index: int = 1
 
@@ -31,6 +32,7 @@ func setup(
 		stage_index
 	)
 	_meta = SaveManager.load_meta()
+	_evolution_plan_pending = _load_pending_evolution_state()
 
 	if _meta.is_empty():
 		_meta = {
@@ -150,7 +152,7 @@ func snapshot() -> Dictionary:
 		_inventory.count()
 	)
 	state["evolution_plan_pending"] = (
-		_has_pending_evolution()
+		_evolution_plan_pending
 	)
 
 	if (
@@ -435,7 +437,7 @@ func can_use_item(
 
 	if (
 		item_type == ItemGenerator.TYPE_GENE
-		and _has_pending_evolution()
+		and _evolution_plan_pending
 	):
 		return false
 
@@ -875,7 +877,7 @@ func _saved_stage_index() -> int:
 	return 0
 
 
-func _has_pending_evolution() -> bool:
+func _load_pending_evolution_state() -> bool:
 	var data := _evolution_save.load_data()
 	var value: Variant = data.get(
 		"pending_evolution",
