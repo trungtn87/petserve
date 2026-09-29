@@ -79,6 +79,12 @@ const FUTURE_FAMILIES: Array[StringName] = [
 	&"mutation_fragment",
 ]
 
+const STAGE_VALUE_MULTIPLIERS := {
+	1: 1.0,
+	2: 12.0,
+	3: 18.0,
+}
+
 
 func generate(
 	item_type: StringName,
@@ -100,6 +106,73 @@ func generate(
 		_:
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
 			return {}
+
+
+func generate_for_stage(
+	item_type: StringName,
+	seed_value: int,
+	stage_index: int
+) -> Dictionary:
+	var item := generate(
+		item_type,
+		seed_value
+	)
+
+	if item.is_empty():
+		return {}
+
+	return scale_for_stage(
+		item,
+		stage_index
+	)
+
+
+func scale_for_stage(
+	item: Dictionary,
+	stage_index: int
+) -> Dictionary:
+	var result := item.duplicate(
+		true
+	)
+	var item_type := StringName(
+		result.get(
+			"item_type",
+			""
+		)
+	)
+
+	if (
+		item_type != TYPE_FOOD
+		and item_type != TYPE_GROWTH
+	):
+		return result
+
+	var multiplier := float(
+		STAGE_VALUE_MULTIPLIERS.get(
+			stage_index,
+			1.0
+		)
+	)
+
+	for field in [
+		"main_value_seconds",
+		"growth_delta_seconds",
+		"food_delta_seconds",
+	]:
+		if result.has(
+			field
+		):
+			result[field] = int(
+				round(
+					float(
+						result[field]
+					) * multiplier
+				)
+			)
+
+	result["generated_for_stage"] = stage_index
+	result["stage_value_multiplier"] = multiplier
+	return result
 
 
 func generate_gene(
