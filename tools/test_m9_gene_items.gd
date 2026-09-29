@@ -6,6 +6,7 @@ var _failures: int = 0
 
 func _initialize() -> void:
 	_test_catalog_and_item_contract()
+	_test_stage_two_visual_contract()
 	_test_gene_development_tags()
 	_test_inventory_stage_gate()
 	_test_stage_one_facade_consumption()
@@ -137,6 +138,62 @@ func _test_catalog_and_item_contract() -> void:
 		) > 0.0,
 		"generated Gene Item must carry canonical Gene fields"
 	)
+
+
+func _test_stage_two_visual_contract() -> void:
+	var policy := StageGenePolicy.load_default()
+	var gene_catalog := GeneCatalog.new()
+	var definitions := gene_catalog.load_default()
+	var visual_catalog := MutationVisualCatalog.new()
+	var visuals := visual_catalog.load_default()
+
+	for definition in definitions:
+		if (
+			definition == null
+			or not policy.can_accept_gene(
+				2,
+				definition.locus()
+			)
+		):
+			continue
+
+		var stage_two_id := StringName(
+			"gene_expr_%s_s2"
+			% String(
+				definition.id()
+			)
+		)
+		var stage_two_visual := visual_catalog.find_by_id(
+			visuals,
+			stage_two_id
+		)
+
+		_expect(
+			stage_two_visual != null
+			and stage_two_visual.target_region()
+				== definition.locus(),
+			"Stage 2 Gene visual missing or wrong locus: %s"
+			% String(stage_two_id)
+		)
+
+		var stage_three_id := StringName(
+			"gene_expr_%s_s3"
+			% String(
+				definition.id()
+			)
+		)
+		var stage_three_visual := visual_catalog.find_by_id(
+			visuals,
+			stage_three_id
+		)
+
+		_expect(
+			stage_three_visual != null
+			and stage_three_visual.target_region()
+				== definition.locus(),
+			"Stage 3 Gene visual missing or wrong locus: %s"
+			% String(stage_three_id)
+		)
 
 
 func _test_gene_development_tags() -> void:
