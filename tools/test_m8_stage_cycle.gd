@@ -26,6 +26,7 @@ func check(
 func run() -> void:
 	_test_stage_lifecycle()
 	_test_stage_item_contract()
+	_test_stage_resource_scaling()
 	_test_evolution_two_and_three()
 
 	print(
@@ -374,6 +375,72 @@ func _test_stage_item_contract() -> void:
 		)
 
 	SaveManager.delete_meta()
+
+
+func _test_stage_resource_scaling() -> void:
+	var generator := ItemGenerator.new()
+	var base_food := generator.generate(
+		ItemGenerator.TYPE_FOOD,
+		88001
+	)
+	var stage_two_food := generator.generate_for_stage(
+		ItemGenerator.TYPE_FOOD,
+		88001,
+		2
+	)
+	var base_growth := generator.generate(
+		ItemGenerator.TYPE_GROWTH,
+		88002
+	)
+	var stage_two_growth := generator.generate_for_stage(
+		ItemGenerator.TYPE_GROWTH,
+		88002,
+		2
+	)
+
+	check(
+		int(
+			stage_two_food.get(
+				"main_value_seconds",
+				0
+			)
+		) == int(
+			round(
+				float(
+					base_food.get(
+						"main_value_seconds",
+						0
+					)
+				) * 12.0
+			)
+		)
+		and int(
+			stage_two_food.get(
+				"generated_for_stage",
+				0
+			)
+		) == 2,
+		"Stage 2 Food uses the 48-hour resource scale"
+	)
+
+	check(
+		int(
+			stage_two_growth.get(
+				"main_value_seconds",
+				0
+			)
+		) == int(
+			round(
+				float(
+					base_growth.get(
+						"main_value_seconds",
+						0
+					)
+				) * 12.0
+			)
+		),
+		"Stage 2 Growth uses the 48-hour resource scale"
+	)
 
 
 func _test_evolution_two_and_three() -> void:
