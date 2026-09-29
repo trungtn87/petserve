@@ -849,6 +849,7 @@ func _setup_gameplay() -> void:
 		Control.PRESET_FULL_RECT
 	)
 	_hub.caro_win_reward_requested.connect(_reward)
+	_hub.maze_reward_requested.connect(_reward_maze)
 	_refresh_gameplay()
 
 func _process(delta: float) -> void:
@@ -965,14 +966,125 @@ func _use_item(uid: String) -> void:
 
 func _open_games() -> void:
 	var state := _game.snapshot()
-	_hub.open_hub(int(state.get("caro_rewards_claimed", 0)), 4, int(state.get("stage_index", 1)) == 1 and not bool(state.get("ready_to_evolve", false)))
+	var stage_index := int(
+		state.get(
+			"stage_index",
+			1
+		)
+	)
+	var ready := bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	_hub.open_hub(
+		int(
+			state.get(
+				"caro_rewards_claimed",
+				0
+			)
+		),
+		int(
+			state.get(
+				"caro_rewards_max",
+				4
+			)
+		),
+		stage_index == 1 and not ready,
+		stage_index,
+		int(
+			state.get(
+				"maze_rewards_claimed",
+				0
+			)
+		),
+		int(
+			state.get(
+				"maze_rewards_max",
+				4
+			)
+		),
+		stage_index == 2 and not ready
+	)
+
 
 func _reward() -> void:
 	var result := _game.claim_caro_win_reward()
-	_hub.show_reward_message(str(result.get("message", "")))
-	var state := _game.snapshot()
-	_hub.set_reward_status(int(state.get("caro_rewards_claimed", 0)), 4, int(state.get("stage_index", 1)) == 1 and not bool(state.get("ready_to_evolve", false)))
+	_hub.show_reward_message(
+		str(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+	_sync_entertainment_reward_state()
 	_refresh_gameplay()
+
+
+func _reward_maze(score: int) -> void:
+	var result := _game.claim_maze_hunt_reward(
+		score
+	)
+	_hub.show_maze_reward_message(
+		str(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+	_sync_entertainment_reward_state()
+	_refresh_gameplay()
+
+
+func _sync_entertainment_reward_state() -> void:
+	var state := _game.snapshot()
+	var stage_index := int(
+		state.get(
+			"stage_index",
+			1
+		)
+	)
+	var ready := bool(
+		state.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+
+	_hub.set_reward_status(
+		int(
+			state.get(
+				"caro_rewards_claimed",
+				0
+			)
+		),
+		int(
+			state.get(
+				"caro_rewards_max",
+				4
+			)
+		),
+		stage_index == 1 and not ready
+	)
+	_hub.set_maze_reward_status(
+		int(
+			state.get(
+				"maze_rewards_claimed",
+				0
+			)
+		),
+		int(
+			state.get(
+				"maze_rewards_max",
+				4
+			)
+		),
+		stage_index == 2 and not ready,
+		stage_index
+	)
 
 func _open_evolution() -> void:
 	_prepare_section("Tiến hóa")
