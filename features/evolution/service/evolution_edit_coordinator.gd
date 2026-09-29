@@ -138,6 +138,8 @@ func build_request(
 	)
 	positive_prompt += _anatomy_lock_section()
 
+	positive_prompt += _pethome_scale_lock_section()
+
 	positive_prompt += (
 		"\n\n[PETHOME CONTINUITY]\n"
 		+ _scene_continuity_prompt(
@@ -146,8 +148,7 @@ func build_request(
 	)
 
 	positive_prompt += (
-		" Keep the same full-body portrait framing, small subject scale, "
-		+ "and low-detail UI-safe areas near the top and bottom. "
+		" Keep the same full-body environmental framing and low-detail UI-safe areas. "
 		+ "Return ONE complete pet + background portrait with no text or UI."
 	)
 
@@ -178,7 +179,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v7_stage_%d"
+		+ "_pethome_v8_stage_%d"
 		% target_stage
 	)
 
@@ -275,8 +276,8 @@ func build_natural_request(
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
 		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and larger than Stage 1, "
-		+ "with a mature juvenile body rather than a giant baby head on the same tiny body. "
+		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
+		+ "with a mature juvenile body rather than a giant baby head, while keeping the locked on-screen PetHome scale. "
 		+ "This is a whole-body age transition, so secondary morphology is intentionally allowed to change."
 	)
 
@@ -426,6 +427,7 @@ func _build_later_natural_edit(
 	)
 
 	positive_prompt += _anatomy_lock_section()
+	positive_prompt += _pethome_scale_lock_section()
 	positive_prompt += (
 		"\n\n[PETHOME CONTINUITY]\n"
 		+ _scene_continuity_prompt(
@@ -637,8 +639,8 @@ func _build_stage_one_gene_regenerate(
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
 		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and larger than Stage 1, "
-		+ "with a mature juvenile body. Secondary morphology is intentionally allowed to change."
+		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
+		+ "with a mature juvenile body while keeping the locked on-screen PetHome scale. Secondary morphology is intentionally allowed to change."
 	)
 
 	positive_prompt += (
@@ -919,13 +921,20 @@ func _stage_two_body_plan_prompt() -> String:
 
 func _stage_two_composition_prompt() -> String:
 	return (
-		"Use a wide vertical 9:16 environmental establishing shot, not a character portrait. "
-		+ "Show the complete pet from ears through all paws and the full tail with comfortable margins. "
-		+ "The Stage 2 pet should occupy about 18 to 24 percent of total image height: visibly larger "
-		+ "than the Stage 1 infant, but still a small resident inside a large PetHome world. "
-		+ "The environment should occupy at least about 75 percent of the frame with clear foreground, "
-		+ "midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
-		+ "Do not zoom in, do not crop paws or tail, and do not replace the PetHome with a studio backdrop."
+		"Use a vertical 9:16 environmental establishing shot, not a character portrait. "
+		+ "Show the complete pet from the highest visible point of the ears or fur through all paws and the full tail. "
+		+ "LOCKED SCALE FOR EVERY LIFE STAGE: the visible pet height must be about 35 percent of total image height, measured from the highest visible point of the pet to the lowest paw/ground contact point. "
+		+ "Place the lowest paw/ground contact point at about 90 percent of total image height, leaving about 10 percent of image height from the pet's feet to the bottom edge. "
+		+ "Keep the pet horizontally near center and in the lower-middle of the frame. Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
+		+ "Keep the environment dominant with clear foreground, midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
+		+ "Do not zoom in, do not crop paws or tail, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
+	)
+
+
+func _pethome_scale_lock_section() -> String:
+	return (
+		"\n\n[PETHOME SCALE LOCK]\n"
+		+ _stage_two_composition_prompt()
 	)
 
 
