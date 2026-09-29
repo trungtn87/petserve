@@ -134,11 +134,12 @@ func build(
 
 	spec.ui_safe_section = (
 		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
-		+ "Use a very wide environmental establishing shot with the camera pulled much farther back than a normal character portrait. Never use a portrait, medium shot or character showcase. Show the pet's complete body from ears to paws and tail as a small subject inside a large PetHome world. "
-		+ "The pet should occupy only about 12 to 15 percent of the total image height, centered slightly below the middle of the screen. "
-		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. "
-		+ "Keep the bottom area visually calm and scenic; runtime navigation is handled by a side drawer, not bottom buttons. "
-		+ "The environment should visually occupy at least about 85 percent of the frame. The pet should read as a small resident of the world, not as the dominant object in the frame. Keep large uninterrupted scenery above, beside and below the pet. Place the pet around the lower-middle area with substantial breathing room on every side. "
+		+ "Use an environmental establishing shot, never a close-up portrait, medium shot or character showcase. Show the pet's complete body from the highest visible point of the ears or fur to every paw and the full tail. "
+		+ "LOCKED COMPOSITION: the pet's visible full-body height must be about 35 percent of the total image height. Measure from the highest visible point of the pet to the lowest paw/ground contact point. "
+		+ "Place the lowest paw/ground contact point at about 90 percent of the total image height, leaving about 10 percent of the image height from the pet's feet to the bottom edge. "
+		+ "Keep the pet horizontally near the center and vertically in the lower-middle of the scene. Do not change on-screen pet scale by life stage; later stages show maturity through anatomy, proportions, fur and elemental detail, not by occupying more of the frame. "
+		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. Keep the bottom 10 percent scenic and unobstructed. "
+		+ "The environment must remain the dominant visual context with clear foreground, midground and background depth around the pet. "
 		+ "Do not let the head, ears, paws or tail touch the image edges. "
 		+ "Extend the environment naturally to every edge of the image with no border, frame, vignette panel or empty margin. "
 		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
@@ -158,7 +159,7 @@ func build(
 		+ ", adult body, mature proportions, Stage 2 body morphology, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
 		+ ", generic identical face across all elements, color-swap-only element design, same silhouette for every element"
 		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
-		+ ", close-up portrait, medium close shot, bust shot, oversized pet, pet filling more than one fifth of the frame, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges"
+		+ ", close-up portrait, medium close shot, bust shot, oversized pet, undersized pet, pet substantially larger or smaller than 35 percent of image height, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges, paws touching the bottom edge, excessive empty floor below the paws"
 	)
 
 	if not spec.is_valid():
