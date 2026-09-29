@@ -35,9 +35,23 @@
     "edit_strength": 0.18
   },
   {
+    "mutation_id": "gene_expr_body_sturdy_s2",
+    "target_region": "body",
+    "instruction": "Develop the existing quadruped body toward a sturdier, more capable juvenile build with stronger torso and shoulder presence while remaining agile and chibi.",
+    "preserve_hint": "Keep species, leg count, stance, face identity, tail, coat pattern and all non-body Gene traits unchanged.",
+    "edit_strength": 0.2
+  },
+  {
     "mutation_id": "gene_expr_coat_nebula_s1",
     "target_region": "coat",
     "instruction": "Introduce sparse localized nebula-like color variation as a subtle coat pattern, with only a few soft mystical gradients and no dense starfield texture.",
+    "preserve_hint": "Keep the base coat identity dominant and do not turn the whole body into galaxy or cosmic wallpaper.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "gene_expr_coat_nebula_s2",
+    "target_region": "coat",
+    "instruction": "Introduce sparse localized nebula-like color variation as a subtle coat pattern, with only a few soft mystical gradients and no dense starfield texture. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
     "preserve_hint": "Keep the base coat identity dominant and do not turn the whole body into galaxy or cosmic wallpaper.",
     "edit_strength": 0.19
   },
@@ -49,9 +63,23 @@
     "edit_strength": 0.18
   },
   {
+    "mutation_id": "gene_expr_coat_shadow_s2",
+    "target_region": "coat",
+    "instruction": "Introduce a restrained shadow-toned secondary coat pattern that follows the existing fur naturally and remains subordinate to the pet's base elemental palette. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
+    "preserve_hint": "Keep fur length, body silhouette and all existing non-coat features unchanged; avoid covering the whole body in black.",
+    "edit_strength": 0.18
+  },
+  {
     "mutation_id": "gene_expr_ears_long_s1",
     "target_region": "ears",
     "instruction": "Make the same pair of ears moderately longer in a natural juvenile proportion while preserving their base position, angle and elemental identity.",
+    "preserve_hint": "Do not add extra ears, horns, antennae or change the head silhouette beyond the ear length.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_ears_long_s2",
+    "target_region": "ears",
+    "instruction": "Make the same pair of ears moderately longer in a natural juvenile proportion while preserving their base position, angle and elemental identity. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
     "preserve_hint": "Do not add extra ears, horns, antennae or change the head silhouette beyond the ear length.",
     "edit_strength": 0.2
   },
@@ -63,9 +91,23 @@
     "edit_strength": 0.16
   },
   {
+    "mutation_id": "gene_expr_ears_tufted_s2",
+    "target_region": "ears",
+    "instruction": "Develop small soft fur tufts at the existing ear tips, integrated into the same fur and elemental palette. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
+    "preserve_hint": "Keep ear length, angle and count unchanged; the tufts must not resemble horns.",
+    "edit_strength": 0.16
+  },
+  {
     "mutation_id": "gene_expr_eyes_luminous_s1",
     "target_region": "eyes",
     "instruction": "Evolve only the existing irises into a soft luminous form with restrained elemental glow. Keep the exact eye size, shape, placement, pupil geometry and facial expression.",
+    "preserve_hint": "Do not enlarge the eyes, move them, alter the muzzle, or add facial markings.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "gene_expr_eyes_luminous_s2",
+    "target_region": "eyes",
+    "instruction": "Evolve only the existing irises into a soft luminous form with restrained elemental glow. Keep the exact eye size, shape, placement, pupil geometry and facial expression. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
     "preserve_hint": "Do not enlarge the eyes, move them, alter the muzzle, or add facial markings.",
     "edit_strength": 0.17
   },
@@ -77,9 +119,23 @@
     "edit_strength": 0.18
   },
   {
+    "mutation_id": "gene_expr_eyes_moon_s2",
+    "target_region": "eyes",
+    "instruction": "Evolve only the existing irises toward a subtle lunar quality: a refined moonlit ring or crescent-like reflection inside the iris, still natural to the same eyes. Do not place moon symbols on the face. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
+    "preserve_hint": "Keep eye anatomy, eye color family, face shape and expression recognizable.",
+    "edit_strength": 0.18
+  },
+  {
     "mutation_id": "gene_expr_fur_fluffy_s1",
     "target_region": "fur",
     "instruction": "Make the existing coat moderately fluffier and fuller with soft juvenile fur volume while preserving the established colors and markings.",
+    "preserve_hint": "Do not change body anatomy, coat pattern, face fur layout or add mane-like structures.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_fur_fluffy_s2",
+    "target_region": "fur",
+    "instruction": "Make the existing coat moderately fluffier and fuller with soft juvenile fur volume while preserving the established colors and markings. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
     "preserve_hint": "Do not change body anatomy, coat pattern, face fur layout or add mane-like structures.",
     "edit_strength": 0.2
   },
@@ -91,9 +147,44 @@
     "edit_strength": 0.17
   },
   {
+    "mutation_id": "gene_expr_fur_sleek_s2",
+    "target_region": "fur",
+    "instruction": "Refine the existing coat into a smoother, sleeker plush fur texture with cleaner flow while preserving the established colors and markings. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
+    "preserve_hint": "Do not make the pet hairless, change body shape, or redesign the coat pattern.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "gene_expr_mane_astral_s2",
+    "target_region": "mane",
+    "instruction": "Develop a restrained astral neck-and-chest mane integrated into the existing fur, suitable for a juvenile mythic pet rather than a separate appendage.",
+    "preserve_hint": "Keep head size, shoulders, body plan, ears, face and all non-mane Gene traits unchanged.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "gene_expr_mark_moon_s2",
+    "target_region": "mark",
+    "instruction": "Develop one refined moon-lineage marking at the established mark region, subtle and integrated with the elemental identity.",
+    "preserve_hint": "Do not add a second unrelated symbol; keep face anatomy, eyes, coat and all non-mark Gene traits unchanged.",
+    "edit_strength": 0.16
+  },
+  {
+    "mutation_id": "gene_expr_paws_luminous_s2",
+    "target_region": "paws",
+    "instruction": "Evolve the four existing paws toward a soft luminous elemental quality without changing their count, attachment or stance.",
+    "preserve_hint": "Keep leg length, paw count, body silhouette, face and all non-paw Gene traits unchanged.",
+    "edit_strength": 0.16
+  },
+  {
     "mutation_id": "gene_expr_tail_fluffy_s1",
     "target_region": "tail",
     "instruction": "Make the same single tail noticeably fuller and fluffier like a soft plume while preserving its current length family, root position and elemental effect.",
+    "preserve_hint": "Do not lengthen excessively, split the tail, add another tail or move the tail root.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "gene_expr_tail_fluffy_s2",
+    "target_region": "tail",
+    "instruction": "Make the same single tail noticeably fuller and fluffier like a soft plume while preserving its current length family, root position and elemental effect. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
     "preserve_hint": "Do not lengthen excessively, split the tail, add another tail or move the tail root.",
     "edit_strength": 0.2
   },
@@ -103,6 +194,20 @@
     "instruction": "Make the same single tail moderately longer while preserving its root position, direction, thickness family, fur style and elemental effect.",
     "preserve_hint": "Do not add another tail, split the tail, or change the pet's pose.",
     "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "gene_expr_tail_long_s2",
+    "target_region": "tail",
+    "instruction": "Make the same single tail moderately longer while preserving its root position, direction, thickness family, fur style and elemental effect. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene.",
+    "preserve_hint": "Do not add another tail, split the tail, or change the pet's pose.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "gene_expr_whiskers_starlight_s2",
+    "target_region": "whiskers",
+    "instruction": "Evolve the existing whiskers toward a restrained starlight quality with soft luminous tips and clean natural roots.",
+    "preserve_hint": "Keep muzzle, mouth, nose, eye placement and all non-whisker Gene traits unchanged.",
+    "edit_strength": 0.15
   },
   {
     "mutation_id": "luminous_paws",
