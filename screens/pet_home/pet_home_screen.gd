@@ -1024,9 +1024,13 @@ func _reward() -> void:
 	_refresh_gameplay()
 
 
-func _reward_maze(score: int) -> void:
+func _reward_maze(
+	score: int,
+	match_id: String
+) -> void:
 	var result := _game.claim_maze_hunt_reward(
-		score
+		score,
+		match_id
 	)
 	_hub.show_maze_reward_message(
 		str(
@@ -1040,9 +1044,13 @@ func _reward_maze(score: int) -> void:
 	_refresh_gameplay()
 
 
-func _reward_snake(score: int) -> void:
+func _reward_snake(
+	score: int,
+	match_id: String
+) -> void:
 	var result := _game.claim_snake_hunt_reward(
-		score
+		score,
+		match_id
 	)
 	_hub.show_snake_reward_message(
 		str(
