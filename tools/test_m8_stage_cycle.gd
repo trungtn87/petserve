@@ -259,6 +259,39 @@ func _test_stage_item_contract() -> void:
 		"stage 2 facade setup"
 	)
 
+	var dev_state := game.snapshot()
+	check(
+		bool(
+			dev_state.get(
+				"can_evolve",
+				false
+			)
+		),
+		"default TEST talent bypasses the stage timer"
+	)
+	check(
+		not bool(
+			dev_state.get(
+				"ready_to_evolve",
+				true
+			)
+		),
+		"timer bypass does not fake natural growth completion"
+	)
+	check(
+		(
+			dev_state.get(
+				"talents",
+				[]
+			) as Array
+		).has(
+			String(
+				InfantGameFacade.DEV_INSTANT_EVOLUTION_TALENT
+			)
+		),
+		"default TEST talent is assigned"
+	)
+
 	var rewards := game.open_next_chest()
 	var growth_item: Dictionary = {}
 
