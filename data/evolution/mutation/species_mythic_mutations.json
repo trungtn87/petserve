@@ -3,14 +3,17 @@
     "id": "cat_nekomata",
     "display_name": "Nekomata",
     "species": "cat",
-    "first_expression_stage": 3,
+    "first_expression_stage": 2,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
-    "target_regions": ["tail", "eyes", "aura"],
+    "egg_stage4_eligible": true,
+    "required_gene_ids": ["tail_long", "eyes_moon", "mark_moon"],
+    "target_regions": ["tail", "eyes", "mark", "aura"],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Begin a restrained Nekomata branch on this same cat individual. Keep one shared tail root but let the far tail structure develop a clearly forked or twin-tip silhouette, accompanied by a subtle spirit-cat quality in the eyes and aura. The result must still be recognizably the same pet, not a different cat and not a fully transformed adult monster.",
+      "2": "Develop this same cat along a restrained Nekomata destiny from its juvenile Stage 2 form. Keep the pet unmistakably the same individual while beginning subtle spirit-cat cues: a more expressive tail flow, a faint lunar quality in the eyes or lineage mark, and a controlled supernatural presence. Do not fully split the tail yet and do not complete the adult mythical form.",
+      "3": "Awaken the Nekomata branch on this same cat individual. Keep one shared tail root but let the far tail structure develop a clearly forked or twin-tip silhouette, accompanied by a subtle spirit-cat quality in the eyes and aura. The result must still be recognizably the same pet, not a different cat and not a fully transformed adult monster.",
       "4": "Complete the established Nekomata branch while preserving the exact same cat identity and the Stage 3 forked-tail direction. Refine the twin-tip tail flow, spirit-cat gaze and restrained supernatural aura into a mature mythic form without replacing the species, face identity or PetHome context."
     },
     "preserve_hint": "Preserve the same face, coat family, four-leg body plan, scene identity and every non-target Gene trait. The tail may fork only as defined by this Nekomata branch; do not create unrelated extra limbs, wings, horns or a second body."
@@ -19,14 +22,17 @@
     "id": "cat_bakeneko",
     "display_name": "Bakeneko",
     "species": "cat",
-    "first_expression_stage": 3,
+    "first_expression_stage": 2,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
-    "target_regions": ["eyes", "fur", "mark", "aura"],
+    "egg_stage4_eligible": true,
+    "required_gene_ids": ["coat_shadow", "eyes_luminous", "whiskers_starlight"],
+    "target_regions": ["eyes", "fur", "coat", "whiskers", "mark", "aura"],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Begin a restrained Bakeneko spirit-cat branch on this same cat individual. Keep the normal single-tail body plan while introducing a more uncanny mythic gaze, subtle spirit-fire traces through existing fur or markings, and a controlled supernatural presence. Do not change the pet into another species or redesign its established identity.",
+      "2": "Develop this same cat along a restrained Bakeneko destiny from its juvenile Stage 2 form. Preserve the normal single-tail body plan while introducing only early spirit-cat cues: a slightly uncanny mythic gaze, subtle spectral traces within the existing coat or whiskers, and a controlled supernatural presence. Do not make the pet look adult or fully transformed yet.",
+      "3": "Awaken the Bakeneko spirit-cat branch on this same cat individual. Keep the normal single-tail body plan while introducing a more uncanny mythic gaze, subtle spirit-fire traces through existing fur or markings, and a controlled supernatural presence. Do not change the pet into another species or redesign its established identity.",
       "4": "Complete the established Bakeneko branch as the mature form of the same individual. Refine the spirit-cat gaze, integrated spectral fur or marking accents and controlled supernatural aura while retaining the original face, body plan, coat lineage and recognizable personal identity."
     },
     "preserve_hint": "Preserve the same cat identity, single-tail anatomy, four natural legs, face proportions, coat lineage and all non-target Gene traits. Do not add wings, horns, duplicate limbs, extra tails or unrelated monster anatomy."
