@@ -5,6 +5,11 @@ extends RefCounted
 const SAVE_INTERVAL: float = 5.0
 const FINAL_STAGE: int = 4
 
+const FULL_SPEED_FOOD_RATIO: float = 0.50
+const LOW_SPEED_FOOD_RATIO: float = 0.25
+const MID_FOOD_GROWTH_MULTIPLIER: float = 0.75
+const LOW_FOOD_GROWTH_MULTIPLIER: float = 0.50
+
 
 var _meta: Dictionary = {}
 var _state: Dictionary = {}
@@ -65,6 +70,9 @@ func setup(
 		)
 
 	_migrate_stage_age(
+		current
+	)
+	_migrate_food_capacity(
 		current
 	)
 	_state = current
@@ -139,6 +147,15 @@ func apply_item(
 		)
 	)
 
+	if (
+		item_type == ItemGenerator.TYPE_GROWTH
+		and _is_hibernating()
+	):
+		return {
+			"ok": false,
+			"message": "Pet đang ngủ đông. Hãy cho ăn trước khi dùng vật phẩm tăng trưởng.",
+		}
+
 	match item_type:
 		ItemGenerator.TYPE_FOOD:
 			var food_delta := int(
@@ -163,6 +180,7 @@ func apply_item(
 					)
 				) + food_delta
 			)
+			_expand_food_capacity_to_current()
 			_state["growth_elapsed_seconds"] = maxf(
 				0.0,
 				float(
@@ -205,6 +223,8 @@ func apply_item(
 					)
 				) + food_delta
 			)
+			if food_delta > 0:
+				_expand_food_capacity_to_current()
 
 		_:
 			return {
@@ -278,6 +298,33 @@ func snapshot() -> Dictionary:
 		if duration > 0.0
 		else 1.0
 	)
+	var food_seconds := maxf(
+		0.0,
+		float(
+			_state.get(
+				"food_seconds",
+				0.0
+			)
+		)
+	)
+	var food_capacity := maxf(
+		1.0,
+		float(
+			_state.get(
+				"food_capacity_seconds",
+				1.0
+			)
+		)
+	)
+	var food_ratio := _food_ratio(
+		food_seconds,
+		food_capacity
+	)
+	var growth_multiplier := (
+		_growth_multiplier_for_ratio(
+			food_ratio
+		)
+	)
 
 	return {
 		"stage_index": stage_index,
@@ -322,14 +369,27 @@ func snapshot() -> Dictionary:
 		),
 		"food_seconds": int(
 			round(
-				float(
-					_state.get(
-						"food_seconds",
-						0.0
-					)
-				)
+				food_seconds
 			)
 		),
+		"food_capacity_seconds": int(
+			round(
+				food_capacity
+			)
+		),
+		"food_ratio": food_ratio,
+		"food_percent": int(
+			round(
+				food_ratio * 100.0
+			)
+		),
+		"growth_speed_multiplier": growth_multiplier,
+		"growth_speed_percent": int(
+			round(
+				growth_multiplier * 100.0
+			)
+		),
+		"hibernating": food_seconds <= 0.0,
 		"ready_to_evolve": bool(
 			_state.get(
 				"ready_to_evolve",
@@ -384,6 +444,9 @@ func restore_state() -> void:
 		stage_index
 	)
 	_migrate_stage_age(
+		_state
+	)
+	_migrate_food_capacity(
 		_state
 	)
 	_update_ready()
@@ -476,6 +539,10 @@ func _new_stage_state(
 			"growth_elapsed_seconds": 0.0,
 			"age_elapsed_seconds": 0.0,
 			"food_seconds": carry_food_seconds,
+			"food_capacity_seconds": maxf(
+				1.0,
+				carry_food_seconds
+			),
 			"ready_to_evolve": false,
 			"tutorial_protected": true,
 			"final_form": stage_index >= FINAL_STAGE,
@@ -501,6 +568,19 @@ func _new_stage_state(
 				config.get(
 					"starting_food_seconds",
 					0
+				)
+			)
+		),
+		"food_capacity_seconds": maxf(
+			1.0,
+			(
+				carry_food_seconds
+				if carry_food_seconds > 0.0
+				else float(
+					config.get(
+						"starting_food_seconds",
+						0
+					)
 				)
 			)
 		),
@@ -532,26 +612,37 @@ func _can_progress() -> bool:
 func _apply_progress(
 	delta: float
 ) -> void:
-	var stage_index := int(
-		_state.get(
-			"stage_index",
-			1
-		)
+	var progress_delta := maxf(
+		0.0,
+		delta
 	)
-	var config := _policy.stage(
-		stage_index
-	)
-	var multiplier := float(
-		config.get(
-			"starved_growth_multiplier",
-			0.75
-		)
-	)
-	var duration := maxf(
+
+	if progress_delta <= 0.0:
+		return
+
+	var food_seconds := maxf(
 		0.0,
 		float(
 			_state.get(
-				"duration_seconds",
+				"food_seconds",
+				0.0
+			)
+		)
+	)
+	var food_capacity := maxf(
+		1.0,
+		float(
+			_state.get(
+				"food_capacity_seconds",
+				1.0
+			)
+		)
+	)
+	var growth_elapsed := maxf(
+		0.0,
+		float(
+			_state.get(
+				"growth_elapsed_seconds",
 				0.0
 			)
 		)
@@ -565,55 +656,15 @@ func _apply_progress(
 			)
 		)
 	)
-	var progress_delta := maxf(
-		0.0,
-		delta
-	)
 
-	if duration > 0.0:
-		progress_delta = minf(
-			progress_delta,
-			maxf(
-				0.0,
-				duration - age_elapsed
-			)
-		)
-
-	if progress_delta <= 0.0:
-		return
-
-	var food_seconds := float(
-		_state.get(
-			"food_seconds",
-			0.0
-		)
+	growth_elapsed += _growth_from_food_window(
+		food_seconds,
+		food_capacity,
+		progress_delta
 	)
-	var growth_elapsed := float(
-		_state.get(
-			"growth_elapsed_seconds",
-			0.0
-		)
-	)
-
-	var fed_delta := minf(
-		progress_delta,
-		maxf(
-			0.0,
-			food_seconds
-		)
-	)
-	var hungry_delta := maxf(
-		0.0,
-		progress_delta - fed_delta
-	)
-
 	food_seconds = maxf(
 		0.0,
 		food_seconds - progress_delta
-	)
-	growth_elapsed += fed_delta
-	growth_elapsed += (
-		hungry_delta * multiplier
 	)
 	age_elapsed += progress_delta
 
@@ -683,15 +734,6 @@ func _update_ready() -> void:
 			)
 		)
 	)
-	var age_elapsed := maxf(
-		0.0,
-		float(
-			_state.get(
-				"age_elapsed_seconds",
-				0.0
-			)
-		)
-	)
 
 	if duration <= 0.0:
 		_state["ready_to_evolve"] = true
@@ -699,11 +741,6 @@ func _update_ready() -> void:
 
 	if growth_elapsed >= duration:
 		_state["growth_elapsed_seconds"] = duration
-		_state["ready_to_evolve"] = true
-		return
-
-	if age_elapsed >= duration:
-		_state["age_elapsed_seconds"] = duration
 		_state["ready_to_evolve"] = true
 		return
 
@@ -762,6 +799,163 @@ func _migrate_stage_age(
 		)
 
 	state["age_elapsed_seconds"] = age_elapsed
+
+
+func _migrate_food_capacity(
+	state: Dictionary
+) -> void:
+	if state.is_empty():
+		return
+
+	var food_seconds := maxf(
+		0.0,
+		float(
+			state.get(
+				"food_seconds",
+				0.0
+			)
+		)
+	)
+	var capacity := maxf(
+		1.0,
+		float(
+			state.get(
+				"food_capacity_seconds",
+				food_seconds
+			)
+		)
+	)
+
+	state["food_capacity_seconds"] = maxf(
+		capacity,
+		food_seconds
+	)
+
+
+func _expand_food_capacity_to_current() -> void:
+	var food_seconds := maxf(
+		0.0,
+		float(
+			_state.get(
+				"food_seconds",
+				0.0
+			)
+		)
+	)
+	var capacity := maxf(
+		1.0,
+		float(
+			_state.get(
+				"food_capacity_seconds",
+				1.0
+			)
+		)
+	)
+
+	_state["food_capacity_seconds"] = maxf(
+		capacity,
+		food_seconds
+	)
+
+
+func _is_hibernating() -> bool:
+	return (
+		_can_progress()
+		and float(
+			_state.get(
+				"food_seconds",
+				0.0
+			)
+		) <= 0.0
+	)
+
+
+func _food_ratio(
+	food_seconds: float,
+	food_capacity: float
+) -> float:
+	if food_seconds <= 0.0:
+		return 0.0
+
+	return clampf(
+		food_seconds / maxf(
+			1.0,
+			food_capacity
+		),
+		0.0,
+		1.0
+	)
+
+
+func _growth_multiplier_for_ratio(
+	food_ratio: float
+) -> float:
+	if food_ratio <= 0.0:
+		return 0.0
+	if food_ratio <= LOW_SPEED_FOOD_RATIO:
+		return LOW_FOOD_GROWTH_MULTIPLIER
+	if food_ratio <= FULL_SPEED_FOOD_RATIO:
+		return MID_FOOD_GROWTH_MULTIPLIER
+	return 1.0
+
+
+func _growth_from_food_window(
+	food_seconds: float,
+	food_capacity: float,
+	delta: float
+) -> float:
+	var remaining := maxf(
+		0.0,
+		delta
+	)
+	var cursor := maxf(
+		0.0,
+		food_seconds
+	)
+	var capacity := maxf(
+		1.0,
+		food_capacity
+	)
+	var growth_delta := 0.0
+	var half_threshold := (
+		capacity * FULL_SPEED_FOOD_RATIO
+	)
+	var quarter_threshold := (
+		capacity * LOW_SPEED_FOOD_RATIO
+	)
+
+	if cursor > half_threshold and remaining > 0.0:
+		var full_span := minf(
+			remaining,
+			cursor - half_threshold
+		)
+		growth_delta += full_span
+		cursor -= full_span
+		remaining -= full_span
+
+	if cursor > quarter_threshold and remaining > 0.0:
+		var mid_span := minf(
+			remaining,
+			cursor - quarter_threshold
+		)
+		growth_delta += (
+			mid_span
+			* MID_FOOD_GROWTH_MULTIPLIER
+		)
+		cursor -= mid_span
+		remaining -= mid_span
+
+	if cursor > 0.0 and remaining > 0.0:
+		var low_span := minf(
+			remaining,
+			cursor
+		)
+		growth_delta += (
+			low_span
+			* LOW_FOOD_GROWTH_MULTIPLIER
+		)
+
+	return growth_delta
 
 
 func _sync_meta() -> void:
