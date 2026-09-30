@@ -112,13 +112,13 @@ func _initialize() -> void:
 		and request.positive_prompt.contains(
 			"Mythic Elemental Chibi"
 		)
-		and request.positive_prompt.contains(
-			"single lineage sigil"
-		)
 		and request.positive_prompt.to_lower().contains(
 			"dark"
+		)
+		and request.positive_prompt.contains(
+			"AI has broad freedom to invent this individual pet"
 		),
-		"initial prompt must encode infant + mythic element identity"
+		"Stage 1 prompt must keep species/element style while leaving the individual design free"
 	)
 
 	_expect(
@@ -128,23 +128,26 @@ func _initialize() -> void:
 		and request.positive_prompt.contains(
 			"[UI SAFE LAYOUT]"
 		)
-		and request.positive_prompt.to_lower().contains(
-			"pethome environment"
+		and request.positive_prompt.contains(
+			"natural environmental background"
 		)
-		and request.positive_prompt.to_lower().contains(
-			"one coherent scene"
+		and request.positive_prompt.contains(
+			"loose inspiration"
 		),
-		"initial prompt must render pet + PetHome background in one image"
+		"Stage 1 must generate a natural same-element environment without rigid scene continuity"
 	)
 
 	_expect(
 		request.negative_prompt.to_lower().contains(
-			"neutral empty background"
+			"plain studio background"
 		)
 		and request.negative_prompt.to_lower().contains(
 			"split image"
+		)
+		and request.negative_prompt.to_lower().contains(
+			"fixed template character"
 		),
-		"initial negative prompt must reject pet-only and split outputs"
+		"Stage 1 negative prompt must reject studio/template outputs"
 	)
 
 	_expect(
@@ -152,41 +155,28 @@ func _initialize() -> void:
 			"full-bleed vertical 9:16"
 		)
 		and request.positive_prompt.to_lower().contains(
-			"fill the entire game screen edge to edge"
-		),
-		"PetHome render must target a full-screen 9:16 mobile composition"
-	)
-
-	_expect(
-		request.positive_prompt.to_lower().contains(
 			"35 percent"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"10 percent"
 		)
 		and request.positive_prompt.to_lower().contains(
 			"90 percent"
 		)
-		and request.negative_prompt.to_lower().contains(
-			"close-up portrait"
+		and request.positive_prompt.to_lower().contains(
+			"upper 24 to 28 percent"
 		),
-		"PetHome render must lock pet height to 35% with feet 10% above the bottom edge"
+		"Stage 1 must keep only the required PetHome mobile composition"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"Choose any natural cat pose"
+			"natural animal pose"
 		)
 		and request.positive_prompt.contains(
-			"Natural perspective"
+			"freely invent face shape"
 		)
 		and not request.positive_prompt.contains(
 			"front three-quarter view"
-		)
-		and not request.positive_prompt.contains(
-			"12 to 15 percent"
 		),
-		"Stage 1 must keep species identity but leave pose freestyle"
+		"Stage 1 pet appearance and pose must remain freestyle"
 	)
 
 	var renderer = MockPetRendererScript.new()
