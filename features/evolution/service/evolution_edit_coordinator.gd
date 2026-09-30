@@ -242,18 +242,6 @@ func build_natural_request(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
-	var stage_two_morphology := _element_stage_prompt(
-		identity.element(),
-		2
-	)
-
-	if stage_two_morphology.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
-			% String(identity.element()),
-		}
-
 	var species_profile := _species_profile(
 		identity.species()
 	)
@@ -265,76 +253,37 @@ func build_natural_request(
 			% String(identity.species()),
 		}
 
-	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
-		"[IDENTITY BLUEPRINT]\n"
-		+ style.identity_lock()
-		+ " Species: "
+		"[STAGE 2 FREESTYLE]\n"
+		+ "Create one unique Stage 2 "
 		+ String(identity.species())
-		+ ". Element family: "
+		+ " in premium Mythic Elemental Chibi game art. "
+		+ "Element family: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[MYTHIC ELEMENTAL STYLE]\n"
+		+ ". "
 		+ style.base_style()
-		+ " Element lineage appearance: "
+		+ " Use these elemental cues only as creative inspiration: "
 		+ style.accent_for(
 			identity.element()
 		)
-		+ "."
+		+ ". The AI should freely invent the individual pet: face, fur pattern, fluff, ear details, tail shape, expression, elemental markings and natural animal pose. "
+		+ "Do not copy a fixed template or reproduce the previous Stage 1 silhouette. Keep believable species anatomy and make the result feel naturally a little older than Stage 1 without forcing a specific body design."
 	)
 
 	positive_prompt += (
-		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full-screen environmental PetHome scene from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
-		+ "with a mature juvenile body rather than a giant baby head, while keeping the locked on-screen PetHome scale. "
-		+ "This is a whole-body age transition, so secondary morphology is intentionally allowed to change."
-	)
-
-	positive_prompt += (
-		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
-		+ stage_two_morphology
-		+ " Let elemental lineage shape the silhouette and body language, not just the colors. "
-		+ "The seven elements should remain distinguishable in grayscale."
-	)
-
-	positive_prompt += (
-		"\n\n[PHENOTYPE GUIDANCE]\n"
-		+ "Existing Gene values remain canonical constraints, but they are not a literal pixel-shape lock. "
-		+ "Target phenotype: "
-		+ phenotype.describe(
-			current_genome
-		)
-		+ ". You may redesign secondary fur silhouette, ear styling, tail fur contour and body proportions "
-		+ "according to the Stage 2 element morphology above, as long as these Gene values do not change. "
-		+ "Do not invent an unrelated Gene, extra appendage or different species."
-	)
-
-	positive_prompt += (
-		"\n\n[SPECIES FREESTYLE]\n"
-		+ _stage_two_species_prompt(
-			species_profile
+		"\n\n[ELEMENTAL NATURAL BACKGROUND]\n"
+		+ _stage_two_environment_prompt(
+			scene_profile,
+			identity.element()
 		)
 	)
 
 	positive_prompt += (
-		"\n\n[PETHOME SCALE LOCK]\n"
+		"\n\n[PETHOME COMPOSITION]\n"
 		+ _stage_two_composition_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCENE REBUILD]\n"
-		+ _scene_rebuild_prompt(
-			scene_profile
-		)
-		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh environmental scene. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "scene with no text or UI."
+		+ " Return one complete pet and one natural background scene with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
@@ -343,21 +292,15 @@ func build_natural_request(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
+	request.negative_prompt = (
 		style.negative_prompt()
-		+ ", infant proportions, tiny baby body, oversized baby head, "
-		+ "unchanged infant body, extra tail, new gene trait, random mutation, "
-		+ "new horn, unrelated new marking, unrelated new aura, changed Gene tail type, changed Gene eye type, "
-		+ "changed Gene ear type, changed Gene coat pattern, redesigned species, "
-		+ _stage_two_negative_prompt()
+		+ ", fixed template character, repeated identical pet design, repeated identical face, "
+		+ "plain studio background, empty neutral backdrop, isolated character, multiple pets, "
+		+ "close-up portrait, giant pet filling the frame, cropped pet, humanoid pose, standing upright like a person, text, UI"
 	)
 	request.target_region = NATURAL_TARGET_REGION
 	request.edit_strength = 0.0
-	request.seed = _request_seed(
-		identity,
-		target_stage,
-		&"stage2_full_regenerate_natural"
-	)
+	request.seed = 0
 	request.output_key = _stage_one_output_key(
 		identity,
 		target_stage
@@ -374,7 +317,6 @@ func build_natural_request(
 		"schema": PLAN_SCHEMA,
 		"request": request,
 	}
-
 
 
 func _build_later_natural_edit(
@@ -618,18 +560,6 @@ func _build_stage_one_gene_regenerate(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
-	var stage_two_morphology := _element_stage_prompt(
-		identity.element(),
-		2
-	)
-
-	if stage_two_morphology.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
-			% String(identity.element()),
-		}
-
 	var species_profile := _species_profile(
 		identity.species()
 	)
@@ -641,89 +571,39 @@ func _build_stage_one_gene_regenerate(
 			% String(identity.species()),
 		}
 
-	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
-		"[IDENTITY BLUEPRINT]\n"
-		+ style.identity_lock()
-		+ " Species: "
+		"[STAGE 2 FREESTYLE]\n"
+		+ "Create one unique Stage 2 "
 		+ String(identity.species())
-		+ ". Element family: "
+		+ " in premium Mythic Elemental Chibi game art. "
+		+ "Element family: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[MYTHIC ELEMENTAL STYLE]\n"
+		+ ". "
 		+ style.base_style()
-		+ " Element lineage appearance: "
+		+ " Use these elemental cues only as creative inspiration: "
 		+ style.accent_for(
 			identity.element()
 		)
-		+ "."
+		+ ". The AI should freely invent the individual pet instead of reproducing a fixed template or the previous Stage 1 silhouette. "
+		+ "Keep believable species anatomy and a natural animal pose. "
+		+ "There is one gameplay Gene expression to include naturally and without over-constraining the rest of the design: "
+		+ visual.instruction()
 	)
 
 	positive_prompt += (
-		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full-screen environmental PetHome scene from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
-		+ "with a mature juvenile body while keeping the locked on-screen PetHome scale. Secondary morphology is intentionally allowed to change."
-	)
-
-	positive_prompt += (
-		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
-		+ stage_two_morphology
-		+ " Let elemental lineage reshape the silhouette and body language, not just the colors. "
-		+ "The seven elements should remain distinguishable in grayscale."
-	)
-
-	positive_prompt += (
-		"\n\n[SOURCE PHENOTYPE BLUEPRINT]\n"
-		+ phenotype.describe(
-			previous_genome
+		"\n\n[ELEMENTAL NATURAL BACKGROUND]\n"
+		+ _stage_two_environment_prompt(
+			scene_profile,
+			identity.element()
 		)
 	)
 
 	positive_prompt += (
-		"\n\n[TARGET PHENOTYPE]\n"
-		+ phenotype.describe(
-			mutated_genome
-		)
-	)
-
-	positive_prompt += (
-		"\n\n[ONE GENE EXPRESSION]\n"
-		+ (
-			"The only newly introduced biological feature is in '%s': %s "
-			+ "Do not invent any other gene trait. %s"
-		) % [
-			String(visual.target_region()),
-			visual.instruction(),
-			visual.preserve_hint(),
-		]
-	)
-
-	positive_prompt += (
-		"\n\n[SPECIES FREESTYLE]\n"
-		+ _stage_two_species_prompt(
-			species_profile
-		)
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCALE LOCK]\n"
+		"\n\n[PETHOME COMPOSITION]\n"
 		+ _stage_two_composition_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCENE REBUILD]\n"
-		+ _scene_rebuild_prompt(
-			scene_profile
-		)
-		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh environmental scene. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "scene with no text or UI."
+		+ " Return one complete pet and one natural background scene with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
@@ -732,20 +612,15 @@ func _build_stage_one_gene_regenerate(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
+	request.negative_prompt = (
 		style.negative_prompt()
-		+ ", infant proportions, tiny baby body, oversized baby head, "
-		+ "unchanged infant body, unrelated gene trait, random mutation, "
-		+ "unplanned horn, unrelated unplanned marking, redesigned species, "
-		+ _stage_two_negative_prompt()
+		+ ", fixed template character, repeated identical pet design, repeated identical face, "
+		+ "plain studio background, empty neutral backdrop, isolated character, multiple pets, "
+		+ "close-up portrait, giant pet filling the frame, cropped pet, humanoid pose, standing upright like a person, text, UI"
 	)
 	request.target_region = visual.target_region()
 	request.edit_strength = 0.0
-	request.seed = _request_seed(
-		identity,
-		target_stage,
-		delta.mutation_id()
-	)
+	request.seed = 0
 	request.output_key = _stage_one_output_key(
 		identity,
 		target_stage
@@ -941,6 +816,34 @@ func _species_profile(
 	)
 
 
+func _stage_two_environment_prompt(
+	scene_profile: PetSceneProfile,
+	element: StringName
+) -> String:
+	var text := (
+		"Create a natural environmental background inspired by the "
+		+ PetElementCatalog.prompt_name(element)
+		+ " element. Let the AI freely invent the scenery, terrain, vegetation, atmosphere, weather and lighting so the world feels organically connected to the pet. "
+	)
+
+	if scene_profile != null:
+		text += (
+			"Use these existing descriptors only as loose inspiration, not as a continuity lock: "
+			+ scene_profile.environment_theme
+			+ "; "
+			+ scene_profile.palette_description
+			+ "; "
+			+ scene_profile.lighting_theme
+			+ ". "
+		)
+
+	text += (
+		"Avoid a studio backdrop. The environment should feel alive, natural and spacious."
+	)
+
+	return text
+
+
 func _stage_two_species_prompt(
 	profile: InitialSpeciesProfile
 ) -> String:
@@ -951,12 +854,7 @@ func _stage_two_species_prompt(
 		profile.species_anatomy
 		+ " "
 		+ profile.freestyle_pose
-		+ " Stage 2 must keep a natural feline posture and weight distribution. "
-		+ "The cat may sit, crouch, rest, walk, stand on four legs, or naturally lift one FRONT paw. "
-		+ "Never make the cat stand upright on two hind legs and never use a humanoid, mascot or anthropomorphic pose. "
-		+ "Front legs remain feline forelegs/paws, not arms or hands. "
-		+ "Preserve species identity and coherent anatomy, but do not force all appendages to be visible. "
-		+ "Natural overlap and occlusion are allowed."
+		+ " Keep natural animal anatomy and pose; otherwise allow broad visual freedom."
 	)
 
 
@@ -1001,7 +899,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v10_stage_%d"
+		+ "_pethome_v11_stage_%d"
 		% target_stage
 	)
 
