@@ -173,6 +173,22 @@ func _initialize() -> void:
 		"PetHome render must lock pet height to 35% with feet 10% above the bottom edge"
 	)
 
+	_expect(
+		request.positive_prompt.contains(
+			"Choose any natural cat pose"
+		)
+		and request.positive_prompt.contains(
+			"Natural perspective"
+		)
+		and not request.positive_prompt.contains(
+			"front three-quarter view"
+		)
+		and not request.positive_prompt.contains(
+			"12 to 15 percent"
+		),
+		"Stage 1 must keep species identity but leave pose freestyle"
+	)
+
 	var renderer = MockPetRendererScript.new()
 	var result = await renderer.render(request)
 
