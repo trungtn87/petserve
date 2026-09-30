@@ -1,10 +1,10 @@
-extends SceneTree
+extends Node
 
 
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_default_cat_catalog()
 	_test_species_isolation()
 	_test_stage4_egg_locks_mythic_destiny()
@@ -16,14 +16,14 @@ func _initialize() -> void:
 		print(
 			"Stage 2 Mythic Mutation: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"Stage 2 Mythic Mutation: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_default_cat_catalog() -> void:
