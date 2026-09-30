@@ -899,13 +899,38 @@ func _show_item_detail(
 		item
 	)
 
+	var detail_lines: Array[String] = []
 	var mods := _mods(
 		item
 	)
-	_detail_mods.text = (
-		mods
-		if not mods.is_empty()
-		else "Không có thuộc tính phụ."
+
+	if not mods.is_empty():
+		detail_lines.append(
+			mods
+		)
+
+	if StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	) == ItemGenerator.TYPE_GENE:
+		var gene_context := _gene_context_text(
+			item
+		)
+
+		if not gene_context.is_empty():
+			detail_lines.append(
+				gene_context
+			)
+
+	if detail_lines.is_empty():
+		detail_lines.append(
+			"Không có thuộc tính phụ."
+		)
+
+	_detail_mods.text = "\n".join(
+		detail_lines
 	)
 
 	var usable := (
@@ -955,6 +980,163 @@ func _on_detail_use() -> void:
 	_emit_item_use(
 		uid
 	)
+
+func _gene_context_text(
+	item: Dictionary
+) -> String:
+	if _facade == null:
+		return ""
+
+	var context := _facade.gene_item_context(
+		item
+	)
+
+	if context.is_empty():
+		return ""
+
+	var stages_value: Variant = context.get(
+		"allowed_stages",
+		[]
+	)
+	var stage_labels: Array[String] = []
+
+	if typeof(stages_value) == TYPE_ARRAY:
+		for stage_value in stages_value as Array:
+			stage_labels.append(
+				PetHomeTheme.stage_label(
+					int(stage_value)
+				)
+			)
+
+	var current_stage := int(
+		context.get(
+			"current_stage",
+			1
+		)
+	)
+	var used := int(
+		context.get(
+			"used",
+			0
+		)
+	)
+	var limit := int(
+		context.get(
+			"limit",
+			0
+		)
+	)
+	var remaining := int(
+		context.get(
+			"remaining",
+			0
+		)
+	)
+	var slot_text := (
+		"ĐÃ HẾT LƯỢT"
+		if bool(
+			context.get(
+				"exhausted",
+				false
+			)
+		)
+		else "còn %d" % remaining
+	)
+
+	if bool(
+		context.get(
+			"evolution_plan_pending",
+			false
+		)
+	):
+		slot_text = "đã khóa plan tiến hóa"
+
+	return (
+		"Bộ phận: %s\n"
+		+ "Hướng: %s\n"
+		+ "Stage hợp lệ: %s\n"
+		+ "Lượt Gene %s: %d/%d • %s\n"
+		+ "Kết quả: chỉ định hướng; hình thái được chốt khi tiến hóa."
+	) % [
+		_gene_locus_label(
+			StringName(
+				context.get(
+					"locus",
+					""
+				)
+			)
+		),
+		_gene_value_label(
+			StringName(
+				context.get(
+					"direction",
+					""
+				)
+			)
+		),
+		(
+			" • ".join(
+				stage_labels
+			)
+			if not stage_labels.is_empty()
+			else "Không có"
+		),
+		PetHomeTheme.stage_label(
+			current_stage
+		),
+		used,
+		limit,
+		slot_text,
+	]
+
+
+func _gene_locus_label(
+	locus: StringName
+) -> String:
+	match locus:
+		&"body":
+			return "Cơ thể"
+		&"eyes":
+			return "Mắt"
+		&"ears":
+			return "Tai"
+		&"whiskers":
+			return "Râu"
+		&"fur":
+			return "Lông"
+		&"coat":
+			return "Vân lông"
+		&"tail":
+			return "Đuôi"
+		&"paws":
+			return "Bàn chân"
+		&"mane":
+			return "Bờm"
+		&"mark":
+			return "Dấu"
+		&"structure":
+			return "Cấu trúc"
+		&"aura":
+			return "Hào quang"
+		_:
+			return String(
+				locus
+			).replace(
+				"_",
+				" "
+			).capitalize()
+
+
+func _gene_value_label(
+	value: StringName
+) -> String:
+	return String(
+		value
+	).replace(
+		"_",
+		" "
+	).capitalize()
+
 
 func _mods(item: Dictionary) -> String:
 	var parts: Array[String] = []
