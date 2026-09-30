@@ -344,9 +344,9 @@ func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 		"deadline cannot bypass zero-food hibernation"
 	)
 
-	var reward := game.claim_maze_hunt_reward(
+	var reward := game.claim_obstacle_run_reward(
 		100,
-		"ready_stage2_maze"
+		"ready_stage2_obstacle"
 	)
 
 	_expect(
@@ -356,7 +356,7 @@ func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 				false
 			)
 		),
-		"hibernating Stage 2 must still allow an unclaimed Maze/Snake reward"
+		"hibernating Stage 2 must still allow an unclaimed Vượt chướng ngại/Snake reward"
 	)
 
 	var after_reward := game.snapshot()
