@@ -1172,15 +1172,8 @@ func _sanitize_dev_test_talent() -> void:
 	var talent_id := String(
 		DEV_INSTANT_EVOLUTION_TALENT
 	)
-	var enabled := (
-		OS.is_debug_build()
-		and bool(
-			_meta.get(
-				"dev_instant_evolution_enabled",
-				false
-			)
-		)
-	)
+	var enabled := OS.is_debug_build()
+	_meta["dev_instant_evolution_enabled"] = enabled
 
 	if enabled:
 		if not talents.has(

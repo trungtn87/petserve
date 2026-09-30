@@ -1,40 +1,40 @@
 [
   {
-    "id": "cat_nekomata",
-    "display_name": "Nekomata",
+    "id": "cat_horned_spirit",
+    "display_name": "Giác Linh Miêu",
     "species": "cat",
     "first_expression_stage": 2,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_gene_ids": ["tail_long", "eyes_moon", "mark_moon"],
-    "target_regions": ["tail", "eyes", "mark", "aura"],
+    "target_regions": ["structure", "mark", "aura"],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "2": "Develop this same cat along a restrained Nekomata destiny from its juvenile Stage 2 form. Keep the pet unmistakably the same individual while beginning subtle spirit-cat cues: a more expressive tail flow, a faint lunar quality in the eyes or lineage mark, and a controlled supernatural presence. Do not fully split the tail yet and do not complete the adult mythical form.",
-      "3": "Awaken the Nekomata branch on this same cat individual. Keep one shared tail root but let the far tail structure develop a clearly forked or twin-tip silhouette, accompanied by a subtle spirit-cat quality in the eyes and aura. The result must still be recognizably the same pet, not a different cat and not a fully transformed adult monster.",
-      "4": "Complete the established Nekomata branch while preserving the exact same cat identity and the Stage 3 forked-tail direction. Refine the twin-tip tail flow, spirit-cat gaze and restrained supernatural aura into a mature mythic form without replacing the species, face identity or PetHome context."
+      "2": "Grow a small pair of smooth spirit horns on the forehead. Keep them modest, symmetrical and naturally integrated with the same cat.",
+      "3": "Develop the same spirit horns into elegant fantasy horns with a restrained elemental glow. Keep the same cat identity.",
+      "4": "Complete the horned fantasy form with mature elegant horns and a controlled elemental aura. Keep the same cat identity."
     },
-    "preserve_hint": "Preserve the same face, coat family, four-leg body plan, scene identity and every non-target Gene trait. The tail may fork only as defined by this Nekomata branch; do not create unrelated extra limbs, wings, horns or a second body."
+    "preserve_hint": "Keep the same face, coat family, four-leg feline body plan, two ears and exactly one tail. Do not add wings or unrelated anatomy."
   },
   {
-    "id": "cat_bakeneko",
-    "display_name": "Bakeneko",
+    "id": "cat_winged_spirit",
+    "display_name": "Dực Linh Miêu",
     "species": "cat",
     "first_expression_stage": 2,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_gene_ids": ["coat_shadow", "eyes_luminous", "whiskers_starlight"],
-    "target_regions": ["eyes", "fur", "coat", "whiskers", "mark", "aura"],
+    "target_regions": ["structure", "mane", "aura"],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "2": "Develop this same cat along a restrained Bakeneko destiny from its juvenile Stage 2 form. Preserve the normal single-tail body plan while introducing only early spirit-cat cues: a slightly uncanny mythic gaze, subtle spectral traces within the existing coat or whiskers, and a controlled supernatural presence. Do not make the pet look adult or fully transformed yet.",
-      "3": "Awaken the Bakeneko spirit-cat branch on this same cat individual. Keep the normal single-tail body plan while introducing a more uncanny mythic gaze, subtle spirit-fire traces through existing fur or markings, and a controlled supernatural presence. Do not change the pet into another species or redesign its established identity.",
-      "4": "Complete the established Bakeneko branch as the mature form of the same individual. Refine the spirit-cat gaze, integrated spectral fur or marking accents and controlled supernatural aura while retaining the original face, body plan, coat lineage and recognizable personal identity."
+      "2": "Grow one small symmetrical pair of soft fantasy wing buds from the upper back. Keep them compact and secondary to the cat body.",
+      "3": "Develop the same wing buds into clear feathered fantasy wings while preserving natural feline anatomy and the same cat identity.",
+      "4": "Complete the winged fantasy form with mature elegant wings and a controlled elemental aura. Keep the same cat identity."
     },
-    "preserve_hint": "Preserve the same cat identity, single-tail anatomy, four natural legs, face proportions, coat lineage and all non-target Gene traits. Do not add wings, horns, duplicate limbs, extra tails or unrelated monster anatomy."
+    "preserve_hint": "Keep the same face, coat family, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
   }
 ]

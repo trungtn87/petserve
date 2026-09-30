@@ -5,7 +5,43 @@ extends RefCounted
 const SCHEMA_VERSION: int = 1
 const SOURCE_EGG_STAGE4: StringName = &"egg_stage4"
 const SOURCE_GENE_RECIPE: StringName = &"gene_recipe"
+const SOURCE_BIRTH_TALENT: StringName = &"birth_talent"
+const CAT_BIRTH_TALENTS := [&"cat_horned_spirit", &"cat_winged_spirit"]
 const SEED_MODULUS: int = 2147483647
+
+
+func from_birth_talent(
+	identity: PetIdentity
+) -> Dictionary:
+	if (
+		identity == null
+		or not identity.is_valid()
+		or identity.species() != &"cat"
+	):
+		return {}
+
+	var mutation_id := CAT_BIRTH_TALENTS[
+		posmod(
+			_stable_seed(
+				identity,
+				"birth_talent"
+			),
+			CAT_BIRTH_TALENTS.size()
+		)
+	]
+	var definition := _definition_by_id(
+		mutation_id
+	)
+
+	if definition == null:
+		return {}
+
+	return _build_destiny(
+		identity,
+		definition,
+		SOURCE_BIRTH_TALENT,
+		[]
+	)
 
 
 func from_stage4_egg(
@@ -132,6 +168,7 @@ func validate_for_identity(
 	if source not in [
 		SOURCE_EGG_STAGE4,
 		SOURCE_GENE_RECIPE,
+		SOURCE_BIRTH_TALENT,
 	]:
 		return false
 

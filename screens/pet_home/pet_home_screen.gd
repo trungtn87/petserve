@@ -717,7 +717,7 @@ func _open_pet_info() -> void:
 	):
 		_add_info_row(
 			"Thiên phú",
-			"Bẻ cong thời gian [TEST]"
+			"Tiến hóa ngay [TEST]"
 		)
 	_add_info_row(
 		"Loài",
@@ -803,7 +803,7 @@ func _add_mythic_name_row(
 		return
 
 	_add_info_row(
-		"Thú thần thoại",
+		"Biến dị fantasy",
 		name
 	)
 

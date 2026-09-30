@@ -49,9 +49,7 @@ func _initialize() -> void:
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
-	var style = (
-		MythicStyleProfileScript.load_default()
-	)
+	var style = MythicStyleProfileScript.load_default()
 	var catalog = InitialSpeciesCatalogScript.new()
 	var species = catalog.find_by_species(
 		catalog.load_default(),
@@ -79,7 +77,6 @@ func _initialize() -> void:
 		return
 
 	var prompts = InitialPetPromptBuilderScript.new()
-
 	var request = PetRenderRequestScript.new()
 	request.mode = (
 		PetRenderRequestScript
@@ -96,96 +93,63 @@ func _initialize() -> void:
 	request.output_key = "test_initial"
 
 	_expect(
-		request.is_valid(),
-		"text-only initial request must be valid without source image"
-	)
-
-	_expect(
-		request.source_image_path.is_empty(),
-		"initial request must not require source image"
+		request.is_valid()
+		and request.source_image_path.is_empty(),
+		"Stage 1 must be a valid text-to-image request"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"first visual form"
+			"Create one young cat pet"
 		)
 		and request.positive_prompt.contains(
-			"Mythic Elemental Chibi"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"dark"
+			"slight chibi"
 		)
 		and request.positive_prompt.contains(
-			"AI has broad freedom to invent this individual pet"
+			"smoky blue-black and violet"
 		),
-		"Stage 1 prompt must keep species/element style while leaving the individual design free"
+		"Stage 1 must stay simple: species + light fantasy/chibi + element cues"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"[PETHOME WORLD]"
+			"exactly one tail total"
 		)
-		and request.positive_prompt.contains(
-			"[UI SAFE LAYOUT]"
+		and request.negative_prompt.contains(
+			"duplicate tail"
 		)
-		and request.positive_prompt.contains(
-			"natural environmental background"
-		)
-		and request.positive_prompt.contains(
-			"loose inspiration"
+		and request.negative_prompt.contains(
+			"extra limb"
 		),
-		"Stage 1 must generate a natural same-element environment without rigid scene continuity"
-	)
-
-	_expect(
-		request.negative_prompt.to_lower().contains(
-			"plain studio background"
-		)
-		and request.negative_prompt.to_lower().contains(
-			"split image"
-		)
-		and request.negative_prompt.to_lower().contains(
-			"fixed template character"
-		),
-		"Stage 1 negative prompt must reject studio/template outputs"
-	)
-
-	_expect(
-		request.positive_prompt.to_lower().contains(
-			"full-bleed vertical 9:16"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"35 percent"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"90 percent"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"upper 24 to 28 percent"
-		),
-		"Stage 1 must keep only the required PetHome mobile composition"
+		"Stage 1 must explicitly protect basic cat anatomy"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"natural animal pose"
+			"25 to 30 percent"
 		)
 		and request.positive_prompt.contains(
-			"[STAGE 1 ELEMENTAL IDENTITY CUES]"
+			"lower third"
 		)
 		and request.positive_prompt.contains(
-			"narrow expressive feline face"
-		)
-		and request.positive_prompt.contains(
-			"crescent forehead sigil"
-		)
-		and request.positive_prompt.contains(
-			"different pets of the same element still look unique"
-		)
-		and not request.positive_prompt.contains(
-			"front three-quarter view"
+			"Background occupies most of the image"
 		),
-		"Stage 1 must use element-specific lineage cues while keeping individual variation"
+		"Stage 1 must keep the pet small inside PetHome"
+	)
+
+	_expect(
+		request.positive_prompt.contains(
+			"Simple natural fantasy background"
+		)
+		and request.positive_prompt.contains(
+			"No text or UI"
+		),
+		"Stage 1 background must stay simple and UI-safe"
+	)
+
+	_expect(
+		request.positive_prompt.length() < 1200,
+		"Stage 1 prompt must stay intentionally short"
 	)
 
 	var renderer = MockPetRendererScript.new()
@@ -197,7 +161,6 @@ func _initialize() -> void:
 	)
 
 	renderer.queue_free()
-
 	_finish()
 
 

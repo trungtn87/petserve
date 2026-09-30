@@ -62,102 +62,83 @@ func build(
 		if genome.get_trait(key) != &"base":
 			return null
 
-	var stage_catalog := ElementStageVisualCatalog.new()
-	var element_profile := stage_catalog.find_by_element(
-		stage_catalog.load_default(),
-		identity.element()
-	)
-	var stage_one_face := stage_catalog.prompt_for_stage(
-		element_profile,
-		1
-	)
-
-	if stage_one_face.is_empty():
-		return null
-
 	var spec := InitialPetVisualSpec.new()
 
 	spec.pet_id = identity.pet_id()
 	spec.style_id = style.style_id()
 
 	spec.identity_section = (
-		"Create the first visual form of one unique pet individual. "
-		+ "Species: "
+		"Create one young "
 		+ String(identity.species())
-		+ ". Element family: "
+		+ " pet. Element: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ ". The AI has broad freedom to invent this individual pet. "
-		+ "Do not reuse a fixed template, fixed face, fixed fur pattern or fixed silhouette from another pet."
+		+ "."
 	)
 
 	spec.style_section = (
-		style.base_style()
-		+ " Use the element only as creative visual inspiration: "
-		+ style.accent_for(
+		"Painterly fantasy game art, slight chibi, natural feline anatomy, soft fur and a simple readable design. "
+		+ "Element traits: "
+		+ _simple_element_traits(
 			identity.element()
 		)
-		+ ". Freely decide how those elemental cues appear on this individual."
 	)
 
 	spec.form_section = (
-		"Stage 1 is a young "
-		+ String(identity.species())
-		+ ". Keep believable species anatomy, but otherwise let the AI freely invent the exact individual: "
-		+ "fur pattern, fluff, small asymmetries, expression and a natural animal pose. "
-		+ "Elemental details should feel organically part of the animal rather than pasted-on accessories."
-		+ "\n\n[STAGE 1 ELEMENTAL IDENTITY CUES]\n"
-		+ stage_one_face
-		+ " These are lineage anchors for this element, not a fixed character template. "
-		+ "Preserve room for individual variation inside these cues so different pets of the same element still look unique."
+		"Stage 1. Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+		+ "Keep fantasy details subtle."
 	)
 
 	spec.scene_section = (
-		"Create a natural environmental background that belongs to the same "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
-		)
-		+ " world. Use these scene descriptors only as loose inspiration, not as a rigid layout: "
-		+ scene_profile.environment_theme
-		+ "; "
-		+ scene_profile.palette_description
-		+ "; "
-		+ scene_profile.lighting_theme
-		+ ". The AI may freely invent the scenery, depth, plants, rocks, atmosphere and lighting as long as the element feels coherent."
+		"Simple natural fantasy background matching the same element. "
+		+ "Keep it uncluttered and atmospheric."
 	)
 
 	spec.composition_section = (
-		"Generate exactly one pet in one continuous natural environment. "
-		+ "The pet and background must be one coherent scene, not separate assets, collage or character sheet."
+		"Exactly one pet. Full body visible."
 	)
 
 	spec.ui_safe_section = (
-		"Render a full-bleed vertical 9:16 mobile PetHome scene that fills the screen edge to edge. "
-		+ "Use a wide environmental composition rather than a close-up portrait. "
-		+ "Keep the whole pet comfortably visible at about 35 percent of total image height, centered around the lower-middle of the frame. "
-		+ "Keep the ground contact around 90 percent of image height so there is scenic space below the paws. "
-		+ "Leave the upper 24 to 28 percent calm and low-detail for UI. "
-		+ "The background should remain clearly visible around the pet with foreground, midground and background depth. "
-		+ "Do not draw UI, text, labels, icons, frames or interface elements into the artwork."
+		"Vertical 9:16 mobile scene. "
+		+ "Pet about 25 to 30 percent of image height in the lower third. "
+		+ "Background occupies most of the image. "
+		+ "Keep the upper area calm for UI. No text or UI."
 	)
 
 	spec.future_space_section = (
-		"This is an early-life form. Keep it visually simple enough to evolve later, "
-		+ "but do not force a predetermined face, silhouette, ornament placement or body design. "
-		+ "Uniqueness between different pets is desirable."
+		"Keep the design simple enough for later evolution."
 	)
 
 	spec.negative_prompt = (
-		style.negative_prompt()
-		+ ", fixed template character, repeated identical pet design, repeated identical face, repeated identical fur pattern"
-		+ ", plain studio background, empty neutral backdrop, isolated character on blank background"
-		+ ", split image, collage, character sheet, duplicated pet, multiple pets"
-		+ ", close-up portrait, bust shot, giant pet filling the frame, cropped ears, cropped paws, cropped tail"
-		+ ", humanoid pose, standing upright like a person, text, labels, UI, buttons, interface panels"
+		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
+		+ "heavy accessories, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
 		return null
 
 	return spec
+
+
+func _simple_element_traits(
+	element: StringName
+) -> String:
+	match element:
+		&"metal":
+			return "silver-gray fur with pale cyan crystal accents."
+		&"wood":
+			return "warm tan fur with soft green leaf accents."
+		&"water":
+			return "pearl-white and aqua fur with light water or mist accents."
+		&"fire":
+			return "warm cream fur with restrained orange-red flame accents."
+		&"earth":
+			return "sand-brown fur with subtle stone or mineral accents."
+		&"dark":
+			return "smoky blue-black and violet fur with soft shadow or mist accents."
+		&"light":
+			return "ivory-white fur with soft gold light accents."
+		_:
+			return "soft elemental accents."

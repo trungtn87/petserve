@@ -239,49 +239,11 @@ func build_natural_request(
 			scene_profile
 		)
 
-	var style := MythicStyleProfile.load_default()
-
-	if style == null:
-		return {
-			"ok": false,
-			"error": "Không load được MythicStyleProfile.",
-		}
-
-	var lineage_prompt := _stage_one_to_two_lineage_prompt(
-		identity
-	)
-
-	if lineage_prompt.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 1/2 Element lineage profile.",
-		}
-
 	var positive_prompt := (
-		"[STAGE 2 CONTINUITY EVOLUTION]\n"
-		+ "Advance the exact same individual pet from Stage 1 to Stage 2 using the provided Stage 1 image as the visual source of truth. "
-		+ "Preserve recognizable face identity, unique fur pattern, markings, palette family, appendage identity and overall lineage. "
-		+ "The pet may mature in age-appropriate proportions, fur and elemental morphology, but must not become a different individual. "
-		+ style.base_style()
-		+ "\n\n"
-		+ lineage_prompt
-	)
-
-	positive_prompt += (
-		"\n\n[NATURAL GROWTH]\n"
-		+ "No Gene Item is expressed in this transition. Keep every gameplay Gene locus unchanged. "
-		+ "Only natural Stage 2 age progression and the element-specific morphology may develop."
-	)
-
-	positive_prompt += _anatomy_lock_section()
-	positive_prompt += _pethome_scale_lock_section()
-	positive_prompt += (
-		"\n\n[PETHOME CONTINUITY]\n"
-		+ _scene_continuity_prompt(
-			scene_profile
+		_stage_two_base_prompt(
+			identity
 		)
-		+ " Preserve the same world and recognizable scene continuity from the reference image. "
-		+ "Return ONE complete pet + background portrait with no text or UI."
+		+ " No new Gene mutation."
 	)
 
 	var request := PetRenderRequest.new()
@@ -290,11 +252,7 @@ func build_natural_request(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
-		style.negative_prompt()
-		+ ", different individual, identity drift, different face, unrelated fur pattern, "
-		+ "random gene trait, unrelated mutation, species redesign, replaced PetHome world"
-	)
+	request.negative_prompt = _stage_two_simple_negative()
 	request.source_image_path = source_visual.image_path
 	request.target_region = NATURAL_TARGET_REGION
 	request.edit_strength = STAGE_TWO_EDIT_STRENGTH
@@ -761,33 +719,22 @@ func _apply_mythic_prompt(
 	request: PetRenderRequest,
 	mythic_resolution: Dictionary
 ) -> void:
+	var prompt := String(
+		mythic_resolution.get(
+			"prompt",
+			""
+		)
+	).strip_edges()
+
+	if prompt.is_empty():
+		return
+
 	request.positive_prompt += (
-		"\n\n[CODE-LOCKED MYTHIC DESTINY]\n"
-		+ "Mythical beast: "
-		+ String(
-			mythic_resolution.get(
-				"display_name",
-				""
-			)
-		)
-		+ ". "
-		+ String(
-			mythic_resolution.get(
-				"prompt",
-				""
-			)
-		)
-		+ " "
-		+ String(
-			mythic_resolution.get(
-				"preserve_hint",
-				""
-			)
-		)
-		+ " Develop only this code-selected mythical branch. Do not reroll, replace or mix it with another branch."
+		" Fantasy mutation: "
+		+ prompt
 	)
 	request.negative_prompt += (
-		", wrong mythical creature, mixed mythical branches, unrelated mutation"
+		", unrelated fantasy mutation, mixed mutation branches"
 	)
 
 
@@ -942,52 +889,12 @@ func _build_stage_one_gene_edit(
 	target_stage: int,
 	scene_profile: PetSceneProfile
 ) -> Dictionary:
-	var style := MythicStyleProfile.load_default()
-
-	if style == null:
-		return {
-			"ok": false,
-			"error": "Không load được MythicStyleProfile.",
-		}
-
-	var lineage_prompt := _stage_one_to_two_lineage_prompt(
-		identity
-	)
-
-	if lineage_prompt.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 1/2 Element lineage profile.",
-		}
-
 	var positive_prompt := (
-		"[STAGE 2 CONTINUITY EVOLUTION]\n"
-		+ "Advance the exact same individual pet from Stage 1 to Stage 2 using the provided Stage 1 image as the visual source of truth. "
-		+ "Preserve recognizable face identity, unique fur pattern, markings, palette family, appendage identity and overall lineage. "
-		+ "Allow age-appropriate Stage 2 maturation without replacing this pet with another individual. "
-		+ style.base_style()
-		+ "\n\n"
-		+ lineage_prompt
-	)
-
-	positive_prompt += (
-		"\n\n[CODE-LOCKED GENE CHANGE]\n"
-		+ "Apply exactly this gameplay-selected Gene expression during the same Stage 2 maturation: "
-		+ visual.instruction()
-		+ " "
-		+ visual.preserve_hint()
-		+ " Do not invent any additional Gene or unrelated mutation."
-	)
-
-	positive_prompt += _anatomy_lock_section()
-	positive_prompt += _pethome_scale_lock_section()
-	positive_prompt += (
-		"\n\n[PETHOME CONTINUITY]\n"
-		+ _scene_continuity_prompt(
-			scene_profile
+		_stage_two_base_prompt(
+			identity
 		)
-		+ " Preserve the same world and recognizable scene continuity from the reference image. "
-		+ "Return ONE complete pet + background portrait with no text or UI."
+		+ " Selected Gene change: "
+		+ visual.instruction()
 	)
 
 	var request := PetRenderRequest.new()
@@ -996,11 +903,7 @@ func _build_stage_one_gene_edit(
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
-		style.negative_prompt()
-		+ ", different individual, identity drift, different face, unrelated fur pattern, "
-		+ "random gene trait, unrelated mutation, species redesign, replaced PetHome world"
-	)
+	request.negative_prompt = _stage_two_simple_negative()
 	request.source_image_path = source_visual.image_path
 	request.target_region = COMPOSITE_GENE_TARGET_REGION
 	request.edit_strength = maxf(
@@ -1236,6 +1139,59 @@ func _stage_one_to_two_lineage_prompt(
 		+ " Apply this as maturation of the same individual. It may change age-appropriate proportions and elemental shape language, "
 		+ "but it must preserve the source pet's personal identity and previously established details unless a code-selected Gene explicitly changes them."
 	)
+
+
+func _stage_two_base_prompt(
+	identity: PetIdentity
+) -> String:
+	return (
+		"Evolve the exact same cat from Stage 1 to Stage 2 using the reference image. "
+		+ "Keep the same individual face, fur pattern, element colors and exactly one tail. "
+		+ "Make it slightly older and more developed. "
+		+ "Painterly fantasy game art, slight chibi, natural feline anatomy. "
+		+ "Element: "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ ". "
+		+ _simple_element_traits(
+			identity.element()
+		)
+		+ " Simple element-themed background. Full body visible. "
+		+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
+		+ "Background occupies most of the image. Keep the upper area calm for UI. "
+		+ "No text or UI."
+	)
+
+
+func _stage_two_simple_negative() -> String:
+	return (
+		"different individual, identity drift, extra tail, duplicate tail, split tail, "
+		+ "extra leg, extra ear, multiple pets, close-up portrait, pet filling the frame, "
+		+ "oversized pet, humanoid pose, heavy accessories, text, UI, logo, watermark"
+	)
+
+
+func _simple_element_traits(
+	element: StringName
+) -> String:
+	match element:
+		&"metal":
+			return "Silver-gray fur with pale cyan crystal accents."
+		&"wood":
+			return "Warm tan fur with soft green leaf accents."
+		&"water":
+			return "Pearl-white and aqua fur with light water or mist accents."
+		&"fire":
+			return "Warm cream fur with restrained orange-red flame accents."
+		&"earth":
+			return "Sand-brown fur with subtle stone or mineral accents."
+		&"dark":
+			return "Smoky blue-black and violet fur with soft shadow or mist accents."
+		&"light":
+			return "Ivory-white fur with soft gold light accents."
+		_:
+			return "Soft elemental accents."
 
 
 func _stage_two_environment_prompt(

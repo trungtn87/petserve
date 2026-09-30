@@ -91,14 +91,15 @@ func build_request(
 				"error": "Mythic Destiny ban đầu không hợp lệ.",
 			}
 
-		positive_prompt += (
-			"\n\n[MYTHIC DESTINY FORESHADOW]\n"
-			+ "This infant is code-locked to the future mythical branch '"
-			+ definition.display_name()
-			+ "'. At Stage 1 show only a very subtle omen compatible with the existing infant anatomy, "
-			+ "such as restrained gaze, lineage-mark or aura emphasis inside already allowed features. "
-			+ "Do NOT express the mature mythical anatomy yet, do not add extra appendages, and do not mix another mythical branch."
+		var mutation_hint := _stage_one_fantasy_hint(
+			definition.id()
 		)
+
+		if not mutation_hint.is_empty():
+			positive_prompt += (
+				" Fantasy mutation: "
+				+ mutation_hint
+			)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
@@ -111,7 +112,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v9"
+		+ "_pethome_infant_v10_simple"
 	)
 
 	if not request.is_valid():
@@ -168,3 +169,16 @@ func has_render_endpoint() -> bool:
 		config != null
 		and config.is_configured()
 	)
+
+
+
+func _stage_one_fantasy_hint(
+	mutation_id: StringName
+) -> String:
+	match mutation_id:
+		&"cat_horned_spirit":
+			return "tiny subtle spirit horn buds on the forehead."
+		&"cat_winged_spirit":
+			return "one small symmetrical pair of soft wing buds on the upper back."
+		_:
+			return ""
