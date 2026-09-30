@@ -369,12 +369,13 @@ func _test_two_loci_and_retry_guards() -> void:
 	)
 	_expect(
 		request != null
-		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED GENE CHANGES]"
+			"Apply only these Gene changes selected by code:"
 		),
-		"two-locus evolution uses composite render request"
+		"two-locus evolution full-regenerates one image with both Gene changes"
 	)
 
 	if request == null:
