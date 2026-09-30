@@ -74,92 +74,180 @@ func resolve(
 			"Không có Gene Expression candidate hợp lệ cho phenotype hiện tại."
 		)
 
-	var selected := _weighted_pick(
-		identity,
-		genome,
-		candidates
-	)
+	var by_locus: Dictionary = {}
 
-	if selected.is_empty():
-		return _error(
-			"Không chọn được Gene Expression."
-		)
-
-	var locus := _normalize_token(
-		StringName(
-			selected.get(
+	for candidate in candidates:
+		var locus_key := String(
+			candidate.get(
 				"locus",
 				""
 			)
 		)
-	)
-	var direction := _normalize_token(
-		StringName(
-			selected.get(
-				"direction",
-				""
+
+		if locus_key.is_empty():
+			continue
+
+		var group: Array = by_locus.get(
+			locus_key,
+			[]
+		)
+		group.append(
+			candidate
+		)
+		by_locus[locus_key] = group
+
+	var loci: Array = by_locus.keys()
+	loci.sort()
+
+	var selected_changes: Array[Dictionary] = []
+	var deltas: Array[EvolutionDelta] = []
+	var changed := genome
+
+	for locus_value in loci:
+		var group_value: Variant = by_locus.get(
+			locus_value,
+			[]
+		)
+
+		if typeof(group_value) != TYPE_ARRAY:
+			continue
+
+		var group: Array[Dictionary] = []
+
+		for raw_candidate in group_value as Array:
+			if typeof(raw_candidate) != TYPE_DICTIONARY:
+				continue
+			group.append(
+				(raw_candidate as Dictionary).duplicate(
+					true
+				)
+			)
+
+		if group.is_empty():
+			continue
+
+		var selected := _weighted_pick(
+			identity,
+			genome,
+			group
+		)
+
+		if selected.is_empty():
+			return _error(
+				"Không chọn được Gene Expression cho locus %s."
+				% String(locus_value)
+			)
+
+		var locus := _normalize_token(
+			StringName(
+				selected.get(
+					"locus",
+					""
+				)
 			)
 		)
-	)
-	var gene_id := _normalize_token(
-		StringName(
-			selected.get(
-				"gene_id",
-				""
+		var direction := _normalize_token(
+			StringName(
+				selected.get(
+					"direction",
+					""
+				)
 			)
 		)
-	)
-	var resolved_trait := _normalize_token(
-		StringName(
-			selected.get(
-				"resolved_trait",
-				""
+		var gene_id := _normalize_token(
+			StringName(
+				selected.get(
+					"gene_id",
+					""
+				)
 			)
 		)
-	)
-	var current_trait := genome.get_trait(
-		locus,
-		PetGenomeSchema.BASE_TRAIT
-	)
-
-	if (
-		String(resolved_trait).is_empty()
-		or resolved_trait == current_trait
-	):
-		return _error(
-			"Gene Expression không tạo được trait kế tiếp."
+		var resolved_trait := _normalize_token(
+			StringName(
+				selected.get(
+					"resolved_trait",
+					""
+				)
+			)
+		)
+		var current_trait := changed.get_trait(
+			locus,
+			PetGenomeSchema.BASE_TRAIT
 		)
 
-	var delta_id := StringName(
-		"gene_expr_%s_s%d"
-		% [
-			String(gene_id),
-			genome.stage(),
-		]
-	)
+		if (
+			String(resolved_trait).is_empty()
+			or resolved_trait == current_trait
+		):
+			return _error(
+				"Gene Expression không tạo được trait kế tiếp cho locus %s."
+				% String(locus)
+			)
 
-	var delta := EvolutionDelta.new(
-		delta_id,
-		locus,
-		current_trait,
-		resolved_trait,
-		genome.mutation_ids().size()
-			+ 1
-	)
-
-	if not delta.is_valid():
-		return _error(
-			"Không tạo được Gene EvolutionDelta."
+		var delta_id := StringName(
+			"gene_expr_%s_s%d"
+			% [
+				String(gene_id),
+				genome.stage(),
+			]
+		)
+		var delta := EvolutionDelta.new(
+			delta_id,
+			locus,
+			current_trait,
+			resolved_trait,
+			changed.mutation_ids().size()
+				+ 1
 		)
 
-	var changed := _applier.apply(
-		genome,
-		delta
-	)
+		if not delta.is_valid():
+			return _error(
+				"Không tạo được Gene EvolutionDelta cho locus %s."
+				% String(locus)
+			)
 
-	if changed == null:
+		var next_changed := _applier.apply(
+			changed,
+			delta
+		)
+
+		if next_changed == null:
+			return _error(
+				"Không áp dụng được Gene EvolutionDelta cho locus %s."
+				% String(locus)
+			)
+
+		selected["gene_id"] = String(gene_id)
+		selected["locus"] = String(locus)
+		selected["direction"] = String(direction)
+		selected["resolved_trait"] = String(
+			resolved_trait
+		)
+		selected_changes.append(
+			selected.duplicate(
+				true
+			)
+		)
+		deltas.append(
+			delta
+		)
+		changed = next_changed
+
+	if deltas.is_empty():
 		return _error(
-			"Không áp dụng được Gene EvolutionDelta."
+			"Không tạo được Gene EvolutionDelta hợp lệ."
+		)
+
+	var first := selected_changes[0]
+	var first_delta := deltas[0]
+	var total_influence := 0.0
+
+	for selected in selected_changes:
+		total_influence += float(
+			selected.get(
+				"influence",
+				0.0
+			)
 		)
 
 	return {
@@ -170,49 +258,63 @@ func resolve(
 		"from_stage": genome.stage(),
 		"to_stage": genome.stage() + 1,
 		"selected_gene_id": String(
-			gene_id
+			first.get(
+				"gene_id",
+				""
+			)
 		),
 		"selected_locus": String(
-			locus
+			first.get(
+				"locus",
+				""
+			)
 		),
 		"selected_direction": String(
-			direction
+			first.get(
+				"direction",
+				""
+			)
 		),
 		"resolved_trait": String(
-			resolved_trait
+			first.get(
+				"resolved_trait",
+				""
+			)
 		),
 		"reinforced": bool(
-			selected.get(
+			first.get(
 				"reinforced",
 				false
 			)
 		),
 		"selected_item_uid": String(
-			selected.get(
+			first.get(
 				"item_uid",
 				""
 			)
 		),
 		"selected_item_uids": (
-			selected.get(
+			first.get(
 				"item_uids",
 				[]
 			) as Array
 		).duplicate(true),
-		"candidate_count": candidates.size(),
-		"primary_influence": float(
-			selected.get(
-				"influence",
-				0.0
+		"selected_changes": (
+			selected_changes.duplicate(
+				true
 			)
 		),
+		"candidate_count": candidates.size(),
+		"resolved_locus_count": deltas.size(),
+		"primary_influence": total_influence,
 		"gene_influences": (
 			gene_state.influences_snapshot()
 		),
 		"tag_influences": (
 			gene_state.tag_influences_snapshot()
 		),
-		"delta": delta,
+		"delta": first_delta,
+		"deltas": deltas,
 		"genome": changed,
 	}
 
@@ -250,7 +352,10 @@ func _natural_resolution(
 		"primary_influence": 0.0,
 		"gene_influences": {},
 		"tag_influences": {},
+		"selected_changes": [],
+		"resolved_locus_count": 0,
 		"delta": null,
+		"deltas": [],
 		"genome": unchanged,
 	}
 
