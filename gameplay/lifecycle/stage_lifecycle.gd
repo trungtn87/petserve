@@ -249,6 +249,111 @@ func apply_item(
 	}
 
 
+func apply_growth_bonus_percent(
+	percent: float
+) -> Dictionary:
+	if not _can_progress():
+		return {
+			"ok": false,
+			"message": "Hình thái cuối không còn thanh trưởng thành.",
+		}
+
+	if bool(
+		_state.get(
+			"ready_to_evolve",
+			false
+		)
+	):
+		return {
+			"ok": false,
+			"message": "Pet đã sẵn sàng tiến hóa.",
+		}
+
+	if _is_hibernating():
+		return {
+			"ok": false,
+			"message": "Pet đang ngủ đông. Hãy cho ăn trước.",
+		}
+
+	var normalized_percent := maxf(
+		0.0,
+		percent
+	)
+
+	if normalized_percent <= 0.0:
+		return {
+			"ok": false,
+			"message": "Growth bonus không hợp lệ.",
+		}
+
+	var duration := maxf(
+		0.0,
+		float(
+			_state.get(
+				"duration_seconds",
+				0.0
+			)
+		)
+	)
+
+	if duration <= 0.0:
+		return {
+			"ok": false,
+			"message": "Giai đoạn hiện tại không có Growth.",
+		}
+
+	var before_growth := maxf(
+		0.0,
+		float(
+			_state.get(
+				"growth_elapsed_seconds",
+				0.0
+			)
+		)
+	)
+	var requested_delta := (
+		duration
+		* normalized_percent
+		/ 100.0
+	)
+
+	_state["growth_elapsed_seconds"] = (
+		before_growth
+		+ requested_delta
+	)
+	_update_ready()
+	_sync_meta()
+
+	var after_growth := maxf(
+		0.0,
+		float(
+			_state.get(
+				"growth_elapsed_seconds",
+				0.0
+			)
+		)
+	)
+
+	return {
+		"ok": true,
+		"growth_bonus_percent": normalized_percent,
+		"growth_delta_seconds": int(
+			round(
+				maxf(
+					0.0,
+					after_growth - before_growth
+				)
+			)
+		),
+		"ready_to_evolve": bool(
+			_state.get(
+				"ready_to_evolve",
+				false
+			)
+		),
+	}
+
+
 func snapshot() -> Dictionary:
 	var stage_index := int(
 		_state.get(
