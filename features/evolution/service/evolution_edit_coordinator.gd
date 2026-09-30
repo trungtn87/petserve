@@ -10,6 +10,9 @@ const InitialSpeciesCatalogScript = preload(
 const PLAN_SCHEMA: int = 1
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
+const COMPOSITE_GENE_TARGET_REGION: StringName = &"whole_pet_gene"
+const COMPOSITE_MYTHIC_TARGET_REGION: StringName = &"whole_pet_mythic"
+const MYTHIC_EDIT_STRENGTH: float = 0.24
 const SEED_MODULUS: int = 2147483647
 const ANATOMY_LOCK_PROMPT: String = (
 	"Preserve the reference pet's species body plan and existing anatomy exactly. "
@@ -436,6 +439,388 @@ func _build_later_natural_edit(
 		"schema": PLAN_SCHEMA,
 		"request": request,
 	}
+
+
+func build_composite_request(
+	identity: PetIdentity,
+	previous_genome: PetGenome,
+	target_genome: PetGenome,
+	deltas: Array[EvolutionDelta],
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile = null,
+	mythic_resolution: Dictionary = {}
+) -> Dictionary:
+	if (
+		identity == null
+		or previous_genome == null
+		or target_genome == null
+		or source_visual == null
+		or not identity.is_valid()
+		or not previous_genome.is_valid()
+		or not target_genome.is_valid()
+		or not source_visual.is_valid()
+		or target_stage != previous_genome.stage() + 1
+		or target_genome.stage() != previous_genome.stage()
+		or source_visual.pet_id != identity.pet_id()
+	):
+		return {
+			"ok": false,
+			"error": "Dữ liệu composite evolution không hợp lệ.",
+		}
+
+	if (
+		source_visual.image_path.is_empty()
+		or not FileAccess.file_exists(
+			source_visual.image_path
+		)
+	):
+		return {
+			"ok": false,
+			"error": "Không tìm thấy ảnh PetHome nguồn cho composite evolution.",
+		}
+
+	if scene_profile != null:
+		if (
+			not scene_profile.is_valid()
+			or scene_profile.element
+				!= identity.element()
+		):
+			return {
+				"ok": false,
+				"error": "PetHome Scene Profile composite không hợp lệ.",
+			}
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if (
+		previous_genome.stage() == 1
+		and target_stage == 2
+	):
+		if deltas.size() > 1:
+			return {
+				"ok": false,
+				"error": "Stage 1 không được có nhiều hơn một Gene delta.",
+			}
+
+		var base_plan := (
+			build_natural_request(
+				identity,
+				previous_genome,
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+			if deltas.is_empty()
+			else build_request(
+				identity,
+				previous_genome,
+				target_genome,
+				deltas[0],
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+		)
+
+		if (
+			not bool(
+				base_plan.get(
+					"ok",
+					false
+				)
+			)
+			or not mythic_active
+		):
+			return base_plan
+
+		var stage_two_request := base_plan.get(
+			"request"
+		) as PetRenderRequest
+
+		if stage_two_request == null:
+			return {
+				"ok": false,
+				"error": "Stage 2 composite request bị rỗng.",
+			}
+
+		_apply_mythic_prompt(
+			stage_two_request,
+			mythic_resolution
+		)
+		stage_two_request.seed = _request_seed(
+			identity,
+			target_stage,
+			_composite_seed_key(
+				deltas,
+				mythic_resolution
+			)
+		)
+
+		return base_plan
+
+	var style := MythicStyleProfile.load_default()
+
+	if style == null:
+		return {
+			"ok": false,
+			"error": "Không load được MythicStyleProfile cho composite evolution.",
+		}
+
+	var stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if stage_detail.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho composite evolution.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new()
+	var positive_prompt := (
+		"[IDENTITY LOCK]\n"
+		+ style.identity_lock()
+		+ " Species: "
+		+ String(identity.species())
+		+ ". Element family: "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[SOURCE PHENOTYPE]\n"
+		+ phenotype.describe(
+			previous_genome
+		)
+		+ "\n\n[TARGET PHENOTYPE]\n"
+		+ phenotype.describe(
+			target_genome
+		)
+	)
+
+	var visual_catalog := MutationVisualCatalog.new()
+	var visuals := visual_catalog.load_default()
+	var edit_strength := NATURAL_EDIT_STRENGTH
+
+	if not deltas.is_empty():
+		positive_prompt += (
+			"\n\n[CODE-LOCKED GENE CHANGES]\n"
+			+ "Apply every Gene change below in this same evolution. "
+			+ "Do not drop one selected locus and do not invent a combined trait that is not listed."
+		)
+
+		for delta in deltas:
+			if (
+				delta == null
+				or not delta.is_valid()
+			):
+				return {
+					"ok": false,
+					"error": "Composite evolution có Gene delta không hợp lệ.",
+				}
+
+			var visual := visual_catalog.find_by_id(
+				visuals,
+				delta.mutation_id()
+			)
+
+			if visual == null:
+				return {
+					"ok": false,
+					"error": "Thiếu visual definition cho %s."
+					% String(
+						delta.mutation_id()
+					),
+				}
+
+			edit_strength = maxf(
+				edit_strength,
+				visual.edit_strength()
+			)
+			positive_prompt += (
+				"\n- %s: %s %s"
+				% [
+					String(
+						delta.target_trait()
+					),
+					visual.instruction(),
+					visual.preserve_hint(),
+				]
+			)
+
+	positive_prompt += (
+		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
+		+ stage_detail
+		+ " This stage detail may refine existing surfaces but may not override the code-selected Gene or Mythic plan."
+	)
+
+	if mythic_active:
+		edit_strength = maxf(
+			edit_strength,
+			MYTHIC_EDIT_STRENGTH
+		)
+		positive_prompt += (
+			"\n\n[CODE-LOCKED MYTHIC DESTINY]\n"
+			+ "Mythical beast: "
+			+ String(
+				mythic_resolution.get(
+					"display_name",
+					""
+				)
+			)
+			+ ". "
+			+ String(
+				mythic_resolution.get(
+					"prompt",
+					""
+				)
+			)
+			+ " "
+			+ String(
+				mythic_resolution.get(
+					"preserve_hint",
+					""
+				)
+			)
+			+ " This Mythic branch was selected by code. Do not replace it with another mythical creature or mix branches."
+		)
+
+	positive_prompt += _anatomy_lock_section()
+	positive_prompt += _pethome_scale_lock_section()
+	positive_prompt += (
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
+		)
+		+ " Keep this the same individual in the same world and framing. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
+	)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = _append_negative_guard(
+		style.negative_prompt()
+		+ ", unrelated gene trait, random mutation, wrong mythical creature, mixed mythical branches, "
+		+ "redesigned species, different pet identity, changed PetHome world"
+	)
+	request.source_image_path = source_visual.image_path
+	request.target_region = (
+		COMPOSITE_MYTHIC_TARGET_REGION
+		if mythic_active
+		else COMPOSITE_GENE_TARGET_REGION
+	)
+	request.edit_strength = edit_strength
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		_composite_seed_key(
+			deltas,
+			mythic_resolution
+		)
+	)
+	request.output_key = _stage_one_output_key(
+		identity,
+		target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Composite evolution render request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
+func _apply_mythic_prompt(
+	request: PetRenderRequest,
+	mythic_resolution: Dictionary
+) -> void:
+	request.positive_prompt += (
+		"\n\n[CODE-LOCKED MYTHIC DESTINY]\n"
+		+ "Mythical beast: "
+		+ String(
+			mythic_resolution.get(
+				"display_name",
+				""
+			)
+		)
+		+ ". "
+		+ String(
+			mythic_resolution.get(
+				"prompt",
+				""
+			)
+		)
+		+ " "
+		+ String(
+			mythic_resolution.get(
+				"preserve_hint",
+				""
+			)
+		)
+		+ " Develop only this code-selected mythical branch. Do not reroll, replace or mix it with another branch."
+	)
+	request.negative_prompt += (
+		", wrong mythical creature, mixed mythical branches, unrelated mutation"
+	)
+
+
+func _composite_seed_key(
+	deltas: Array[EvolutionDelta],
+	mythic_resolution: Dictionary
+) -> StringName:
+	var parts: Array[String] = [
+		"composite",
+	]
+
+	for delta in deltas:
+		if delta == null:
+			continue
+		parts.append(
+			String(
+				delta.mutation_id()
+			)
+		)
+
+	var mythic_id := String(
+		mythic_resolution.get(
+			"mutation_id",
+			""
+		)
+	)
+
+	if not mythic_id.is_empty():
+		parts.append(
+			mythic_id
+		)
+
+	return StringName(
+		"_".join(
+			parts
+		)
+	)
 
 
 func serialize_request(

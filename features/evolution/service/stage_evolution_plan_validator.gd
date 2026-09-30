@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 7
+const PLAN_SCHEMA: int = 8
 const FINAL_STAGE: int = 4
 
 
@@ -19,16 +19,16 @@ func validate(
 
 	var pending := pending_value as Dictionary
 
-	if pending.is_empty():
-		return "Không có pending evolution."
-
-	if int(
-		pending.get(
-			"schema",
-			0
-		)
-	) != PLAN_SCHEMA:
-		return "Pending evolution cũ phải được rebuild theo Gene/Natural policy mới."
+	if (
+		pending.is_empty()
+		or int(
+			pending.get(
+				"schema",
+				0
+			)
+		) != PLAN_SCHEMA
+	):
+		return "Pending evolution cũ phải được rebuild theo composite Gene/Mythic policy."
 
 	var identity := PetIdentity.from_dict(
 		data.get(
@@ -113,7 +113,8 @@ func validate(
 	if typeof(request_value) != TYPE_DICTIONARY:
 		return "Pending evolution thiếu serialized render request."
 
-	var request := EvolutionEditCoordinator.new().request_from_dict(
+	var coordinator := EvolutionEditCoordinator.new()
+	var request := coordinator.request_from_dict(
 		request_value as Dictionary
 	)
 
@@ -160,22 +161,58 @@ func validate(
 		)
 	)
 
-	if source_phenotype.is_empty():
-		return "Pending evolution thiếu source phenotype."
-
-	if target_phenotype.is_empty():
-		return "Pending evolution thiếu target phenotype."
-
-	if source_phenotype != _genome_phenotype(
-		current
+	if (
+		source_phenotype.is_empty()
+		or source_phenotype
+			!= _genome_phenotype(
+				current
+			)
 	):
 		return "Source phenotype không khớp Genome hiện tại."
 
-	if target_phenotype != _genome_phenotype(
-		next
+	if (
+		target_phenotype.is_empty()
+		or target_phenotype
+			!= _genome_phenotype(
+				next
+			)
 	):
 		return "Target phenotype không khớp Genome kế tiếp."
 
+	var deltas_result := _restore_deltas(
+		pending.get(
+			"deltas",
+			[]
+		)
+	)
+
+	if not bool(
+		deltas_result.get(
+			"ok",
+			false
+		)
+	):
+		return String(
+			deltas_result.get(
+				"error",
+				"Gene delta list không hợp lệ."
+			)
+		)
+
+	var deltas: Array[EvolutionDelta] = []
+	var restored_deltas_value: Variant = deltas_result.get(
+		"deltas",
+		[]
+	)
+
+	if typeof(restored_deltas_value) == TYPE_ARRAY:
+		for raw_delta in restored_deltas_value as Array:
+			var restored_delta := raw_delta as EvolutionDelta
+
+			if restored_delta != null:
+				deltas.append(
+					restored_delta
+				)
 	var mode := StringName(
 		pending.get(
 			"resolution_mode",
@@ -183,282 +220,201 @@ func validate(
 		)
 	)
 
-	match mode:
-		StageEvolutionResolver.MODE_NATURAL:
-			return _validate_natural(
-				identity,
-				current,
-				next,
-				pending,
-				request,
-				source_visual,
-				scene_profile,
-				to_stage
-			)
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and not deltas.is_empty()
+	):
+		return "Natural Growth không được có Gene delta."
 
-		StageEvolutionResolver.MODE_GENE:
-			return _validate_gene(
-				identity,
-				current,
-				next,
-				pending,
-				request,
-				source_visual,
-				scene_profile,
-				to_stage
-			)
+	if (
+		mode == StageEvolutionResolver.MODE_GENE
+		and deltas.is_empty()
+	):
+		return "Gene evolution phải có ít nhất một Gene delta."
 
-		_:
-			return "Pending evolution có resolution_mode không hợp lệ."
+	if mode not in [
+		StageEvolutionResolver.MODE_NATURAL,
+		StageEvolutionResolver.MODE_GENE,
+	]:
+		return "Pending evolution có resolution_mode không hợp lệ."
 
+	var intermediate := _apply_deltas(
+		current,
+		deltas
+	)
 
-func _validate_natural(
-	identity: PetIdentity,
-	current: PetGenome,
-	next: PetGenome,
-	pending: Dictionary,
-	request: PetRenderRequest,
-	source_visual: PetVisualRecord,
-	scene_profile: PetSceneProfile,
-	to_stage: int
-) -> String:
-	var delta_value: Variant = pending.get(
-		"delta",
+	if intermediate == null:
+		return "Không rebuild được Genome sau Gene delta."
+
+	var changed_loci := _changed_loci(
+		current,
+		intermediate
+	)
+
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and not changed_loci.is_empty()
+	):
+		return "Natural Growth đã làm thay đổi Gene locus."
+
+	if (
+		mode == StageEvolutionResolver.MODE_GENE
+		and changed_loci.size()
+			!= deltas.size()
+	):
+		return "Gene evolution không thay đúng số locus đã resolve."
+
+	var mythic_value: Variant = pending.get(
+		"mythic_resolution",
 		{}
 	)
 
-	if (
-		typeof(delta_value) != TYPE_DICTIONARY
-		or not (
-			delta_value as Dictionary
-		).is_empty()
-	):
-		return "Natural Growth không được có EvolutionDelta."
+	if typeof(mythic_value) != TYPE_DICTIONARY:
+		return "Pending evolution thiếu Mythic resolution."
 
-	if _changed_loci(
-		current,
-		next
-	).size() != 0:
-		return "Natural Growth đã làm thay đổi visual Gene locus."
-
-	if current.mutation_ids() != next.mutation_ids():
-		return "Natural Growth không được tự thêm mutation history."
-
-	if request.target_region != EvolutionEditCoordinator.NATURAL_TARGET_REGION:
-		return "Natural Growth request có target region không hợp lệ."
-
-	var expected_plan := EvolutionEditCoordinator.new().build_natural_request(
-		identity,
-		current,
-		source_visual,
-		to_stage,
-		scene_profile
-	)
-	var expected_request := expected_plan.get(
-		"request"
-	) as PetRenderRequest
-
-	if (
-		not bool(
-			expected_plan.get(
-				"ok",
-				false
-			)
+	var mythic := mythic_value as Dictionary
+	var mythic_mode := StringName(
+		mythic.get(
+			"mode",
+			"none"
 		)
-		or expected_request == null
-		or expected_request.to_debug_dict()
-			!= request.to_debug_dict()
-	):
-		return "Natural Growth render request đã drift khỏi canonical plan."
-
-	return ""
-
-
-func _validate_gene(
-	identity: PetIdentity,
-	current: PetGenome,
-	next: PetGenome,
-	pending: Dictionary,
-	request: PetRenderRequest,
-	source_visual: PetVisualRecord,
-	scene_profile: PetSceneProfile,
-	to_stage: int
-) -> String:
-	var delta_value: Variant = pending.get(
-		"delta",
-		{}
 	)
-
-	if typeof(delta_value) != TYPE_DICTIONARY:
-		return "Gene plan thiếu EvolutionDelta."
-
-	var delta := delta_value as Dictionary
-	var mutation_id := StringName(
-		delta.get(
+	var mythic_id := StringName(
+		mythic.get(
 			"mutation_id",
 			""
 		)
 	)
-	var target_trait := StringName(
-		delta.get(
-			"target_trait",
-			""
+	var expected_mutations := intermediate.mutation_ids()
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if mythic_mode == SpeciesMythicMutationResolver.MODE_AWAKEN:
+		if String(mythic_id).is_empty():
+			return "Mythic awaken thiếu mutation_id."
+
+		if expected_mutations.has(
+			mythic_id
+		):
+			return "Mythic awaken không được đánh thức branch đã tồn tại."
+
+		expected_mutations.append(
+			mythic_id
 		)
-	)
-	var from_trait := StringName(
-		delta.get(
-			"from_trait",
-			""
-		)
-	)
-	var to_trait := StringName(
-		delta.get(
-			"to_trait",
-			""
-		)
-	)
-	var step_index := int(
-		delta.get(
-			"step_index",
-			0
-		)
-	)
 
-	if (
-		String(mutation_id).is_empty()
-		or not PetGenomeSchema.is_visual_locus(
-			target_trait
-		)
-		or String(from_trait).is_empty()
-		or String(to_trait).is_empty()
-		or from_trait == to_trait
-		or step_index < 1
-	):
-		return "Gene EvolutionDelta không hợp lệ."
+	elif mythic_mode == SpeciesMythicMutationResolver.MODE_CONTINUE:
+		if (
+			String(mythic_id).is_empty()
+			or not expected_mutations.has(
+				mythic_id
+			)
+		):
+			return "Mythic continue không khớp branch hiện tại."
 
-	if current.get_trait(
-		target_trait,
-		PetGenomeSchema.BASE_TRAIT
-	) != from_trait:
-		return "Gene EvolutionDelta from_trait không khớp source Genome."
+	elif mythic_mode != SpeciesMythicMutationResolver.MODE_NONE:
+		return "Mythic resolution mode không hợp lệ."
 
-	if next.get_trait(
-		target_trait,
-		PetGenomeSchema.BASE_TRAIT
-	) != to_trait:
-		return "Gene EvolutionDelta to_trait không khớp target Genome."
+	if next.traits_snapshot() != intermediate.traits_snapshot():
+		return "Target Genome drift khỏi Gene delta đã khóa."
 
-	var changed := _changed_loci(
-		current,
-		next
-	)
+	if next.mutation_ids() != expected_mutations:
+		return "Target mutation history drift khỏi Gene/Mythic plan."
 
-	if (
-		changed.size() != 1
-		or changed[0] != target_trait
-	):
-		return "Gene evolution phải thay đúng một visual locus."
-
-	var current_mutations := current.mutation_ids()
-	var next_mutations := next.mutation_ids()
-
-	if next_mutations.size() != current_mutations.size() + 1:
-		return "Gene mutation history phải tăng đúng một entry."
-
-	for index in range(
-		current_mutations.size()
-	):
-		if next_mutations[index] != current_mutations[index]:
-			return "Gene evolution đã sửa mutation history cũ."
-
-	if next_mutations.back() != mutation_id:
-		return "Gene mutation history không khớp EvolutionDelta."
-
-	var resolution_value: Variant = pending.get(
-		"gene_resolution",
+	var destiny_value: Variant = pending.get(
+		"mythic_destiny",
 		{}
 	)
 
-	if typeof(resolution_value) != TYPE_DICTIONARY:
-		return "Gene plan thiếu provenance."
+	if typeof(destiny_value) != TYPE_DICTIONARY:
+		return "Pending Mythic Destiny không phải Dictionary."
 
-	var resolution := resolution_value as Dictionary
-	var selected_direction := StringName(
-		resolution.get(
-			"selected_direction",
-			""
-		)
-	)
-	var resolved_trait := StringName(
-		resolution.get(
-			"resolved_trait",
-			""
-		)
-	)
-	var reinforced := bool(
-		resolution.get(
-			"reinforced",
-			false
-		)
-	)
+	var destiny := destiny_value as Dictionary
 
 	if (
-		String(
-			resolution.get(
-				"selected_gene_id",
-				""
+		not destiny.is_empty()
+		and not SpeciesMythicDestinyService.new()
+			.validate_for_identity(
+				destiny,
+				identity
 			)
-		).is_empty()
-		or StringName(
-			resolution.get(
-				"selected_locus",
-				""
+	):
+		return "Pending Mythic Destiny không hợp lệ."
+
+	if mythic_active:
+		var catalog := SpeciesMythicMutationCatalog.new()
+		var definition := catalog.find_by_id(
+			catalog.load_default(),
+			mythic_id
+		)
+
+		if (
+			definition == null
+			or definition.species()
+				!= identity.species()
+			or String(
+				mythic.get(
+					"display_name",
+					""
+				)
+			) != definition.display_name()
+			or String(
+				mythic.get(
+					"prompt",
+					""
+				)
+			) != definition.prompt_for_stage(
+				to_stage
 			)
-		) != target_trait
-		or String(selected_direction).is_empty()
-		or resolved_trait != to_trait
-	):
-		return "Gene provenance không khớp EvolutionDelta."
+		):
+			return "Mythic resolution không khớp species definition."
 
-	if (
-		not reinforced
-		and selected_direction != to_trait
-	):
-		return "Gene branch mới phải biểu hiện đúng selected direction."
-
-	if request.target_region != target_trait:
-		return "Gene render target region không khớp EvolutionDelta."
-
-	var delta_object := EvolutionDelta.new(
-		mutation_id,
-		target_trait,
-		from_trait,
-		to_trait,
-		step_index
-	)
-
-	if not delta_object.is_valid():
-		return "Gene EvolutionDelta object không hợp lệ."
-
-	var mutated := PetGenome.new(
+	var same_stage_target := PetGenome.new(
 		current.stage(),
 		current.body_growth(),
 		next.traits_snapshot(),
 		next.mutation_ids()
 	)
 
-	if not mutated.is_valid():
-		return "Không rebuild được mutated Genome để validate request."
+	if not same_stage_target.is_valid():
+		return "Không rebuild được target Genome để validate render plan."
 
-	var expected_plan := EvolutionEditCoordinator.new().build_request(
-		identity,
-		current,
-		mutated,
-		delta_object,
-		source_visual,
-		to_stage,
-		scene_profile
-	)
+	var expected_plan: Dictionary = {}
+
+	if (
+		mythic_active
+		or deltas.size() > 1
+	):
+		expected_plan = coordinator.build_composite_request(
+			identity,
+			current,
+			same_stage_target,
+			deltas,
+			source_visual,
+			to_stage,
+			scene_profile,
+			mythic
+		)
+	elif mode == StageEvolutionResolver.MODE_NATURAL:
+		expected_plan = coordinator.build_natural_request(
+			identity,
+			current,
+			source_visual,
+			to_stage,
+			scene_profile
+		)
+	else:
+		expected_plan = coordinator.build_request(
+			identity,
+			current,
+			same_stage_target,
+			deltas[0],
+			source_visual,
+			to_stage,
+			scene_profile
+		)
+
 	var expected_request := expected_plan.get(
 		"request"
 	) as PetRenderRequest
@@ -474,9 +430,110 @@ func _validate_gene(
 		or expected_request.to_debug_dict()
 			!= request.to_debug_dict()
 	):
-		return "Gene render request đã drift khỏi canonical plan."
+		return "Evolution render request đã drift khỏi canonical composite plan."
 
 	return ""
+
+
+func _restore_deltas(
+	value: Variant
+) -> Dictionary:
+	if typeof(value) != TYPE_ARRAY:
+		return {
+			"ok": false,
+			"error": "Pending deltas không phải Array.",
+		}
+
+	var result: Array[EvolutionDelta] = []
+	var seen_loci: Dictionary = {}
+
+	for raw_value in value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			return {
+				"ok": false,
+				"error": "Pending delta không phải Dictionary.",
+			}
+
+		var raw := raw_value as Dictionary
+		var delta := EvolutionDelta.new(
+			StringName(
+				raw.get(
+					"mutation_id",
+					""
+				)
+			),
+			StringName(
+				raw.get(
+					"target_trait",
+					""
+				)
+			),
+			StringName(
+				raw.get(
+					"from_trait",
+					""
+				)
+			),
+			StringName(
+				raw.get(
+					"to_trait",
+					""
+				)
+			),
+			int(
+				raw.get(
+					"step_index",
+					0
+				)
+			)
+		)
+
+		if (
+			not delta.is_valid()
+			or seen_loci.has(
+				delta.target_trait()
+			)
+		):
+			return {
+				"ok": false,
+				"error": "Pending Gene delta trùng locus hoặc không hợp lệ.",
+			}
+
+		seen_loci[
+			delta.target_trait()
+		] = true
+		result.append(
+			delta
+		)
+
+	return {
+		"ok": true,
+		"deltas": result,
+	}
+
+
+func _apply_deltas(
+	genome: PetGenome,
+	deltas: Array[EvolutionDelta]
+) -> PetGenome:
+	var changed := PetGenome.new(
+		genome.stage(),
+		genome.body_growth(),
+		genome.traits_snapshot(),
+		genome.mutation_ids()
+	)
+	var applier := GenomeDeltaApplier.new()
+
+	for delta in deltas:
+		changed = applier.apply(
+			changed,
+			delta
+		)
+
+		if changed == null:
+			return null
+
+	return changed
 
 
 func _changed_loci(

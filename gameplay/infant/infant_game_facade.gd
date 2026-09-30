@@ -52,7 +52,7 @@ func setup(
 	else:
 		_meta["schema"] = META_SCHEMA
 
-	_ensure_default_test_talent()
+	_sanitize_dev_test_talent()
 
 	_gene_policy = StageGenePolicy.load_default()
 	_gene_definitions = (
@@ -315,15 +315,7 @@ func claim_obstacle_run_reward(
 		)
 	)
 
-	if (
-		stage_index != 2
-		or bool(
-			lifecycle_state.get(
-				"ready_to_evolve",
-				false
-			)
-		)
-	):
+	if stage_index != 2:
 		return {
 			"ok": false,
 			"rewarded": false,
@@ -377,15 +369,7 @@ func claim_snake_hunt_reward(
 		)
 	)
 
-	if (
-		stage_index != 2
-		or bool(
-			lifecycle_state.get(
-				"ready_to_evolve",
-				false
-			)
-		)
-	):
+	if stage_index != 2:
 		return {
 			"ok": false,
 			"rewarded": false,
@@ -530,6 +514,17 @@ func can_use_item(
 	):
 		return false
 
+	if (
+		item_type == ItemGenerator.TYPE_GENE
+		and bool(
+			state.get(
+				"hibernating",
+				false
+			)
+		)
+	):
+		return false
+
 	if not _inventory.can_use_in_stage(
 		item,
 		stage_index,
@@ -555,6 +550,97 @@ func can_use_item(
 		)
 
 	return true
+
+
+func gene_item_context(
+	item: Dictionary
+) -> Dictionary:
+	if (
+		_gene_policy == null
+		or StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		) != ItemGenerator.TYPE_GENE
+	):
+		return {}
+
+	var locus := StringName(
+		item.get(
+			"gene_locus",
+			""
+		)
+	)
+	var direction := StringName(
+		item.get(
+			"gene_direction",
+			""
+		)
+	)
+	var allowed_stages: Array[int] = []
+
+	for stage_index in range(
+		StageGenePolicy.FIRST_STAGE,
+		StageGenePolicy.FINAL_STAGE + 1
+	):
+		if _gene_policy.can_accept_gene(
+			stage_index,
+			locus
+		):
+			allowed_stages.append(
+				stage_index
+			)
+
+	var lifecycle_state := _lifecycle.snapshot()
+	var current_stage := int(
+		lifecycle_state.get(
+			"stage_index",
+			_stage_index
+		)
+	)
+	var limit := _gene_policy.max_gene_items(
+		current_stage
+	)
+	var used := (
+		_gene_state.item_count()
+		if _gene_state != null
+		else 0
+	)
+	var remaining := maxi(
+		0,
+		limit - used
+	)
+
+	return {
+		"locus": String(
+			locus
+		),
+		"direction": String(
+			direction
+		),
+		"allowed_stages": allowed_stages,
+		"current_stage": current_stage,
+		"used": used,
+		"limit": limit,
+		"remaining": remaining,
+		"exhausted": (
+			limit <= 0
+			or remaining <= 0
+		),
+		"evolution_plan_pending": (
+			_evolution_plan_pending
+		),
+		"ready_to_evolve": bool(
+			lifecycle_state.get(
+				"ready_to_evolve",
+				false
+			)
+		),
+		"usable_now": can_use_item(
+			item
+		),
+	}
 
 
 func use_item(
@@ -874,6 +960,28 @@ func _use_gene_item(
 	):
 		return result
 
+	var growth_result := (
+		_lifecycle.apply_growth_bonus_percent(
+			float(
+				item.get(
+					"growth_bonus_percent",
+					ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+				)
+			)
+		)
+	)
+
+	if not bool(
+		growth_result.get(
+			"ok",
+			false
+		)
+	):
+		_restore(
+			before
+		)
+		return growth_result
+
 	if not _inventory.remove_item(
 		String(
 			item.get(
@@ -907,6 +1015,24 @@ func _use_gene_item(
 			"message": "Chưa lưu được. Gene Item vẫn còn trong Hòm Item.",
 		}
 
+	result["growth_bonus_percent"] = float(
+		growth_result.get(
+			"growth_bonus_percent",
+			0.0
+		)
+	)
+	result["growth_delta_seconds"] = int(
+		growth_result.get(
+			"growth_delta_seconds",
+			0
+		)
+	)
+	result["ready_to_evolve"] = bool(
+		growth_result.get(
+			"ready_to_evolve",
+			false
+		)
+	)
 	result["message"] = (
 		"Đã sử dụng "
 		+ String(
@@ -915,6 +1041,20 @@ func _use_gene_item(
 				"Gene Item"
 			)
 		)
+		+ " • Growth +"
+		+ str(
+			int(
+				round(
+					float(
+						result.get(
+							"growth_bonus_percent",
+							0.0
+						)
+					)
+				)
+			)
+		)
+		+ "%"
 	)
 	return result
 
@@ -1016,19 +1156,44 @@ func _sync_gene_meta() -> void:
 	)
 
 
-func _ensure_default_test_talent() -> void:
-	var talents := _talent_ids()
+func set_dev_instant_evolution_enabled(
+	enabled: bool
+) -> bool:
+	if not OS.is_debug_build():
+		return false
 
-	if not talents.has(
-		String(
-			DEV_INSTANT_EVOLUTION_TALENT
-		)
-	):
-		talents.append(
-			String(
-				DEV_INSTANT_EVOLUTION_TALENT
+	_meta["dev_instant_evolution_enabled"] = enabled
+	_sanitize_dev_test_talent()
+	return save()
+
+
+func _sanitize_dev_test_talent() -> void:
+	var talents := _talent_ids()
+	var talent_id := String(
+		DEV_INSTANT_EVOLUTION_TALENT
+	)
+	var enabled := (
+		OS.is_debug_build()
+		and bool(
+			_meta.get(
+				"dev_instant_evolution_enabled",
+				false
 			)
 		)
+	)
+
+	if enabled:
+		if not talents.has(
+			talent_id
+		):
+			talents.append(
+				talent_id
+			)
+	else:
+		talents.erase(
+			talent_id
+		)
+		_meta["dev_instant_evolution_enabled"] = false
 
 	_meta["talents"] = talents
 
