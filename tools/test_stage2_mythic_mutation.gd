@@ -125,9 +125,19 @@ func _test_stage4_egg_locks_mythic_destiny() -> void:
 		&"dark",
 		&"cat"
 	)
-	var destiny := SpeciesMythicDestinyService.new().from_stage4_egg(
+	var service := SpeciesMythicDestinyService.new()
+	var normal_stage_three := service.from_stage4_egg(
+		identity,
+		3
+	)
+	var destiny := service.from_stage4_egg(
 		identity,
 		4
+	)
+
+	_expect(
+		normal_stage_three.is_empty(),
+		"Egg below Stage 4 must not lock Mythic Destiny"
 	)
 
 	_expect(
@@ -190,6 +200,46 @@ func _test_stage4_egg_locks_mythic_destiny() -> void:
 			mutation_id
 		),
 		"Stage 4 egg destiny must awaken without another rarity roll"
+	)
+
+
+	var scene := PetSceneProfileFactory.new().create_initial(
+		identity
+	)
+	var infant := PetGenomeFactory.new().create_initial()
+	var request_data := InitialPetRenderCoordinator.new().build_request(
+		identity,
+		infant,
+		scene,
+		destiny
+	)
+	var request := request_data.get(
+		"request"
+	) as PetRenderRequest
+
+	_expect(
+		bool(
+			request_data.get(
+				"ok",
+				false
+			)
+		)
+		and request != null
+		and request.positive_prompt.contains(
+			"[MYTHIC DESTINY FORESHADOW]"
+		)
+		and request.positive_prompt.contains(
+			String(
+				destiny.get(
+					"display_name",
+					""
+				)
+			)
+		)
+		and request.positive_prompt.contains(
+			"Do NOT express the mature mythical anatomy yet"
+		),
+		"Stage 4 egg birth render must foreshadow the locked branch without full transformation"
 	)
 
 
