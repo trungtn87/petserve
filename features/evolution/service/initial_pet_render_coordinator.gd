@@ -110,9 +110,16 @@ func build_request(
 	request.negative_prompt = (
 		prompt_builder.build_negative(spec)
 	)
+	request.seed = max(
+		1,
+		posmod(
+			identity.lineage_seed(),
+			2147483647
+		)
+	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v10_simple"
+		+ "_pethome_infant_v11_lineage"
 	)
 
 	if not request.is_valid():

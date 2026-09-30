@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 9
+const PLAN_SCHEMA: int = 10
 const FINAL_STAGE: int = 4
 
 
@@ -126,7 +126,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v11_stage_%d"
+				+ "_pethome_v12_stage_%d"
 				% to_stage
 			)
 	):
@@ -134,11 +134,10 @@ func validate(
 
 	if (
 		request.mode
-			!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		or request.source_image_path
-			!= source_visual.image_path
+			!= PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		or not request.source_image_path.is_empty()
 	):
-		return "Mọi evolution phải dùng image-edit từ visual hiện tại để giữ đúng identity pet."
+		return "Mọi evolution phải tạo ảnh mới bằng text-to-image, không dùng ảnh stage trước làm reference."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(
@@ -372,40 +371,16 @@ func validate(
 	if not same_stage_target.is_valid():
 		return "Không rebuild được target Genome để validate render plan."
 
-	var expected_plan: Dictionary = {}
-
-	if (
-		mythic_active
-		or deltas.size() > 1
-	):
-		expected_plan = coordinator.build_composite_request(
-			identity,
-			current,
-			same_stage_target,
-			deltas,
-			source_visual,
-			to_stage,
-			scene_profile,
-			mythic
-		)
-	elif mode == StageEvolutionResolver.MODE_NATURAL:
-		expected_plan = coordinator.build_natural_request(
-			identity,
-			current,
-			source_visual,
-			to_stage,
-			scene_profile
-		)
-	else:
-		expected_plan = coordinator.build_request(
-			identity,
-			current,
-			same_stage_target,
-			deltas[0],
-			source_visual,
-			to_stage,
-			scene_profile
-		)
+	var expected_plan := coordinator.build_stage_regenerate_request(
+		identity,
+		current,
+		same_stage_target,
+		deltas,
+		source_visual,
+		to_stage,
+		scene_profile,
+		mythic
+	)
 
 	var expected_request := expected_plan.get(
 		"request"

@@ -55,6 +55,19 @@ func build_request(
 			"error": error,
 		}
 
+	return build_stage_regenerate_request(
+		identity,
+		previous_genome,
+		mutated_genome,
+		[
+			delta,
+		],
+		source_visual,
+		target_stage,
+		scene_profile,
+		{}
+	)
+
 	var style := MythicStyleProfile.load_default()
 
 	if style == null:
@@ -226,6 +239,17 @@ func build_natural_request(
 			"ok": false,
 			"error": error,
 		}
+
+	return build_stage_regenerate_request(
+		identity,
+		current_genome,
+		current_genome,
+		[],
+		source_visual,
+		target_stage,
+		scene_profile,
+		{}
+	)
 
 	if (
 		current_genome.stage() != 1
@@ -447,6 +471,17 @@ func build_composite_request(
 				"ok": false,
 				"error": "PetHome Scene Profile composite không hợp lệ.",
 			}
+
+	return build_stage_regenerate_request(
+		identity,
+		previous_genome,
+		target_genome,
+		deltas,
+		source_visual,
+		target_stage,
+		scene_profile,
+		mythic_resolution
+	)
 
 	var mythic_mode := StringName(
 		mythic_resolution.get(

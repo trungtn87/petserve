@@ -5,6 +5,7 @@ extends RefCounted
 enum RenderMode {
 	INITIAL_TEXT_TO_IMAGE,
 	EVOLUTION_IMAGE_EDIT,
+	EVOLUTION_TEXT_TO_IMAGE,
 }
 
 
@@ -31,8 +32,11 @@ func is_valid() -> bool:
 		return false
 
 	match mode:
-		RenderMode.INITIAL_TEXT_TO_IMAGE:
-			return source_image_path.is_empty()
+		RenderMode.INITIAL_TEXT_TO_IMAGE, RenderMode.EVOLUTION_TEXT_TO_IMAGE:
+			return (
+				source_image_path.is_empty()
+				and seed >= 0
+			)
 
 		RenderMode.EVOLUTION_IMAGE_EDIT:
 			return (

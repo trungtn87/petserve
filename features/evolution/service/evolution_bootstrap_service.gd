@@ -65,16 +65,13 @@ func build_from_hatch() -> Dictionary:
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
-	var destiny_service := SpeciesMythicDestinyService.new()
-	var mythic_destiny := destiny_service.from_stage4_egg(
-		identity,
-		int(egg_state.stage)
-	)
-
-	if mythic_destiny.is_empty():
-		mythic_destiny = destiny_service.from_birth_talent(
-			identity
+	var mythic_destiny := (
+		SpeciesMythicDestinyService.new()
+		.from_stage4_egg(
+			identity,
+			int(egg_state.stage)
 		)
+	)
 
 	if scene_profile == null:
 		return {
