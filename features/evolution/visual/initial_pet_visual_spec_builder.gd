@@ -88,82 +88,69 @@ func build(
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ ". This Stage 1 image establishes the canonical face identity and elemental lineage "
-		+ "that later stages inherit. The pet and PetHome environment must be rendered together "
-		+ "as one coherent scene, not as separate assets."
+		+ ". The AI has broad freedom to invent this individual pet. "
+		+ "Do not reuse a fixed template, fixed face, fixed fur pattern or fixed silhouette from another pet."
 	)
 
 	spec.style_section = (
 		style.base_style()
-		+ " Element lineage appearance: "
+		+ " Use the element only as creative visual inspiration: "
 		+ style.accent_for(
 			identity.element()
 		)
-		+ "."
+		+ ". Freely decide how those elemental cues appear on this individual."
 	)
 
 	spec.form_section = (
-		species_profile.infant_form
-		+ " Species anatomy: "
-		+ species_profile.species_anatomy
-		+ " Pose policy: "
-		+ species_profile.freestyle_pose
-		+ " Stage 1 elemental face identity: "
-		+ stage_one_face
-		+ " Keep the body clearly infant and compact. Element differences at this stage should "
-		+ "be strongest in face shape language, eye design, ear silhouette, cheek/forehead fur, "
-		+ "lineage sigil and restrained tail cues. The seven elements must not look like simple "
-		+ "recolors of one identical kitten; their faces should remain distinguishable in grayscale."
+		"Stage 1 is a young "
+		+ String(identity.species())
+		+ ". Keep believable species anatomy, but otherwise let the AI freely invent face shape, "
+		+ "fur pattern, fluff, ear details, tail appearance, expression and a natural animal pose. "
+		+ "Elemental details should feel organically part of the animal rather than pasted-on accessories."
 	)
 
 	spec.scene_section = (
-		"PetHome environment: "
+		"Create a natural environmental background that belongs to the same "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ " world. Use these scene descriptors only as loose inspiration, not as a rigid layout: "
 		+ scene_profile.environment_theme
-		+ ". Shared palette: "
+		+ "; "
 		+ scene_profile.palette_description
-		+ ". Lighting: "
+		+ "; "
 		+ scene_profile.lighting_theme
-		+ ". Repeating world motif: "
-		+ scene_profile.motif_description
-		+ ". Scene identity seed: "
-		+ str(scene_profile.scene_seed)
-		+ ". Keep the environment supportive and atmospheric, but the pet remains the clear focal point."
+		+ ". The AI may freely invent the scenery, depth, plants, rocks, atmosphere and lighting as long as the element feels coherent."
 	)
 
 	spec.composition_section = (
-		species_profile.composition
-		+ " Generate exactly one pet in exactly one continuous PetHome environment. "
-		+ "Do not create a split image, collage, character sheet or separate background panel."
+		"Generate exactly one pet in one continuous natural environment. "
+		+ "The pet and background must be one coherent scene, not separate assets, collage or character sheet."
 	)
 
 	spec.ui_safe_section = (
-		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
-		+ "Use an environmental establishing shot, never a close-up portrait, medium shot or character showcase. Keep the whole pet comfortably inside the frame and the overall species silhouette readable. Natural perspective and partial occlusion of limbs, wings, tail or other appendages are allowed. "
-		+ "LOCKED COMPOSITION: the pet's visible full-body height must be about 35 percent of the total image height. Measure from the highest visible point of the pet to the lowest visible pet point, or the ground-contact point for a grounded pose. "
-		+ "Place the lowest visible pet point, or ground-contact point for a grounded pose, at about 90 percent of the total image height, leaving about 10 percent of the image height below the pet. "
-		+ "Keep the pet horizontally near the center and vertically in the lower-middle of the scene. Do not change on-screen pet scale by life stage; later stages show maturity through anatomy, proportions, fur and elemental detail, not by occupying more of the frame. "
-		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. Keep the bottom 10 percent scenic and unobstructed. "
-		+ "The environment must remain the dominant visual context with clear foreground, midground and background depth around the pet. "
-		+ "Do not let the head, ears, paws or tail touch the image edges. "
-		+ "Extend the environment naturally to every edge of the image with no border, frame, vignette panel or empty margin. "
-		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
+		"Render a full-bleed vertical 9:16 mobile PetHome scene that fills the screen edge to edge. "
+		+ "Use a wide environmental composition rather than a close-up portrait. "
+		+ "Keep the whole pet comfortably visible at about 35 percent of total image height, centered around the lower-middle of the frame. "
+		+ "Keep the ground contact around 90 percent of image height so there is scenic space below the paws. "
+		+ "Leave the upper 24 to 28 percent calm and low-detail for UI. "
+		+ "The background should remain clearly visible around the pet with foreground, midground and background depth. "
+		+ "Do not draw UI, text, labels, icons, frames or interface elements into the artwork."
 	)
 
 	spec.future_space_section = (
-		"This is the clean infant base form before any mutation. "
-		+ "Stage 1 may already have a distinctive elemental face and small lineage-specific fur cues, "
-		+ "but it must not use the mature Stage 2 body morphology or advanced Stage 3/4 detail language. "
-		+ "Keep enough visual simplicity for later evolution while making the element recognizable without color alone. "
-		+ "The PetHome world should remain recognizable in later stages so the same pet feels like it continues living in the same world. "
-		+ species_profile.forbidden_advanced_features
+		"This is an early-life form. Keep it visually simple enough to evolve later, "
+		+ "but do not force a predetermined face, silhouette, ornament placement or body design. "
+		+ "Uniqueness between different pets is desirable."
 	)
 
 	spec.negative_prompt = (
 		style.negative_prompt()
-		+ ", adult body, mature proportions, Stage 2 body morphology, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
-		+ ", generic identical face across all elements, color-swap-only element design, same silhouette for every element"
-		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
-		+ ", close-up portrait, medium close shot, bust shot, oversized pet, undersized pet, pet substantially larger or smaller than 35 percent of image height, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges, paws touching the bottom edge, excessive empty floor below the paws"
+		+ ", fixed template character, repeated identical pet design, repeated identical face, repeated identical fur pattern"
+		+ ", plain studio background, empty neutral backdrop, isolated character on blank background"
+		+ ", split image, collage, character sheet, duplicated pet, multiple pets"
+		+ ", close-up portrait, bust shot, giant pet filling the frame, cropped ears, cropped paws, cropped tail"
+		+ ", humanoid pose, standing upright like a person, text, labels, UI, buttons, interface panels"
 	)
 
 	if not spec.is_valid():
