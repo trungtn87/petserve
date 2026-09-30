@@ -743,6 +743,9 @@ func _open_pet_info() -> void:
 	_add_current_trait_rows(
 		genome
 	)
+	_add_gene_choice_rows(
+		gameplay_state
+	)
 	_add_last_evolution_row()
 
 	_section_overlay.visible = true
@@ -819,7 +822,7 @@ func _add_current_trait_rows(
 
 		_add_info_row(
 			(
-				"Trait"
+				"Đang có"
 				if added == 0
 				else ""
 			),
@@ -837,7 +840,7 @@ func _add_current_trait_rows(
 
 	if added == 0:
 		_add_info_row(
-			"Trait",
+			"Đang có",
 			"Cơ bản"
 		)
 
@@ -919,7 +922,7 @@ func _add_gene_choice_rows(
 
 		_add_info_row(
 			(
-				"Định hướng"
+				"Đang định hướng"
 				if index == 0
 				else ""
 			),
@@ -935,6 +938,17 @@ func _add_gene_choice_rows(
 			]
 		)
 		index += 1
+
+	if index == 0:
+		_add_info_row(
+			"Đang định hướng",
+			"Chưa dùng Gene"
+		)
+	else:
+		_add_info_row(
+			"Kết quả",
+			"Chưa khóa • chốt khi tiến hóa"
+		)
 
 
 func _add_last_evolution_row() -> void:
@@ -1360,7 +1374,7 @@ func _open_games() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready
+		stage_index == 2
 	)
 
 
@@ -1461,16 +1475,13 @@ func _sync_entertainment_reward_state() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready,
+		stage_index == 2,
 		stage_index
 	)
 
 func _open_evolution() -> void:
 	_prepare_section("Tiến hóa")
 	var state := _game.snapshot()
-	_add_info_row("Giai đoạn", PetHomeTheme.stage_label(int(state.get("stage_index", 1))))
-	_add_info_row("Trưởng thành", "%d%%" % int(state.get("growth_percent", 0)))
-	_add_info_row("Thức ăn", "%d phút" % int(int(state.get("food_seconds", 0)) / 60))
 	var stage_index := int(
 		state.get(
 			"stage_index",
@@ -1489,6 +1500,81 @@ func _open_evolution() -> void:
 			naturally_ready
 		)
 	)
+	var age_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"age_remaining_seconds",
+				0
+			)
+		)
+	)
+	var growth_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"growth_remaining_seconds",
+				0
+			)
+		)
+	)
+
+	_add_info_row(
+		"Giai đoạn",
+		PetHomeTheme.stage_label(
+			stage_index
+		)
+	)
+	_add_info_row(
+		"Trưởng thành",
+		"%d%%"
+		% int(
+			state.get(
+				"growth_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Tuổi stage",
+		"%d%%"
+		% int(
+			state.get(
+				"age_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Deadline",
+		(
+			"Đã tới hạn"
+			if bool(
+				state.get(
+					"deadline_reached",
+					false
+				)
+			)
+			else "Còn " + _format_stage_time(
+				age_remaining
+			)
+		)
+	)
+	_add_info_row(
+		"Thức ăn",
+		_format_stage_time(
+			maxi(
+				0,
+				int(
+					state.get(
+						"food_seconds",
+						0
+					)
+				)
+			)
+		)
+	)
+
 	var genome := _data.get(
 		"_genome_object"
 	) as PetGenome
@@ -1497,6 +1583,7 @@ func _open_evolution() -> void:
 		_add_current_trait_rows(
 			genome
 		)
+
 	_add_gene_choice_rows(
 		state
 	)
@@ -1507,6 +1594,11 @@ func _open_evolution() -> void:
 			"Đã đạt hình thái cuối"
 		)
 	elif can_evolve:
+		_add_info_row(
+			"Trạng thái",
+			"SẴN SÀNG TIẾN HÓA"
+		)
+
 		if (
 			not naturally_ready
 			and bool(
@@ -1520,26 +1612,70 @@ func _open_evolution() -> void:
 				"Thiên phú TEST",
 				"Bỏ qua thời gian chờ"
 			)
+
 		_section_button(
-			"TIẾN HÓA",
+			"TIẾN HÓA → %s"
+			% PetHomeTheme.stage_label(
+				stage_index + 1
+			),
 			_evolve
 		)
 	else:
 		_add_info_row(
-			"Tiến độ còn",
-			"~%d phút tăng trưởng"
-			% int(
-				ceil(
-					float(
-						state.get(
-							"growth_remaining_seconds",
-							0
-						)
-					) / 60.0
-				)
+			"Thiếu Growth",
+			_format_stage_time(
+				growth_remaining
 			)
 		)
+
 	_section_overlay.visible = true
+
+
+func _format_stage_time(
+	seconds: int
+) -> String:
+	seconds = maxi(
+		0,
+		seconds
+	)
+
+	if seconds <= 0:
+		return "0 phút"
+
+	var total_minutes := int(
+		ceil(
+			float(seconds) / 60.0
+		)
+	)
+	var days := total_minutes / 1440
+	var hours := (
+		total_minutes % 1440
+	) / 60
+	var minutes := total_minutes % 60
+	var parts: Array[String] = []
+
+	if days > 0:
+		parts.append(
+			"%d ngày" % days
+		)
+
+	if hours > 0:
+		parts.append(
+			"%d giờ" % hours
+		)
+
+	if (
+		minutes > 0
+		and days == 0
+	):
+		parts.append(
+			"%d phút" % minutes
+		)
+
+	return " ".join(
+		parts
+	)
+
 
 func _evolve() -> void:
 	var state := _game.snapshot()
