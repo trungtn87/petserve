@@ -1507,20 +1507,78 @@ func _simple_element_traits(
 	element: StringName
 ) -> String:
 	match element:
-		&"metal":
-			return "Silver-gray fur with pale cyan crystal accents."
 		&"wood":
-			return "Warm tan fur with soft green leaf accents."
-		&"water":
-			return "Pearl-white and aqua fur with light water or mist accents."
-		&"fire":
-			return "Warm cream fur with restrained orange-red flame accents."
+			return (
+				"soft cream and warm light-brown fur with fresh green accents, "
+				+ "small living sprouts growing naturally from the head and ear fur, "
+				+ "leaf-like fur tufts, layered leafy chest fluff, "
+				+ "subtle vine-like markings blended into the coat, "
+				+ "and a soft bud-shaped leafy tail tip. "
+				+ "Plant features should look naturally grown as part of the pet, "
+				+ "not like loose leaves stuck onto the fur"
+			)
+
 		&"earth":
-			return "Sand-brown fur with subtle stone or mineral accents."
-		&"dark":
-			return "Smoky blue-black and violet fur with soft shadow or mist accents."
+			return (
+				"warm cream, beige and earthy brown fur with subtle mineral tones, "
+				+ "small smooth pebbles and polished natural crystals emerging gently from the fur, "
+				+ "especially around the forehead, chest and back, "
+				+ "soft stone-like markings blended into the coat and a grounded fluffy silhouette. "
+				+ "Mineral details should feel organically embedded in the body design, "
+				+ "not like rocks randomly thrown onto the pet"
+			)
+
+		&"fire":
+			return (
+				"soft cream, peach and warm orange fur with glowing ember accents, "
+				+ "small controlled flames naturally forming at the ear tips and tail tip, "
+				+ "subtle glowing flame-shaped markings on the forehead and cheeks, "
+				+ "and delicate warm ember lines flowing through the fur. "
+				+ "Fire should feel like magical living fur energy, "
+				+ "not like the pet is burning uncontrollably"
+			)
+
 		&"light":
-			return "Ivory-white fur with soft gold light accents."
+			return (
+				"soft ivory and warm pearl-white fur with pale golden accents, "
+				+ "a small luminous star-shaped forehead mark, "
+				+ "soft golden light woven naturally through the ear fur and tail, "
+				+ "a restrained elegant halo-like glow around the silhouette, "
+				+ "and tiny gentle light particles. "
+				+ "The light should feel soft, pure and magical, not overly bright or angelic"
+			)
+
+		&"metal":
+			return (
+				"silver-white and very pale cool-gray fur with clean icy-blue accents, "
+				+ "small polished metallic crystal facets growing naturally from the forehead and fur, "
+				+ "subtle silver leaf-like plates blended into the chest and leg fur, "
+				+ "fine metallic strands around the tail and a refined cool reflective sheen. "
+				+ "Metal details should feel elegant and organically integrated, "
+				+ "not like armor or mechanical equipment"
+			)
+
+		&"water":
+			return (
+				"pearl-white and soft aqua fur with clear turquoise accents, "
+				+ "small translucent water-drop crystals naturally forming on the forehead and fur, "
+				+ "soft wave-like fur tufts, flowing aqua gradients along the cheeks and tail, "
+				+ "and a few delicate suspended bubbles and droplets. "
+				+ "Water should feel naturally infused into the fur and body, "
+				+ "not like the pet is simply wet"
+			)
+
+		&"dark":
+			return (
+				"smoky blue-black, charcoal-indigo and muted violet fur with restrained cyan-violet highlights, "
+				+ "a subtle crescent or astral forehead mark, "
+				+ "soft shadow-like fur gradients, faint luminous eye accents, "
+				+ "restrained mist woven around the tail and silhouette, "
+				+ "and a few elegant dark magical markings blended into the coat. "
+				+ "Dark energy should feel mysterious and integrated into the pet, "
+				+ "not like galaxy texture or random purple effects covering the body"
+			)
+
 		_:
 			return "Soft elemental accents."
 

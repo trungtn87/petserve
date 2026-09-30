@@ -89,8 +89,9 @@ mouse_filter = 2
 [node name="TaskLabel" type="Label" parent="InfoBox" unique_id=1353050700]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 0
+offset_left = 10.0
 offset_top = 10.0
-offset_right = 302.0
+offset_right = 290.0
 offset_bottom = 92.025
 size_flags_vertical = 3
 text = "Nhiệm vụ ấp: -"
