@@ -265,17 +265,6 @@ func build_natural_request(
 			% String(identity.species()),
 		}
 
-	var species_profile := _species_profile(
-		identity.species()
-	)
-
-	if species_profile == null:
-		return {
-			"ok": false,
-			"error": "Thiếu species profile cho %s."
-			% String(identity.species()),
-		}
-
 	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
 		"[IDENTITY BLUEPRINT]\n"
@@ -639,6 +628,17 @@ func _build_stage_one_gene_regenerate(
 			"ok": false,
 			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
 			% String(identity.element()),
+		}
+
+	var species_profile := _species_profile(
+		identity.species()
+	)
+
+	if species_profile == null:
+		return {
+			"ok": false,
+			"error": "Thiếu species profile cho %s."
+			% String(identity.species()),
 		}
 
 	var phenotype := PhenotypePromptBuilder.new()
