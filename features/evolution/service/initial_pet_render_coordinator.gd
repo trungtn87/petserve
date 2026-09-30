@@ -21,7 +21,8 @@ func _ready() -> void:
 func build_request(
 	identity: PetIdentity,
 	genome: PetGenome,
-	scene_profile = null
+	scene_profile = null,
+	mythic_destiny: Dictionary = {}
 ) -> Dictionary:
 	var style := MythicStyleProfile.load_default()
 
@@ -71,15 +72,40 @@ func build_request(
 		}
 
 	var prompt_builder := InitialPetPromptBuilder.new()
+	var positive_prompt := (
+		prompt_builder.build_positive(
+			spec
+		)
+	)
+
+	if not mythic_destiny.is_empty():
+		var destiny_service := SpeciesMythicDestinyService.new()
+		var definition := destiny_service.definition_for(
+			mythic_destiny,
+			identity
+		)
+
+		if definition == null:
+			return {
+				"ok": false,
+				"error": "Mythic Destiny ban đầu không hợp lệ.",
+			}
+
+		positive_prompt += (
+			"\n\n[MYTHIC DESTINY FORESHADOW]\n"
+			+ "This infant is code-locked to the future mythical branch '"
+			+ definition.display_name()
+			+ "'. At Stage 1 show only a very subtle omen compatible with the existing infant anatomy, "
+			+ "such as restrained gaze, lineage-mark or aura emphasis inside already allowed features. "
+			+ "Do NOT express the mature mythical anatomy yet, do not add extra appendages, and do not mix another mythical branch."
+		)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
 		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 	)
 	request.pet_id = identity.pet_id()
-	request.positive_prompt = (
-		prompt_builder.build_positive(spec)
-	)
+	request.positive_prompt = positive_prompt
 	request.negative_prompt = (
 		prompt_builder.build_negative(spec)
 	)
