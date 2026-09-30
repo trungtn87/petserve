@@ -368,7 +368,7 @@ func _test_gene_stage_one_plan() -> void:
 				"target_trait",
 				""
 			)
-		) == "tail",
+		) == "whiskers",
 		"Gene plan must persist the code-selected delta"
 	)
 
