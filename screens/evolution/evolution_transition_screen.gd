@@ -20,8 +20,12 @@ enum TransitionMode {
 
 
 const MIN_TRANSITION_SECONDS: float = 3.0
+const MIN_INITIAL_HATCH_SECONDS: float = 1.2
 
 const TRANSITION_BG := Color("#090617")
+const HATCH_BACKGROUND_TEXTURE: Texture2D = preload(
+	"res://assets/eggs/backgroud.png"
+)
 const DNA_LEFT := Color(0.72, 0.56, 1.0, 0.94)
 const DNA_RIGHT := Color(0.48, 0.90, 1.0, 0.94)
 const DNA_RUNG := Color(0.86, 0.94, 1.0, 0.42)
@@ -44,6 +48,10 @@ var _back_button: Button
 var _busy: bool = false
 var _status_label: Label
 var _result_image: TextureRect
+var _hatch_background: TextureRect
+var _hatch_egg: TextureRect
+var _hatch_flash: ColorRect
+var _hatch_waiting: bool = false
 
 var _effect_time: float = 0.0
 var _effect_strength: float = 1.0
@@ -79,6 +87,7 @@ func _process(delta: float) -> void:
 			)
 		)
 
+	_update_hatch_wait_motion()
 	queue_redraw()
 
 
@@ -93,6 +102,9 @@ func _draw() -> void:
 		TRANSITION_BG,
 		true
 	)
+
+	if mode == TransitionMode.INITIAL_BIRTH:
+		return
 
 	var center := Vector2(
 		viewport_size.x * 0.5,
@@ -550,6 +562,39 @@ func _draw_transition_particles(
 
 
 func _build_ui() -> void:
+	_hatch_background = TextureRect.new()
+	_hatch_background.name = "HatchBackground"
+	_hatch_background.texture = HATCH_BACKGROUND_TEXTURE
+	_hatch_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_hatch_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_hatch_background.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hatch_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hatch_background.visible = (
+		mode == TransitionMode.INITIAL_BIRTH
+	)
+	add_child(_hatch_background)
+
+	var egg_holder := CenterContainer.new()
+	egg_holder.name = "HatchEggHolder"
+	egg_holder.anchor_left = 0.0
+	egg_holder.anchor_top = 0.18
+	egg_holder.anchor_right = 1.0
+	egg_holder.anchor_bottom = 0.76
+	egg_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	egg_holder.visible = (
+		mode == TransitionMode.INITIAL_BIRTH
+	)
+	add_child(egg_holder)
+
+	_hatch_egg = TextureRect.new()
+	_hatch_egg.name = "HatchEgg"
+	_hatch_egg.custom_minimum_size = Vector2(230.0, 230.0)
+	_hatch_egg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_hatch_egg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_hatch_egg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hatch_egg.visible = false
+	egg_holder.add_child(_hatch_egg)
+
 	_result_image = TextureRect.new()
 	_result_image.name = "ResultImage"
 	_result_image.visible = false
@@ -608,6 +653,16 @@ func _build_ui() -> void:
 	_back_button.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/pet/pet_home.tscn" if mode == TransitionMode.EVOLUTION_UPDATE else "res://scenes/main.tscn"))
 	add_child(_back_button)
 
+	_hatch_flash = ColorRect.new()
+	_hatch_flash.name = "HatchFlash"
+	_hatch_flash.color = Color.WHITE
+	_hatch_flash.modulate.a = 0.0
+	_hatch_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hatch_flash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_hatch_flash.visible = false
+	_hatch_flash.z_index = 100
+	add_child(_hatch_flash)
+
 
 func _begin_transition() -> void:
 	if _busy:
@@ -616,6 +671,7 @@ func _begin_transition() -> void:
 	_fatal = false
 	_retry_button.visible = false
 	_back_button.visible = false
+	_reset_hatch_flash()
 	match mode:
 		TransitionMode.INITIAL_BIRTH:
 			await _run_initial_birth()
@@ -665,25 +721,18 @@ func _run_initial_birth() -> void:
 		)
 		return
 
+	_prepare_initial_hatch_visual(
+		_identity.element()
+	)
 
 	var existing_path := _get_existing_visual_path()
 
 	if not existing_path.is_empty():
-		_status_label.text = "Đang trở về..."
+		_status_label.text = "Trứng đang rung..."
 
-		await _wait_for_minimum_duration()
-
-		if not _load_result_image(
+		await _wait_for_initial_hatch_duration()
+		await _finish_initial_hatch(
 			existing_path
-		):
-			_show_fatal(
-				"Không load được ảnh pet đã lưu."
-			)
-			return
-
-		_finish_success(
-			existing_path,
-			true
 		)
 		return
 
@@ -831,20 +880,216 @@ func _complete_initial_render(
 		)
 		return
 
-	await _wait_for_minimum_duration()
-
-	if not _load_result_image(
+	await _wait_for_initial_hatch_duration()
+	await _finish_initial_hatch(
 		result.image_path
-	):
+	)
+
+
+func _prepare_initial_hatch_visual(
+	element: StringName
+) -> void:
+	if mode != TransitionMode.INITIAL_BIRTH:
+		return
+
+	if _hatch_background != null:
+		_hatch_background.visible = true
+
+	if _result_image != null:
+		_result_image.visible = false
+
+	if _hatch_egg == null:
+		return
+
+	var egg_path := (
+		"res://assets/eggs/stage_4/%s.png"
+		% String(element).to_lower()
+	)
+
+	if not ResourceLoader.exists(egg_path):
 		_show_fatal(
-			"Ảnh đã tạo nhưng không load được PNG."
+			"Không tìm thấy ảnh trứng chờ nở: "
+			+ egg_path
 		)
 		return
 
-	_finish_success(
-		result.image_path,
-		false
+	var texture := load(egg_path) as Texture2D
+
+	if texture == null:
+		_show_fatal(
+			"Không load được ảnh trứng chờ nở."
+		)
+		return
+
+	_hatch_egg.texture = texture
+	_hatch_egg.visible = true
+	_hatch_egg.rotation = 0.0
+	_hatch_egg.scale = Vector2.ONE
+	_hatch_egg.modulate = Color.WHITE
+	_hatch_waiting = true
+	_status_label.text = "Đang nở..."
+
+
+func _update_hatch_wait_motion() -> void:
+	if (
+		mode != TransitionMode.INITIAL_BIRTH
+		or not _hatch_waiting
+		or _hatch_egg == null
+		or not _hatch_egg.visible
+	):
+		return
+
+	_hatch_egg.pivot_offset = (
+		_hatch_egg.size * 0.5
 	)
+
+	var burst_wave := maxf(
+		0.0,
+		sin(_effect_time * 2.2)
+	)
+	var burst := pow(
+		burst_wave,
+		8.0
+	)
+	var shake_degrees := (
+		sin(_effect_time * 27.0)
+		* (2.2 + burst * 6.0)
+	)
+	var pulse := (
+		1.0
+		+ 0.012
+		* (
+			0.5
+			+ 0.5 * sin(_effect_time * 4.0)
+		)
+		+ burst * 0.012
+	)
+
+	_hatch_egg.rotation = deg_to_rad(
+		shake_degrees
+	)
+	_hatch_egg.scale = Vector2(
+		pulse,
+		pulse
+	)
+
+
+func _wait_for_initial_hatch_duration() -> void:
+	var elapsed := (
+		float(
+			Time.get_ticks_msec()
+			- _transition_started_msec
+		)
+		/ 1000.0
+	)
+	var remaining := maxf(
+		0.0,
+		MIN_INITIAL_HATCH_SECONDS - elapsed
+	)
+
+	if remaining > 0.0:
+		await get_tree().create_timer(
+			remaining
+		).timeout
+
+
+func _finish_initial_hatch(
+	image_path: String
+) -> void:
+	if not is_inside_tree():
+		return
+
+	_completed = true
+	_fatal = false
+	_hatch_waiting = false
+	_status_label.visible = false
+
+	if _hatch_egg != null:
+		_hatch_egg.pivot_offset = (
+			_hatch_egg.size * 0.5
+		)
+
+		var burst := create_tween()
+		burst.tween_property(
+			_hatch_egg,
+			"rotation",
+			deg_to_rad(-10.0),
+			0.05
+		)
+		burst.tween_property(
+			_hatch_egg,
+			"rotation",
+			deg_to_rad(11.0),
+			0.05
+		)
+		burst.tween_property(
+			_hatch_egg,
+			"rotation",
+			deg_to_rad(-13.0),
+			0.045
+		)
+		burst.tween_property(
+			_hatch_egg,
+			"rotation",
+			deg_to_rad(13.0),
+			0.045
+		)
+		burst.tween_property(
+			_hatch_egg,
+			"rotation",
+			0.0,
+			0.04
+		)
+		burst.parallel().tween_property(
+			_hatch_egg,
+			"scale",
+			Vector2(1.10, 1.10),
+			0.20
+		)
+		burst.parallel().tween_property(
+			_hatch_egg,
+			"modulate",
+			Color(1.8, 1.8, 1.8, 1.0),
+			0.20
+		)
+
+		await burst.finished
+
+	if _hatch_flash != null:
+		_hatch_flash.visible = true
+		_hatch_flash.modulate.a = 0.0
+
+		var flash := create_tween()
+		flash.tween_property(
+			_hatch_flash,
+			"modulate:a",
+			1.0,
+			0.18
+		).set_trans(
+			Tween.TRANS_QUAD
+		).set_ease(
+			Tween.EASE_OUT
+		)
+
+		await flash.finished
+
+	transition_completed.emit(
+		image_path
+	)
+
+	await get_tree().create_timer(
+		0.08
+	).timeout
+
+	_enter_pet_home()
+
+
+func _reset_hatch_flash() -> void:
+	if _hatch_flash == null:
+		return
+
+	_hatch_flash.visible = false
+	_hatch_flash.modulate.a = 0.0
 
 
 func _get_existing_visual_path() -> String:
@@ -1015,6 +1260,10 @@ func _show_fatal(
 ) -> void:
 	_fatal = true
 	_busy = false
+	_hatch_waiting = false
+	if _hatch_egg != null:
+		_hatch_egg.rotation = 0.0
+		_hatch_egg.scale = Vector2.ONE
 	_retry_button.visible = true
 	_back_button.visible = true
 	_completed = false
