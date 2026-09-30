@@ -435,6 +435,17 @@ func can_use_item(
 	):
 		return false
 
+	if (
+		item_type == ItemGenerator.TYPE_GENE
+		and bool(
+			state.get(
+				"hibernating",
+				false
+			)
+		)
+	):
+		return false
+
 	if not _inventory.can_use_in_stage(
 		item,
 		stage_index,
@@ -786,6 +797,28 @@ func _use_gene_item(
 	):
 		return result
 
+	var growth_result := (
+		_lifecycle.apply_growth_bonus_percent(
+			float(
+				item.get(
+					"growth_bonus_percent",
+					ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+				)
+			)
+		)
+	)
+
+	if not bool(
+		growth_result.get(
+			"ok",
+			false
+		)
+	):
+		_restore(
+			before
+		)
+		return growth_result
+
 	if not _inventory.remove_item(
 		String(
 			item.get(
@@ -819,6 +852,24 @@ func _use_gene_item(
 			"message": "Chưa lưu được. Gene Item vẫn còn trong Hòm Item.",
 		}
 
+	result["growth_bonus_percent"] = float(
+		growth_result.get(
+			"growth_bonus_percent",
+			0.0
+		)
+	)
+	result["growth_delta_seconds"] = int(
+		growth_result.get(
+			"growth_delta_seconds",
+			0
+		)
+	)
+	result["ready_to_evolve"] = bool(
+		growth_result.get(
+			"ready_to_evolve",
+			false
+		)
+	)
 	result["message"] = (
 		"Đã sử dụng "
 		+ String(
@@ -827,6 +878,20 @@ func _use_gene_item(
 				"Gene Item"
 			)
 		)
+		+ " • Growth +"
+		+ str(
+			int(
+				round(
+					float(
+						result.get(
+							"growth_bonus_percent",
+							0.0
+						)
+					)
+				)
+			)
+		)
+		+ "%"
 	)
 	return result
 
