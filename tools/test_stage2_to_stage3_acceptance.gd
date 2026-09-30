@@ -1,11 +1,11 @@
-extends SceneTree
+extends Node
 
 
 var _failures: int = 0
 var _source_path: String = "user://stage2_to_stage3_acceptance.png"
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_natural_zero_gene()
 	_test_two_loci_and_retry_guards()
 	_test_locked_stage4_egg_mythic()
@@ -15,14 +15,14 @@ func _initialize() -> void:
 		print(
 			"Stage 2 -> 3 acceptance: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"Stage 2 -> 3 acceptance: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_natural_zero_gene() -> void:
