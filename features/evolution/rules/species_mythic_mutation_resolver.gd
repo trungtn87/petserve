@@ -184,7 +184,12 @@ func resolve(
 			genome,
 			locked_definition,
 			next_stage,
-			"egg_stage4",
+			String(
+				mythic_destiny.get(
+					"source",
+					"egg_stage4"
+				)
+			),
 			0,
 			-1,
 			[
