@@ -104,6 +104,149 @@ func _test_stage_lifecycle() -> void:
 		)
 	)
 
+	var early_meta: Dictionary = {}
+	var early := StageLifecycle.new()
+	early.setup(
+		early_meta,
+		502,
+		2
+	)
+	check(
+		early.apply_item({
+			"item_type": "growth",
+			"display_name": "Good Growth",
+			"main_value_seconds": duration_two,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"good Growth item can accelerate Stage 2"
+	)
+	var early_state := early.snapshot()
+	check(
+		bool(
+			early_state.get(
+				"ready_to_evolve",
+				false
+			)
+		)
+		and not bool(
+			early_state.get(
+				"deadline_reached",
+				true
+			)
+		),
+		"Stage 2 may become READY before the 48-hour age deadline"
+	)
+
+	var trash_meta: Dictionary = {}
+	var trash := StageLifecycle.new()
+	trash.setup(
+		trash_meta,
+		503,
+		2
+	)
+	check(
+		trash.apply_item({
+			"item_type": "growth",
+			"display_name": "Growth Setup",
+			"main_value_seconds": int(duration_two / 4),
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"Stage 2 growth setup item applies"
+	)
+	var age_before_trash := int(
+		trash.snapshot().get(
+			"age_elapsed_seconds",
+			-1
+		)
+	)
+	check(
+		trash.apply_item({
+			"item_type": "growth",
+			"display_name": "Trash Growth",
+			"main_value_seconds": -int(duration_two / 4),
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"trash Growth item is allowed to reduce Growth"
+	)
+	var after_trash := trash.snapshot()
+	check(
+		int(
+			after_trash.get(
+				"growth_percent",
+				-1
+			)
+		) == 0
+		and int(
+			after_trash.get(
+				"age_elapsed_seconds",
+				-2
+			)
+		) == age_before_trash,
+		"trash item reduces Growth without reducing Stage age"
+	)
+	trash.tick(
+		float(
+			duration_two
+		)
+	)
+	var deadline_state := trash.snapshot()
+	check(
+		int(
+			deadline_state.get(
+				"growth_percent",
+				0
+			)
+		) == 75
+		and bool(
+			deadline_state.get(
+				"deadline_reached",
+				false
+			)
+		)
+		and bool(
+			deadline_state.get(
+				"ready_to_evolve",
+				false
+			)
+		),
+		"48-hour age deadline forces READY even after bad Growth items"
+	)
+	var locked_growth := int(
+		deadline_state.get(
+			"growth_percent",
+			-1
+		)
+	)
+	check(
+		not bool(
+			trash.apply_item({
+				"item_type": "growth",
+				"display_name": "Late Trash",
+				"main_value_seconds": -duration_two,
+				"food_delta_seconds": 0,
+			}).get(
+				"ok",
+				true
+			)
+		)
+		and int(
+			trash.snapshot().get(
+				"growth_percent",
+				-2
+			)
+		) == locked_growth,
+		"READY locks Stage 2 against Growth rollback"
+	)
+
 	check(
 		life.apply_item({
 			"item_type": "food",
@@ -300,13 +443,13 @@ func _test_stage_item_contract() -> void:
 
 	var dev_state := game.snapshot()
 	check(
-		bool(
+		not bool(
 			dev_state.get(
 				"can_evolve",
-				false
+				true
 			)
 		),
-		"default TEST talent bypasses the stage timer"
+		"Stage 2 timer is enforced by default"
 	)
 	check(
 		not bool(
@@ -315,21 +458,53 @@ func _test_stage_item_contract() -> void:
 				true
 			)
 		),
-		"timer bypass does not fake natural growth completion"
+		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		(
+		not bool(
 			dev_state.get(
-				"talents",
-				[]
-			) as Array
-		).has(
-			String(
-				InfantGameFacade.DEV_INSTANT_EVOLUTION_TALENT
+				"instant_evolution_talent",
+				true
 			)
 		),
-		"default TEST talent is assigned"
+		"TEST evolution bypass is not auto-granted"
 	)
+
+	if OS.is_debug_build():
+		check(
+			game.set_dev_instant_evolution_enabled(
+				true
+			),
+			"debug build can explicitly enable instant evolution"
+		)
+		var override_state := game.snapshot()
+		check(
+			bool(
+				override_state.get(
+					"can_evolve",
+					false
+				)
+			)
+			and not bool(
+				override_state.get(
+					"ready_to_evolve",
+					true
+				)
+			)
+			and bool(
+				override_state.get(
+					"instant_evolution_talent",
+					false
+				)
+			),
+			"debug override bypasses only can_evolve, not natural READY"
+		)
+		check(
+			game.set_dev_instant_evolution_enabled(
+				false
+			),
+			"debug instant evolution can be disabled again"
+		)
 
 	var rewards := game.open_next_chest()
 	var growth_item: Dictionary = {}
