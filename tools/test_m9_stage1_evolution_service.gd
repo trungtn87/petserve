@@ -126,30 +126,21 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v10_stage_2"
+			"_pethome_v11_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[STAGE 2 FULL REGENERATE]"
+			"[STAGE 2 FREESTYLE]"
 		)
 		and request.positive_prompt.contains(
-			"visibly older and more physically mature than Stage 1"
+			"AI should freely invent the individual pet"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENT MORPHOLOGY STAGE 2]"
+			"[ELEMENTAL NATURAL BACKGROUND]"
 		)
 		and request.positive_prompt.contains(
-			"[SPECIES FREESTYLE]"
-		)
-		and request.positive_prompt.contains(
-			"Never make the cat stand upright on two hind legs"
-		)
-		and not request.positive_prompt.contains(
-			"[QUADRUPED BODY PLAN]"
-		)
-		and request.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"[PETHOME COMPOSITION]"
 		)
 		and request.positive_prompt.contains(
 			"28 to 32 percent"
@@ -160,23 +151,11 @@ func _test_natural_stage_one_plan() -> void:
 		and request.positive_prompt.contains(
 			"88 to 90 percent"
 		)
-		and request.positive_prompt.contains(
-			"body=base"
-		)
-		and request.positive_prompt.contains(
-			"aura=base"
-		)
-		and not request.positive_prompt.contains(
-			"[ANATOMY REQUIREMENT]"
-		)
 		and request.negative_prompt.contains(
-			"duplicated appendage"
+			"fixed template character"
 		)
-		and request.negative_prompt.contains(
-			"bipedal"
-		)
-		and request.seed > 0,
-		"Natural request must carry full phenotype and explicit no-Gene contract"
+		and request.seed == 0,
+		"Natural Stage 2 request must keep only element, environment and composition constraints"
 	)
 
 	var first_request := (
@@ -270,7 +249,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v10_full_regenerate"
+			) == "evolution_pethome_v11_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -409,26 +388,23 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v10_stage_2"
+			"_pethome_v11_stage_2"
 		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
-			"[STAGE 2 FULL REGENERATE]"
+			"[STAGE 2 FREESTYLE]"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENT MORPHOLOGY STAGE 2]"
+			"AI should freely invent the individual pet"
 		)
 		and request.positive_prompt.contains(
-			"[SPECIES FREESTYLE]"
+			"There is one gameplay Gene expression to include naturally"
 		)
 		and request.positive_prompt.contains(
-			"Never make the cat stand upright on two hind legs"
-		)
-		and not request.positive_prompt.contains(
-			"[QUADRUPED BODY PLAN]"
+			"[ELEMENTAL NATURAL BACKGROUND]"
 		)
 		and request.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"[PETHOME COMPOSITION]"
 		)
 		and request.positive_prompt.contains(
 			"28 to 32 percent"
@@ -439,32 +415,11 @@ func _test_gene_stage_one_plan() -> void:
 		and request.positive_prompt.contains(
 			"88 to 90 percent"
 		)
-		and request.positive_prompt.contains(
-			"[SOURCE PHENOTYPE BLUEPRINT]"
-		)
-		and request.positive_prompt.contains(
-			"tail=base"
-		)
-		and request.positive_prompt.contains(
-			"tail=long"
-		)
-		and request.positive_prompt.contains(
-			"Do not invent any other gene trait"
-		)
-		and request.positive_prompt.contains(
-			"[ONE GENE EXPRESSION]"
-		)
-		and not request.positive_prompt.contains(
-			"[ANATOMY REQUIREMENT]"
-		)
 		and request.negative_prompt.contains(
-			"duplicated appendage"
+			"fixed template character"
 		)
-		and request.negative_prompt.contains(
-			"bipedal"
-		)
-		and request.seed > 0,
-		"Gene request must expose full current/target phenotype and one-change contract"
+		and request.seed == 0,
+		"Gene Stage 2 request must preserve only the selected Gene while leaving the visual generation free"
 	)
 
 	var gene_resolution: Dictionary = pending.get(
@@ -553,7 +508,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v10_full_regenerate"
+			) == "evolution_pethome_v11_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -1269,7 +1224,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v10_full_regenerate"
+		&"evolution_pethome_v11_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
