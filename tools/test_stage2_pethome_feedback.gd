@@ -56,11 +56,17 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 		mark,
 		91002
 	)
+	var food_item := generator.generate_for_stage(
+		ItemGenerator.TYPE_FOOD,
+		91003,
+		2
+	)
 
 	_expect(
 		SaveManager.save_meta({
 			"schema": InfantGameFacade.META_SCHEMA,
 			"inventory": [
+				food_item,
 				eye_item,
 				mark_item,
 			],
@@ -77,6 +83,30 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 			2
 		),
 		"setup Stage 2 facade"
+	)
+
+	_expect(
+		bool(
+			game.use_item(
+				String(
+					food_item.get(
+						"uid",
+						""
+					)
+				)
+			).get(
+				"ok",
+				false
+			)
+		),
+		"Stage 2 Gene fixture must feed the pet before Gene use"
+	)
+
+	var before_gene_growth := int(
+		game.snapshot().get(
+			"growth_percent",
+			-1
+		)
 	)
 
 	var initial := game.gene_item_context(
@@ -140,6 +170,26 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 			)
 		),
 		"first Stage 2 Gene can be used"
+	)
+
+	var after_first_gene_growth := int(
+		game.snapshot().get(
+			"growth_percent",
+			-1
+		)
+	)
+
+	_expect(
+		after_first_gene_growth == mini(
+			100,
+			before_gene_growth
+			+ int(
+				round(
+					ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+				)
+			)
+		),
+		"Stage 2 Gene Item must add its Growth bonus"
 	)
 
 	var after_one := game.gene_item_context(
