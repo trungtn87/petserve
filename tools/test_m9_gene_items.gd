@@ -1,8 +1,8 @@
-extends SceneTree
+extends Node
 
 var _failures: int = 0
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_catalog_contract()
 	_test_rarity_score_contract()
 	_test_inventory_stage_gate()
@@ -11,10 +11,10 @@ func _initialize() -> void:
 
 	if _failures == 0:
 		print("M9.3 Gene Items: PASS")
-		quit(0)
+		get_tree().quit(0)
 		return
 	push_error("M9.3 Gene Items: FAIL (%d)" % _failures)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_catalog_contract() -> void:
