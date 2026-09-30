@@ -1110,8 +1110,7 @@ func _add_last_evolution_row() -> void:
 
 	if (
 		mythic_name.is_empty()
-		or mythic_mode
-			not in [
+		or mythic_mode not in [
 				SpeciesMythicMutationResolver.MODE_AWAKEN,
 				SpeciesMythicMutationResolver.MODE_CONTINUE,
 			]
