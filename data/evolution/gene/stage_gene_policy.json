@@ -1,30 +1,54 @@
 [
   {
     "stage": 1,
-    "max_gene_items": 2,
+    "max_gene_items": -1,
     "allowed_loci": [
+      "body",
       "eyes",
+      "ears",
       "whiskers",
       "fur",
+      "coat",
+      "tail",
+      "paws",
+      "mane",
       "mark",
-      "paws"
+      "structure",
+      "aura"
     ]
   },
   {
     "stage": 2,
-    "max_gene_items": 2,
+    "max_gene_items": -1,
     "allowed_loci": [
       "body",
+      "eyes",
       "ears",
+      "whiskers",
+      "fur",
       "coat",
       "tail",
-      "mane"
+      "paws",
+      "mane",
+      "mark",
+      "structure",
+      "aura"
     ]
   },
   {
     "stage": 3,
-    "max_gene_items": 2,
+    "max_gene_items": -1,
     "allowed_loci": [
+      "body",
+      "eyes",
+      "ears",
+      "whiskers",
+      "fur",
+      "coat",
+      "tail",
+      "paws",
+      "mane",
+      "mark",
       "structure",
       "aura"
     ]
