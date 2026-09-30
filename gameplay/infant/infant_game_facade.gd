@@ -43,7 +43,7 @@ func setup(
 	else:
 		_meta["schema"] = META_SCHEMA
 
-	_ensure_default_test_talent()
+	_sanitize_dev_test_talent()
 
 	_gene_policy = StageGenePolicy.load_default()
 	_gene_definitions = (
@@ -820,19 +820,44 @@ func _sync_gene_meta() -> void:
 	)
 
 
-func _ensure_default_test_talent() -> void:
-	var talents := _talent_ids()
+func set_dev_instant_evolution_enabled(
+	enabled: bool
+) -> bool:
+	if not OS.is_debug_build():
+		return false
 
-	if not talents.has(
-		String(
-			DEV_INSTANT_EVOLUTION_TALENT
-		)
-	):
-		talents.append(
-			String(
-				DEV_INSTANT_EVOLUTION_TALENT
+	_meta["dev_instant_evolution_enabled"] = enabled
+	_sanitize_dev_test_talent()
+	return save()
+
+
+func _sanitize_dev_test_talent() -> void:
+	var talents := _talent_ids()
+	var talent_id := String(
+		DEV_INSTANT_EVOLUTION_TALENT
+	)
+	var enabled := (
+		OS.is_debug_build()
+		and bool(
+			_meta.get(
+				"dev_instant_evolution_enabled",
+				false
 			)
 		)
+	)
+
+	if enabled:
+		if not talents.has(
+			talent_id
+		):
+			talents.append(
+				talent_id
+			)
+	else:
+		talents.erase(
+			talent_id
+		)
+		_meta["dev_instant_evolution_enabled"] = false
 
 	_meta["talents"] = talents
 
