@@ -1060,13 +1060,27 @@ func _test_stage_one_gene_visual_matrix() -> void:
 	var policy := StageGenePolicy.load_default()
 	var genes := GeneCatalog.new().load_default()
 	var visuals := MutationVisualCatalog.new().load_default()
-
-	_expect(
-		genes.size() == 10,
-		"Stage 1 Gene matrix fixture must contain 10 definitions"
-	)
+	var stage_one_genes: Array[GeneDefinition] = []
 
 	for definition in genes:
+		if policy.can_accept_gene(
+			1,
+			definition.locus()
+		):
+			stage_one_genes.append(
+				definition
+			)
+
+	_expect(
+		genes.size() == 15,
+		"Gene catalog fixture must contain 15 definitions"
+	)
+	_expect(
+		stage_one_genes.size() == 10,
+		"Stage 1 policy must expose exactly 10 eligible Gene definitions"
+	)
+
+	for definition in stage_one_genes:
 		var state := GeneDevelopmentState.new(
 			1
 		)
