@@ -75,6 +75,20 @@ func run() -> void:
 		"must keep pet element"
 	)
 
+	service.update_context(
+		2,
+		&"fire"
+	)
+	check(
+		String(
+			service.snapshot(start_time).get(
+				"element_id",
+				""
+			)
+		) == "dark",
+		"running cycle must preserve start element"
+	)
+
 	var early := service.process(
 		start_time + 3599
 	)
@@ -118,8 +132,8 @@ func run() -> void:
 		definitions,
 		policy,
 		7281,
-		1,
-		&"dark"
+		3,
+		&"fire"
 	)
 	var replay_finish := replay.process(
 		final_time

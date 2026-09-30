@@ -83,6 +83,7 @@ func start(
 		"status": String(STATUS_RUNNING),
 		"stage": STAGE_ONE,
 		"element_id": String(_element_id),
+		"pet_stage_at_start": _pet_stage,
 		"started_at_unix": now,
 		"stage_started_at_unix": now,
 		"finish_at_unix": now + _stage_duration(STAGE_ONE),
@@ -167,13 +168,17 @@ func process(
 			var reward := _generator.generate_for_stage(
 				item_type,
 				_reward_seed(state, stage),
-				_pet_stage
+				_reward_pet_stage(state)
 			)
 
 			if reward.is_empty():
 				break
 
-			_annotate_reward(reward, stage)
+			_annotate_reward(
+				reward,
+				stage,
+				state
+			)
 			rewards.append(reward)
 			_complete(
 				state,
@@ -194,7 +199,8 @@ func process(
 
 		_annotate_reward(
 			gene_reward,
-			STAGE_THREE
+			STAGE_THREE,
+			state
 		)
 		rewards.append(gene_reward)
 		_complete(
@@ -271,11 +277,12 @@ func snapshot(
 		),
 		"running": running,
 		"stage": stage,
-		"element_id": String(
-			state.get(
-				"element_id",
-				String(_element_id)
+		"element_id": (
+			String(
+				_state_element(state)
 			)
+			if running
+			else String(_element_id)
 		),
 		"started_at_unix": int(
 			state.get(
@@ -322,7 +329,7 @@ func _generate_gene_reward(
 		if (
 			_gene_policy == null
 			or _gene_policy.can_accept_gene(
-				_pet_stage,
+				_reward_pet_stage(state),
 				definition.locus()
 			)
 		):
@@ -363,7 +370,9 @@ func _generate_gene_reward(
 		else {}
 	)
 	tags[
-		"element_" + String(_element_id)
+		"element_" + String(
+			_state_element(state)
+		)
 	] = 1.0
 	reward["influence_tags"] = tags
 
@@ -372,12 +381,13 @@ func _generate_gene_reward(
 
 func _annotate_reward(
 	item: Dictionary,
-	stage: int
+	stage: int,
+	state: Dictionary
 ) -> void:
 	item["source"] = "element_crystallization"
 	item["crystallization_stage"] = stage
 	item["crystallization_element"] = String(
-		_element_id
+		_state_element(state)
 	)
 
 
@@ -387,8 +397,11 @@ func _complete(
 	stage: int,
 	completed_at_unix: int
 ) -> void:
+	var reward_element := _state_element(state)
 	state["status"] = String(STATUS_IDLE)
 	state["stage"] = 0
+	state["element_id"] = String(_element_id)
+	state["pet_stage_at_start"] = 0
 	state["stage_started_at_unix"] = 0
 	state["finish_at_unix"] = 0
 	state["last_result"] = {
@@ -405,7 +418,7 @@ func _complete(
 				""
 			)
 		),
-		"element_id": String(_element_id),
+		"element_id": String(reward_element),
 		"crystallization_stage": stage,
 		"completed_at_unix": completed_at_unix,
 	}
@@ -484,6 +497,36 @@ func _mix_text(
 		)
 
 	return maxi(1, result)
+
+
+func _reward_pet_stage(
+	state: Dictionary
+) -> int:
+	return maxi(
+		1,
+		int(
+			state.get(
+				"pet_stage_at_start",
+				_pet_stage
+			)
+		)
+	)
+
+
+func _state_element(
+	state: Dictionary
+) -> StringName:
+	var value := StringName(
+		state.get(
+			"element_id",
+			String(_element_id)
+		)
+	)
+
+	if String(value).is_empty():
+		return _element_id
+
+	return value
 
 
 func _stage_duration(
@@ -628,6 +671,7 @@ func _idle_state(
 		"status": String(STATUS_IDLE),
 		"stage": 0,
 		"element_id": String(_element_id),
+		"pet_stage_at_start": 0,
 		"started_at_unix": 0,
 		"stage_started_at_unix": 0,
 		"finish_at_unix": 0,
