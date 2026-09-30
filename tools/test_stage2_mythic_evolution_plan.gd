@@ -1,24 +1,24 @@
-extends SceneTree
+extends Node
 
 
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_three_gene_recipe_builds_retry_safe_mythic_plan()
 
 	if _failures == 0:
 		print(
 			"Stage 2 Mythic Evolution Plan: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"Stage 2 Mythic Evolution Plan: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
