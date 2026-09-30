@@ -230,7 +230,9 @@ func _build_destiny(
 	):
 		return {}
 
-	var serialized_recipe: Array[String] = []
+	# Keep persisted destiny JSON-native so the first in-memory plan and
+	# the reloaded retry plan compare identically after AtomicJson round-trip.
+	var serialized_recipe: Array = []
 
 	for value in recipe_gene_ids:
 		serialized_recipe.append(
