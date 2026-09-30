@@ -538,7 +538,7 @@ static func _normalize_traits(
 				str(key_value)
 			)
 		)
-		var trait := _normalize_token(
+		var trait_id := _normalize_token(
 			StringName(
 				str(
 					source[
@@ -549,7 +549,7 @@ static func _normalize_traits(
 		)
 
 		result[String(locus)] = String(
-			trait
+			trait_id
 		)
 
 	return result
