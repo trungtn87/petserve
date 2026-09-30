@@ -101,7 +101,7 @@ func _test_locus_recipes_awaken_cat_branches() -> void:
 
 	var horn := service.from_gene_recipe(
 		identity,
-		[&"whiskers_starlight", &"mark_moon", &"ears_tufted"]
+		[&"whiskers_starlight", &"mark_dark", &"ears_tufted"]
 	)
 	_expect(
 		StringName(horn.get("mutation_id", "")) == &"cat_horned_spirit"
@@ -126,7 +126,7 @@ func _test_locus_recipes_awaken_cat_branches() -> void:
 		3,
 		[],
 		{},
-		[&"whiskers_starlight", &"mark_moon", &"ears_long"]
+		[&"whiskers_starlight", &"mark_dark", &"ears_long"]
 	)
 	_expect(
 		StringName(result.get("mode", "")) == SpeciesMythicMutationResolver.MODE_AWAKEN
