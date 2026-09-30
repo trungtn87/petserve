@@ -812,12 +812,12 @@ func _add_current_trait_rows(
 	var added := 0
 
 	for locus in PetGenomeSchema.VISUAL_LOCI:
-		var trait := genome.get_trait(
+		var trait_id := genome.get_trait(
 			locus,
 			PetGenomeSchema.BASE_TRAIT
 		)
 
-		if trait == PetGenomeSchema.BASE_TRAIT:
+		if trait_id == PetGenomeSchema.BASE_TRAIT:
 			continue
 
 		_add_info_row(
@@ -832,7 +832,7 @@ func _add_current_trait_rows(
 					locus
 				),
 				_trait_value(
-					trait
+					trait_id
 				),
 			]
 		)
@@ -1170,7 +1170,7 @@ func _trait_label(
 func _trait_value(
 	trait: StringName
 ) -> String:
-	if trait == PetGenomeSchema.BASE_TRAIT:
+	if trait_id == PetGenomeSchema.BASE_TRAIT:
 		return "Cơ bản"
 
 	return String(
