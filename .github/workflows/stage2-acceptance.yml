@@ -42,22 +42,22 @@ jobs:
         run: godot --headless --path . res://tools/test_m8_stage_cycle.tscn
 
       - name: Stage 2 reward contract
-        run: godot --headless --path . -s res://tools/test_stage2_rewards.gd
+        run: godot --headless --path . res://tools/test_stage2_rewards.tscn
 
       - name: Stage 2 Gene resolver
-        run: godot --headless --path . -s res://tools/test_m9_stage_evolution_resolver.gd
+        run: godot --headless --path . res://tools/test_m9_stage_evolution_resolver.tscn
 
       - name: Stage 2 Mythic contract
-        run: godot --headless --path . -s res://tools/test_stage2_mythic_mutation.gd
+        run: godot --headless --path . res://tools/test_stage2_mythic_mutation.tscn
 
       - name: Stage 2 Mythic retry plan
-        run: godot --headless --path . -s res://tools/test_stage2_mythic_evolution_plan.gd
+        run: godot --headless --path . res://tools/test_stage2_mythic_evolution_plan.tscn
 
       - name: Stage 2 PetHome feedback
-        run: godot --headless --path . -s res://tools/test_stage2_pethome_feedback.gd
+        run: godot --headless --path . res://tools/test_stage2_pethome_feedback.tscn
 
       - name: Stage 2 to Stage 3 acceptance
-        run: godot --headless --path . -s res://tools/test_stage2_to_stage3_acceptance.gd
+        run: godot --headless --path . res://tools/test_stage2_to_stage3_acceptance.tscn
 
   android-debug-apk:
     name: Android debug APK smoke build
