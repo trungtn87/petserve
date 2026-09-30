@@ -6,7 +6,7 @@ var _failures: int = 0
 
 func _ready() -> void:
 	_test_gene_item_context_and_stage2_limit()
-	_test_ready_stage2_keeps_remaining_activity_rewards()
+	_test_hibernating_stage2_keeps_remaining_activity_rewards()
 
 	SaveManager.delete_meta()
 
@@ -220,7 +220,7 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 	SaveManager.delete_meta()
 
 
-func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
+func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 	SaveManager.delete_meta()
 
 	var game := InfantGameFacade.new()
@@ -261,10 +261,10 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 	var ready := game.snapshot()
 
 	_expect(
-		bool(
+		not bool(
 			ready.get(
 				"ready_to_evolve",
-				false
+				true
 			)
 		)
 		and bool(
@@ -282,10 +282,16 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 		and int(
 			ready.get(
 				"growth_percent",
-				100
+				-1
 			)
-		) < 100,
-		"deadline can make Stage 2 READY independently of Growth"
+		) == 0
+		and bool(
+			ready.get(
+				"hibernating",
+				false
+			)
+		),
+		"deadline cannot bypass zero-food hibernation"
 	)
 
 	var reward := game.claim_maze_hunt_reward(
@@ -300,7 +306,7 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 				false
 			)
 		),
-		"READY Stage 2 must still allow an unclaimed Maze/Snake reward"
+		"hibernating Stage 2 must still allow an unclaimed Maze/Snake reward"
 	)
 
 	var after_reward := game.snapshot()
