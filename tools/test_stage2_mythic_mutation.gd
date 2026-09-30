@@ -7,6 +7,8 @@ var _failures: int = 0
 func _initialize() -> void:
 	_test_default_cat_catalog()
 	_test_species_isolation()
+	_test_stage4_egg_locks_mythic_destiny()
+	_test_three_fixed_genes_awaken_branch()
 	_test_awaken_does_not_consume_gene_slots()
 	_test_existing_branch_continues_without_reroll()
 
@@ -47,7 +49,10 @@ func _test_default_cat_catalog() -> void:
 		)
 		_expect(
 			definition.first_expression_stage()
-				== 3
+				== 2
+			and definition.supports_stage(
+				2
+			)
 			and definition.supports_stage(
 				3
 			)
@@ -111,6 +116,155 @@ func _test_species_isolation() -> void:
 			)
 		).is_empty(),
 		"cat-only Mythic Mutation must never activate for another species"
+	)
+
+
+func _test_stage4_egg_locks_mythic_destiny() -> void:
+	var identity := PetIdentityFactory.new().create_initial(
+		7210,
+		&"dark",
+		&"cat"
+	)
+	var destiny := SpeciesMythicDestinyService.new().from_stage4_egg(
+		identity,
+		4,
+		true
+	)
+
+	_expect(
+		not destiny.is_empty()
+		and bool(
+			destiny.get(
+				"locked",
+				false
+			)
+		)
+		and StringName(
+			destiny.get(
+				"source",
+				""
+			)
+		) == SpeciesMythicDestinyService.SOURCE_EGG_STAGE4,
+		"rare Stage 4 egg must lock one cat Mythic Destiny immediately"
+	)
+
+	var result := SpeciesMythicMutationResolver.new().resolve(
+		identity,
+		_stage_two_genome(),
+		null,
+		3,
+		[],
+		destiny,
+		[]
+	)
+	var changed := result.get(
+		"genome"
+	) as PetGenome
+	var mutation_id := StringName(
+		destiny.get(
+			"mutation_id",
+			""
+		)
+	)
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and StringName(
+			result.get(
+				"mode",
+				""
+			)
+		) == SpeciesMythicMutationResolver.MODE_AWAKEN
+		and String(
+			result.get(
+				"trigger_source",
+				""
+			)
+		) == "egg_stage4"
+		and changed != null
+		and changed.has_mutation(
+			mutation_id
+		),
+		"Stage 4 egg destiny must awaken without another rarity roll"
+	)
+
+
+func _test_three_fixed_genes_awaken_branch() -> void:
+	var identity := PetIdentityFactory.new().create_initial(
+		7211,
+		&"dark",
+		&"cat"
+	)
+	var destiny := SpeciesMythicDestinyService.new().from_gene_recipe(
+		identity,
+		[
+			&"tail_long",
+			&"eyes_moon",
+			&"mark_moon",
+		]
+	)
+
+	_expect(
+		StringName(
+			destiny.get(
+				"mutation_id",
+				""
+			)
+		) == &"cat_nekomata"
+		and StringName(
+			destiny.get(
+				"source",
+				""
+			)
+		) == SpeciesMythicDestinyService.SOURCE_GENE_RECIPE,
+		"three fixed Nekomata Gene ids must lock the Nekomata destiny"
+	)
+
+	var result := SpeciesMythicMutationResolver.new().resolve(
+		identity,
+		_stage_two_genome(),
+		null,
+		3,
+		[],
+		{},
+		[
+			&"tail_long",
+			&"eyes_moon",
+			&"mark_moon",
+		]
+	)
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and StringName(
+			result.get(
+				"mode",
+				""
+			)
+		) == SpeciesMythicMutationResolver.MODE_AWAKEN
+		and StringName(
+			result.get(
+				"mutation_id",
+				""
+			)
+		) == &"cat_nekomata"
+		and String(
+			result.get(
+				"trigger_source",
+				""
+			)
+		) == "gene_recipe",
+		"three fixed Genes must deterministically awaken their Mythic branch at evolution"
 	)
 
 
@@ -261,6 +415,8 @@ func _test_definition(
 		3,
 		4,
 		basis_points,
+		false,
+		[],
 		[
 			&"tail",
 			&"aura",
