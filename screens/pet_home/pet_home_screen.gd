@@ -861,6 +861,13 @@ func _add_gene_choice_rows(
 		)
 	)
 
+	if limit <= 0:
+		_add_info_row(
+			"Gene Item",
+			"Không dùng ở stage này"
+		)
+		return
+
 	_add_info_row(
 		"Gene Item",
 		"%d / %d"
@@ -979,81 +986,148 @@ func _add_last_evolution_row() -> void:
 			)
 		)
 	)
+	var deltas_value: Variant = plan.get(
+		"deltas",
+		[]
+	)
+	var deltas: Array[Dictionary] = []
 
-	if mode == StageEvolutionResolver.MODE_NATURAL:
+	if typeof(deltas_value) == TYPE_ARRAY:
+		for delta_value in deltas_value as Array:
+			if typeof(delta_value) == TYPE_DICTIONARY:
+				deltas.append(
+					(delta_value as Dictionary).duplicate(
+						true
+					)
+				)
+
+	if deltas.is_empty():
+		var legacy_delta_value: Variant = plan.get(
+			"delta",
+			{}
+		)
+
+		if (
+			typeof(legacy_delta_value) == TYPE_DICTIONARY
+			and not (
+				legacy_delta_value as Dictionary
+			).is_empty()
+		):
+			deltas.append(
+				(legacy_delta_value as Dictionary).duplicate(
+					true
+				)
+			)
+
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and deltas.is_empty()
+	):
 		_add_info_row(
 			"Tiến hóa gần nhất",
 			"Tự nhiên • giữ nguyên Gene trait"
 		)
-		return
+	else:
+		var index := 0
 
-	var delta_value: Variant = plan.get(
-		"delta",
+		for delta in deltas:
+			var locus := StringName(
+				str(
+					delta.get(
+						"target_trait",
+						""
+					)
+				)
+			)
+			var from_trait := StringName(
+				str(
+					delta.get(
+						"from_trait",
+						""
+					)
+				)
+			)
+			var to_trait := StringName(
+				str(
+					delta.get(
+						"to_trait",
+						""
+					)
+				)
+			)
+
+			if (
+				String(locus).is_empty()
+				or String(from_trait).is_empty()
+				or String(to_trait).is_empty()
+			):
+				continue
+
+			_add_info_row(
+				(
+					"Tiến hóa gần nhất"
+					if index == 0
+					else ""
+				),
+				"%s: %s → %s"
+				% [
+					_trait_label(
+						locus
+					),
+					_trait_value(
+						from_trait
+					),
+					_trait_value(
+						to_trait
+					),
+				]
+			)
+			index += 1
+
+	var mythic_value: Variant = plan.get(
+		"mythic_resolution",
 		{}
 	)
 
-	if typeof(delta_value) != TYPE_DICTIONARY:
+	if typeof(mythic_value) != TYPE_DICTIONARY:
 		return
 
-	var delta := delta_value as Dictionary
+	var mythic := mythic_value as Dictionary
+	var mythic_mode := StringName(
+		str(
+			mythic.get(
+				"mode",
+				"none"
+			)
+		)
+	)
+	var mythic_name := String(
+		mythic.get(
+			"display_name",
+			""
+		)
+	).strip_edges()
 
-	if delta.is_empty():
+	if (
+		mythic_name.is_empty()
+		or mythic_mode
+			not in [
+				SpeciesMythicMutationResolver.MODE_AWAKEN,
+				SpeciesMythicMutationResolver.MODE_CONTINUE,
+			]
+	):
 		return
-
-	var locus := StringName(
-		str(
-			delta.get(
-				"target_trait",
-				""
-			)
-		)
-	)
-	var from_trait := StringName(
-		str(
-			delta.get(
-				"from_trait",
-				""
-			)
-		)
-	)
-	var to_trait := StringName(
-		str(
-			delta.get(
-				"to_trait",
-				""
-			)
-		)
-	)
-	var gene_resolution: Dictionary = plan.get(
-		"gene_resolution",
-		{}
-	)
-	var suffix := (
-		" • củng cố"
-		if bool(
-			gene_resolution.get(
-				"reinforced",
-				false
-			)
-		)
-		else ""
-	)
 
 	_add_info_row(
-		"Tiến hóa gần nhất",
-		"%s: %s → %s%s"
-		% [
-			_trait_label(
-				locus
-			),
-			_trait_value(
-				from_trait
-			),
-			_trait_value(
-				to_trait
-			),
-			suffix,
-		]
+		"Thần thoại",
+		(
+			"Thức tỉnh %s"
+			% mythic_name
+			if mythic_mode
+				== SpeciesMythicMutationResolver.MODE_AWAKEN
+			else "Tiếp tục %s"
+				% mythic_name
+		)
 	)
 
 
