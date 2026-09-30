@@ -25,12 +25,12 @@ func _test_locus_recipe_builds_retry_safe_mythic_plan() -> void:
 	var scene := PetSceneProfileFactory.new().create_initial(identity)
 	var traits := PetGenomeSchema.base_traits()
 	traits[&"whiskers"] = &"starlight"
-	traits[&"mark"] = &"moon"
+	traits[&"mark"] = &"dark"
 	var genome := PetGenomeFactory.new().create_snapshot(
 		2,
 		0.0,
 		traits,
-		[&"gene_expr_whiskers_starlight_s1", &"gene_expr_mark_moon_s1"]
+		[&"gene_expr_whiskers_starlight_s1", &"gene_expr_mark_dark_s1"]
 	)
 	_expect(identity != null and scene != null and genome != null, "build Stage 2 fixture")
 	if identity == null or scene == null or genome == null:
@@ -59,7 +59,7 @@ func _test_locus_recipe_builds_retry_safe_mythic_plan() -> void:
 					"selected_gene_id": "whiskers_starlight",
 					"selected_changes": [
 						{"gene_id": "whiskers_starlight", "locus": "whiskers", "direction": "starlight", "resolved_trait": "starlight"},
-						{"gene_id": "mark_moon", "locus": "mark", "direction": "moon", "resolved_trait": "moon"}
+						{"gene_id": "mark_dark", "locus": "mark", "direction": "dark", "resolved_trait": "dark"}
 					]
 				}
 			}
@@ -119,7 +119,7 @@ func _test_locus_recipe_builds_retry_safe_mythic_plan() -> void:
 		and (deltas_value as Array).size() == 2
 		and next != null
 		and next.get_trait(&"whiskers", &"base") == &"starlight"
-		and next.get_trait(&"mark", &"base") == &"moon"
+		and next.get_trait(&"mark", &"base") == &"dark"
 		and next.get_trait(&"ears", &"base") == &"tufted"
 		and next.get_trait(&"tail", &"base") == &"long"
 		and next.has_mutation(&"cat_horned_spirit"),

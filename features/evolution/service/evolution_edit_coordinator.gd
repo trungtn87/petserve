@@ -935,9 +935,6 @@ func build_stage_regenerate_request(
 			+ "."
 		)
 
-	var visual_catalog := MutationVisualCatalog.new()
-	var visuals := visual_catalog.load_default()
-
 	if not deltas.is_empty():
 		positive_prompt += (
 			" Apply only these Gene changes selected by code:"
@@ -953,23 +950,19 @@ func build_stage_regenerate_request(
 					"error": "Full-regenerate có Gene delta không hợp lệ.",
 				}
 
-			var visual := visual_catalog.find_by_id(
-				visuals,
-				delta.mutation_id()
-			)
-
-			if visual == null:
-				return {
-					"ok": false,
-					"error": "Thiếu visual definition cho %s."
-					% String(delta.mutation_id()),
-				}
-
 			positive_prompt += (
-				" "
-				+ visual.instruction()
-				+ " "
-				+ visual.preserve_hint()
+				" Locus %s changes from %s to %s."
+				% [
+					String(
+						delta.target_trait()
+					),
+					String(
+						delta.from_trait()
+					),
+					String(
+						delta.to_trait()
+					),
+				]
 			)
 
 	var mythic_mode := StringName(

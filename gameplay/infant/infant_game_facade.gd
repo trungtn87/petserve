@@ -196,42 +196,38 @@ func snapshot() -> Dictionary:
 		_gene_policy != null
 		and _gene_state != null
 	):
-		var gene_limit := (
-			_gene_policy.max_gene_items(
-				int(
-					state.get(
-						"stage_index",
-						_stage_index
-					)
-				)
+		var current_stage := int(
+			state.get(
+				"stage_index",
+				_stage_index
 			)
 		)
-		state["gene_items_used"] = (
-			_gene_state.item_count()
+		state["gene_items_used"] = _gene_state.item_count()
+		state["gene_items_used_lifetime"] = _gene_state.lifetime_gene_count()
+		state["gene_item_limit"] = _gene_policy.max_gene_items(
+			current_stage
 		)
-		state["gene_item_limit"] = (
-			gene_limit
+		state["gene_unlimited"] = _gene_policy.is_unlimited(
+			current_stage
 		)
-		state["gene_slots_remaining"] = max(
-			0,
-			gene_limit
-			- _gene_state.item_count()
+		state["gene_slots_remaining"] = -1
+		state["gene_influences"] = _gene_state.influences_snapshot()
+		state["gene_tag_influences"] = _gene_state.tag_influences_snapshot()
+		state["gene_scores"] = _gene_state.gene_scores_snapshot()
+		state["gene_lifetime_tag_influences"] = (
+			_gene_state.lifetime_tag_influences_snapshot()
 		)
-		state["gene_influences"] = (
-			_gene_state.influences_snapshot()
-		)
-		state["gene_tag_influences"] = (
-			_gene_state.tag_influences_snapshot()
-		)
-		state["gene_development"] = (
-			_gene_state.to_dict()
-		)
+		state["gene_development"] = _gene_state.to_dict()
 	else:
 		state["gene_items_used"] = 0
+		state["gene_items_used_lifetime"] = 0
 		state["gene_item_limit"] = 0
+		state["gene_unlimited"] = false
 		state["gene_slots_remaining"] = 0
 		state["gene_influences"] = {}
 		state["gene_tag_influences"] = {}
+		state["gene_scores"] = {}
+		state["gene_lifetime_tag_influences"] = {}
 		state["gene_development"] = {}
 
 	var entertainment_state := (
@@ -533,20 +529,19 @@ func can_use_item(
 		return false
 
 	if item_type == ItemGenerator.TYPE_GENE:
+		var definition := _gene_definition_for_item(
+			item
+		)
 		return (
 			_gene_state != null
+			and definition != null
+			and definition.is_element_compatible(
+				_element_id
+			)
 			and _gene_state.can_record(
 				_gene_policy,
-				StringName(
-					item.get(
-						"gene_locus",
-						""
-					)
-				)
+				definition.locus()
 			)
-			and _gene_definition_for_item(
-				item
-			) != null
 		)
 
 	return true
@@ -557,6 +552,7 @@ func gene_item_context(
 ) -> Dictionary:
 	if (
 		_gene_policy == null
+		or _gene_state == null
 		or StringName(
 			item.get(
 				"item_type",
@@ -566,18 +562,14 @@ func gene_item_context(
 	):
 		return {}
 
-	var locus := StringName(
-		item.get(
-			"gene_locus",
-			""
-		)
+	var definition := _gene_definition_for_item(
+		item
 	)
-	var direction := StringName(
-		item.get(
-			"gene_direction",
-			""
-		)
-	)
+	if definition == null:
+		return {}
+
+	var locus := definition.locus()
+	var direction := definition.direction()
 	var allowed_stages: Array[int] = []
 
 	for stage_index in range(
@@ -599,38 +591,54 @@ func gene_item_context(
 			_stage_index
 		)
 	)
-	var limit := _gene_policy.max_gene_items(
-		current_stage
+	var current_score := _gene_state.score_for(
+		locus,
+		direction
 	)
-	var used := (
-		_gene_state.item_count()
-		if _gene_state != null
-		else 0
+	var item_score := float(
+		item.get(
+			"gene_score",
+			item.get(
+				"gene_influence",
+				definition.primary_influence()
+			)
+		)
 	)
-	var remaining := maxi(
-		0,
-		limit - used
+	var projected_score := current_score + item_score
+	var current_tier := GeneExpressionScale.tier_for_score(
+		current_score
+	)
+	var projected_tier := GeneExpressionScale.tier_for_score(
+		projected_score
+	)
+	var element_lock := definition.element_lock()
+	var element_compatible := definition.is_element_compatible(
+		_element_id
 	)
 
 	return {
-		"locus": String(
-			locus
-		),
-		"direction": String(
-			direction
-		),
+		"locus": String(locus),
+		"direction": String(direction),
 		"allowed_stages": allowed_stages,
 		"current_stage": current_stage,
-		"used": used,
-		"limit": limit,
-		"remaining": remaining,
-		"exhausted": (
-			limit <= 0
-			or remaining <= 0
+		"item_score": item_score,
+		"current_score": current_score,
+		"projected_score": projected_score,
+		"current_tier": String(current_tier),
+		"projected_tier": String(projected_tier),
+		"current_tier_label": GeneExpressionScale.tier_label_vi(
+			current_tier
 		),
-		"evolution_plan_pending": (
-			_evolution_plan_pending
+		"projected_tier_label": GeneExpressionScale.tier_label_vi(
+			projected_tier
 		),
+		"next_threshold": GeneExpressionScale.next_threshold(
+			projected_score
+		),
+		"lifetime_gene_items_used": _gene_state.lifetime_gene_count(),
+		"element_lock": String(element_lock),
+		"element_compatible": element_compatible,
+		"evolution_plan_pending": _evolution_plan_pending,
 		"ready_to_evolve": bool(
 			lifecycle_state.get(
 				"ready_to_evolve",
@@ -926,6 +934,19 @@ func _use_gene_item(
 			"message": "Gene Item không có định nghĩa hợp lệ.",
 		}
 
+	if not definition.is_element_compatible(
+		_element_id
+	):
+		return {
+			"ok": false,
+			"message": (
+				"Gene hiệu ứng thuộc hệ %s. Item được giữ lại để dùng hoặc kế thừa cho pet phù hợp."
+				% PetElementCatalog.prompt_name(
+					definition.element_lock()
+				)
+			),
+		}
+
 	var influence_tags := definition.influence_tags()
 	var item_tags_value: Variant = item.get(
 		"influence_tags",
@@ -937,6 +958,15 @@ func _use_gene_item(
 			item_tags_value as Dictionary
 		).duplicate(true)
 
+	var gene_score := float(
+		item.get(
+			"gene_score",
+			item.get(
+				"gene_influence",
+				definition.primary_influence()
+			)
+		)
+	)
 	var result := _gene_state.record_gene_item(
 		_gene_policy,
 		String(
@@ -948,8 +978,15 @@ func _use_gene_item(
 		definition.id(),
 		definition.locus(),
 		definition.direction(),
-		definition.primary_influence(),
-		influence_tags
+		gene_score,
+		influence_tags,
+		String(
+			item.get(
+				"rarity",
+				""
+			)
+		),
+		definition.element_lock()
 	)
 
 	if not bool(
@@ -1034,15 +1071,42 @@ func _use_gene_item(
 		)
 	)
 	result["message"] = (
-		"Đã sử dụng "
-		+ String(
-			item.get(
-				"display_name",
-				"Gene Item"
-			)
-		)
-		+ " • Growth +"
-		+ str(
+		"Đã sử dụng %s • Điểm Gene +%d → %d • %s • Growth +%d%%"
+		% [
+			String(
+				item.get(
+					"display_name",
+					"Gene Item"
+				)
+			),
+			int(
+				round(
+					float(
+						result.get(
+							"score_added",
+							gene_score
+						)
+					)
+				)
+			),
+			int(
+				round(
+					float(
+						result.get(
+							"total_score",
+							gene_score
+						)
+					)
+				)
+			),
+			GeneExpressionScale.tier_label_vi(
+				StringName(
+					result.get(
+						"expression_tier",
+						"none"
+					)
+				)
+			),
 			int(
 				round(
 					float(
@@ -1052,9 +1116,8 @@ func _use_gene_item(
 						)
 					)
 				)
-			)
-		)
-		+ "%"
+			),
+		]
 	)
 	return result
 
@@ -1134,12 +1197,12 @@ func _setup_gene_state(
 			)
 		)
 
-	if (
-		restored == null
-		or restored.stage_index()
-			!= stage_index
-	):
+	if restored == null:
 		restored = GeneDevelopmentState.new(
+			stage_index
+		)
+	elif restored.stage_index() != stage_index:
+		restored.reset_for_stage(
 			stage_index
 		)
 
@@ -1151,9 +1214,10 @@ func _sync_gene_meta() -> void:
 	if _gene_state == null:
 		return
 
-	_meta["gene_development"] = (
-		_gene_state.to_dict()
-	)
+	_meta["gene_development"] = _gene_state.to_dict()
+	_meta["gene_scores"] = _gene_state.gene_scores_snapshot()
+	_meta["gene_items_used"] = _gene_state.item_count()
+	_meta["gene_items_used_lifetime"] = _gene_state.lifetime_gene_count()
 
 
 func set_dev_instant_evolution_enabled(
