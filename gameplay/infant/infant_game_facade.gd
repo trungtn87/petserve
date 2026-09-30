@@ -280,15 +280,7 @@ func claim_maze_hunt_reward(
 		)
 	)
 
-	if (
-		stage_index != 2
-		or bool(
-			lifecycle_state.get(
-				"ready_to_evolve",
-				false
-			)
-		)
-	):
+	if stage_index != 2:
 		return {
 			"ok": false,
 			"rewarded": false,
@@ -476,6 +468,97 @@ func can_use_item(
 		)
 
 	return true
+
+
+func gene_item_context(
+	item: Dictionary
+) -> Dictionary:
+	if (
+		_gene_policy == null
+		or StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		) != ItemGenerator.TYPE_GENE
+	):
+		return {}
+
+	var locus := StringName(
+		item.get(
+			"gene_locus",
+			""
+		)
+	)
+	var direction := StringName(
+		item.get(
+			"gene_direction",
+			""
+		)
+	)
+	var allowed_stages: Array[int] = []
+
+	for stage_index in range(
+		StageGenePolicy.FIRST_STAGE,
+		StageGenePolicy.FINAL_STAGE + 1
+	):
+		if _gene_policy.can_accept_gene(
+			stage_index,
+			locus
+		):
+			allowed_stages.append(
+				stage_index
+			)
+
+	var lifecycle_state := _lifecycle.snapshot()
+	var current_stage := int(
+		lifecycle_state.get(
+			"stage_index",
+			_stage_index
+		)
+	)
+	var limit := _gene_policy.max_gene_items(
+		current_stage
+	)
+	var used := (
+		_gene_state.item_count()
+		if _gene_state != null
+		else 0
+	)
+	var remaining := maxi(
+		0,
+		limit - used
+	)
+
+	return {
+		"locus": String(
+			locus
+		),
+		"direction": String(
+			direction
+		),
+		"allowed_stages": allowed_stages,
+		"current_stage": current_stage,
+		"used": used,
+		"limit": limit,
+		"remaining": remaining,
+		"exhausted": (
+			limit <= 0
+			or remaining <= 0
+		),
+		"evolution_plan_pending": (
+			_evolution_plan_pending
+		),
+		"ready_to_evolve": bool(
+			lifecycle_state.get(
+				"ready_to_evolve",
+				false
+			)
+		),
+		"usable_now": can_use_item(
+			item
+		),
+	}
 
 
 func use_item(
