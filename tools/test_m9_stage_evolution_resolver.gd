@@ -11,6 +11,7 @@ func _initialize() -> void:
 	_test_natural_growth()
 	_test_stage_one_gene_expression()
 	_test_stage_two_new_gene_branch()
+	_test_stage_two_two_loci_apply_both()
 	_test_stage_two_reinforcement_chain()
 	_test_stage_two_same_locus_resolves_once()
 	_test_stage_mismatch_is_rejected()
@@ -202,6 +203,75 @@ func _test_stage_two_new_gene_branch() -> void:
 		and delta.mutation_id()
 			== &"gene_expr_body_sturdy_s2",
 		"Stage 2 must express newly unlocked body Gene"
+	)
+
+
+func _test_stage_two_two_loci_apply_both() -> void:
+	var genome := _stage_two_genome({
+		"tail": "long",
+	})
+	var policy := StageGenePolicy.load_default()
+	var state := GeneDevelopmentState.new(
+		2
+	)
+
+	state.record_gene_item(
+		policy,
+		"gene_eyes_fixture",
+		&"eyes_moon",
+		&"eyes",
+		&"moon",
+		20.0,
+		{}
+	)
+	state.record_gene_item(
+		policy,
+		"gene_mark_fixture",
+		&"mark_moon",
+		&"mark",
+		&"moon",
+		20.0,
+		{}
+	)
+
+	var result := StageEvolutionResolver.new().resolve(
+		_identity(),
+		genome,
+		state
+	)
+	var next := result.get(
+		"genome"
+	) as PetGenome
+	var deltas_value: Variant = result.get(
+		"deltas",
+		[]
+	)
+
+	_expect(
+		bool(
+			result.get(
+				"ok",
+				false
+			)
+		)
+		and next != null
+		and next.get_trait(
+			&"eyes",
+			&"base"
+		) == &"moon"
+		and next.get_trait(
+			&"mark",
+			&"base"
+		) == &"moon"
+		and typeof(deltas_value) == TYPE_ARRAY
+		and (deltas_value as Array).size() == 2
+		and int(
+			result.get(
+				"resolved_locus_count",
+				0
+			)
+		) == 2,
+		"two Stage 2 Genes in different loci must both express in one evolution"
 	)
 
 
