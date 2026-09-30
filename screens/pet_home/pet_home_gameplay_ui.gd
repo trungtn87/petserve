@@ -120,16 +120,37 @@ func refresh_status(s: Dictionary) -> void:
 		)
 	)
 	_growth_bar.value = percent
-	_food_label.text = (
-		"Thức ăn  "
-		+ _duration(
-			int(
-				s.get(
-					"food_seconds",
-					0
-				)
-			)
+	var food_percent := int(
+		s.get(
+			"food_percent",
+			0
 		)
+	)
+	var growth_speed_percent := int(
+		s.get(
+			"growth_speed_percent",
+			0
+		)
+	)
+	var hibernating := bool(
+		s.get(
+			"hibernating",
+			false
+		)
+	)
+	_food_label.text = (
+		"Độ no %d%% • %s"
+		% [
+			food_percent,
+			_duration(
+				int(
+					s.get(
+						"food_seconds",
+						0
+					)
+				)
+			),
+		]
 	)
 
 	if final_form:
@@ -141,20 +162,17 @@ func refresh_status(s: Dictionary) -> void:
 			% percent
 		)
 		_state_label.text = (
-			"Sẵn sàng tiến hóa"
-			if ready
+			"Ngủ đông • cần cho ăn"
+			if hibernating
 			else (
-				"Có thể tiến hóa ngay [TEST]"
-				if can_evolve
+				"Sẵn sàng tiến hóa"
+				if ready
 				else (
-					"Deadline "
-					+ _duration(
-						int(
-							s.get(
-								"age_remaining_seconds",
-								0
-							)
-						)
+					"Có thể tiến hóa ngay [TEST]"
+					if can_evolve
+					else (
+						"Tăng trưởng %d%%"
+						% growth_speed_percent
 					)
 				)
 			)
