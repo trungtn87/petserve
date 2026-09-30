@@ -334,15 +334,7 @@ func claim_snake_hunt_reward(
 		)
 	)
 
-	if (
-		stage_index != 2
-		or bool(
-			lifecycle_state.get(
-				"ready_to_evolve",
-				false
-			)
-		)
-	):
+	if stage_index != 2:
 		return {
 			"ok": false,
 			"rewarded": false,
