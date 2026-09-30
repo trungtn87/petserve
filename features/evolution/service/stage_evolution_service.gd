@@ -393,6 +393,18 @@ func _prepare_resolved_stage(
 			"Evolution render request bị rỗng."
 		)
 
+	var gene_score_prompt := GenePromptResolver.new().build(
+		gene_state,
+		identity.element(),
+		target_stage
+	)
+
+	if not gene_score_prompt.is_empty():
+		request.positive_prompt += (
+			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ gene_score_prompt
+		)
+
 	var next := PetGenome.new(
 		target_stage,
 		0.0,
@@ -439,6 +451,13 @@ func _prepare_resolved_stage(
 		"accumulated_gene_ids": (
 			accumulated_gene_ids.duplicate()
 		),
+		"gene_scores": (
+			gene_state.gene_scores_snapshot()
+		),
+		"gene_lifetime_tag_influences": (
+			gene_state.lifetime_tag_influences_snapshot()
+		),
+		"gene_expression_prompt": gene_score_prompt,
 		"source_phenotype": (
 			_string_key_dict(
 				genome.visual_traits_snapshot()
@@ -606,15 +625,10 @@ func _accumulated_gene_ids(
 				)
 
 	if gene_state != null:
-		for item in gene_state.gene_items_snapshot():
+		for gene_id in gene_state.used_gene_ids_snapshot():
 			_append_unique_gene_id(
 				result,
-				String(
-					item.get(
-						"gene_id",
-						""
-					)
-				)
+				gene_id
 			)
 
 	result.sort()
