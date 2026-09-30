@@ -647,7 +647,10 @@ func _test_locked_stage4_egg_mythic() -> void:
 		and committed_genome.has_mutation(
 			destiny_id
 		)
-		and committed_destiny == destiny,
+		and _same_destiny(
+			committed_destiny,
+			destiny
+		),
 		"Mythic commit preserves locked name and branch into Stage 3"
 	)
 
