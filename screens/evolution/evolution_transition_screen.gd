@@ -40,6 +40,7 @@ var _identity: PetIdentity
 var _genome: PetGenome
 var _scene_profile
 var _pet_name: String = ""
+var _egg_stage: int = 1
 
 var _coordinator: InitialPetRenderCoordinator
 
@@ -710,6 +711,11 @@ func _run_initial_birth() -> void:
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
+	_egg_stage = clampi(
+		int(data.get("egg_stage", 1)),
+		1,
+		4
+	)
 
 	if (
 		_identity == null
@@ -722,7 +728,8 @@ func _run_initial_birth() -> void:
 		return
 
 	_prepare_initial_hatch_visual(
-		_identity.element()
+		_identity.element(),
+		_egg_stage
 	)
 
 	var existing_path := _get_existing_visual_path()
@@ -887,7 +894,8 @@ func _complete_initial_render(
 
 
 func _prepare_initial_hatch_visual(
-	element: StringName
+	element: StringName,
+	egg_stage: int
 ) -> void:
 	if mode != TransitionMode.INITIAL_BIRTH:
 		return
@@ -901,10 +909,25 @@ func _prepare_initial_hatch_visual(
 	if _hatch_egg == null:
 		return
 
-	var egg_path := (
-		"res://assets/eggs/stage_4/%s.png"
-		% String(element).to_lower()
+	var normalized_stage := clampi(
+		egg_stage,
+		1,
+		4
 	)
+	var egg_path := ""
+
+	if normalized_stage == 1:
+		egg_path = (
+			"res://assets/eggs/stage_1/common.png"
+		)
+	else:
+		egg_path = (
+			"res://assets/eggs/stage_%d/%s.png"
+			% [
+				normalized_stage,
+				String(element).to_lower(),
+			]
+		)
 
 	if not ResourceLoader.exists(egg_path):
 		_show_fatal(
