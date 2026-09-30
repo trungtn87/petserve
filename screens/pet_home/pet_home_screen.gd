@@ -1168,13 +1168,13 @@ func _trait_label(
 
 
 func _trait_value(
-	trait: StringName
+	trait_id: StringName
 ) -> String:
 	if trait_id == PetGenomeSchema.BASE_TRAIT:
 		return "Cơ bản"
 
 	return String(
-		trait
+		trait_id
 	).replace(
 		"_",
 		" "
