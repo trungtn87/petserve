@@ -104,6 +104,10 @@ func build(
 
 	spec.form_section = (
 		species_profile.infant_form
+		+ " Species anatomy: "
+		+ species_profile.species_anatomy
+		+ " Pose policy: "
+		+ species_profile.freestyle_pose
 		+ " Stage 1 elemental face identity: "
 		+ stage_one_face
 		+ " Keep the body clearly infant and compact. Element differences at this stage should "
@@ -134,9 +138,9 @@ func build(
 
 	spec.ui_safe_section = (
 		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
-		+ "Use an environmental establishing shot, never a close-up portrait, medium shot or character showcase. Show the pet's complete body from the highest visible point of the ears or fur to every paw and the full tail. "
-		+ "LOCKED COMPOSITION: the pet's visible full-body height must be about 35 percent of the total image height. Measure from the highest visible point of the pet to the lowest paw/ground contact point. "
-		+ "Place the lowest paw/ground contact point at about 90 percent of the total image height, leaving about 10 percent of the image height from the pet's feet to the bottom edge. "
+		+ "Use an environmental establishing shot, never a close-up portrait, medium shot or character showcase. Keep the whole pet comfortably inside the frame and the overall species silhouette readable. Natural perspective and partial occlusion of limbs, wings, tail or other appendages are allowed. "
+		+ "LOCKED COMPOSITION: the pet's visible full-body height must be about 35 percent of the total image height. Measure from the highest visible point of the pet to the lowest visible pet point, or the ground-contact point for a grounded pose. "
+		+ "Place the lowest visible pet point, or ground-contact point for a grounded pose, at about 90 percent of the total image height, leaving about 10 percent of the image height below the pet. "
 		+ "Keep the pet horizontally near the center and vertically in the lower-middle of the scene. Do not change on-screen pet scale by life stage; later stages show maturity through anatomy, proportions, fur and elemental detail, not by occupying more of the frame. "
 		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. Keep the bottom 10 percent scenic and unobstructed. "
 		+ "The environment must remain the dominant visual context with clear foreground, midground and background depth around the pet. "
