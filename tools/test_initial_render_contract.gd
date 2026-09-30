@@ -103,7 +103,7 @@ func _initialize() -> void:
 			"Create one young cat pet"
 		)
 		and request.positive_prompt.contains(
-			"premium fantasy game character art"
+			"Premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
 			"evolved chibi proportions"
