@@ -720,6 +720,10 @@ func _open_pet_info() -> void:
 			identity.species()
 		).capitalize()
 	)
+	_add_mythic_name_row(
+		identity,
+		genome
+	)
 	_add_info_row(
 		"Thế hệ",
 		str(
@@ -742,6 +746,58 @@ func _open_pet_info() -> void:
 	_add_last_evolution_row()
 
 	_section_overlay.visible = true
+
+
+func _add_mythic_name_row(
+	identity: PetIdentity,
+	genome: PetGenome
+) -> void:
+	if (
+		identity == null
+		or genome == null
+	):
+		return
+
+	var destiny_value: Variant = _data.get(
+		"mythic_destiny",
+		{}
+	)
+	var name := ""
+
+	if typeof(destiny_value) == TYPE_DICTIONARY:
+		name = (
+			SpeciesMythicDestinyService.new()
+			.display_name_for(
+				destiny_value as Dictionary,
+				identity
+			)
+		)
+
+	if name.is_empty():
+		var catalog := SpeciesMythicMutationCatalog.new()
+		var definitions := catalog.load_default()
+
+		for mutation_id in genome.mutation_ids():
+			var definition := catalog.find_by_id(
+				definitions,
+				mutation_id
+			)
+
+			if (
+				definition != null
+				and definition.species()
+					== identity.species()
+			):
+				name = definition.display_name()
+				break
+
+	if name.is_empty():
+		return
+
+	_add_info_row(
+		"Thú thần thoại",
+		name
+	)
 
 
 func _add_current_trait_rows(
