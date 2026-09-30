@@ -138,9 +138,6 @@ func _test_natural_stage_one_plan() -> void:
 			"visibly look older and more developed than Stage 1"
 		)
 		and request.positive_prompt.contains(
-			"slight chibi"
-		)
-		and request.positive_prompt.contains(
 			"Target stage morphology:"
 		)
 		and request.positive_prompt.contains(

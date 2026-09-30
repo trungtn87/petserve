@@ -1057,16 +1057,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v11_stage_3"
+			"_pethome_v12_stage_3"
 		)
+		and request_two.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_two.source_image_path.is_empty()
 		and request_two.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"Create a NEW image for evolution Stage 3"
 		)
 		and request_two.positive_prompt.contains(
 			"28 to 32 percent"
 		)
 		and request_two.positive_prompt.contains(
-			"65 to 70 percent"
+			"Background occupies most of the image"
 		),
 		"Evolution II request"
 	)
@@ -1163,16 +1166,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v11_stage_4"
+			"_pethome_v12_stage_4"
 		)
+		and request_three.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_three.source_image_path.is_empty()
 		and request_three.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"Create a NEW image for evolution Stage 4"
 		)
 		and request_three.positive_prompt.contains(
 			"28 to 32 percent"
 		)
 		and request_three.positive_prompt.contains(
-			"65 to 70 percent"
+			"Background occupies most of the image"
 		),
 		"Evolution III request"
 	)
