@@ -222,14 +222,14 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 				"mutation_id",
 				""
 			)
-		) == &"cat_nekomata"
+		) == &"cat_horned_spirit"
 		and StringName(
 			destiny.get(
 				"source",
 				""
 			)
 		) == SpeciesMythicDestinyService.SOURCE_GENE_RECIPE,
-		"three fixed Genes lock Nekomata destiny"
+		"three fixed Genes lock Giác Linh Miêu destiny"
 	)
 	_expect(
 		StringName(
@@ -259,7 +259,7 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 			&"base"
 		) == &"moon"
 		and next.has_mutation(
-			&"cat_nekomata"
+			&"cat_horned_spirit"
 		),
 		"both Stage 2 Gene loci and Mythic branch are locked in target Genome"
 	)
@@ -268,10 +268,10 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 		and request.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED MYTHIC DESTINY]"
+			"Fantasy mutation:"
 		)
 		and request.positive_prompt.contains(
-			"Nekomata"
+			"fantasy horns"
 		)
 		and request.positive_prompt.contains(
 			"[CODE-LOCKED GENE CHANGES]"
@@ -395,14 +395,14 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 			&"base"
 		) == &"moon"
 		and committed_genome.has_mutation(
-			&"cat_nekomata"
+			&"cat_horned_spirit"
 		)
 		and StringName(
 			committed_destiny.get(
 				"mutation_id",
 				""
 			)
-		) == &"cat_nekomata"
+		) == &"cat_horned_spirit"
 		and not committed.has(
 			"pending_evolution"
 		),

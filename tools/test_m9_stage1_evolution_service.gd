@@ -129,21 +129,292 @@ func _test_natural_stage_one_plan() -> void:
 			"_pethome_v11_stage_2"
 		)
 		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
+			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
 		and request.positive_prompt.contains(
 			"Evolve the exact same cat from Stage 1 to Stage 2"
 		)
 		and request.positive_prompt.contains(
-			"Selected Gene change:"
+			"Keep the same individual face"
+		)
+		and request.positive_prompt.contains(
+			"Make it slightly older and more developed"
+		)
+		and request.positive_prompt.contains(
+			"slight chibi"
+		)
+		and request.positive_prompt.contains(
+			"Smoky blue-black and violet fur"
+		)
+		and request.positive_prompt.contains(
+			"No new Gene mutation"
 		)
 		and request.positive_prompt.contains(
 			"28 to 32 percent"
 		)
 		and request.negative_prompt.contains(
-			"duplicate tail"
+			"identity drift"
 		)
 		and request.seed > 0,
-		"Gene Stage 1 -> 2 must use the short identity-preserving prompt plus one Gene change"
+		"Natural Stage 1 -> 2 must image-edit the same pet with element morphology"
+	)
+
+	var first_request := (
+		request.to_debug_dict()
+		if request != null
+		else {}
+	)
+	var retry := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 0,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+	var retry_request := service.build_request(
+		retry.get(
+			"data",
+			{}
+		)
+	)
+
+	_expect(
+		bool(
+			retry.get(
+				"ok",
+				false
+			)
+		)
+		and retry_request != null
+		and retry_request.to_debug_dict()
+			== first_request,
+		"Pending Natural plan must be byte-stable across retry"
+	)
+
+	if retry_request != null:
+		var image_path := String(
+			(
+				data.get(
+					"current_visual",
+					{}
+				) as Dictionary
+			).get(
+				"image_path",
+				""
+			)
+		)
+		_expect(
+			service.commit(
+				PetRenderResult.ok(
+					image_path,
+					&"test",
+					&"test",
+					{}
+				)
+			),
+			"Natural Stage 1 result must commit"
+		)
+
+		var committed := EvolutionSaveService.new().load_data()
+		var committed_genome := PetGenome.from_dict(
+			committed.get(
+				"genome",
+				{}
+			)
+		)
+		var current_visual: Dictionary = committed.get(
+			"current_visual",
+			{}
+		)
+		var history: Array = committed.get(
+			"evolution_history",
+			[]
+		)
+
+		_expect(
+			committed_genome != null
+			and committed_genome.stage() == 2
+			and not committed.has(
+				"pending_evolution"
+			)
+			and String(
+				current_visual.get(
+					"mutation_id",
+					""
+				)
+			).is_empty()
+			and String(
+				current_visual.get(
+					"source_mode",
+					""
+				)
+			) == "evolution_pethome_v11_image_edit"
+			and history.size() == 1
+			and String(
+				(
+					history[0] as Dictionary
+				).get(
+					"resolution_mode",
+					""
+				)
+			) == "natural",
+			"Natural commit must advance stage without inventing mutation"
+		)
+
+
+func _test_gene_stage_one_plan() -> void:
+	_cleanup()
+	var fixture := _save_stage_one_fixture(
+		9502
+	)
+
+	if not fixture:
+		return
+
+	var policy := StageGenePolicy.load_default()
+	var gene_state := GeneDevelopmentState.new(
+		1
+	)
+	var recorded := gene_state.record_gene_item(
+		policy,
+		"gene_tail_runtime",
+		&"tail_long",
+		&"tail",
+		&"long",
+		20.0,
+		{
+			"agile": 6.0,
+		}
+	)
+
+	_expect(
+		bool(
+			recorded.get(
+				"ok",
+				false
+			)
+		),
+		"Gene runtime fixture must record"
+	)
+
+	var service := StageEvolutionService.new()
+	var prepared := service.prepare({
+		"stage_index": 1,
+		"ready_to_evolve": false,
+		"can_evolve": true,
+		"gene_items_used": 1,
+		"gene_development": (
+			gene_state.to_dict()
+		),
+	})
+
+	_expect(
+		bool(
+			prepared.get(
+				"ok",
+				false
+			)
+		),
+		"Gene Stage 1 plan must prepare"
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var data: Dictionary = prepared.get(
+		"data",
+		{}
+	)
+	var pending: Dictionary = data.get(
+		"pending_evolution",
+		{}
+	)
+	var delta: Dictionary = pending.get(
+		"delta",
+		{}
+	)
+	var next := PetGenome.from_dict(
+		pending.get(
+			"genome",
+			{}
+		)
+	)
+
+	_expect(
+		String(
+			pending.get(
+				"resolution_mode",
+				""
+			)
+		) == "gene"
+		and String(
+			delta.get(
+				"mutation_id",
+				""
+			)
+		) == "gene_expr_tail_long_s1"
+		and String(
+			delta.get(
+				"target_trait",
+				""
+			)
+		) == "tail",
+		"Gene plan must persist the code-selected delta"
+	)
+
+	_expect(
+		next != null
+		and next.stage() == 2
+		and next.get_trait(
+			&"tail",
+			&"base"
+		) == &"long",
+		"Gene plan must persist the selected phenotype into Stage 2 Genome"
+	)
+
+	var request := service.build_request(
+		data
+	)
+
+	_expect(
+		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and not request.source_image_path.is_empty()
+		and request.output_key.ends_with(
+			"_pethome_v11_stage_2"
+		)
+		and request.target_region
+			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
+		and request.positive_prompt.contains(
+			"Evolve the exact same cat from Stage 1 to Stage 2"
+		)
+		and request.positive_prompt.contains(
+			"Keep the same individual face"
+		)
+		and request.positive_prompt.contains(
+			"Make it slightly older and more developed"
+		)
+		and request.positive_prompt.contains(
+			"Selected Gene change:"
+		)
+		and request.positive_prompt.contains(
+			"Smoky blue-black and violet fur"
+		)
+		and request.positive_prompt.contains(
+			"28 to 32 percent"
+		)
+		and request.negative_prompt.contains(
+			"identity drift"
+		)
+		and request.seed > 0,
+		"Gene Stage 1 -> 2 must preserve identity and apply only the selected Gene"
 	)
 
 	var gene_resolution: Dictionary = pending.get(

@@ -20,7 +20,7 @@ func from_birth_talent(
 	):
 		return {}
 
-	var mutation_id := CAT_BIRTH_TALENTS[
+	var mutation_id: StringName = CAT_BIRTH_TALENTS[
 		posmod(
 			_stable_seed(
 				identity,

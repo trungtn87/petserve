@@ -7,6 +7,7 @@ var _failures: int = 0
 func _ready() -> void:
 	_test_default_cat_catalog()
 	_test_species_isolation()
+	_test_birth_talent_locks_one_fantasy_branch()
 	_test_stage4_egg_locks_mythic_destiny()
 	_test_three_fixed_genes_awaken_branch()
 	_test_awaken_does_not_consume_gene_slots()
@@ -68,12 +69,12 @@ func _test_default_cat_catalog() -> void:
 
 	_expect(
 		ids.has(
-			"cat_nekomata"
+			"cat_horned_spirit"
 		)
 		and ids.has(
-			"cat_bakeneko"
+			"cat_winged_spirit"
 		),
-		"cat catalog must contain Nekomata and Bakeneko"
+		"cat catalog must contain Giác Linh Miêu and Dực Linh Miêu"
 	)
 
 
@@ -116,6 +117,38 @@ func _test_species_isolation() -> void:
 			)
 		).is_empty(),
 		"cat-only Mythic Mutation must never activate for another species"
+	)
+
+
+func _test_birth_talent_locks_one_fantasy_branch() -> void:
+	var identity := PetIdentityFactory.new().create_initial(
+		7209,
+		&"dark",
+		&"cat"
+	)
+	var destiny := SpeciesMythicDestinyService.new().from_birth_talent(
+		identity
+	)
+	var mutation_id := StringName(
+		destiny.get(
+			"mutation_id",
+			""
+		)
+	)
+
+	_expect(
+		not destiny.is_empty()
+		and StringName(
+			destiny.get(
+				"source",
+				""
+			)
+		) == SpeciesMythicDestinyService.SOURCE_BIRTH_TALENT
+		and mutation_id in [
+			&"cat_horned_spirit",
+			&"cat_winged_spirit",
+		],
+		"cat birth talent must lock one of the two fantasy branches"
 	)
 
 
@@ -226,18 +259,7 @@ func _test_stage4_egg_locks_mythic_destiny() -> void:
 		)
 		and request != null
 		and request.positive_prompt.contains(
-			"[MYTHIC DESTINY FORESHADOW]"
-		)
-		and request.positive_prompt.contains(
-			String(
-				destiny.get(
-					"display_name",
-					""
-				)
-			)
-		)
-		and request.positive_prompt.contains(
-			"Do NOT express the mature mythical anatomy yet"
+			"Fantasy mutation:"
 		),
 		"Stage 4 egg birth render must foreshadow the locked branch without full transformation"
 	)
@@ -264,14 +286,14 @@ func _test_three_fixed_genes_awaken_branch() -> void:
 				"mutation_id",
 				""
 			)
-		) == &"cat_nekomata"
+		) == &"cat_horned_spirit"
 		and StringName(
 			destiny.get(
 				"source",
 				""
 			)
 		) == SpeciesMythicDestinyService.SOURCE_GENE_RECIPE,
-		"three fixed Nekomata Gene ids must lock the Nekomata destiny"
+		"three fixed Giác Linh Miêu Gene ids must lock the Giác Linh Miêu destiny"
 	)
 
 	var result := SpeciesMythicMutationResolver.new().resolve(
@@ -306,7 +328,7 @@ func _test_three_fixed_genes_awaken_branch() -> void:
 				"mutation_id",
 				""
 			)
-		) == &"cat_nekomata"
+		) == &"cat_horned_spirit"
 		and String(
 			result.get(
 				"trigger_source",

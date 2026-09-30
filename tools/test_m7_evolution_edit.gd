@@ -145,25 +145,25 @@ func run() -> void:
 		)
 		check(
 			request.positive_prompt.contains(
-				"[LINEAGE CONTINUITY]"
+				"Keep the same individual face"
 			)
 			and request.positive_prompt.contains(
-				"[STAGE 2 MORPHOLOGY]"
+				"Make it slightly older and more developed"
 			)
 			and request.positive_prompt.contains(
-				"narrow expressive feline face"
+				"slight chibi"
 			)
 			and request.positive_prompt.contains(
-				"lean elongated quadruped silhouette"
+				"Smoky blue-black and violet fur"
 			)
 			and request.positive_prompt.contains(
-				"[CODE-LOCKED GENE CHANGE]"
+				"Selected Gene change:"
 			),
 			"Stage 1 -> 2 Gene prompt must preserve lineage and apply Dark Stage 2 morphology"
 		)
 		check(
 			request.positive_prompt.contains(
-				"PETHOME CONTINUITY"
+				"Background occupies most of the image"
 			),
 			"world continuity prompt"
 		)
@@ -219,13 +219,13 @@ func run() -> void:
 		and natural_request.target_region
 			== &"whole_pet_age"
 		and natural_request.positive_prompt.contains(
-			"[LINEAGE CONTINUITY]"
+			"Keep the same individual face"
 		)
 		and natural_request.positive_prompt.contains(
-			"[STAGE 2 MORPHOLOGY]"
+			"Make it slightly older and more developed"
 		)
 		and natural_request.positive_prompt.contains(
-			"lean elongated quadruped silhouette"
+			"Smoky blue-black and violet fur"
 		),
 		"Natural Stage 1 -> 2 must image-edit the same pet with Dark Stage 2 morphology"
 	)
