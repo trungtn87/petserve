@@ -733,13 +733,13 @@ func _test_stage_item_contract() -> void:
 
 	var dev_state := game.snapshot()
 	check(
-		not bool(
+		bool(
 			dev_state.get(
 				"can_evolve",
-				true
+				false
 			)
-		),
-		"Stage 2 timer is enforced by default"
+		) == OS.is_debug_build(),
+		"debug build exposes the reopened instant evolution talent"
 	)
 	check(
 		not bool(
@@ -751,13 +751,13 @@ func _test_stage_item_contract() -> void:
 		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		not bool(
+		bool(
 			dev_state.get(
 				"instant_evolution_talent",
-				true
+				false
 			)
-		),
-		"TEST evolution bypass is not auto-granted"
+		) == OS.is_debug_build(),
+		"instant evolution talent is auto-granted only in debug builds"
 	)
 
 	if OS.is_debug_build():
