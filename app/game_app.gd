@@ -176,6 +176,8 @@ func _current_pet_visual_state() -> StringName:
 			&"evolution_pethome_v8_image_edit",
 			&"evolution_pethome_v9_full_regenerate",
 			&"evolution_pethome_v9_image_edit",
+			&"evolution_pethome_v10_full_regenerate",
+			&"evolution_pethome_v10_image_edit",
 		]
 	):
 		return &"current"
