@@ -180,7 +180,7 @@ func apply_item(
 					)
 				) + food_delta
 			)
-			_expand_food_capacity_to_current()
+			_clamp_food_to_capacity()
 			_state["growth_elapsed_seconds"] = maxf(
 				0.0,
 				float(
@@ -224,7 +224,7 @@ func apply_item(
 				) + food_delta
 			)
 			if food_delta > 0:
-				_expand_food_capacity_to_current()
+				_clamp_food_to_capacity()
 
 		_:
 			return {
@@ -561,18 +561,13 @@ func _new_stage_state(
 		),
 		"growth_elapsed_seconds": 0.0,
 		"age_elapsed_seconds": 0.0,
-		"food_seconds": (
-			carry_food_seconds
-			if carry_food_seconds > 0.0
-			else float(
+		"food_seconds": minf(
+			float(
 				config.get(
-					"starting_food_seconds",
-					0
+					"food_capacity_seconds",
+					1
 				)
-			)
-		),
-		"food_capacity_seconds": maxf(
-			1.0,
+			),
 			(
 				carry_food_seconds
 				if carry_food_seconds > 0.0
@@ -581,6 +576,15 @@ func _new_stage_state(
 						"starting_food_seconds",
 						0
 					)
+				)
+			)
+		),
+		"food_capacity_seconds": maxf(
+			1.0,
+			float(
+				config.get(
+					"food_capacity_seconds",
+					1
 				)
 			)
 		),
@@ -807,41 +811,56 @@ func _migrate_food_capacity(
 	if state.is_empty():
 		return
 
-	var food_seconds := maxf(
+	var stage_index := int(
+		state.get(
+			"stage_index",
+			1
+		)
+	)
+	var config := (
+		_policy.stage(
+			stage_index
+		)
+		if _policy != null
+		else {}
+	)
+	var existing_food := maxf(
 		0.0,
 		float(
 			state.get(
 				"food_seconds",
 				0.0
 			)
+		)
+	)
+	var configured_capacity := float(
+		config.get(
+			"food_capacity_seconds",
+			0
 		)
 	)
 	var capacity := maxf(
 		1.0,
-		float(
-			state.get(
-				"food_capacity_seconds",
-				food_seconds
+		(
+			configured_capacity
+			if configured_capacity > 0.0
+			else float(
+				state.get(
+					"food_capacity_seconds",
+					existing_food
+				)
 			)
 		)
 	)
 
-	state["food_capacity_seconds"] = maxf(
-		capacity,
-		food_seconds
+	state["food_capacity_seconds"] = capacity
+	state["food_seconds"] = minf(
+		existing_food,
+		capacity
 	)
 
 
-func _expand_food_capacity_to_current() -> void:
-	var food_seconds := maxf(
-		0.0,
-		float(
-			_state.get(
-				"food_seconds",
-				0.0
-			)
-		)
-	)
+func _clamp_food_to_capacity() -> void:
 	var capacity := maxf(
 		1.0,
 		float(
@@ -852,9 +871,15 @@ func _expand_food_capacity_to_current() -> void:
 		)
 	)
 
-	_state["food_capacity_seconds"] = maxf(
-		capacity,
-		food_seconds
+	_state["food_seconds"] = clampf(
+		float(
+			_state.get(
+				"food_seconds",
+				0.0
+			)
+		),
+		0.0,
+		capacity
 	)
 
 
