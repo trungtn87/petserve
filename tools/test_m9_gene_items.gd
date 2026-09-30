@@ -501,10 +501,10 @@ func _test_stage_one_facade_consumption() -> void:
 	)
 
 	_expect(
-		not game.can_use_item(
+		game.can_use_item(
 			second
 		),
-		"hibernating Stage 2 must block Gene Item until the pet is fed"
+		"unused Gene Item may be used again in Stage 2 while the carried food keeps the pet awake"
 	)
 
 	SaveManager.delete_meta()
