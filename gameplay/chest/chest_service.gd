@@ -716,19 +716,17 @@ func _guaranteed_stage_gene_reward_index(
 	if stage_index != 2:
 		return -1
 
-	var seed_value := absi(
-		hash(
-			"stage_gene_guarantee:%s:%s"
-			% [
-				run_id,
-				stage_index,
-			]
-		)
+	# Stable for the same life, varied across lineage seeds.
+	# Do not use the current clock or chest-open order: reload must not reroll it.
+	var mixed_seed := (
+		run_id * 1103515245
+		+ stage_index * 12345
+		+ 1013904223
 	)
 
 	return (
 		posmod(
-			seed_value,
+			mixed_seed,
 			STAGE2_ACTIVITY_REWARD_COUNT
 		)
 		+ 1
