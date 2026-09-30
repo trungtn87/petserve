@@ -147,11 +147,11 @@ func refresh_status(s: Dictionary) -> void:
 				"Có thể tiến hóa ngay [TEST]"
 				if can_evolve
 				else (
-					"Còn ~"
+					"Deadline "
 					+ _duration(
 						int(
 							s.get(
-								"growth_remaining_seconds",
+								"age_remaining_seconds",
 								0
 							)
 						)
