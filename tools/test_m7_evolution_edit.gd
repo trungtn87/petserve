@@ -145,21 +145,21 @@ func run() -> void:
 		)
 		check(
 			request.positive_prompt.contains(
-				"Create a NEW image for evolution Stage 2"
+				"Create one slightly older cat pet"
 			)
 			and request.positive_prompt.contains(
-				"visibly look older and more developed than Stage 1"
+				"Premium fantasy game character art"
 			)
 			and request.positive_prompt.contains(
-				"Stage 1 ancestry cues:"
+				"evolved chibi proportions"
 			)
 			and request.positive_prompt.contains(
-				"Target stage morphology:"
+				"Make the pet slightly older than Stage 1 only"
 			)
 			and request.positive_prompt.contains(
 				"Apply only these Gene changes selected by code:"
 			),
-			"Stage 1 -> 2 must regenerate a visibly older pet while preserving lineage rules"
+			"Stage 1 -> 2 must reuse the Stage 1 art direction and change only age plus selected Gene"
 		)
 
 		var serialized := (
@@ -210,7 +210,16 @@ func run() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and natural_request.source_image_path.is_empty()
 		and natural_request.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 2"
+			"Create one slightly older cat pet"
+		)
+		and natural_request.positive_prompt.contains(
+			"Premium fantasy game character art"
+		)
+		and natural_request.positive_prompt.contains(
+			"evolved chibi proportions"
+		)
+		and natural_request.positive_prompt.contains(
+			"Make the pet slightly older than Stage 1 only"
 		)
 		and natural_request.positive_prompt.contains(
 			"No special fantasy mutation is active"
