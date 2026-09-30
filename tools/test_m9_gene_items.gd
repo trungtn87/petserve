@@ -135,8 +135,17 @@ func _test_catalog_and_item_contract() -> void:
 				"gene_influence",
 				0.0
 			)
-		) > 0.0,
-		"generated Gene Item must carry canonical Gene fields"
+		) > 0.0
+		and is_equal_approx(
+			float(
+				item.get(
+					"growth_bonus_percent",
+					0.0
+				)
+			),
+			ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+		),
+		"generated Gene Item must carry canonical Gene fields and Growth bonus"
 	)
 
 
@@ -410,8 +419,25 @@ func _test_stage_one_facade_consumption() -> void:
 				"growth_percent",
 				-2
 			)
-		) == before_growth,
-		"using Gene Item must not change Maturity"
+		) == mini(
+			100,
+			before_growth
+			+ int(
+				round(
+					ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+				)
+			)
+		)
+		and is_equal_approx(
+			float(
+				used.get(
+					"growth_bonus_percent",
+					0.0
+				)
+			),
+			ItemGenerator.GENE_GROWTH_BONUS_PERCENT
+		),
+		"using Gene Item must increase Growth by its percent bonus"
 	)
 
 	_expect(
@@ -475,10 +501,10 @@ func _test_stage_one_facade_consumption() -> void:
 	)
 
 	_expect(
-		game.can_use_item(
+		not game.can_use_item(
 			second
 		),
-		"unused Gene Item may be used again when Stage 2 policy allows it"
+		"hibernating Stage 2 must block Gene Item until the pet is fed"
 	)
 
 	SaveManager.delete_meta()
