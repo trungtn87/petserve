@@ -8,6 +8,8 @@ const CHEST_EVOLUTION: StringName = &"evolution"
 const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
 const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
 
+const STAGE2_ACTIVITY_REWARD_COUNT: int = 4
+
 
 var _meta: Dictionary = {}
 var _generator: ItemGenerator
@@ -223,6 +225,14 @@ func ensure_stage_activity_chest(
 		"game_id": game_id,
 		"reward_index": reward_index,
 		"reward_tier": tier,
+		"guaranteed_gene": (
+			stage_index == 2
+			and reward_index
+				== _guaranteed_stage_gene_reward_index(
+					run_id,
+					stage_index
+				)
+		),
 		"opened": false,
 	})
 
@@ -539,6 +549,37 @@ func _roll_stage_activity_chest(
 			"stage_activity"
 		)
 	)
+	var stage_index := int(
+		chest.get(
+			"stage_index",
+			2
+		)
+	)
+	var run_id := int(
+		chest.get(
+			"run_id",
+			0
+		)
+	)
+	var reward_index := int(
+		chest.get(
+			"reward_index",
+			0
+		)
+	)
+	var guaranteed_gene := bool(
+		chest.get(
+			"guaranteed_gene",
+			(
+				stage_index == 2
+				and reward_index
+					== _guaranteed_stage_gene_reward_index(
+						run_id,
+						stage_index
+					)
+			)
+		)
+	)
 	var tier := clampi(
 		int(
 			chest.get(
@@ -585,25 +626,40 @@ func _roll_stage_activity_chest(
 		0.0
 	))
 	var rewards: Array[Dictionary] = []
+	var guaranteed_gene_slot := -1
+
+	if guaranteed_gene:
+		guaranteed_gene_slot = (
+			0
+			if reward_count <= 1
+			else rng.randi_range(
+				0,
+				reward_count - 1
+			)
+		)
 
 	for index in range(
 		reward_count
 	):
-		var roll := rng.randf()
 		var item_type: StringName
 
-		if roll <= fragment_chance:
-			item_type = (
-				ItemGenerator.TYPE_FUTURE_FRAGMENT
-			)
-		elif roll <= fragment_chance + 0.42:
-			item_type = (
-				ItemGenerator.TYPE_GROWTH
-			)
+		if index == guaranteed_gene_slot:
+			item_type = ItemGenerator.TYPE_GENE
 		else:
-			item_type = (
-				ItemGenerator.TYPE_FOOD
-			)
+			var roll := rng.randf()
+
+			if roll <= fragment_chance:
+				item_type = (
+					ItemGenerator.TYPE_FUTURE_FRAGMENT
+				)
+			elif roll <= fragment_chance + 0.42:
+				item_type = (
+					ItemGenerator.TYPE_GROWTH
+				)
+			else:
+				item_type = (
+					ItemGenerator.TYPE_FOOD
+				)
 
 		var item_seed := absi(
 			hash(
@@ -623,16 +679,27 @@ func _roll_stage_activity_chest(
 				+ 1
 			)
 
-		var item := _generator.generate_for_stage(
-			item_type,
-			item_seed,
-			int(
-				chest.get(
-					"stage_index",
-					2
-				)
+		var item := (
+			_generate_gene_for_stage(
+				stage_index,
+				item_seed
+			)
+			if item_type == ItemGenerator.TYPE_GENE
+			else _generator.generate_for_stage(
+				item_type,
+				item_seed,
+				stage_index
 			)
 		)
+
+		if (
+			item_type == ItemGenerator.TYPE_GENE
+			and item.is_empty()
+		):
+			push_error(
+				"ChestService: Stage 2 guaranteed Gene generation failed."
+			)
+			return []
 
 		if not item.is_empty():
 			rewards.append(
@@ -640,6 +707,32 @@ func _roll_stage_activity_chest(
 			)
 
 	return rewards
+
+
+func _guaranteed_stage_gene_reward_index(
+	run_id: int,
+	stage_index: int
+) -> int:
+	if stage_index != 2:
+		return -1
+
+	var seed_value := absi(
+		hash(
+			"stage_gene_guarantee:%s:%s"
+			% [
+				run_id,
+				stage_index,
+			]
+		)
+	)
+
+	return (
+		posmod(
+			seed_value,
+			STAGE2_ACTIVITY_REWARD_COUNT
+		)
+		+ 1
+	)
 
 
 func _generate_gene_for_stage(
