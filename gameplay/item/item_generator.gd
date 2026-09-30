@@ -6,6 +6,7 @@ const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
 const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
+const GENE_GROWTH_BONUS_PERCENT: float = 5.0
 
 const RARITY_WEIGHTS := {
 	"common": 55.0,
@@ -233,6 +234,7 @@ func generate_gene(
 		"gene_influence": (
 			definition.primary_influence()
 		),
+		"growth_bonus_percent": GENE_GROWTH_BONUS_PERCENT,
 		"influence_tags": (
 			definition.influence_tags()
 		),
@@ -333,6 +335,20 @@ func describe(item: Dictionary) -> String:
 						)
 					)
 				)
+				+ " • Growth +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"growth_bonus_percent",
+									GENE_GROWTH_BONUS_PERCENT
+								)
+							)
+						)
+					)
+				)
+				+ "%"
 			)
 
 		TYPE_FUTURE_FRAGMENT:

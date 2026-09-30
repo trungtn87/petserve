@@ -65,6 +65,13 @@ func build_from_hatch() -> Dictionary:
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
+	var mythic_destiny := (
+		SpeciesMythicDestinyService.new()
+		.from_stage4_egg(
+			identity,
+			int(egg_state.stage)
+		)
+	)
 
 	if scene_profile == null:
 		return {
@@ -78,5 +85,6 @@ func build_from_hatch() -> Dictionary:
 		"genome": genome,
 		"scene_profile": scene_profile,
 		"pet_name": hatch_state.pet_name,
+		"mythic_destiny": mythic_destiny,
 		"egg_stage": egg_state.stage,
 	}

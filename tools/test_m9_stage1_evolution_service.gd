@@ -123,39 +123,39 @@ func _test_natural_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and not request.source_image_path.is_empty()
 		and request.output_key.ends_with(
 			"_pethome_v11_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[STAGE 2 FREESTYLE]"
+			"[STAGE 2 CONTINUITY EVOLUTION]"
 		)
 		and request.positive_prompt.contains(
-			"AI should freely invent the individual pet"
+			"[LINEAGE CONTINUITY]"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENTAL NATURAL BACKGROUND]"
+			"[STAGE 2 MORPHOLOGY]"
 		)
 		and request.positive_prompt.contains(
-			"[PETHOME COMPOSITION]"
+			"narrow expressive feline face"
 		)
 		and request.positive_prompt.contains(
-			"28 to 32 percent"
+			"lean elongated quadruped silhouette"
 		)
 		and request.positive_prompt.contains(
-			"65 to 70 percent"
+			"[NATURAL GROWTH]"
 		)
 		and request.positive_prompt.contains(
-			"88 to 90 percent"
+			"[PETHOME SCALE LOCK]"
 		)
 		and request.negative_prompt.contains(
-			"fixed template character"
+			"identity drift"
 		)
-		and request.seed == 0,
-		"Natural Stage 2 request must keep only element, environment and composition constraints"
+		and request.seed > 0,
+		"Natural Stage 1 -> 2 must image-edit the same pet with element morphology"
 	)
 
 	var first_request := (
@@ -249,7 +249,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v11_full_regenerate"
+			) == "evolution_pethome_v11_image_edit"
 			and history.size() == 1
 			and String(
 				(
@@ -385,41 +385,36 @@ func _test_gene_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and not request.source_image_path.is_empty()
 		and request.output_key.ends_with(
 			"_pethome_v11_stage_2"
 		)
-		and request.target_region == &"tail"
+		and request.target_region
+			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[STAGE 2 FREESTYLE]"
+			"[STAGE 2 CONTINUITY EVOLUTION]"
 		)
 		and request.positive_prompt.contains(
-			"AI should freely invent the individual pet"
+			"[LINEAGE CONTINUITY]"
 		)
 		and request.positive_prompt.contains(
-			"There is one gameplay Gene expression to include naturally"
+			"[STAGE 2 MORPHOLOGY]"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENTAL NATURAL BACKGROUND]"
+			"[CODE-LOCKED GENE CHANGE]"
 		)
 		and request.positive_prompt.contains(
-			"[PETHOME COMPOSITION]"
+			"lean elongated quadruped silhouette"
 		)
 		and request.positive_prompt.contains(
-			"28 to 32 percent"
-		)
-		and request.positive_prompt.contains(
-			"65 to 70 percent"
-		)
-		and request.positive_prompt.contains(
-			"88 to 90 percent"
+			"[PETHOME SCALE LOCK]"
 		)
 		and request.negative_prompt.contains(
-			"fixed template character"
+			"identity drift"
 		)
-		and request.seed == 0,
-		"Gene Stage 2 request must preserve only the selected Gene while leaving the visual generation free"
+		and request.seed > 0,
+		"Gene Stage 1 -> 2 must preserve identity and apply only the selected Gene"
 	)
 
 	var gene_resolution: Dictionary = pending.get(
@@ -508,7 +503,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v11_full_regenerate"
+			) == "evolution_pethome_v11_image_edit"
 			and history.size() == 1
 			and String(
 				(
@@ -1224,7 +1219,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v11_full_regenerate"
+		&"evolution_pethome_v11_image_edit"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"

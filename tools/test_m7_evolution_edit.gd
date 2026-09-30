@@ -134,20 +134,32 @@ func run() -> void:
 		)
 		check(
 			request.target_region
-				== &"eyes",
-			"target region"
+				== &"whole_pet_gene",
+			"Stage 1 -> 2 Gene edit must allow whole-pet maturation while keeping the Gene code-locked"
 		)
 		check(
 			request.output_key.ends_with(
-				"_pethome_v5_stage_2"
+				"_pethome_v11_stage_2"
 			),
 			"stage output key"
 		)
 		check(
 			request.positive_prompt.contains(
-				"evolution stage 2"
+				"[LINEAGE CONTINUITY]"
+			)
+			and request.positive_prompt.contains(
+				"[STAGE 2 MORPHOLOGY]"
+			)
+			and request.positive_prompt.contains(
+				"narrow expressive feline face"
+			)
+			and request.positive_prompt.contains(
+				"lean elongated quadruped silhouette"
+			)
+			and request.positive_prompt.contains(
+				"[CODE-LOCKED GENE CHANGE]"
 			),
-			"target stage is explicit"
+			"Stage 1 -> 2 Gene prompt must preserve lineage and apply Dark Stage 2 morphology"
 		)
 		check(
 			request.positive_prompt.contains(
@@ -178,6 +190,45 @@ func run() -> void:
 					== request.to_debug_dict(),
 				"retry request is stable"
 			)
+
+	var natural_plan := coordinator.build_natural_request(
+		identity,
+		previous,
+		source,
+		2
+	)
+	check(
+		bool(
+			natural_plan.get(
+				"ok",
+				false
+			)
+		),
+		"Stage 1 -> 2 natural continuity plan"
+	)
+	var natural_request := (
+		natural_plan.get("request")
+		as PetRenderRequest
+	)
+	check(
+		natural_request != null
+		and natural_request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and natural_request.source_image_path
+			== source.image_path
+		and natural_request.target_region
+			== &"whole_pet_age"
+		and natural_request.positive_prompt.contains(
+			"[LINEAGE CONTINUITY]"
+		)
+		and natural_request.positive_prompt.contains(
+			"[STAGE 2 MORPHOLOGY]"
+		)
+		and natural_request.positive_prompt.contains(
+			"lean elongated quadruped silhouette"
+		),
+		"Natural Stage 1 -> 2 must image-edit the same pet with Dark Stage 2 morphology"
+	)
 
 	var bad_stage := coordinator.build_request(
 		identity,

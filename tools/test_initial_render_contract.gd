@@ -171,12 +171,21 @@ func _initialize() -> void:
 			"natural animal pose"
 		)
 		and request.positive_prompt.contains(
-			"freely invent face shape"
+			"[STAGE 1 ELEMENTAL IDENTITY CUES]"
+		)
+		and request.positive_prompt.contains(
+			"narrow expressive feline face"
+		)
+		and request.positive_prompt.contains(
+			"crescent forehead sigil"
+		)
+		and request.positive_prompt.contains(
+			"different pets of the same element still look unique"
 		)
 		and not request.positive_prompt.contains(
 			"front three-quarter view"
 		),
-		"Stage 1 pet appearance and pose must remain freestyle"
+		"Stage 1 must use element-specific lineage cues while keeping individual variation"
 	)
 
 	var renderer = MockPetRendererScript.new()
