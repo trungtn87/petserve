@@ -13,6 +13,8 @@ var _species: StringName = &""
 var _first_expression_stage: int = 3
 var _final_expression_stage: int = 4
 var _activation_basis_points: int = 0
+var _egg_stage4_eligible: bool = false
+var _required_gene_ids: Array[StringName] = []
 var _target_regions: Array[StringName] = []
 var _required_traits: Dictionary = {}
 var _gene_tag_affinity: Dictionary = {}
@@ -27,6 +29,8 @@ func _init(
 	first_expression_stage: int = 3,
 	final_expression_stage: int = 4,
 	activation_basis_points: int = 0,
+	egg_stage4_eligible: bool = false,
+	required_gene_ids: Array = [],
 	target_regions: Array = [],
 	required_traits: Dictionary = {},
 	gene_tag_affinity: Dictionary = {},
@@ -39,6 +43,8 @@ func _init(
 	_first_expression_stage = first_expression_stage
 	_final_expression_stage = final_expression_stage
 	_activation_basis_points = activation_basis_points
+	_egg_stage4_eligible = egg_stage4_eligible
+	_required_gene_ids = _normalize_gene_ids(required_gene_ids)
 	_target_regions = _normalize_regions(target_regions)
 	_required_traits = _normalize_traits(required_traits)
 	_gene_tag_affinity = _normalize_affinity(gene_tag_affinity)
@@ -72,6 +78,50 @@ func activation_basis_points() -> int:
 
 func is_activation_configured() -> bool:
 	return _activation_basis_points > 0
+
+
+func egg_stage4_eligible() -> bool:
+	return _egg_stage4_eligible
+
+
+func required_gene_ids() -> Array[StringName]:
+	return _required_gene_ids.duplicate()
+
+
+func recipe_matches(
+	accumulated_gene_ids: Array
+) -> bool:
+	if _required_gene_ids.size() != 3:
+		return false
+
+	var normalized: Array[StringName] = []
+
+	for value in accumulated_gene_ids:
+		var gene_id := _normalize_token(
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			String(gene_id).is_empty()
+			or normalized.has(
+				gene_id
+			)
+		):
+			continue
+
+		normalized.append(
+			gene_id
+		)
+
+	for required_id in _required_gene_ids:
+		if not normalized.has(
+			required_id
+		):
+			return false
+
+	return true
 
 
 func target_regions() -> Array[StringName]:
@@ -187,10 +237,27 @@ func is_valid() -> bool:
 		or _final_expression_stage > FINAL_STAGE
 		or _activation_basis_points < 0
 		or _activation_basis_points > MAX_BASIS_POINTS
+		or (
+			not _required_gene_ids.is_empty()
+			and _required_gene_ids.size() != 3
+		)
 		or _target_regions.is_empty()
 		or _preserve_hint.is_empty()
 	):
 		return false
+
+	var seen_genes: Dictionary = {}
+
+	for gene_id in _required_gene_ids:
+		if (
+			String(gene_id).is_empty()
+			or seen_genes.has(
+				gene_id
+			)
+		):
+			return false
+
+		seen_genes[gene_id] = true
 
 	for region in _target_regions:
 		if not PetGenomeSchema.is_visual_locus(
@@ -243,6 +310,12 @@ func is_valid() -> bool:
 
 func to_dict() -> Dictionary:
 	var regions: Array[String] = []
+	var gene_ids: Array[String] = []
+
+	for gene_id in _required_gene_ids:
+		gene_ids.append(
+			String(gene_id)
+		)
 
 	for region in _target_regions:
 		regions.append(
@@ -273,6 +346,10 @@ func to_dict() -> Dictionary:
 		"activation_basis_points": (
 			_activation_basis_points
 		),
+		"egg_stage4_eligible": (
+			_egg_stage4_eligible
+		),
+		"required_gene_ids": gene_ids,
 		"target_regions": regions,
 		"required_traits": (
 			_required_traits.duplicate(true)
@@ -288,6 +365,10 @@ func to_dict() -> Dictionary:
 static func from_dict(
 	data: Dictionary
 ) -> SpeciesMythicMutationDefinition:
+	var gene_ids_value: Variant = data.get(
+		"required_gene_ids",
+		[]
+	)
 	var regions_value: Variant = data.get(
 		"target_regions",
 		[]
@@ -306,7 +387,8 @@ static func from_dict(
 	)
 
 	if (
-		typeof(regions_value) != TYPE_ARRAY
+		typeof(gene_ids_value) != TYPE_ARRAY
+		or typeof(regions_value) != TYPE_ARRAY
 		or typeof(traits_value) != TYPE_DICTIONARY
 		or typeof(affinity_value) != TYPE_DICTIONARY
 		or typeof(prompts_value) != TYPE_DICTIONARY
@@ -354,6 +436,13 @@ static func from_dict(
 				0
 			)
 		),
+		bool(
+			data.get(
+				"egg_stage4_eligible",
+				false
+			)
+		),
+		gene_ids_value as Array,
 		regions_value as Array,
 		traits_value as Dictionary,
 		affinity_value as Dictionary,
@@ -384,6 +473,33 @@ static func _normalize_token(
 				"_"
 			)
 	)
+
+
+static func _normalize_gene_ids(
+	source: Array
+) -> Array[StringName]:
+	var result: Array[StringName] = []
+
+	for value in source:
+		var gene_id := _normalize_token(
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			String(gene_id).is_empty()
+			or result.has(
+				gene_id
+			)
+		):
+			continue
+
+		result.append(
+			gene_id
+		)
+
+	return result
 
 
 static func _normalize_regions(
