@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 8
+const PLAN_SCHEMA: int = 9
 const FINAL_STAGE: int = 4
 
 
@@ -132,21 +132,13 @@ func validate(
 	):
 		return "Pending evolution có render request không khớp identity/stage."
 
-	if from_stage == 1:
-		if (
-			request.mode
-				!= PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-			or not request.source_image_path.is_empty()
-		):
-			return "Stage 1 -> 2 phải dùng full-regenerate."
-	else:
-		if (
-			request.mode
-				!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-			or request.source_image_path
-				!= source_visual.image_path
-		):
-			return "Stage 2+ phải dùng image-edit từ visual hiện tại."
+	if (
+		request.mode
+			!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		or request.source_image_path
+			!= source_visual.image_path
+	):
+		return "Mọi evolution phải dùng image-edit từ visual hiện tại để giữ đúng identity pet."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(

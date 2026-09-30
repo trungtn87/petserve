@@ -104,9 +104,13 @@ func build(
 	spec.form_section = (
 		"Stage 1 is a young "
 		+ String(identity.species())
-		+ ". Keep believable species anatomy, but otherwise let the AI freely invent face shape, "
-		+ "fur pattern, fluff, ear details, tail appearance, expression and a natural animal pose. "
+		+ ". Keep believable species anatomy, but otherwise let the AI freely invent the exact individual: "
+		+ "fur pattern, fluff, small asymmetries, expression and a natural animal pose. "
 		+ "Elemental details should feel organically part of the animal rather than pasted-on accessories."
+		+ "\n\n[STAGE 1 ELEMENTAL IDENTITY CUES]\n"
+		+ stage_one_face
+		+ " These are lineage anchors for this element, not a fixed character template. "
+		+ "Preserve room for individual variation inside these cues so different pets of the same element still look unique."
 	)
 
 	spec.scene_section = (

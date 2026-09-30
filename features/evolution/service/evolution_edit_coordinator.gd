@@ -10,6 +10,7 @@ const InitialSpeciesCatalogScript = preload(
 const PLAN_SCHEMA: int = 1
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
+const STAGE_TWO_EDIT_STRENGTH: float = 0.30
 const COMPOSITE_GENE_TARGET_REGION: StringName = &"whole_pet_gene"
 const COMPOSITE_MYTHIC_TARGET_REGION: StringName = &"whole_pet_mythic"
 const MYTHIC_EDIT_STRENGTH: float = 0.24
@@ -79,12 +80,13 @@ func build_request(
 		previous_genome.stage() == 1
 		and target_stage == 2
 	):
-		return _build_stage_one_gene_regenerate(
+		return _build_stage_one_gene_edit(
 			identity,
 			previous_genome,
 			mutated_genome,
 			delta,
 			visual,
+			source_visual,
 			target_stage,
 			scene_profile
 		)
@@ -245,65 +247,62 @@ func build_natural_request(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
-	var species_profile := _species_profile(
-		identity.species()
+	var lineage_prompt := _stage_one_to_two_lineage_prompt(
+		identity
 	)
 
-	if species_profile == null:
+	if lineage_prompt.is_empty():
 		return {
 			"ok": false,
-			"error": "Thiếu species profile cho %s."
-			% String(identity.species()),
+			"error": "Thiếu Stage 1/2 Element lineage profile.",
 		}
 
 	var positive_prompt := (
-		"[STAGE 2 FREESTYLE]\n"
-		+ "Create one unique Stage 2 "
-		+ String(identity.species())
-		+ " in premium Mythic Elemental Chibi game art. "
-		+ "Element family: "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
-		)
-		+ ". "
+		"[STAGE 2 CONTINUITY EVOLUTION]\n"
+		+ "Advance the exact same individual pet from Stage 1 to Stage 2 using the provided Stage 1 image as the visual source of truth. "
+		+ "Preserve recognizable face identity, unique fur pattern, markings, palette family, appendage identity and overall lineage. "
+		+ "The pet may mature in age-appropriate proportions, fur and elemental morphology, but must not become a different individual. "
 		+ style.base_style()
-		+ " Use these elemental cues only as creative inspiration: "
-		+ style.accent_for(
-			identity.element()
-		)
-		+ ". The AI should freely invent the individual pet: face, fur pattern, fluff, ear details, tail shape, expression, elemental markings and natural animal pose. "
-		+ "Do not copy a fixed template or reproduce the previous Stage 1 silhouette. Keep believable species anatomy and make the result feel naturally a little older than Stage 1 without forcing a specific body design."
+		+ "\n\n"
+		+ lineage_prompt
 	)
 
 	positive_prompt += (
-		"\n\n[ELEMENTAL NATURAL BACKGROUND]\n"
-		+ _stage_two_environment_prompt(
-			scene_profile,
-			identity.element()
-		)
+		"\n\n[NATURAL GROWTH]\n"
+		+ "No Gene Item is expressed in this transition. Keep every gameplay Gene locus unchanged. "
+		+ "Only natural Stage 2 age progression and the element-specific morphology may develop."
 	)
 
+	positive_prompt += _anatomy_lock_section()
+	positive_prompt += _pethome_scale_lock_section()
 	positive_prompt += (
-		"\n\n[PETHOME COMPOSITION]\n"
-		+ _stage_two_composition_prompt()
-		+ " Return one complete pet and one natural background scene with no text or UI."
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
+		)
+		+ " Preserve the same world and recognizable scene continuity from the reference image. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
-		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = (
+	request.negative_prompt = _append_negative_guard(
 		style.negative_prompt()
-		+ ", fixed template character, repeated identical pet design, repeated identical face, "
-		+ "plain studio background, empty neutral backdrop, isolated character, multiple pets, "
-		+ "close-up portrait, giant pet filling the frame, cropped pet, humanoid pose, standing upright like a person, text, UI"
+		+ ", different individual, identity drift, different face, unrelated fur pattern, "
+		+ "random gene trait, unrelated mutation, species redesign, replaced PetHome world"
 	)
+	request.source_image_path = source_visual.image_path
 	request.target_region = NATURAL_TARGET_REGION
-	request.edit_strength = 0.0
-	request.seed = 0
+	request.edit_strength = STAGE_TWO_EDIT_STRENGTH
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		&"natural_stage_2"
+	)
 	request.output_key = _stage_one_output_key(
 		identity,
 		target_stage
@@ -312,7 +311,7 @@ func build_natural_request(
 	if not request.is_valid():
 		return {
 			"ok": false,
-			"error": "Stage 1 Natural full-regenerate request không hợp lệ.",
+			"error": "Stage 1 -> 2 Natural image-edit request không hợp lệ.",
 		}
 
 	return {
@@ -556,6 +555,11 @@ func build_composite_request(
 		_apply_mythic_prompt(
 			stage_two_request,
 			mythic_resolution
+		)
+		stage_two_request.target_region = COMPOSITE_MYTHIC_TARGET_REGION
+		stage_two_request.edit_strength = maxf(
+			stage_two_request.edit_strength,
+			STAGE_TWO_EDIT_STRENGTH
 		)
 		stage_two_request.seed = _request_seed(
 			identity,
@@ -928,12 +932,13 @@ func request_from_dict(
 	return request
 
 
-func _build_stage_one_gene_regenerate(
+func _build_stage_one_gene_edit(
 	identity: PetIdentity,
 	previous_genome: PetGenome,
 	mutated_genome: PetGenome,
 	delta: EvolutionDelta,
 	visual: MutationVisualDefinition,
+	source_visual: PetVisualRecord,
 	target_stage: int,
 	scene_profile: PetSceneProfile
 ) -> Dictionary:
@@ -945,67 +950,68 @@ func _build_stage_one_gene_regenerate(
 			"error": "Không load được MythicStyleProfile.",
 		}
 
-	var species_profile := _species_profile(
-		identity.species()
+	var lineage_prompt := _stage_one_to_two_lineage_prompt(
+		identity
 	)
 
-	if species_profile == null:
+	if lineage_prompt.is_empty():
 		return {
 			"ok": false,
-			"error": "Thiếu species profile cho %s."
-			% String(identity.species()),
+			"error": "Thiếu Stage 1/2 Element lineage profile.",
 		}
 
 	var positive_prompt := (
-		"[STAGE 2 FREESTYLE]\n"
-		+ "Create one unique Stage 2 "
-		+ String(identity.species())
-		+ " in premium Mythic Elemental Chibi game art. "
-		+ "Element family: "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
-		)
-		+ ". "
+		"[STAGE 2 CONTINUITY EVOLUTION]\n"
+		+ "Advance the exact same individual pet from Stage 1 to Stage 2 using the provided Stage 1 image as the visual source of truth. "
+		+ "Preserve recognizable face identity, unique fur pattern, markings, palette family, appendage identity and overall lineage. "
+		+ "Allow age-appropriate Stage 2 maturation without replacing this pet with another individual. "
 		+ style.base_style()
-		+ " Use these elemental cues only as creative inspiration: "
-		+ style.accent_for(
-			identity.element()
-		)
-		+ ". The AI should freely invent the individual pet instead of reproducing a fixed template or the previous Stage 1 silhouette. "
-		+ "Keep believable species anatomy and a natural animal pose. "
-		+ "There is one gameplay Gene expression to include naturally and without over-constraining the rest of the design: "
+		+ "\n\n"
+		+ lineage_prompt
+	)
+
+	positive_prompt += (
+		"\n\n[CODE-LOCKED GENE CHANGE]\n"
+		+ "Apply exactly this gameplay-selected Gene expression during the same Stage 2 maturation: "
 		+ visual.instruction()
+		+ " "
+		+ visual.preserve_hint()
+		+ " Do not invent any additional Gene or unrelated mutation."
 	)
 
+	positive_prompt += _anatomy_lock_section()
+	positive_prompt += _pethome_scale_lock_section()
 	positive_prompt += (
-		"\n\n[ELEMENTAL NATURAL BACKGROUND]\n"
-		+ _stage_two_environment_prompt(
-			scene_profile,
-			identity.element()
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
 		)
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME COMPOSITION]\n"
-		+ _stage_two_composition_prompt()
-		+ " Return one complete pet and one natural background scene with no text or UI."
+		+ " Preserve the same world and recognizable scene continuity from the reference image. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
-		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = (
+	request.negative_prompt = _append_negative_guard(
 		style.negative_prompt()
-		+ ", fixed template character, repeated identical pet design, repeated identical face, "
-		+ "plain studio background, empty neutral backdrop, isolated character, multiple pets, "
-		+ "close-up portrait, giant pet filling the frame, cropped pet, humanoid pose, standing upright like a person, text, UI"
+		+ ", different individual, identity drift, different face, unrelated fur pattern, "
+		+ "random gene trait, unrelated mutation, species redesign, replaced PetHome world"
 	)
-	request.target_region = visual.target_region()
-	request.edit_strength = 0.0
-	request.seed = 0
+	request.source_image_path = source_visual.image_path
+	request.target_region = COMPOSITE_GENE_TARGET_REGION
+	request.edit_strength = maxf(
+		STAGE_TWO_EDIT_STRENGTH,
+		visual.edit_strength()
+	)
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		delta.mutation_id()
+	)
 	request.output_key = _stage_one_output_key(
 		identity,
 		target_stage
@@ -1014,7 +1020,7 @@ func _build_stage_one_gene_regenerate(
 	if not request.is_valid():
 		return {
 			"ok": false,
-			"error": "Stage 1 Gene full-regenerate request không hợp lệ.",
+			"error": "Stage 1 -> 2 Gene image-edit request không hợp lệ.",
 		}
 
 	return {
@@ -1198,6 +1204,37 @@ func _species_profile(
 	return catalog.find_by_species(
 		catalog.load_default(),
 		species
+	)
+
+
+func _stage_one_to_two_lineage_prompt(
+	identity: PetIdentity
+) -> String:
+	var stage_one := _element_stage_prompt(
+		identity.element(),
+		1
+	)
+	var stage_two := _element_stage_prompt(
+		identity.element(),
+		2
+	)
+
+	if (
+		stage_one.is_empty()
+		or stage_two.is_empty()
+	):
+		return ""
+
+	return (
+		"[LINEAGE CONTINUITY]\n"
+		+ "The Stage 1 source image is the canonical individual identity. Preserve its unique face, fur pattern, markings and recognizable details. "
+		+ "Its element-family identity was established with these Stage 1 cues: "
+		+ stage_one
+		+ " Do not reset these cues or replace them with a new random face."
+		+ "\n\n[STAGE 2 MORPHOLOGY]\n"
+		+ stage_two
+		+ " Apply this as maturation of the same individual. It may change age-appropriate proportions and elemental shape language, "
+		+ "but it must preserve the source pet's personal identity and previously established details unless a code-selected Gene explicitly changes them."
 	)
 
 

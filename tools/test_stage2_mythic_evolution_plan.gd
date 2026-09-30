@@ -78,7 +78,7 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 	visual.pet_id = identity.pet_id()
 	visual.visual_index = 1
 	visual.image_path = source_path
-	visual.source_mode = &"evolution_pethome_v8_full_regenerate"
+	visual.source_mode = &"evolution_pethome_v11_image_edit"
 	visual.renderer_id = &"test"
 	visual.model_id = &"test"
 

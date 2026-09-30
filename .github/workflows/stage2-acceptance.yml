@@ -38,6 +38,12 @@ jobs:
       - name: Import project
         run: godot --headless --path . --editor --quit
 
+      - name: Stage 1 prompt contract
+        run: godot --headless --path . --script res://tools/test_initial_render_contract.gd
+
+      - name: Stage 1 to 2 identity continuity
+        run: godot --headless --path . res://tools/test_m7_evolution_edit.tscn
+
       - name: Stage 2 lifecycle
         run: godot --headless --path . res://tools/test_m8_stage_cycle.tscn
 
