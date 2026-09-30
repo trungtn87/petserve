@@ -21,12 +21,12 @@ Code always decides the mythical branch first. AI rendering only visualizes the 
 
 ### A. Rare Stage 4 egg
 
-The existing egg system already owns the rarity of reaching/mutating at Egg Stage 4. Mythic Destiny does not add a second rarity roll.
+The existing egg system already owns the low rate of opening Egg Stage 4. Reaching Egg Stage 4 itself is the Mythic trigger; Mythic Destiny does not require a second mutation flag or a second rarity roll.
 
 At hatch:
 
 ```text
-Egg Stage 4 + egg mutation active
+Rare Egg Stage 4
         ↓
 filter Mythic branches by species
         ↓
@@ -39,7 +39,7 @@ show "Thú thần thoại: <name>" in PetHome
 Stage 1 -> 2 starts developing toward that branch
 ```
 
-The infant remains the same individual. The Mythic form appears progressively by stage rather than spawning as a fully transformed adult.
+The infant remains the same individual. Its Stage 1 birth render may show only a very subtle code-locked foreshadowing cue; Stage 2 begins the visible Mythic development, Stage 3 awakens the branch clearly, and Stage 4 completes it rather than spawning a fully transformed adult at hatch.
 
 ### B. Fixed three-Gene recipe
 
