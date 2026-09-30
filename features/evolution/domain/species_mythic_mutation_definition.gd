@@ -269,7 +269,7 @@ func is_valid() -> bool:
 		var locus := StringName(
 			str(key_value)
 		)
-		var trait := StringName(
+		var trait_id := StringName(
 			str(
 				_required_traits[
 					key_value
@@ -281,7 +281,7 @@ func is_valid() -> bool:
 			not PetGenomeSchema.is_visual_locus(
 				locus
 			)
-			or String(trait).is_empty()
+			or String(trait_id).is_empty()
 		):
 			return false
 
