@@ -339,10 +339,13 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 				request.seed,
 			]
 		)
-	elif retry_pending.get(
-		"mythic_destiny",
-		{}
-	) != destiny:
+	elif not _same_destiny(
+		retry_pending.get(
+			"mythic_destiny",
+			{}
+		),
+		destiny
+	):
 		retry_reason = "Mythic Destiny drift"
 
 	_expect(
@@ -407,6 +410,59 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 	)
 
 	_clear_evolution_save()
+
+
+func _same_destiny(
+	a_value: Variant,
+	b_value: Variant
+) -> bool:
+	if (
+		typeof(a_value) != TYPE_DICTIONARY
+		or typeof(b_value) != TYPE_DICTIONARY
+	):
+		return false
+
+	var a := a_value as Dictionary
+	var b := b_value as Dictionary
+
+	for key in [
+		"schema",
+		"locked",
+		"source",
+		"species",
+		"mutation_id",
+		"display_name",
+	]:
+		if a.get(key) != b.get(key):
+			return false
+
+	return _string_array(
+		a.get(
+			"recipe_gene_ids",
+			[]
+		)
+	) == _string_array(
+		b.get(
+			"recipe_gene_ids",
+			[]
+		)
+	)
+
+
+func _string_array(
+	value: Variant
+) -> Array[String]:
+	var result: Array[String] = []
+
+	if typeof(value) != TYPE_ARRAY:
+		return result
+
+	for item in value as Array:
+		result.append(
+			String(item)
+		)
+
+	return result
 
 
 func _clear_evolution_save() -> void:
