@@ -130,15 +130,15 @@ func is_valid() -> bool:
 
 	var seen: Dictionary = {}
 
-	for trait in _expression_chain:
+	for trait_id in _expression_chain:
 		if (
-			String(trait).is_empty()
-			or trait == PetGenomeSchema.BASE_TRAIT
-			or seen.has(trait)
+			String(trait_id).is_empty()
+			or trait_id == PetGenomeSchema.BASE_TRAIT
+			or seen.has(trait_id)
 		):
 			return false
 
-		seen[trait] = true
+		seen[trait_id] = true
 
 	for key_value in _influence_tags.keys():
 		var key := String(
@@ -159,9 +159,9 @@ func is_valid() -> bool:
 func to_dict() -> Dictionary:
 	var chain: Array[String] = []
 
-	for trait in _expression_chain:
+	for trait_id in _expression_chain:
 		chain.append(
-			String(trait)
+			String(trait_id)
 		)
 
 	return {
@@ -294,21 +294,21 @@ static func _normalize_chain(
 	var result: Array[StringName] = []
 
 	for value in source:
-		var trait := _normalize_token(
+		var trait_id := _normalize_token(
 			StringName(
 				str(value)
 			)
 		)
 
 		if (
-			String(trait).is_empty()
-			or trait == PetGenomeSchema.BASE_TRAIT
-			or result.has(trait)
+			String(trait_id).is_empty()
+			or trait_id == PetGenomeSchema.BASE_TRAIT
+			or result.has(trait_id)
 		):
 			continue
 
 		result.append(
-			trait
+			trait_id
 		)
 
 	if result.is_empty():
