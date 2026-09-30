@@ -703,7 +703,8 @@ func _run_initial_birth() -> void:
 	var request_data := _coordinator.build_request(
 		_identity,
 		_genome,
-		_scene_profile
+		_scene_profile,
+		_mythic_destiny
 	)
 
 	if not bool(request_data.get("ok", false)):
