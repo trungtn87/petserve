@@ -361,6 +361,40 @@ func validate(
 		):
 			return "Mythic resolution không khớp species definition."
 
+	var gene_scores_value: Variant = pending.get(
+		"gene_scores",
+		{}
+	)
+
+	if typeof(gene_scores_value) != TYPE_DICTIONARY:
+		return "Pending Gene scores không phải Dictionary."
+
+	var gene_scores := (
+		gene_scores_value as Dictionary
+	).duplicate(true)
+	var expected_gene_prompt := GenePromptResolver.new().build_from_scores(
+		gene_scores,
+		identity.element(),
+		to_stage
+	)
+	var stored_gene_prompt := String(
+		pending.get(
+			"gene_expression_prompt",
+			""
+		)
+	)
+
+	if stored_gene_prompt != expected_gene_prompt:
+		return "Pending Gene score prompt đã drift khỏi score ledger."
+
+	var lifetime_tags_value: Variant = pending.get(
+		"gene_lifetime_tag_influences",
+		{}
+	)
+
+	if typeof(lifetime_tags_value) != TYPE_DICTIONARY:
+		return "Pending lifetime Gene tag influence không phải Dictionary."
+
 	var same_stage_target := PetGenome.new(
 		current.stage(),
 		current.body_growth(),
@@ -385,6 +419,15 @@ func validate(
 	var expected_request := expected_plan.get(
 		"request"
 	) as PetRenderRequest
+
+	if (
+		expected_request != null
+		and not expected_gene_prompt.is_empty()
+	):
+		expected_request.positive_prompt += (
+			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ expected_gene_prompt
+		)
 
 	if (
 		not bool(
