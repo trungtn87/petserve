@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 4
-const PENDING_SCHEMA: int = 10
+const PENDING_SCHEMA: int = 11
 
 
 var _save := EvolutionSaveService.new()
