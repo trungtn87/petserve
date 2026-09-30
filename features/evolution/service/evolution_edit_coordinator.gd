@@ -2,23 +2,27 @@ class_name EvolutionEditCoordinator
 extends RefCounted
 
 
+const InitialSpeciesCatalogScript = preload(
+	"res://features/evolution/visual/initial_species_catalog.gd"
+)
+
+
 const PLAN_SCHEMA: int = 1
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
 const SEED_MODULUS: int = 2147483647
 const ANATOMY_LOCK_PROMPT: String = (
-	"Preserve the reference pet's anatomy exactly: same number of legs, paws, "
-	+ "ears, tails and all other body parts. Do not add, duplicate, remove or "
-	+ "invent limbs or appendages. Preserve limb attachment points, joint layout, "
-	+ "stance, body orientation and pose. A body part hidden by perspective must "
-	+ "remain hidden naturally instead of being duplicated or moved into view."
+	"Preserve the reference pet's species body plan and existing anatomy exactly. "
+	+ "Keep every existing limb, wing, foot or paw, ear, tail, horn and other appendage "
+	+ "consistent with the reference. Do not add, duplicate, remove or invent appendages. "
+	+ "Preserve attachment points, joint layout, stance, body orientation and pose. "
+	+ "A body part hidden by perspective must remain naturally hidden rather than being "
+	+ "duplicated or moved into view."
 )
 const ANATOMY_NEGATIVE_PROMPT: String = (
-	"extra leg, extra legs, extra limb, extra limbs, extra paw, extra paws, "
-	+ "duplicate leg, duplicated limb, duplicate paw, duplicated paw, "
-	+ "extra tail, duplicate tail, extra ear, duplicate ear, second body, "
-	+ "duplicated body parts, malformed anatomy, deformed legs, changed limb count, "
-	+ "changed paw count"
+	"extra limb, duplicate limb, duplicated appendage, extra appendage, second body, "
+	+ "duplicated body parts, malformed anatomy, deformed anatomy, impossible joint, "
+	+ "detached appendage, anatomy inconsistent with the species"
 )
 
 
@@ -127,9 +131,9 @@ func build_request(
 	positive_prompt += (
 		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
 		+ stage_detail
-		+ " This is stage presentation detail, not a new Gene. It may refine "
-		+ "existing fur edges, markings, material feel and restrained aura across "
-		+ "the current silhouette, but must not create new limbs or replace the body plan."
+		+ " This is stage presentation guidance, not a new Gene. For Stage 3/4, "
+		+ "use this progression only to style the selected target region and its immediate visual transition. "
+		+ "It does not authorize redesigning unrelated body parts, markings, anatomy or silhouette."
 	)
 
 	positive_prompt += _local_edit_boundary(
@@ -179,7 +183,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v9_stage_%d"
 		% target_stage
 	)
 
@@ -250,6 +254,28 @@ func build_natural_request(
 			% String(identity.element()),
 		}
 
+	var species_profile := _species_profile(
+		identity.species()
+	)
+
+	if species_profile == null:
+		return {
+			"ok": false,
+			"error": "Thiếu species profile cho %s."
+			% String(identity.species()),
+		}
+
+	var species_profile := _species_profile(
+		identity.species()
+	)
+
+	if species_profile == null:
+		return {
+			"ok": false,
+			"error": "Thiếu species profile cho %s."
+			% String(identity.species()),
+		}
+
 	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
 		"[IDENTITY BLUEPRINT]\n"
@@ -301,8 +327,10 @@ func build_natural_request(
 	)
 
 	positive_prompt += (
-		"\n\n[QUADRUPED BODY PLAN]\n"
-		+ _stage_two_body_plan_prompt()
+		"\n\n[SPECIES FREESTYLE]\n"
+		+ _stage_two_species_prompt(
+			species_profile
+		)
 	)
 
 	positive_prompt += (
@@ -677,20 +705,15 @@ func _build_stage_one_gene_regenerate(
 	)
 
 	positive_prompt += (
-		"\n\n[QUADRUPED BODY PLAN]\n"
-		+ _stage_two_body_plan_prompt()
+		"\n\n[SPECIES FREESTYLE]\n"
+		+ _stage_two_species_prompt(
+			species_profile
+		)
 	)
 
 	positive_prompt += (
 		"\n\n[PETHOME SCALE LOCK]\n"
 		+ _stage_two_composition_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[ANATOMY REQUIREMENT]\n"
-		+ "Render one anatomically coherent pet with exactly one head, one torso and four natural legs. "
-		+ "Keep one tail unless the selected Gene explicitly changes tail structure. "
-		+ "No duplicated, floating or human-like limbs."
 	)
 
 	positive_prompt += (
@@ -850,12 +873,11 @@ func _local_edit_boundary(
 		return (
 			"\n\n[EDIT BOUNDARY]\n"
 			+ (
-				"Apply the code-selected Gene change clearly in target region '%s'. "
-				+ "Outside that region, preserve anatomy, limb count, pose, camera, face identity "
-				+ "and the established Stage 2 body silhouette. The ELEMENTAL DETAIL PROGRESSION "
-				+ "may add restrained surface-level fur contour, markings, material feel and aura "
-				+ "across existing body surfaces, but it may not create new limbs, a humanoid pose "
-				+ "or a different body plan."
+				"Apply the code-selected Gene change clearly and only in target region '%s'. "
+				+ "Outside that region, preserve the reference pixels conceptually: species anatomy, "
+				+ "appendage layout, pose, camera, face identity, existing markings, colors, silhouette "
+				+ "and environment must remain unchanged. The ELEMENTAL DETAIL PROGRESSION only describes "
+				+ "how the selected target region should evolve; it must not spill into unrelated regions."
 			) % String(target_region)
 		)
 
@@ -908,26 +930,43 @@ func _element_stage_prompt(
 	)
 
 
-func _stage_two_body_plan_prompt() -> String:
+func _species_profile(
+	species: StringName
+) -> InitialSpeciesProfile:
+	var catalog := InitialSpeciesCatalogScript.new()
+
+	return catalog.find_by_species(
+		catalog.load_default(),
+		species
+	)
+
+
+func _stage_two_species_prompt(
+	profile: InitialSpeciesProfile
+) -> String:
+	if profile == null:
+		return ""
+
 	return (
-		"Natural feline quadruped only. Keep the spine and torso horizontally organized like a cat, "
-		+ "with two forelegs and two hind legs attached in anatomically correct positions. "
-		+ "The pet must be supported naturally on four paws or in a clearly four-legged feline pose. "
-		+ "Never stand upright on two legs, never use human shoulders or arms, never use a mascot pose, "
-		+ "and never make the forelegs hang like human hands. The body may differ by element, "
-		+ "but all seven elements remain coherent four-legged cats."
+		profile.species_anatomy
+		+ " "
+		+ profile.freestyle_pose
+		+ " Stage 2 pose and camera-relative stance are freestyle. "
+		+ "Preserve species identity and coherent anatomy, but do not force all appendages to be visible. "
+		+ "Natural overlap and occlusion are allowed."
 	)
 
 
 func _stage_two_composition_prompt() -> String:
 	return (
 		"Use a vertical 9:16 environmental establishing shot, not a character portrait. "
-		+ "Show the complete pet from the highest visible point of the ears or fur through all paws and the full tail. "
-		+ "LOCKED SCALE FOR EVERY LIFE STAGE: the visible pet height must be about 35 percent of total image height, measured from the highest visible point of the pet to the lowest paw/ground contact point. "
-		+ "Place the lowest paw/ground contact point at about 90 percent of total image height, leaving about 10 percent of image height from the pet's feet to the bottom edge. "
+		+ "Keep the whole pet comfortably inside the frame and its overall species silhouette readable. "
+		+ "Natural perspective and partial occlusion of limbs, wings, tail or other appendages are allowed. "
+		+ "LOCKED SCALE FOR EVERY LIFE STAGE: the visible pet height must be about 35 percent of total image height, measured from the highest visible point of the pet to the lowest visible pet point, or the ground-contact point for a grounded pose. "
+		+ "Place that lowest visible point at about 90 percent of total image height, leaving about 10 percent of image height below the pet. "
 		+ "Keep the pet horizontally near center and in the lower-middle of the frame. Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
 		+ "Keep the environment dominant with clear foreground, midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
-		+ "Do not zoom in, do not crop paws or tail, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
+		+ "Do not zoom in, do not crop the pet, do not place the pet on the bottom edge, and do not replace the PetHome with a studio backdrop."
 	)
 
 
@@ -940,11 +979,11 @@ func _pethome_scale_lock_section() -> String:
 
 func _stage_two_negative_prompt() -> String:
 	return (
-		"bipedal, two-legged stance, standing upright, humanoid pose, anthropomorphic body, "
-		+ "human arms, mascot pose, front paws used as hands, vertical human torso, close-up portrait, "
-		+ "medium portrait, bust shot, giant pet, oversized character, pet filling the frame, cropped paws, "
-		+ "cropped tail, plain studio background, gray studio background, empty backdrop, missing environment, "
-		+ "color-swap-only element design, identical silhouette across all elements"
+		"close-up portrait, medium portrait, bust shot, giant pet, oversized character, "
+		+ "pet filling the frame, cropped pet, plain studio background, gray studio background, "
+		+ "empty backdrop, missing environment, color-swap-only element design, "
+		+ "identical silhouette across all elements, duplicated appendage, duplicated body part, "
+		+ "malformed species anatomy, impossible joint, detached appendage"
 	)
 
 
@@ -954,7 +993,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v9_stage_%d"
 		% target_stage
 	)
 
