@@ -40,6 +40,7 @@ var _identity: PetIdentity
 var _genome: PetGenome
 var _scene_profile
 var _pet_name: String = ""
+var _mythic_destiny: Dictionary = {}
 var _egg_stage: int = 1
 
 var _coordinator: InitialPetRenderCoordinator
@@ -716,6 +717,17 @@ func _run_initial_birth() -> void:
 		1,
 		4
 	)
+	var destiny_value: Variant = data.get(
+		"mythic_destiny",
+		{}
+	)
+	_mythic_destiny = (
+		(destiny_value as Dictionary).duplicate(
+			true
+		)
+		if typeof(destiny_value) == TYPE_DICTIONARY
+		else {}
+	)
 
 	if (
 		_identity == null
@@ -746,7 +758,8 @@ func _run_initial_birth() -> void:
 	var request_data := _coordinator.build_request(
 		_identity,
 		_genome,
-		_scene_profile
+		_scene_profile,
+		_mythic_destiny
 	)
 
 	if not bool(request_data.get("ok", false)):
@@ -878,7 +891,8 @@ func _complete_initial_render(
 		_genome,
 		visual,
 		_pet_name,
-		_scene_profile
+		_scene_profile,
+		_mythic_destiny
 	)
 
 	if not saved:
