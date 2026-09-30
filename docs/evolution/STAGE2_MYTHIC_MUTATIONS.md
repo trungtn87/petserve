@@ -1,59 +1,152 @@
-# Stage 2 — Species Mythic Mutation Foundation
+# Species Mythic Mutation + Mythic Destiny
 
 ## Goal
 
-Mythic Mutation is a species-exclusive rare branch. It is separate from normal Gene Item expression.
+Mythic evolution is a species-exclusive branch layered on top of the normal Gene system.
 
-The code decides the branch first. AI rendering is only allowed to visualize the selected branch.
+Code always decides the mythical branch first. AI rendering only visualizes the already locked Gene + Mythic evolution plan.
 
 ## Locked rules
 
-- Each species may define one or two Mythic Mutation branches.
-- Mythic Mutation does not consume the Stage Gene Item cap.
-- A pet may carry at most one Mythic Mutation branch.
-- The branch is keyed by PetIdentity.species.
-- A branch that awakens at Stage 3 is persisted in PetGenome.mutations and continues to Stage 4 without rerolling.
-- Normal Gene traits remain unchanged when the Mythic branch id is attached.
-- Mythic definitions may read existing phenotype requirements and Gene influence tags as data-driven eligibility/weight inputs.
-- A species cannot activate another species' mutation.
-- AI must not invent an undefined combined mythical form.
+- Each species may define one or two Mythic branches.
+- A pet may carry at most one Mythic branch.
+- Mythic identity is keyed by `PetIdentity.species`.
+- Mythic development does not consume the normal per-stage Gene Item cap.
+- Normal Gene traits remain canonical and are resolved independently by locus.
+- AI must not invent another mythical creature, mix two Mythic branches, or reroll the branch.
+- A Mythic branch that is already active continues through later stages without another selection.
+- The mythical beast name is stored as Mythic Destiny and shown in PetHome info when known.
 
-## Current cat data
+## Two Mythic entry paths
 
-The current implemented species is cat.
+### A. Rare Stage 4 egg
 
-Two branches are reserved:
+The existing egg system already owns the rarity of reaching/mutating at Egg Stage 4. Mythic Destiny does not add a second rarity roll.
 
-1. cat_nekomata
-2. cat_bakeneko
+At hatch:
 
-Both have Stage 3 and Stage 4 visual instructions.
+```text
+Egg Stage 4 + egg mutation active
+        ↓
+filter Mythic branches by species
+        ↓
+select one branch deterministically from lineage seed
+        ↓
+persist Mythic Destiny
+        ↓
+show "Thú thần thoại: <name>" in PetHome
+        ↓
+Stage 1 -> 2 starts developing toward that branch
+```
 
-Their activation_basis_points are intentionally 0 in the default data. Rarity/balance has not been approved yet, so the live game must not silently start rolling Mythic Mutation.
+The infant remains the same individual. The Mythic form appears progressively by stage rather than spawning as a fully transformed adult.
 
-## Activation model
+### B. Fixed three-Gene recipe
 
-When balance is configured later:
+A normal pet can unlock Mythic Destiny by accumulating the exact three Gene IDs defined by a branch.
 
-1. Filter definitions by PetIdentity.species.
-2. Filter by target stage and required phenotype traits.
-3. Calculate each candidate's basis points from its data value plus optional Gene tag affinity.
-4. Use a lineage-stable deterministic roll.
-5. Select at most one branch.
-6. Persist that branch id in PetGenome.mutations.
-7. Future stages continue the same branch without rerolling.
+Gene IDs are accumulated from committed evolution history plus the Gene Items used in the current stage. They do not need to be used in the same stage.
 
-Reloading the same evolution attempt therefore cannot reroll a better mythical result.
+This matches the current Gene caps:
 
-## Integration boundary
+```text
+Stage 1: max 1 Gene
+Stage 2: max 2 Genes
 
-SpeciesMythicMutationResolver is intentionally separate from StageEvolutionResolver.
+1 previous Gene + 2 current Genes = 3-Gene recipe
+```
 
-Before activation rates are enabled, StageEvolutionService still needs the dedicated render-plan integration that can safely combine:
+When a recipe is complete, the branch is locked into the pending evolution plan before rendering. Render failure/retry reuses exactly the same destiny, Gene changes and render seed.
 
-- normal Stage 2 Gene result(s),
-- one optional species Mythic Mutation branch,
-- identity/anatomy preservation,
-- one persisted retry-safe evolution plan.
+## Current cat branches
 
-This prevents a mutation id from being committed before the image renderer has been given the same code-selected mutation plan.
+### Nekomata
+
+Fixed recipe:
+
+```text
+tail_long
+eyes_moon
+mark_moon
+```
+
+Development:
+
+- Stage 2: early spirit-cat/lunar cues; do not fully split the tail.
+- Stage 3: awaken the Nekomata branch; one shared tail root develops a fork/twin-tip direction.
+- Stage 4: complete the established Nekomata form.
+
+### Bakeneko
+
+Fixed recipe:
+
+```text
+coat_shadow
+eyes_luminous
+whiskers_starlight
+```
+
+Development:
+
+- Stage 2: early spectral coat/whisker/gaze cues; keep the normal single-tail body plan.
+- Stage 3: awaken the Bakeneko spirit-cat form.
+- Stage 4: complete the established Bakeneko form.
+
+These recipes are data, not hard-coded resolver logic. They can be changed without rewriting the evolution engine.
+
+## Random Mythic activation
+
+The generic weighted resolver remains available for future content, but the default cat definitions currently use:
+
+```text
+activation_basis_points = 0
+```
+
+Therefore the current live Mythic routes are the rare Stage 4 egg destiny and the exact three-Gene recipes. No extra arbitrary Mythic chance has been added.
+
+## Composite evolution plan
+
+Stage evolution now resolves Gene changes per locus.
+
+- Two Genes in different loci can both express in one evolution.
+- Two conflicting Genes in the same locus still resolve to one weighted result.
+- Reinforcement remains limited to the predefined expression chain.
+- No undefined combined Gene trait is invented.
+
+Then Mythic resolution runs against that code-selected Gene result.
+
+The resulting pending plan stores:
+
+- every Gene delta,
+- accumulated Gene IDs,
+- Mythic Destiny,
+- Mythic resolution and trigger source,
+- target Genome,
+- source/target phenotype,
+- serialized render request and stable seed.
+
+The validator rebuilds the plan before commit. If the renderer result does not match the locked plan contract, the stage transition is not committed.
+
+## PetHome info
+
+When Mythic Destiny is known, the Info panel adds:
+
+```text
+Thú thần thoại    Nekomata
+```
+
+or the corresponding species-specific branch name.
+
+For a rare Stage 4 egg this name is available immediately after hatch. For a normal pet it becomes available once the three-Gene recipe has been locked.
+
+## Adding another species
+
+To add a new species later:
+
+1. add the species identity/visual content;
+2. add one or two entries to `species_mythic_mutations.json`;
+3. define whether each branch is Stage-4-egg eligible;
+4. define the exact three-Gene recipe;
+5. define stage-by-stage Mythic prompts.
+
+No species-specific conditional should be added to the core resolver.
