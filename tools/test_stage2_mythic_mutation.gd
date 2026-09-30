@@ -127,8 +127,7 @@ func _test_stage4_egg_locks_mythic_destiny() -> void:
 	)
 	var destiny := SpeciesMythicDestinyService.new().from_stage4_egg(
 		identity,
-		4,
-		true
+		4
 	)
 
 	_expect(
