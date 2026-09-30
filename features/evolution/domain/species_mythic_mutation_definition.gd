@@ -351,7 +351,7 @@ func to_dict() -> Dictionary:
 		"egg_stage4_eligible": (
 			_egg_stage4_eligible
 		),
-		"required_loci": gene_ids,
+		"required_loci": loci,
 		"target_regions": regions,
 		"required_traits": (
 			_required_traits.duplicate(true)

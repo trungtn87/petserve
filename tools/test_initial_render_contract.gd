@@ -112,10 +112,13 @@ func _initialize() -> void:
 			"juvenile-to-adolescent"
 		)
 		and request.positive_prompt.contains(
-			"slight chibi"
+			"polished stylized 3D appearance"
 		)
 		and request.positive_prompt.contains(
-			"smoky blue-black and violet"
+			"organically grown from or naturally integrated"
+		)
+		and request.positive_prompt.contains(
+			"smoky blue-black, charcoal-indigo and muted violet"
 		),
 		"Stage 1 must use the approved premium fantasy / evolved-chibi direction"
 	)
@@ -157,8 +160,8 @@ func _initialize() -> void:
 	)
 
 	_expect(
-		request.positive_prompt.length() < 1200,
-		"Stage 1 prompt must stay intentionally short"
+		request.positive_prompt.length() < 2400,
+		"Stage 1 prompt must stay bounded even with element-specific integrated traits"
 	)
 
 	var renderer = MockPetRendererScript.new()
