@@ -1093,6 +1093,9 @@ func _add_info_row(
 	value_text: String
 ) -> Label:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
 	row.add_theme_constant_override(
 		"separation",
 		10
@@ -1102,6 +1105,12 @@ func _add_info_row(
 	var label := Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = 92
+	label.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
+	)
 	label.add_theme_color_override(
 		"font_color",
 		_theme.get(
@@ -1116,8 +1125,17 @@ func _add_info_row(
 	value.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	value.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	value.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
 	value.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	value.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
 	)
 	value.add_theme_color_override(
 		"font_color",
