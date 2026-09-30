@@ -230,7 +230,7 @@ func _test_stage_lifecycle() -> void:
 				"growth_percent",
 				0
 			)
-		) == 81
+		) == 20
 		and bool(
 			deadline_state.get(
 				"deadline_reached",
@@ -249,7 +249,7 @@ func _test_stage_lifecycle() -> void:
 				false
 			)
 		),
-		"food bands end at 81 percent Growth and deadline no longer forces READY"
+		"one fixed food tank slows to hibernation and deadline no longer forces READY"
 	)
 	var locked_growth := int(
 		deadline_state.get(
@@ -345,10 +345,17 @@ func _test_stage_lifecycle() -> void:
 		),
 		"stage 2 can wake from hibernation"
 	)
-	life.tick(
-		float(
-			duration_two
-		)
+	check(
+		life.apply_item({
+			"item_type": "growth",
+			"display_name": "Fed Growth Finish",
+			"main_value_seconds": duration_two,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"fed pet accepts Growth item after waking"
 	)
 	check(
 		bool(
@@ -451,36 +458,17 @@ func _test_stage_lifecycle() -> void:
 		),
 		"stage 3 accepts food"
 	)
-	life.tick(
-		float(
-			duration_three
-		)
-	)
-	check(
-		not bool(
-			life.snapshot().get(
-				"ready_to_evolve",
-				true
-			)
-		),
-		"stage 3 first food cycle keeps hunger penalties"
-	)
 	check(
 		life.apply_item({
-			"item_type": "food",
-			"display_name": "Second Stage 3 Food",
+			"item_type": "growth",
+			"display_name": "Stage 3 Growth Finish",
 			"main_value_seconds": duration_three,
-			"growth_delta_seconds": 0,
+			"food_delta_seconds": 0,
 		}).get(
 			"ok",
 			false
 		),
-		"stage 3 can be fed again"
-	)
-	life.tick(
-		float(
-			duration_three
-		)
+		"fed Stage 3 accepts Growth item"
 	)
 	check(
 		bool(
@@ -564,12 +552,22 @@ func _test_hunger_thresholds() -> void:
 		"Growth item cannot develop a hibernating pet"
 	)
 
+	var food_capacity := int(
+		life.snapshot().get(
+			"food_capacity_seconds",
+			0
+		)
+	)
+	check(
+		food_capacity > 0,
+		"Stage 2 exposes fixed food capacity"
+	)
 	check(
 		bool(
 			life.apply_item({
 				"item_type": "food",
 				"display_name": "Threshold Food",
-				"main_value_seconds": 1000,
+				"main_value_seconds": food_capacity,
 				"growth_delta_seconds": 0,
 			}).get(
 				"ok",
@@ -602,7 +600,7 @@ func _test_hunger_thresholds() -> void:
 	)
 
 	life.tick(
-		500.0
+		float(food_capacity) * 0.5
 	)
 	var half := life.snapshot()
 	check(
@@ -623,12 +621,14 @@ func _test_hunger_thresholds() -> void:
 				"growth_elapsed_seconds",
 				-1
 			)
-		) == 500,
+		) == int(
+			float(food_capacity) * 0.5
+		),
 		"50 percent fullness switches to 75 percent speed"
 	)
 
 	life.tick(
-		250.0
+		float(food_capacity) * 0.25
 	)
 	var quarter := life.snapshot()
 	check(
@@ -653,12 +653,16 @@ func _test_hunger_thresholds() -> void:
 					)
 				)
 			)
-		) == 688,
+		) == int(
+			round(
+				float(food_capacity) * 0.6875
+			)
+		),
 		"25 percent fullness switches to 50 percent speed"
 	)
 
 	life.tick(
-		250.0
+		float(food_capacity) * 0.25
 	)
 	var empty := life.snapshot()
 	var frozen_growth := float(
@@ -690,7 +694,11 @@ func _test_hunger_thresholds() -> void:
 			round(
 				frozen_growth
 			)
-		) == 813,
+		) == int(
+			round(
+				float(food_capacity) * 0.8125
+			)
+		),
 		"zero fullness enters hibernation after piecewise growth"
 	)
 
