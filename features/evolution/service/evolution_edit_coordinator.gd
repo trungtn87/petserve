@@ -183,7 +183,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v9_stage_%d"
+		+ "_pethome_v10_stage_%d"
 		% target_stage
 	)
 
@@ -290,7 +290,7 @@ func build_natural_request(
 
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
+		+ "Create a completely new full-screen environmental PetHome scene from scratch for this same canonical pet lineage. "
 		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
 		+ "with a mature juvenile body rather than a giant baby head, while keeping the locked on-screen PetHome scale. "
 		+ "This is a whole-body age transition, so secondary morphology is intentionally allowed to change."
@@ -333,8 +333,8 @@ func build_natural_request(
 			scene_profile
 		)
 		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "portrait with no text or UI."
+		+ "a fresh environmental scene. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
+		+ "scene with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
@@ -666,7 +666,7 @@ func _build_stage_one_gene_regenerate(
 
 	positive_prompt += (
 		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
+		+ "Create a completely new full-screen environmental PetHome scene from scratch for this same canonical pet lineage. "
 		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
 		+ "with a mature juvenile body while keeping the locked on-screen PetHome scale. Secondary morphology is intentionally allowed to change."
 	)
@@ -722,8 +722,8 @@ func _build_stage_one_gene_regenerate(
 			scene_profile
 		)
 		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "portrait with no text or UI."
+		+ "a fresh environmental scene. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
+		+ "scene with no text or UI."
 	)
 
 	var request := PetRenderRequest.new()
@@ -951,7 +951,10 @@ func _stage_two_species_prompt(
 		profile.species_anatomy
 		+ " "
 		+ profile.freestyle_pose
-		+ " Stage 2 pose and camera-relative stance are freestyle. "
+		+ " Stage 2 must keep a natural feline posture and weight distribution. "
+		+ "The cat may sit, crouch, rest, walk, stand on four legs, or naturally lift one FRONT paw. "
+		+ "Never make the cat stand upright on two hind legs and never use a humanoid, mascot or anthropomorphic pose. "
+		+ "Front legs remain feline forelegs/paws, not arms or hands. "
 		+ "Preserve species identity and coherent anatomy, but do not force all appendages to be visible. "
 		+ "Natural overlap and occlusion are allowed."
 	)
@@ -959,14 +962,17 @@ func _stage_two_species_prompt(
 
 func _stage_two_composition_prompt() -> String:
 	return (
-		"Use a vertical 9:16 environmental establishing shot, not a character portrait. "
+		"Use a vertical 9:16 WIDE environmental establishing shot with the camera pulled back, never a character portrait or showcase shot. "
+		+ "The environment is the main composition and the pet is a smaller focal subject living inside it. "
 		+ "Keep the whole pet comfortably inside the frame and its overall species silhouette readable. "
-		+ "Natural perspective and partial occlusion of limbs, wings, tail or other appendages are allowed. "
-		+ "LOCKED SCALE FOR EVERY LIFE STAGE: the visible pet height must be about 35 percent of total image height, measured from the highest visible point of the pet to the lowest visible pet point, or the ground-contact point for a grounded pose. "
-		+ "Place that lowest visible point at about 90 percent of total image height, leaving about 10 percent of image height below the pet. "
-		+ "Keep the pet horizontally near center and in the lower-middle of the frame. Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
-		+ "Keep the environment dominant with clear foreground, midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
-		+ "Do not zoom in, do not crop the pet, do not place the pet on the bottom edge, and do not replace the PetHome with a studio backdrop."
+		+ "Natural perspective and partial occlusion of limbs, tail or other appendages are allowed. "
+		+ "LOCKED SCALE FOR STAGE 2: the visible pet height should occupy only about 28 to 32 percent of total image height. "
+		+ "Visually, the pet should fit mostly inside the LOWER THIRD of the scene, with abundant environment visible above and around it. "
+		+ "Place the lowest visible pet point around 88 to 90 percent of total image height and keep the highest visible pet point below roughly 55 to 60 percent of total image height. "
+		+ "Do not enlarge the pet because it is older; Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
+		+ "Keep at least about 65 to 70 percent of the image reading as environment, with clear foreground, midground and background depth. "
+		+ "Leave the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
+		+ "Do not zoom in, do not crop the pet, do not let ears or head enter the top half of the frame, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
 	)
 
 
@@ -979,9 +985,11 @@ func _pethome_scale_lock_section() -> String:
 
 func _stage_two_negative_prompt() -> String:
 	return (
-		"close-up portrait, medium portrait, bust shot, giant pet, oversized character, "
-		+ "pet filling the frame, cropped pet, plain studio background, gray studio background, "
+		"close-up portrait, medium portrait, bust shot, character showcase, character poster, giant pet, oversized character, "
+		+ "pet filling the frame, pet occupying most of the image, pet taller than 35 percent of image height, zoomed-in camera, "
+		+ "cropped pet, head in the upper half of the frame, plain studio background, gray studio background, "
 		+ "empty backdrop, missing environment, color-swap-only element design, "
+		+ "upright bipedal cat, cat standing on two hind legs, anthropomorphic cat pose, humanoid torso, mascot pose, arms, hands, "
 		+ "identical silhouette across all elements, duplicated appendage, duplicated body part, "
 		+ "malformed species anatomy, impossible joint, detached appendage"
 	)
@@ -993,7 +1001,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v9_stage_%d"
+		+ "_pethome_v10_stage_%d"
 		% target_stage
 	)
 
