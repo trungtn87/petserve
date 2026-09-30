@@ -114,21 +114,12 @@ static func load_from_path(
 				)
 			)
 		)
-		var starved_multiplier := float(
-			raw.get(
-				"starved_growth_multiplier",
-				0.0
-			)
-		)
-
 		if (
 			stage_index < 1
 			or duration <= 0
 			or starting_food < 0
 			or food_capacity <= 0
 			or starting_food > food_capacity
-			or starved_multiplier < 0.0
-			or starved_multiplier > 1.0
 			or policy._stages.has(
 				stage_index
 			)
@@ -140,7 +131,6 @@ static func load_from_path(
 			"duration_seconds": duration,
 			"starting_food_seconds": starting_food,
 			"food_capacity_seconds": food_capacity,
-			"starved_growth_multiplier": starved_multiplier,
 			"tutorial_protected": bool(
 				raw.get(
 					"tutorial_protected",
