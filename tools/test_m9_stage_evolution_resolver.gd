@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 
 
 const SEED: int = 9404
@@ -7,7 +7,7 @@ const SEED: int = 9404
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_natural_growth()
 	_test_stage_one_gene_expression()
 	_test_stage_two_new_gene_branch()
@@ -20,14 +20,14 @@ func _initialize() -> void:
 		print(
 			"M9.4 Stage Evolution Resolver: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"M9.4 Stage Evolution Resolver: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_natural_growth() -> void:
