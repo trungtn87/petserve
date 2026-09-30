@@ -125,7 +125,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v7_stage_%d"
+				+ "_pethome_v9_stage_%d"
 				% to_stage
 			)
 	):
