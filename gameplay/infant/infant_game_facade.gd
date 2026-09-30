@@ -2,7 +2,12 @@ class_name InfantGameFacade
 extends RefCounted
 
 
-const META_SCHEMA: int = 3
+const ElementCrystallizationServiceScript = preload(
+	"res://gameplay/crystallization/element_crystallization_service.gd"
+)
+
+
+const META_SCHEMA: int = 4
 const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 
 
@@ -12,6 +17,7 @@ var _inventory: InventoryService = InventoryService.new()
 var _chests: ChestService = ChestService.new()
 var _lifecycle: StageLifecycle = StageLifecycle.new()
 var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
+var _crystallization = ElementCrystallizationServiceScript.new()
 var _evolution_save: EvolutionSaveService = EvolutionSaveService.new()
 var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
@@ -20,17 +26,20 @@ var _gene_state: GeneDevelopmentState
 var _evolution_plan_pending: bool = false
 var _run_id: int = 0
 var _stage_index: int = 1
+var _element_id: StringName = &"neutral"
 
 
 func setup(
 	run_id: int,
-	stage_index: int = 1
+	stage_index: int = 1,
+	element_id: StringName = &"neutral"
 ) -> bool:
 	_run_id = run_id
 	_stage_index = maxi(
 		1,
 		stage_index
 	)
+	_element_id = element_id
 	_meta = SaveManager.load_meta()
 	_evolution_plan_pending = _load_pending_evolution_state()
 
@@ -94,6 +103,18 @@ func setup(
 			)
 		)
 	)
+	_crystallization.setup(
+		_meta,
+		_generator,
+		_gene_definitions,
+		_gene_policy,
+		_run_id,
+		_stage_index,
+		_element_id
+	)
+	_apply_crystallization_update(
+		_crystallization.process()
+	)
 	_entertainment.setup(
 		_meta,
 		_chests,
@@ -109,8 +130,13 @@ func tick(
 	var should_save := _lifecycle.tick(
 		delta
 	)
+	var crystallization_changed := (
+		_apply_crystallization_update(
+			_crystallization.process()
+		)
+	)
 
-	if should_save:
+	if should_save or crystallization_changed:
 		save()
 
 
@@ -161,6 +187,9 @@ func snapshot() -> Dictionary:
 	)
 	state["evolution_plan_pending"] = (
 		_evolution_plan_pending
+	)
+	state["crystallization"] = (
+		_crystallization.snapshot()
 	)
 
 	if (
@@ -402,6 +431,50 @@ func inventory(
 	return _inventory.list_items(
 		filter_type
 	)
+
+
+func start_crystallization() -> Dictionary:
+	var before := _meta.duplicate(true)
+	var result := _crystallization.start()
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return result
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được lượt kết tinh. Hãy thử lại.",
+		}
+
+	return result
+
+
+func cancel_crystallization() -> Dictionary:
+	var before := _meta.duplicate(true)
+	var result := _crystallization.cancel()
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return result
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được thay đổi. Lượt kết tinh vẫn được giữ.",
+		}
+
+	return result
 
 
 func open_next_chest() -> Array[Dictionary]:
@@ -736,6 +809,10 @@ func advance_to_stage(
 			stage_index
 		)
 
+	_crystallization.update_context(
+		stage_index,
+		_element_id
+	)
 	_sync_gene_meta()
 	return save()
 
@@ -763,6 +840,17 @@ func _use_gene_item(
 			"message": "Gene Item không có định nghĩa hợp lệ.",
 		}
 
+	var influence_tags := definition.influence_tags()
+	var item_tags_value: Variant = item.get(
+		"influence_tags",
+		{}
+	)
+
+	if typeof(item_tags_value) == TYPE_DICTIONARY:
+		influence_tags = (
+			item_tags_value as Dictionary
+		).duplicate(true)
+
 	var result := _gene_state.record_gene_item(
 		_gene_policy,
 		String(
@@ -775,7 +863,7 @@ func _use_gene_item(
 		definition.locus(),
 		definition.direction(),
 		definition.primary_influence(),
-		definition.influence_tags()
+		influence_tags
 	)
 
 	if not bool(
@@ -829,6 +917,39 @@ func _use_gene_item(
 		)
 	)
 	return result
+
+
+func _apply_crystallization_update(
+	update: Dictionary
+) -> bool:
+	var changed := bool(
+		update.get(
+			"changed",
+			false
+		)
+	)
+	var rewards_value: Variant = update.get(
+		"rewards",
+		[]
+	)
+
+	if typeof(rewards_value) != TYPE_ARRAY:
+		return changed
+
+	var rewards: Array[Dictionary] = []
+
+	for raw_value in rewards_value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
+		rewards.append(
+			(raw_value as Dictionary).duplicate(true)
+		)
+
+	if not rewards.is_empty():
+		_inventory.add_items(rewards)
+		changed = true
+
+	return changed
 
 
 func _gene_definition_for_item(

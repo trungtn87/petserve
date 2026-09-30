@@ -34,6 +34,11 @@ var _drawer
 var _section_overlay: Control
 var _section_title: Label
 var _section_body: VBoxContainer
+var _active_section: StringName = &""
+var _crystal_status_value: Label
+var _crystal_stage_value: Label
+var _crystal_timer_value: Label
+var _crystal_running: bool = false
 
 
 func _ready() -> void:
@@ -1070,8 +1075,13 @@ func _open_placeholder(
 
 
 func _prepare_section(
-	title: String
+	title: String,
+	section_id: StringName = &""
 ) -> void:
+	_active_section = section_id
+	_crystal_status_value = null
+	_crystal_stage_value = null
+	_crystal_timer_value = null
 	_section_title.text = title
 
 	for child in _section_body.get_children():
@@ -1081,7 +1091,7 @@ func _prepare_section(
 func _add_info_row(
 	label_text: String,
 	value_text: String
-) -> void:
+) -> Label:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(
 		"separation",
@@ -1117,9 +1127,14 @@ func _add_info_row(
 		)
 	)
 	row.add_child(value)
+	return value
 
 
 func _close_section() -> void:
+	_active_section = &""
+	_crystal_status_value = null
+	_crystal_stage_value = null
+	_crystal_timer_value = null
 	_section_overlay.visible = false
 
 
@@ -1128,7 +1143,8 @@ func _setup_gameplay() -> void:
 	var genome: PetGenome = _data.get("_genome_object")
 	_game.setup(
 		identity.lineage_seed(),
-		genome.stage()
+		genome.stage(),
+		identity.element()
 	)
 	theme = PetHomeGameplayTheme.build(_theme)
 	_hud = PetHomeGameplayUI.new()
@@ -1212,6 +1228,7 @@ func _refresh_gameplay() -> void:
 		)
 	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
+	_refresh_crystallization_section()
 
 func _notification(what: int) -> void:
 	if _hud == null:
@@ -1224,7 +1241,8 @@ func _notification(what: int) -> void:
 		var genome: PetGenome = _data.get("_genome_object")
 		_game.setup(
 			identity.lineage_seed(),
-			genome.stage()
+			genome.stage(),
+			identity.element()
 		)
 		_paused = false
 		_skip_tick = true
@@ -1233,16 +1251,38 @@ func _exit_tree() -> void:
 	if _hud != null:
 		_game.save()
 
-func _section_button(text: String, callback: Callable) -> void:
+func _section_button(text: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size.y = 48
 	button.pressed.connect(callback)
 	_section_body.add_child(button)
+	return button
 
 func _open_storage() -> void:
 	_prepare_section("Kho tài nguyên")
 	var state := _game.snapshot()
+	var crystal := _crystallization_snapshot()
+	var crystal_text := "Sẵn sàng"
+
+	if bool(crystal.get("running", false)):
+		crystal_text = (
+			"Giai đoạn %s • %s"
+			% [
+				_crystal_stage_name(
+					int(crystal.get("stage", 1))
+				),
+				_format_crystal_time(
+					int(
+						crystal.get(
+							"remaining_seconds",
+							0
+						)
+					)
+				),
+			]
+		)
+
 	_add_info_row("Rương", str(state.get("pending_chests", 0)))
 	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
 	_add_info_row(
@@ -1252,9 +1292,259 @@ func _open_storage() -> void:
 			int(state.get("chest_fragments_required", 10)),
 		]
 	)
+	_add_info_row("Kết tinh", crystal_text)
 	_section_button("RƯƠNG • Mở rương kế tiếp", _open_chest)
 	_section_button("HÒM ITEM", func(): _close_section(); _hud.open_inventory())
+	_section_button("KẾT TINH NGUYÊN TỐ", _open_crystallization)
 	_section_overlay.visible = true
+
+
+func _open_crystallization() -> void:
+	_prepare_section(
+		"Kết tinh nguyên tố",
+		&"crystallization"
+	)
+	var crystal := _crystallization_snapshot()
+	var running := bool(
+		crystal.get(
+			"running",
+			false
+		)
+	)
+	_crystal_running = running
+	var element_id := StringName(
+		crystal.get(
+			"element_id",
+			"neutral"
+		)
+	)
+
+	_add_info_row(
+		"Nguyên tố",
+		PetHomeThemeScript.element_label(
+			element_id
+		)
+	)
+	_crystal_status_value = _add_info_row(
+		"Trạng thái",
+		(
+			"Đang kết tinh"
+			if running
+			else "Sẵn sàng"
+		)
+	)
+	_crystal_stage_value = _add_info_row(
+		"Giai đoạn",
+		(
+			_crystal_stage_name(
+				int(
+					crystal.get(
+						"stage",
+						1
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+	)
+	_crystal_timer_value = _add_info_row(
+		"Còn lại",
+		(
+			_format_crystal_time(
+				int(
+					crystal.get(
+						"remaining_seconds",
+						0
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+	)
+
+	_add_info_row(
+		"I",
+		"1h • 70% vật phẩm No • 30% → II"
+	)
+	_add_info_row(
+		"II",
+		"3h • 70% vật phẩm Growth • 30% → III"
+	)
+	_add_info_row(
+		"III",
+		"8h • Kết tinh mang Gene"
+	)
+
+	var last_value: Variant = crystal.get(
+		"last_result",
+		{}
+	)
+	if typeof(last_value) == TYPE_DICTIONARY:
+		var last := last_value as Dictionary
+		if not last.is_empty():
+			_add_info_row(
+				"Kết quả gần nhất",
+				String(
+					last.get(
+						"display_name",
+						"Vật phẩm"
+					)
+				)
+			)
+
+	if running:
+		_section_button(
+			"HỦY KẾT TINH",
+			_cancel_crystallization
+		)
+	else:
+		_section_button(
+			"BẮT ĐẦU KẾT TINH",
+			_start_crystallization
+		)
+
+	_section_overlay.visible = true
+
+
+func _start_crystallization() -> void:
+	var result := _game.start_crystallization()
+	_hud.show_message(
+		String(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+
+	if bool(result.get("ok", false)):
+		_open_crystallization()
+		_refresh_gameplay()
+
+
+func _cancel_crystallization() -> void:
+	var result := _game.cancel_crystallization()
+	_hud.show_message(
+		String(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+
+	if bool(result.get("ok", false)):
+		_open_crystallization()
+		_refresh_gameplay()
+
+
+func _refresh_crystallization_section() -> void:
+	if (
+		_active_section != &"crystallization"
+		or not _section_overlay.visible
+	):
+		return
+
+	var crystal := _crystallization_snapshot()
+	var running := bool(
+		crystal.get(
+			"running",
+			false
+		)
+	)
+
+	if running != _crystal_running:
+		_crystal_running = running
+		call_deferred(
+			"_open_crystallization"
+		)
+		return
+
+	if _crystal_status_value != null:
+		_crystal_status_value.text = (
+			"Đang kết tinh"
+			if running
+			else "Sẵn sàng"
+		)
+
+	if _crystal_stage_value != null:
+		_crystal_stage_value.text = (
+			_crystal_stage_name(
+				int(
+					crystal.get(
+						"stage",
+						1
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+
+	if _crystal_timer_value != null:
+		_crystal_timer_value.text = (
+			_format_crystal_time(
+				int(
+					crystal.get(
+						"remaining_seconds",
+						0
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+
+
+func _crystallization_snapshot() -> Dictionary:
+	var value: Variant = _game.snapshot().get(
+		"crystallization",
+		{}
+	)
+
+	if typeof(value) != TYPE_DICTIONARY:
+		return {}
+
+	return (
+		value as Dictionary
+	).duplicate(true)
+
+
+func _crystal_stage_name(
+	stage: int
+) -> String:
+	match stage:
+		1:
+			return "I"
+		2:
+			return "II"
+		3:
+			return "III"
+		_:
+			return "—"
+
+
+func _format_crystal_time(
+	seconds: int
+) -> String:
+	var safe := maxi(
+		0,
+		seconds
+	)
+	var hours := int(
+		safe / 3600
+	)
+	var minutes := int(
+		(safe % 3600) / 60
+	)
+	var secs := safe % 60
+	return "%02d:%02d:%02d" % [
+		hours,
+		minutes,
+		secs,
+	]
 
 func _open_chest() -> void:
 	var items := _game.open_next_chest()
