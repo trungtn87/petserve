@@ -1017,28 +1017,32 @@ func _test_stage_one_gene_visual_matrix() -> void:
 	var genome := PetGenomeFactory.new().create_initial()
 	var policy := StageGenePolicy.load_default()
 	var genes := GeneCatalog.new().load_default()
-	var visuals := MutationVisualCatalog.new().load_default()
-	var stage_one_genes: Array[GeneDefinition] = []
+	var compatible_genes: Array[GeneDefinition] = []
 
 	for definition in genes:
-		if policy.can_accept_gene(
-			1,
-			definition.locus()
+		if (
+			policy.can_accept_gene(
+				1,
+				definition.locus()
+			)
+			and definition.is_element_compatible(
+				identity.element()
+			)
 		):
-			stage_one_genes.append(
+			compatible_genes.append(
 				definition
 			)
 
 	_expect(
-		genes.size() == 17,
-		"Gene catalog fixture must contain 17 definitions"
+		genes.size() == 64,
+		"Gene catalog fixture must contain 64 definitions"
 	)
 	_expect(
-		stage_one_genes.size() == 7,
-		"Stage 1 policy must expose exactly 7 eligible Gene definitions"
+		compatible_genes.size() == 52,
+		"Dark pet must see 50 shared + Dark Mark/Aura definitions"
 	)
 
-	for definition in stage_one_genes:
+	for definition in compatible_genes:
 		var state := GeneDevelopmentState.new(
 			1
 		)
@@ -1051,8 +1055,10 @@ func _test_stage_one_gene_visual_matrix() -> void:
 			definition.id(),
 			definition.locus(),
 			definition.direction(),
-			definition.primary_influence(),
-			definition.influence_tags()
+			20.0,
+			definition.influence_tags(),
+			"uncommon",
+			definition.element_lock()
 		)
 		var resolved := StageEvolutionResolver.new().resolve(
 			identity,
@@ -1062,6 +1068,11 @@ func _test_stage_one_gene_visual_matrix() -> void:
 		var delta := resolved.get(
 			"delta"
 		) as EvolutionDelta
+		var score_prompt := GenePromptResolver.new().build(
+			state,
+			identity.element(),
+			2
+		)
 
 		_expect(
 			bool(
@@ -1077,25 +1088,19 @@ func _test_stage_one_gene_visual_matrix() -> void:
 				)
 			)
 			and delta != null,
-			"every Stage 1 Gene must resolve: %s"
+			"every compatible Stage 1 Gene must resolve: %s"
 			% String(
 				definition.id()
 			)
 		)
-
-		if delta == null:
-			continue
-
-		var visual := MutationVisualCatalog.new().find_by_id(
-			visuals,
-			delta.mutation_id()
-		)
-
 		_expect(
-			visual != null
-			and visual.target_region()
-				== definition.locus(),
-			"every Stage 1 Gene delta must have a curated matching visual: %s"
+			not definition.prompt_stem().is_empty()
+			and score_prompt.contains(
+				String(
+					definition.direction()
+				)
+			),
+			"every Gene must provide score-driven prompt metadata: %s"
 			% String(
 				definition.id()
 			)
