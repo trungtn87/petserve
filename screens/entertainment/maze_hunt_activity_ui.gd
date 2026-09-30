@@ -291,11 +291,23 @@ func _update_reward_label() -> void:
 
 	if not _reward_enabled:
 		_reward_label.text = (
-			"Chơi tự do • phần thưởng Maze Hunt chỉ có ở Stage 2."
+			"Chơi tự do • rương hoạt động chỉ có ở Stage 2."
 		)
 		return
 
+	var remaining := maxi(
+		0,
+		_reward_max
+		- _reward_claimed
+	)
+
 	_reward_label.text = (
-		"Rương Maze Hunt %d/%d"
-		% [_reward_claimed, _reward_max]
+		"Rương chung Maze + Snake còn %d/%d"
+		% [
+			remaining,
+			_reward_max,
+		]
+		if remaining > 0
+		else "Rương chung Maze + Snake còn 0/%d • vẫn chơi tự do"
+			% _reward_max
 	)
