@@ -126,7 +126,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v9_stage_2"
+			"_pethome_v10_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
@@ -143,7 +143,7 @@ func _test_natural_stage_one_plan() -> void:
 			"[SPECIES FREESTYLE]"
 		)
 		and request.positive_prompt.contains(
-			"pose and camera-relative stance are freestyle"
+			"Never make the cat stand upright on two hind legs"
 		)
 		and not request.positive_prompt.contains(
 			"[QUADRUPED BODY PLAN]"
@@ -152,13 +152,13 @@ func _test_natural_stage_one_plan() -> void:
 			"[PETHOME SCALE LOCK]"
 		)
 		and request.positive_prompt.contains(
-			"35 percent"
+			"28 to 32 percent"
 		)
 		and request.positive_prompt.contains(
-			"10 percent"
+			"65 to 70 percent"
 		)
 		and request.positive_prompt.contains(
-			"90 percent"
+			"88 to 90 percent"
 		)
 		and request.positive_prompt.contains(
 			"body=base"
@@ -172,7 +172,7 @@ func _test_natural_stage_one_plan() -> void:
 		and request.negative_prompt.contains(
 			"duplicated appendage"
 		)
-		and not request.negative_prompt.contains(
+		and request.negative_prompt.contains(
 			"bipedal"
 		)
 		and request.seed > 0,
@@ -270,7 +270,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v9_full_regenerate"
+			) == "evolution_pethome_v10_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -409,7 +409,7 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v9_stage_2"
+			"_pethome_v10_stage_2"
 		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
@@ -422,7 +422,7 @@ func _test_gene_stage_one_plan() -> void:
 			"[SPECIES FREESTYLE]"
 		)
 		and request.positive_prompt.contains(
-			"pose and camera-relative stance are freestyle"
+			"Never make the cat stand upright on two hind legs"
 		)
 		and not request.positive_prompt.contains(
 			"[QUADRUPED BODY PLAN]"
@@ -431,13 +431,13 @@ func _test_gene_stage_one_plan() -> void:
 			"[PETHOME SCALE LOCK]"
 		)
 		and request.positive_prompt.contains(
-			"35 percent"
+			"28 to 32 percent"
 		)
 		and request.positive_prompt.contains(
-			"10 percent"
+			"65 to 70 percent"
 		)
 		and request.positive_prompt.contains(
-			"90 percent"
+			"88 to 90 percent"
 		)
 		and request.positive_prompt.contains(
 			"[SOURCE PHENOTYPE BLUEPRINT]"
@@ -460,7 +460,7 @@ func _test_gene_stage_one_plan() -> void:
 		and request.negative_prompt.contains(
 			"duplicated appendage"
 		)
-		and not request.negative_prompt.contains(
+		and request.negative_prompt.contains(
 			"bipedal"
 		)
 		and request.seed > 0,
@@ -553,7 +553,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v9_full_regenerate"
+			) == "evolution_pethome_v10_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -1269,7 +1269,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v9_full_regenerate"
+		&"evolution_pethome_v10_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
