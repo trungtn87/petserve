@@ -371,7 +371,7 @@ func validate(
 	if not same_stage_target.is_valid():
 		return "Không rebuild được target Genome để validate render plan."
 
-	var expected_plan := coordinator.build_stage_regenerate_request(
+	var expected_plan: Dictionary = coordinator.build_stage_regenerate_request(
 		identity,
 		current,
 		same_stage_target,

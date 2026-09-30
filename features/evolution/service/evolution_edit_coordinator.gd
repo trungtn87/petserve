@@ -7,7 +7,7 @@ const InitialSpeciesCatalogScript = preload(
 )
 
 
-const PLAN_SCHEMA: int = 1
+const PLAN_SCHEMA: int = 2
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
 const STAGE_TWO_EDIT_STRENGTH: float = 0.30
@@ -201,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v11_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% target_stage
 	)
 
@@ -809,6 +809,242 @@ func _composite_seed_key(
 	)
 
 
+func build_stage_regenerate_request(
+	identity: PetIdentity,
+	previous_genome: PetGenome,
+	target_genome: PetGenome,
+	deltas: Array[EvolutionDelta],
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile = null,
+	mythic_resolution: Dictionary = {}
+) -> Dictionary:
+	if (
+		identity == null
+		or previous_genome == null
+		or target_genome == null
+		or source_visual == null
+		or not identity.is_valid()
+		or not previous_genome.is_valid()
+		or not target_genome.is_valid()
+		or not source_visual.is_valid()
+		or source_visual.pet_id != identity.pet_id()
+		or target_stage != previous_genome.stage() + 1
+		or target_genome.stage() != previous_genome.stage()
+	):
+		return {
+			"ok": false,
+			"error": "Dữ liệu full-regenerate evolution không hợp lệ.",
+		}
+
+	if scene_profile != null:
+		if (
+			not scene_profile.is_valid()
+			or scene_profile.element != identity.element()
+		):
+			return {
+				"ok": false,
+				"error": "PetHome Scene Profile full-regenerate không hợp lệ.",
+			}
+
+	var stage_one_detail := _element_stage_prompt(
+		identity.element(),
+		1
+	)
+	var target_stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if (
+		stage_one_detail.is_empty()
+		or target_stage_detail.is_empty()
+	):
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho full-regenerate.",
+		}
+
+	var species_profile := _species_profile(
+		identity.species()
+	)
+
+	if species_profile == null:
+		return {
+			"ok": false,
+			"error": "Thiếu species profile cho full-regenerate.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new().describe(
+		target_genome
+	)
+	var positive_prompt := (
+		"Create a NEW image for evolution Stage %d. "
+		+ "Do not copy, trace or image-edit the previous stage. "
+		+ "This must visibly look older and more developed than Stage %d. "
+		+ "Preserve the same pet lineage: species, elemental color family, face language, "
+		+ "forehead lineage sigil, fur motif language and exactly one normal tail unless a locked mutation says otherwise. "
+		+ "Use the same deterministic lineage seed so the new image still reads as the same individual design family. "
+	) % [
+		target_stage,
+		previous_genome.stage(),
+	]
+
+	positive_prompt += (
+		"Stage 1 ancestry cues: "
+		+ stage_one_detail
+		+ " Target stage morphology: "
+		+ target_stage_detail
+		+ " "
+		+ species_profile.species_anatomy
+		+ " "
+		+ species_profile.freestyle_pose
+	)
+
+	positive_prompt += (
+		" Target phenotype from game code: "
+		+ phenotype
+		+ "."
+	)
+
+	var visual_catalog := MutationVisualCatalog.new()
+	var visuals := visual_catalog.load_default()
+
+	if not deltas.is_empty():
+		positive_prompt += (
+			" Apply only these Gene changes selected by code:"
+		)
+
+		for delta in deltas:
+			if (
+				delta == null
+				or not delta.is_valid()
+			):
+				return {
+					"ok": false,
+					"error": "Full-regenerate có Gene delta không hợp lệ.",
+				}
+
+			var visual := visual_catalog.find_by_id(
+				visuals,
+				delta.mutation_id()
+			)
+
+			if visual == null:
+				return {
+					"ok": false,
+					"error": "Thiếu visual definition cho %s."
+					% String(delta.mutation_id()),
+				}
+
+			positive_prompt += (
+				" "
+				+ visual.instruction()
+				+ " "
+				+ visual.preserve_hint()
+			)
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if mythic_active:
+		positive_prompt += (
+			" Special fantasy mutation is ACTIVE because game conditions were met: "
+			+ String(
+				mythic_resolution.get(
+					"display_name",
+					""
+				)
+			)
+			+ ". "
+			+ String(
+				mythic_resolution.get(
+					"prompt",
+					""
+				)
+			)
+			+ " "
+			+ String(
+				mythic_resolution.get(
+					"preserve_hint",
+					""
+				)
+			)
+		)
+	else:
+		positive_prompt += (
+			" No special fantasy mutation is active. "
+			+ "Do not add horns, wings, extra tails or other mythical mutation anatomy."
+		)
+
+	positive_prompt += (
+		" Create a simple natural fantasy environment matching the "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ " element. "
+		+ _scene_rebuild_prompt(
+			scene_profile
+		)
+		+ " Vertical 9:16 mobile scene. Full body visible. "
+		+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
+		+ "Background occupies most of the image. Keep the upper area calm for UI. "
+		+ "No text or UI."
+	)
+
+	var negative_prompt := (
+		"same-age copy of previous stage, unchanged kitten proportions, image-edit look, "
+		+ "extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
+		+ "heavy accessories, text, UI, logo, watermark"
+	)
+
+	if not mythic_active:
+		negative_prompt += (
+			", horns, wings, mythical mutation anatomy"
+		)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = negative_prompt
+	request.seed = max(
+		1,
+		posmod(
+			identity.lineage_seed(),
+			SEED_MODULUS
+		)
+	)
+	request.output_key = (
+		identity.pet_id()
+		+ "_pethome_v12_stage_%d"
+		% target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Evolution full-regenerate request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
 func serialize_request(
 	request: PetRenderRequest
 ) -> Dictionary:
@@ -860,6 +1096,10 @@ func request_from_dict(
 			!= int(
 				PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 			)
+		and mode_value
+			!= int(
+				PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+			)
 	):
 		return null
 
@@ -878,6 +1118,13 @@ func request_from_dict(
 		):
 			request.mode = (
 				PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			)
+
+		int(
+			PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		):
+			request.mode = (
+				PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 			)
 
 	request.pet_id = str(
@@ -1312,7 +1559,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v11_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% target_stage
 	)
 
