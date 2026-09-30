@@ -1,23 +1,23 @@
-extends SceneTree
+extends Node
 
 
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_evolution_one_guarantees_stage2_gene()
 	_test_stage2_activity_shared_pool_and_gene_guarantee()
 
 	if _failures == 0:
 		print("Stage 2 rewards: PASS")
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"Stage 2 rewards: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_evolution_one_guarantees_stage2_gene() -> void:
