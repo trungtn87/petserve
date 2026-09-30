@@ -753,12 +753,12 @@ func _add_current_trait_rows(
 	var added := 0
 
 	for locus in PetGenomeSchema.VISUAL_LOCI:
-		var trait := genome.get_trait(
+		var trait_id := genome.get_trait(
 			locus,
 			PetGenomeSchema.BASE_TRAIT
 		)
 
-		if trait == PetGenomeSchema.BASE_TRAIT:
+		if trait_id == PetGenomeSchema.BASE_TRAIT:
 			continue
 
 		_add_info_row(
@@ -773,7 +773,7 @@ func _add_current_trait_rows(
 					locus
 				),
 				_trait_value(
-					trait
+					trait_id
 				),
 			]
 		)
@@ -1025,13 +1025,13 @@ func _trait_label(
 
 
 func _trait_value(
-	trait: StringName
+	trait_id: StringName
 ) -> String:
-	if trait == PetGenomeSchema.BASE_TRAIT:
+	if trait_id == PetGenomeSchema.BASE_TRAIT:
 		return "Cơ bản"
 
 	return String(
-		trait
+		trait_id
 	).replace(
 		"_",
 		" "
@@ -1147,7 +1147,7 @@ func _setup_gameplay() -> void:
 		Control.PRESET_FULL_RECT
 	)
 	_hub.caro_win_reward_requested.connect(_reward)
-	_hub.maze_reward_requested.connect(_reward_maze)
+	_hub.obstacle_reward_requested.connect(_reward_obstacle)
 	_hub.snake_reward_requested.connect(_reward_snake)
 	_refresh_gameplay()
 
@@ -1322,15 +1322,15 @@ func _reward() -> void:
 	_refresh_gameplay()
 
 
-func _reward_maze(
+func _reward_obstacle(
 	score: int,
 	match_id: String
 ) -> void:
-	var result := _game.claim_maze_hunt_reward(
+	var result := _game.claim_obstacle_run_reward(
 		score,
 		match_id
 	)
-	_hub.show_maze_reward_message(
+	_hub.show_obstacle_reward_message(
 		str(
 			result.get(
 				"message",

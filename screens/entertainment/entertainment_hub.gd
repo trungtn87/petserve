@@ -5,8 +5,8 @@ extends Control
 const CaroActivityScript = preload(
 	"res://screens/entertainment/caro_activity_ui.gd"
 )
-const MazeHuntActivityScript = preload(
-	"res://screens/entertainment/maze_hunt_activity_ui.gd"
+const ObstacleRunActivityScript = preload(
+	"res://screens/entertainment/obstacle_run_activity_ui.gd"
 )
 const SnakeHuntActivityScript = preload(
 	"res://screens/entertainment/snake_hunt_activity_ui.gd"
@@ -14,7 +14,7 @@ const SnakeHuntActivityScript = preload(
 
 
 signal caro_win_reward_requested
-signal maze_reward_requested(score: int, match_id: String)
+signal obstacle_reward_requested(score: int, match_id: String)
 signal snake_reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
@@ -34,9 +34,9 @@ var _stage2_reward_enabled: bool = false
 
 var _hub_screen: Control
 var _caro_activity
-var _maze_activity
+var _obstacle_activity
 var _snake_activity
-var _maze_card: Button
+var _obstacle_card: Button
 var _snake_card: Button
 var _reward_label: Label
 
@@ -85,8 +85,8 @@ func close_hub() -> void:
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
-	if _maze_activity != null:
-		_maze_activity.close_activity()
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
 
 	if _snake_activity != null:
 		_snake_activity.close_activity()
@@ -141,11 +141,11 @@ func show_reward_message(
 		)
 
 
-func show_maze_reward_message(
+func show_obstacle_reward_message(
 	message: String
 ) -> void:
-	if _maze_activity != null:
-		_maze_activity.show_reward_message(
+	if _obstacle_activity != null:
+		_obstacle_activity.show_reward_message(
 			message
 		)
 
@@ -277,7 +277,7 @@ func _build_ui() -> void:
 	_build_caro_activity(
 		body
 	)
-	_build_maze_activity(
+	_build_obstacle_activity(
 		body
 	)
 	_build_snake_activity(
@@ -368,15 +368,15 @@ func _build_hub_screen(
 		)
 	)
 
-	_maze_card = _activity_card(
-		"Maze Hunt",
-		"Chạy mê cung cùng pet",
+	_obstacle_card = _activity_card(
+		"Vượt chướng ngại",
+		"Chạm để nhảy",
 		true,
-		_open_maze,
+		_open_obstacle,
 		"◆"
 	)
 	grid.add_child(
-		_maze_card
+		_obstacle_card
 	)
 
 	_snake_card = _activity_card(
@@ -448,25 +448,25 @@ func _build_caro_activity(
 	)
 
 
-func _build_maze_activity(
+func _build_obstacle_activity(
 	parent: Control
 ) -> void:
-	_maze_activity = MazeHuntActivityScript.new()
-	_maze_activity.palette = palette
+	_obstacle_activity = ObstacleRunActivityScript.new()
+	_obstacle_activity.palette = palette
 	parent.add_child(
-		_maze_activity
+		_obstacle_activity
 	)
-	_maze_activity.set_anchors_and_offsets_preset(
+	_obstacle_activity.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
-	_maze_activity.visible = false
-	_maze_activity.reward_requested.connect(
-		_on_maze_reward_requested
+	_obstacle_activity.visible = false
+	_obstacle_activity.reward_requested.connect(
+		_on_obstacle_reward_requested
 	)
-	_maze_activity.back_requested.connect(
+	_obstacle_activity.back_requested.connect(
 		_show_hub_screen
 	)
-	_maze_activity.match_finished.connect(
+	_obstacle_activity.match_finished.connect(
 		_on_match_finished
 	)
 
@@ -615,19 +615,19 @@ func _open_caro() -> void:
 		_caro_activity.open_activity()
 
 
-func _open_maze() -> void:
+func _open_obstacle() -> void:
 	_hide_activities()
 
 	if _hub_screen != null:
 		_hub_screen.visible = false
 
-	if _maze_activity != null:
-		_maze_activity.set_reward_status(
+	if _obstacle_activity != null:
+		_obstacle_activity.set_reward_status(
 			_stage2_reward_claimed,
 			_stage2_reward_max,
 			_stage2_reward_enabled
 		)
-		_maze_activity.open_activity()
+		_obstacle_activity.open_activity()
 
 
 func _open_snake() -> void:
@@ -658,8 +658,8 @@ func _hide_activities() -> void:
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
-	if _maze_activity != null:
-		_maze_activity.close_activity()
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
 
 	if _snake_activity != null:
 		_snake_activity.close_activity()
@@ -674,7 +674,7 @@ func _sync_reward_state() -> void:
 		)
 
 	for activity in [
-		_maze_activity,
+		_obstacle_activity,
 		_snake_activity,
 	]:
 		if activity != null:
@@ -725,7 +725,7 @@ func _update_hub_reward_label() -> void:
 		)
 	else:
 		lines.append(
-			"Maze + Snake: chơi tự do • thưởng chỉ có ở Stage 2"
+			"Vượt chướng ngại + Snake: chơi tự do • thưởng chỉ có ở Stage 2"
 		)
 
 	_reward_label.text = "\n".join(
@@ -737,11 +737,11 @@ func _on_caro_reward_requested() -> void:
 	caro_win_reward_requested.emit()
 
 
-func _on_maze_reward_requested(
+func _on_obstacle_reward_requested(
 	score: int,
 	match_id: String
 ) -> void:
-	maze_reward_requested.emit(
+	obstacle_reward_requested.emit(
 		score,
 		match_id
 	)

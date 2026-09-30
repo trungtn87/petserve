@@ -266,7 +266,7 @@ func claim_caro_win_reward() -> Dictionary:
 	return result
 
 
-func claim_maze_hunt_reward(
+func claim_obstacle_run_reward(
 	score: int,
 	match_id: String
 ) -> Dictionary:
@@ -292,14 +292,14 @@ func claim_maze_hunt_reward(
 		return {
 			"ok": false,
 			"rewarded": false,
-			"message": "Rương Maze Hunt chỉ nhận được trong Stage 2.",
+			"message": "Rương Vượt chướng ngại chỉ nhận được trong Stage 2.",
 		}
 
 	var before := _meta.duplicate(
 		true
 	)
 	var result := (
-		_entertainment.claim_maze_hunt(
+		_entertainment.claim_obstacle_run(
 			_run_id,
 			maxi(
 				0,

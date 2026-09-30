@@ -3,7 +3,8 @@ extends RefCounted
 
 
 const GAME_CARO_3X3: StringName = &"caro_3x3"
-const GAME_MAZE_HUNT: StringName = &"maze_hunt"
+# Keep the legacy storage key so existing claims and chest IDs retain the shared cap.
+const GAME_OBSTACLE_RUN: StringName = &"maze_hunt"
 const GAME_SNAKE_HUNT: StringName = &"snake_hunt"
 
 const MAX_INFANT_CARO_REWARDS: int = 4
@@ -52,9 +53,9 @@ func snapshot(
 		0,
 		MAX_INFANT_CARO_REWARDS
 	)
-	var maze_claimed := _game_claimed(
+	var obstacle_claimed := _game_claimed(
 		state,
-		GAME_MAZE_HUNT
+		GAME_OBSTACLE_RUN
 	)
 	var snake_claimed := _game_claimed(
 		state,
@@ -62,7 +63,7 @@ func snapshot(
 	)
 	var stage2_claimed := mini(
 		MAX_STAGE2_ACTIVITY_REWARDS,
-		maze_claimed
+		obstacle_claimed
 		+ snake_claimed
 	)
 
@@ -73,7 +74,7 @@ func snapshot(
 			MAX_INFANT_CARO_REWARDS
 			- caro_claimed
 		),
-		"maze_rewards_claimed": maze_claimed,
+		"obstacle_rewards_claimed": obstacle_claimed,
 		"snake_rewards_claimed": snake_claimed,
 		"stage2_activity_rewards_claimed": (
 			stage2_claimed
@@ -150,17 +151,17 @@ func claim_caro_win(
 	}
 
 
-func claim_maze_hunt(
+func claim_obstacle_run(
 	run_id: int,
 	score: int,
 	match_id: String
 ) -> Dictionary:
 	return _claim_stage2_activity(
 		run_id,
-		GAME_MAZE_HUNT,
-		"Maze Hunt",
+		GAME_OBSTACLE_RUN,
+		"Vượt chướng ngại",
 		score,
-		maze_reward_tier(
+		obstacle_reward_tier(
 			score
 		),
 		match_id
@@ -184,7 +185,7 @@ func claim_snake_hunt(
 	)
 
 
-func maze_reward_tier(
+func obstacle_reward_tier(
 	score: int
 ) -> int:
 	if score >= 3000:
@@ -357,7 +358,7 @@ func _stage2_total_claimed(
 		MAX_STAGE2_ACTIVITY_REWARDS,
 		_game_claimed(
 			state,
-			GAME_MAZE_HUNT
+			GAME_OBSTACLE_RUN
 		)
 		+ _game_claimed(
 			state,
@@ -403,7 +404,7 @@ func _ensure_run(
 
 		for game_id in [
 			GAME_CARO_3X3,
-			GAME_MAZE_HUNT,
+			GAME_OBSTACLE_RUN,
 			GAME_SNAKE_HUNT,
 		]:
 			if not state.has(
@@ -425,7 +426,7 @@ func _ensure_run(
 
 	for game_id in [
 		GAME_CARO_3X3,
-		GAME_MAZE_HUNT,
+		GAME_OBSTACLE_RUN,
 		GAME_SNAKE_HUNT,
 	]:
 		new_state[String(game_id)] = {
