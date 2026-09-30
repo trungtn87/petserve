@@ -1,10 +1,10 @@
-extends SceneTree
+extends Node
 
 
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_gene_item_context_and_stage2_limit()
 	_test_ready_stage2_keeps_remaining_activity_rewards()
 
@@ -14,14 +14,14 @@ func _initialize() -> void:
 		print(
 			"Stage 2 PetHome feedback: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"Stage 2 PetHome feedback: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_gene_item_context_and_stage2_limit() -> void:
