@@ -45,7 +45,7 @@ jobs:
         run: godot --headless --path . --script res://tools/test_m9_gene_foundation.gd
 
       - name: Gene item catalog + rarity + element lock
-        run: godot --headless --path . --script res://tools/test_m9_gene_items.gd
+        run: godot --headless --path . res://tools/test_m9_gene_items.tscn
 
       - name: Gene evolution render contract
         run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
