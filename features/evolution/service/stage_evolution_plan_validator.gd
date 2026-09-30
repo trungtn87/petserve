@@ -199,13 +199,20 @@ func validate(
 			)
 		)
 
-	var deltas: Array[EvolutionDelta] = (
-		deltas_result.get(
-			"deltas",
-			[]
-		)
-		as Array[EvolutionDelta]
+	var deltas: Array[EvolutionDelta] = []
+	var restored_deltas_value: Variant = deltas_result.get(
+		"deltas",
+		[]
 	)
+
+	if typeof(restored_deltas_value) == TYPE_ARRAY:
+		for raw_delta in restored_deltas_value as Array:
+			var restored_delta := raw_delta as EvolutionDelta
+
+			if restored_delta != null:
+				deltas.append(
+					restored_delta
+				)
 	var mode := StringName(
 		pending.get(
 			"resolution_mode",
