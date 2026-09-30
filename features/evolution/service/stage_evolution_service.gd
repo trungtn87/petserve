@@ -597,7 +597,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v10_stage_%d"
+		+ "_pethome_v11_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",
@@ -733,10 +733,10 @@ func commit(
 		)
 	)
 	visual.source_mode = (
-		&"evolution_pethome_v10_full_regenerate"
+		&"evolution_pethome_v11_full_regenerate"
 		if expected_request.mode
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		else &"evolution_pethome_v10_image_edit"
+		else &"evolution_pethome_v11_image_edit"
 	)
 	visual.image_path = result.image_path
 	visual.renderer_id = result.renderer_id
