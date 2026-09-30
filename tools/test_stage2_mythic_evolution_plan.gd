@@ -305,20 +305,53 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 		)
 	)
 
-	_expect(
-		bool(
+	var retry_ok := bool(
+		retry.get(
+			"ok",
+			false
+		)
+	)
+	var retry_reason := ""
+
+	if not retry_ok:
+		retry_reason = String(
 			retry.get(
-				"ok",
-				false
+				"error",
+				"prepare retry failed"
 			)
 		)
-		and retry_request != null
-		and retry_request.seed == request.seed
-		and retry_pending.get(
-			"mythic_destiny",
-			{}
-		) == destiny,
-		"retry reuses the same Mythic destiny and render seed"
+	elif retry_request == null:
+		retry_reason = (
+			"build_request retry failed: "
+			+ StageEvolutionPlanValidator.new()
+				.validate(
+					retry.get(
+						"data",
+						{}
+					)
+				)
+		)
+	elif retry_request.seed != request.seed:
+		retry_reason = (
+			"seed drift %d != %d"
+			% [
+				retry_request.seed,
+				request.seed,
+			]
+		)
+	elif retry_pending.get(
+		"mythic_destiny",
+		{}
+	) != destiny:
+		retry_reason = "Mythic Destiny drift"
+
+	_expect(
+		retry_reason.is_empty(),
+		(
+			"retry reuses the same Mythic destiny and render seed"
+			if retry_reason.is_empty()
+			else "retry failed: " + retry_reason
+		)
 	)
 
 	_expect(
