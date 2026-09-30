@@ -7,7 +7,7 @@ var _failures: int = 0
 func _ready() -> void:
 	_test_default_cat_catalog()
 	_test_species_isolation()
-	_test_birth_talent_locks_one_fantasy_branch()
+	_test_normal_egg_has_no_mythic_destiny()
 	_test_stage4_egg_locks_mythic_destiny()
 	_test_three_fixed_genes_awaken_branch()
 	_test_awaken_does_not_consume_gene_slots()
@@ -120,35 +120,28 @@ func _test_species_isolation() -> void:
 	)
 
 
-func _test_birth_talent_locks_one_fantasy_branch() -> void:
+func _test_normal_egg_has_no_mythic_destiny() -> void:
 	var identity := PetIdentityFactory.new().create_initial(
 		7209,
 		&"dark",
 		&"cat"
 	)
-	var destiny := SpeciesMythicDestinyService.new().from_birth_talent(
-		identity
-	)
-	var mutation_id := StringName(
-		destiny.get(
-			"mutation_id",
-			""
-		)
-	)
+	var service := SpeciesMythicDestinyService.new()
 
 	_expect(
-		not destiny.is_empty()
-		and StringName(
-			destiny.get(
-				"source",
-				""
-			)
-		) == SpeciesMythicDestinyService.SOURCE_BIRTH_TALENT
-		and mutation_id in [
-			&"cat_horned_spirit",
-			&"cat_winged_spirit",
-		],
-		"cat birth talent must lock one of the two fantasy branches"
+		service.from_stage4_egg(
+			identity,
+			1
+		).is_empty()
+		and service.from_stage4_egg(
+			identity,
+			2
+		).is_empty()
+		and service.from_stage4_egg(
+			identity,
+			3
+		).is_empty(),
+		"normal Egg Stage 1-3 must never grant a fantasy mutation"
 	)
 
 

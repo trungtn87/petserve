@@ -119,10 +119,9 @@ func _test_natural_zero_gene() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path
-			== _source_path,
-		"natural Stage 2 -> 3 uses source-image edit"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty(),
+		"natural Stage 2 -> 3 creates a new image without source reference"
 	)
 
 	if request == null:
@@ -565,10 +564,8 @@ func _test_locked_stage4_egg_mythic() -> void:
 	)
 	_expect(
 		request != null
-		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_MYTHIC_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED MYTHIC DESTINY]"
+			"Special fantasy mutation is ACTIVE"
 		)
 		and request.positive_prompt.contains(
 			String(

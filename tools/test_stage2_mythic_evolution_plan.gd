@@ -266,12 +266,12 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED MYTHIC DESTINY]"
+			"Special fantasy mutation is ACTIVE"
 		)
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED GENE CHANGES]"
+			"Apply only these Gene changes selected by code:"
 		),
 		"renderer receives the exact composite Gene + Mythic plan"
 	)

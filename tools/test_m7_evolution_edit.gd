@@ -124,48 +124,42 @@ func run() -> void:
 	if request != null:
 		check(
 			request.mode
-				== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT,
-			"image edit mode"
+				== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE,
+			"evolution uses new text-to-image render"
 		)
 		check(
-			request.source_image_path
-				== source.image_path,
-			"source image preserved"
+			request.source_image_path.is_empty(),
+			"evolution must not use previous stage image as reference"
 		)
 		check(
-			request.target_region
-				== &"whole_pet_gene",
-			"Stage 1 -> 2 Gene edit must allow whole-pet maturation while keeping the Gene code-locked"
+			String(
+				request.target_region
+			).is_empty(),
+			"full regeneration has no edit target region"
 		)
 		check(
 			request.output_key.ends_with(
-				"_pethome_v11_stage_2"
+				"_pethome_v12_stage_2"
 			),
 			"stage output key"
 		)
 		check(
 			request.positive_prompt.contains(
-				"Keep the same individual face"
+				"Create a NEW image for evolution Stage 2"
 			)
 			and request.positive_prompt.contains(
-				"Make it slightly older and more developed"
+				"visibly look older and more developed than Stage 1"
 			)
 			and request.positive_prompt.contains(
-				"slight chibi"
+				"Stage 1 ancestry cues:"
 			)
 			and request.positive_prompt.contains(
-				"Smoky blue-black and violet fur"
+				"Target stage morphology:"
 			)
 			and request.positive_prompt.contains(
-				"Selected Gene change:"
+				"Apply only these Gene changes selected by code:"
 			),
-			"Stage 1 -> 2 Gene prompt must preserve lineage and apply Dark Stage 2 morphology"
-		)
-		check(
-			request.positive_prompt.contains(
-				"Background occupies most of the image"
-			),
-			"world continuity prompt"
+			"Stage 1 -> 2 must regenerate a visibly older pet while preserving lineage rules"
 		)
 
 		var serialized := (
@@ -213,21 +207,15 @@ func run() -> void:
 	check(
 		natural_request != null
 		and natural_request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and natural_request.source_image_path
-			== source.image_path
-		and natural_request.target_region
-			== &"whole_pet_age"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and natural_request.source_image_path.is_empty()
 		and natural_request.positive_prompt.contains(
-			"Keep the same individual face"
+			"Create a NEW image for evolution Stage 2"
 		)
 		and natural_request.positive_prompt.contains(
-			"Make it slightly older and more developed"
-		)
-		and natural_request.positive_prompt.contains(
-			"Smoky blue-black and violet fur"
+			"No special fantasy mutation is active"
 		),
-		"Natural Stage 1 -> 2 must image-edit the same pet with Dark Stage 2 morphology"
+		"Natural Stage 1 -> 2 must create a new older image without reference-image editing"
 	)
 
 	var bad_stage := coordinator.build_request(

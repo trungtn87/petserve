@@ -123,39 +123,37 @@ func _test_natural_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and not request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v11_stage_2"
-		)
-		and request.target_region
-			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
-		and request.positive_prompt.contains(
-			"Evolve the exact same cat from Stage 1 to Stage 2"
+			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Keep the same individual face"
+			"Create a NEW image for evolution Stage 2"
 		)
 		and request.positive_prompt.contains(
-			"Make it slightly older and more developed"
+			"Stage 1 ancestry cues:"
+		)
+		and request.positive_prompt.contains(
+			"visibly look older and more developed than Stage 1"
 		)
 		and request.positive_prompt.contains(
 			"slight chibi"
 		)
 		and request.positive_prompt.contains(
-			"Smoky blue-black and violet fur"
+			"Target stage morphology:"
 		)
 		and request.positive_prompt.contains(
-			"No new Gene mutation"
+			"No special fantasy mutation is active"
 		)
 		and request.positive_prompt.contains(
 			"28 to 32 percent"
 		)
 		and request.negative_prompt.contains(
-			"identity drift"
+			"extra tail"
 		)
 		and request.seed > 0,
-		"Natural Stage 1 -> 2 must image-edit the same pet with element morphology"
+		"Natural Stage 1 -> 2 must full-regenerate a visibly older pet"
 	)
 
 	var first_request := (
@@ -249,7 +247,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v11_image_edit"
+			) == "evolution_pethome_v12_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -385,36 +383,34 @@ func _test_gene_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and not request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v11_stage_2"
-		)
-		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
-		and request.positive_prompt.contains(
-			"Evolve the exact same cat from Stage 1 to Stage 2"
+			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Keep the same individual face"
+			"Create a NEW image for evolution Stage 2"
 		)
 		and request.positive_prompt.contains(
-			"Make it slightly older and more developed"
+			"Stage 1 ancestry cues:"
 		)
 		and request.positive_prompt.contains(
-			"Selected Gene change:"
+			"visibly look older and more developed than Stage 1"
 		)
 		and request.positive_prompt.contains(
-			"Smoky blue-black and violet fur"
+			"Apply only these Gene changes selected by code:"
+		)
+		and request.positive_prompt.contains(
+			"Target stage morphology:"
 		)
 		and request.positive_prompt.contains(
 			"28 to 32 percent"
 		)
 		and request.negative_prompt.contains(
-			"identity drift"
+			"extra tail"
 		)
 		and request.seed > 0,
-		"Gene Stage 1 -> 2 must preserve identity and apply only the selected Gene"
+		"Gene Stage 1 -> 2 must full-regenerate and apply only the selected Gene"
 	)
 
 	var gene_resolution: Dictionary = pending.get(
@@ -503,7 +499,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v11_image_edit"
+			) == "evolution_pethome_v12_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -809,17 +805,15 @@ func _test_stage_two_natural_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path == image_path
-		and request.target_region
-			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
-			"[NATURAL STAGE ADVANCE]"
+			"Create a NEW image for evolution Stage 3"
 		)
 		and request.positive_prompt.contains(
-			"from Stage 2 to Stage 3"
+			"visibly look older and more developed than Stage 2"
 		),
-		"Natural Stage 2 must image-edit the current visual without inventing a Gene"
+		"Natural Stage 2 must full-regenerate Stage 3 without inventing a Gene"
 	)
 
 
@@ -955,13 +949,12 @@ func _test_stage_two_gene_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path == image_path
-		and request.target_region == &"tail"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
 			"elongated"
 		),
-		"Stage 2 Gene plan must image-edit the current visual using resolved phenotype"
+		"Stage 2 Gene plan must full-regenerate using resolved phenotype"
 	)
 
 	if request != null:
@@ -1219,7 +1212,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v11_image_edit"
+		&"evolution_pethome_v12_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
