@@ -897,11 +897,13 @@ func build_stage_regenerate_request(
 				identity.element()
 			)
 			+ " Stage 2. Juvenile-to-adolescent fantasy cat. "
-			+ "Make the pet slightly older than Stage 1 only: slightly taller body, slightly longer legs, "
-			+ "slightly more developed torso, slightly fuller fur, and a face that is a little less baby-like, "
-			+ "but still cute and youthful. "
+			+ "Make the pet clearly older and more developed than Stage 1 while keeping the same art direction: "
+			+ "noticeably larger overall body, taller body, longer legs, a more developed chest and torso, "
+			+ "fuller layered fur around the chest, cheeks and tail, and a face that is less baby-like while still cute and youthful. "
+			+ "Use evolved chibi proportions: keep the head expressive, but reduce the tiny-kitten body proportions from Stage 1. "
 			+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
-			+ "Keep fantasy details subtle."
+			+ "Keep fantasy details subtle but richer than Stage 1: gentle elemental glow, refined magical fur accents, "
+			+ "faint luminous markings and a few restrained elemental sparkles."
 		)
 	else:
 		positive_prompt = (
@@ -1017,7 +1019,7 @@ func build_stage_regenerate_request(
 			+ "Keep it uncluttered and atmospheric. "
 			+ "Exactly one pet. Full body visible. "
 			+ "Vertical 9:16 mobile scene. "
-			+ "Pet about 25 to 30 percent of image height in the lower third. "
+			+ "Pet about 30 to 34 percent of image height in the lower third. "
 			+ "Background occupies most of the image. "
 			+ "Keep the upper area calm for UI. No text or UI. "
 			+ "Keep the design simple enough for later evolution."
@@ -1046,7 +1048,8 @@ func build_stage_regenerate_request(
 
 	if target_stage == 2:
 		negative_prompt += (
-			", fully adult cat, old cat, drastic redesign, different species, different element"
+			", fully adult cat, old cat, tiny kitten proportions, baby body, very short legs, "
+			+ "round infant torso, drastic redesign, different species, different element"
 		)
 	else:
 		negative_prompt += (

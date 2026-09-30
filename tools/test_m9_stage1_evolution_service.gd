@@ -141,13 +141,19 @@ func _test_natural_stage_one_plan() -> void:
 			"juvenile-to-adolescent"
 		)
 		and request.positive_prompt.contains(
-			"Make the pet slightly older than Stage 1 only"
+			"Make the pet clearly older and more developed than Stage 1"
+		)
+		and request.positive_prompt.contains(
+			"fuller layered fur"
+		)
+		and request.positive_prompt.contains(
+			"gentle elemental glow"
 		)
 		and request.positive_prompt.contains(
 			"No special fantasy mutation is active"
 		)
 		and request.positive_prompt.contains(
-			"25 to 30 percent"
+			"30 to 34 percent"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -401,13 +407,19 @@ func _test_gene_stage_one_plan() -> void:
 			"juvenile-to-adolescent"
 		)
 		and request.positive_prompt.contains(
-			"Make the pet slightly older than Stage 1 only"
+			"Make the pet clearly older and more developed than Stage 1"
+		)
+		and request.positive_prompt.contains(
+			"fuller layered fur"
+		)
+		and request.positive_prompt.contains(
+			"gentle elemental glow"
 		)
 		and request.positive_prompt.contains(
 			"Apply only these Gene changes selected by code:"
 		)
 		and request.positive_prompt.contains(
-			"25 to 30 percent"
+			"30 to 34 percent"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"

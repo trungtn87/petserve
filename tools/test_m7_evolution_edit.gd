@@ -154,7 +154,13 @@ func run() -> void:
 				"evolved chibi proportions"
 			)
 			and request.positive_prompt.contains(
-				"Make the pet slightly older than Stage 1 only"
+				"Make the pet clearly older and more developed than Stage 1"
+			)
+			and request.positive_prompt.contains(
+				"fuller layered fur"
+			)
+			and request.positive_prompt.contains(
+				"gentle elemental glow"
 			)
 			and request.positive_prompt.contains(
 				"Apply only these Gene changes selected by code:"
@@ -219,7 +225,7 @@ func run() -> void:
 			"evolved chibi proportions"
 		)
 		and natural_request.positive_prompt.contains(
-			"Make the pet slightly older than Stage 1 only"
+			"Make the pet clearly older and more developed than Stage 1"
 		)
 		and natural_request.positive_prompt.contains(
 			"No special fantasy mutation is active"
