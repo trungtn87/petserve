@@ -126,7 +126,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v8_stage_2"
+			"_pethome_v9_stage_2"
 		)
 		and request.target_region
 			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
@@ -140,6 +140,12 @@ func _test_natural_stage_one_plan() -> void:
 			"[ELEMENT MORPHOLOGY STAGE 2]"
 		)
 		and request.positive_prompt.contains(
+			"[SPECIES FREESTYLE]"
+		)
+		and request.positive_prompt.contains(
+			"pose and camera-relative stance are freestyle"
+		)
+		and not request.positive_prompt.contains(
 			"[QUADRUPED BODY PLAN]"
 		)
 		and request.positive_prompt.contains(
@@ -160,13 +166,13 @@ func _test_natural_stage_one_plan() -> void:
 		and request.positive_prompt.contains(
 			"aura=base"
 		)
-		and request.positive_prompt.contains(
+		and not request.positive_prompt.contains(
 			"[ANATOMY REQUIREMENT]"
 		)
 		and request.negative_prompt.contains(
-			"extra legs"
+			"duplicated appendage"
 		)
-		and request.negative_prompt.contains(
+		and not request.negative_prompt.contains(
 			"bipedal"
 		)
 		and request.seed > 0,
@@ -264,7 +270,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v8_full_regenerate"
+			) == "evolution_pethome_v9_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -403,7 +409,7 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v8_stage_2"
+			"_pethome_v9_stage_2"
 		)
 		and request.target_region == &"tail"
 		and request.positive_prompt.contains(
@@ -413,6 +419,12 @@ func _test_gene_stage_one_plan() -> void:
 			"[ELEMENT MORPHOLOGY STAGE 2]"
 		)
 		and request.positive_prompt.contains(
+			"[SPECIES FREESTYLE]"
+		)
+		and request.positive_prompt.contains(
+			"pose and camera-relative stance are freestyle"
+		)
+		and not request.positive_prompt.contains(
 			"[QUADRUPED BODY PLAN]"
 		)
 		and request.positive_prompt.contains(
@@ -442,13 +454,13 @@ func _test_gene_stage_one_plan() -> void:
 		and request.positive_prompt.contains(
 			"[ONE GENE EXPRESSION]"
 		)
-		and request.positive_prompt.contains(
+		and not request.positive_prompt.contains(
 			"[ANATOMY REQUIREMENT]"
 		)
 		and request.negative_prompt.contains(
-			"extra legs"
+			"duplicated appendage"
 		)
-		and request.negative_prompt.contains(
+		and not request.negative_prompt.contains(
 			"bipedal"
 		)
 		and request.seed > 0,
@@ -541,7 +553,7 @@ func _test_gene_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v8_full_regenerate"
+			) == "evolution_pethome_v9_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -1243,7 +1255,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v8_full_regenerate"
+		&"evolution_pethome_v9_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
