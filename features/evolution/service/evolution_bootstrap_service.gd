@@ -69,10 +69,7 @@ func build_from_hatch() -> Dictionary:
 		SpeciesMythicDestinyService.new()
 		.from_stage4_egg(
 			identity,
-			int(egg_state.stage),
-			_egg_mutation_active(
-				egg_state.mutation
-			)
+			int(egg_state.stage)
 		)
 	)
 
@@ -91,28 +88,3 @@ func build_from_hatch() -> Dictionary:
 		"mythic_destiny": mythic_destiny,
 	}
 
-
-func _egg_mutation_active(
-	value: Variant
-) -> bool:
-	match typeof(value):
-		TYPE_BOOL:
-			return bool(value)
-
-		TYPE_INT,
-		TYPE_FLOAT:
-			return float(value) > 0.0
-
-		TYPE_STRING,
-		TYPE_STRING_NAME:
-			var text := String(value).strip_edges().to_lower()
-			return (
-				not text.is_empty()
-				and text not in [
-					"none",
-					"false",
-					"0",
-				]
-			)
-
-	return false
