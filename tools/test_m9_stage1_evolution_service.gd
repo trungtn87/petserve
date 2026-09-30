@@ -282,13 +282,13 @@ func _test_gene_stage_one_plan() -> void:
 	)
 	var recorded := gene_state.record_gene_item(
 		policy,
-		"gene_tail_runtime",
-		&"tail_long",
-		&"tail",
-		&"long",
+		"gene_whiskers_runtime",
+		&"whiskers_starlight",
+		&"whiskers",
+		&"starlight",
 		20.0,
 		{
-			"agile": 6.0,
+			"mystic": 6.0,
 		}
 	)
 
@@ -362,7 +362,7 @@ func _test_gene_stage_one_plan() -> void:
 				"mutation_id",
 				""
 			)
-		) == "gene_expr_tail_long_s1"
+		) == "gene_expr_whiskers_starlight_s1"
 		and String(
 			delta.get(
 				"target_trait",
@@ -376,9 +376,9 @@ func _test_gene_stage_one_plan() -> void:
 		next != null
 		and next.stage() == 2
 		and next.get_trait(
-			&"tail",
+			&"whiskers",
 			&"base"
-		) == &"long",
+		) == &"starlight",
 		"Gene plan must persist the selected phenotype into Stage 2 Genome"
 	)
 
@@ -438,7 +438,7 @@ func _test_gene_stage_one_plan() -> void:
 				"selected_gene_id",
 				""
 			)
-		) == "tail_long"
+		) == "whiskers_starlight"
 		and is_equal_approx(
 			float(
 				(
@@ -447,7 +447,7 @@ func _test_gene_stage_one_plan() -> void:
 						{}
 					) as Dictionary
 				).get(
-					"agile",
+					"mystic",
 					0.0
 				)
 			),
@@ -500,15 +500,15 @@ func _test_gene_stage_one_plan() -> void:
 			committed_genome != null
 			and committed_genome.stage() == 2
 			and committed_genome.get_trait(
-				&"tail",
+				&"whiskers",
 				&"base"
-			) == &"long"
+			) == &"starlight"
 			and String(
 				current_visual.get(
 					"mutation_id",
 					""
 				)
-			) == "gene_expr_tail_long_s1"
+			) == "gene_expr_whiskers_starlight_s1"
 			and String(
 				current_visual.get(
 					"source_mode",
@@ -1030,12 +1030,12 @@ func _test_stage_one_gene_visual_matrix() -> void:
 			)
 
 	_expect(
-		genes.size() == 15,
-		"Gene catalog fixture must contain 15 definitions"
+		genes.size() == 17,
+		"Gene catalog fixture must contain 17 definitions"
 	)
 	_expect(
-		stage_one_genes.size() == 10,
-		"Stage 1 policy must expose exactly 10 eligible Gene definitions"
+		stage_one_genes.size() == 7,
+		"Stage 1 policy must expose exactly 7 eligible Gene definitions"
 	)
 
 	for definition in stage_one_genes:

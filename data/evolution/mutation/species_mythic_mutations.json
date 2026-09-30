@@ -3,38 +3,52 @@
     "id": "cat_horned_spirit",
     "display_name": "Giác Linh Miêu",
     "species": "cat",
-    "first_expression_stage": 2,
+    "first_expression_stage": 3,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
-    "required_gene_ids": ["tail_long", "eyes_moon", "mark_moon"],
-    "target_regions": ["structure", "mark", "aura"],
+    "required_loci": [
+      "whiskers",
+      "mark",
+      "ears"
+    ],
+    "target_regions": [
+      "structure",
+      "mark",
+      "aura"
+    ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "2": "Grow a small pair of smooth spirit horns on the forehead. Keep them modest, symmetrical and naturally integrated with the same cat.",
-      "3": "Develop the same spirit horns into elegant fantasy horns with a restrained elemental glow. Keep the same cat identity.",
-      "4": "Complete the horned fantasy form with mature elegant horns and a controlled elemental aura. Keep the same cat identity."
+      "3": "Awaken one small symmetrical pair of elegant spirit horns from the forehead, naturally integrated with the cat's established ear, mark and whisker development. Keep the horns clearly secondary to the feline body.",
+      "4": "Complete the horned fantasy form with mature elegant horns and a controlled elemental aura while preserving the same feline body plan."
     },
-    "preserve_hint": "Keep the same face, coat family, four-leg feline body plan, two ears and exactly one tail. Do not add wings or unrelated anatomy."
+    "preserve_hint": "Keep the same species, four-leg feline body plan, two ears and exactly one tail. Do not add wings or unrelated anatomy."
   },
   {
     "id": "cat_winged_spirit",
     "display_name": "Dực Linh Miêu",
     "species": "cat",
-    "first_expression_stage": 2,
+    "first_expression_stage": 3,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
-    "required_gene_ids": ["coat_shadow", "eyes_luminous", "whiskers_starlight"],
-    "target_regions": ["structure", "mane", "aura"],
+    "required_loci": [
+      "fur",
+      "body",
+      "mane"
+    ],
+    "target_regions": [
+      "structure",
+      "mane",
+      "aura"
+    ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "2": "Grow one small symmetrical pair of soft fantasy wing buds from the upper back. Keep them compact and secondary to the cat body.",
-      "3": "Develop the same wing buds into clear feathered fantasy wings while preserving natural feline anatomy and the same cat identity.",
-      "4": "Complete the winged fantasy form with mature elegant wings and a controlled elemental aura. Keep the same cat identity."
+      "3": "Awaken one small symmetrical pair of soft fantasy wings from the upper back, naturally integrated with the cat's established fur, body and mane development. Keep the wings compact and secondary to the feline body.",
+      "4": "Complete the winged fantasy form with mature elegant wings and a controlled elemental aura while preserving natural feline anatomy."
     },
-    "preserve_hint": "Keep the same face, coat family, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
+    "preserve_hint": "Keep the same species, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
   }
 ]

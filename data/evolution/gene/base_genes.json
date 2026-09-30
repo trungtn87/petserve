@@ -1,35 +1,67 @@
 [
   {
-    "id": "eyes_luminous",
-    "display_name": "Gene Mắt Phát Sáng",
-    "locus": "eyes",
-    "direction": "luminous",
+    "id": "aura_elemental",
+    "display_name": "Gene Hào Quang Nguyên Tố",
+    "locus": "aura",
+    "direction": "elemental",
     "primary_influence": 20,
     "influence_tags": {
-      "mystic": 6
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "luminous",
-      "radiant",
-      "transcendent_luminous"
-    ]
-  },
-  {
-    "id": "eyes_moon",
-    "display_name": "Gene Mắt Nguyệt",
-    "locus": "eyes",
-    "direction": "moon",
-    "primary_influence": 20,
-    "influence_tags": {
-      "lunar": 10,
-      "mystic": 4
+      "mystic": 8
     },
     "rarity": "rare",
     "expression_chain": [
-      "moon",
-      "crescent",
-      "eclipse"
+      "elemental",
+      "intense_elemental",
+      "transcendent_elemental"
+    ]
+  },
+  {
+    "id": "body_sturdy",
+    "display_name": "Gene Thân Thể Cường Tráng",
+    "locus": "body",
+    "direction": "sturdy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 8
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "sturdy",
+      "powerful",
+      "guardian"
+    ]
+  },
+  {
+    "id": "coat_nebula",
+    "display_name": "Gene Vân Tinh Vân",
+    "locus": "coat",
+    "direction": "nebula",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6,
+      "mutation": 3
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "nebula",
+      "astral_nebula",
+      "cosmic_nebula"
+    ]
+  },
+  {
+    "id": "coat_shadow",
+    "display_name": "Gene Vân Bóng Tối",
+    "locus": "coat",
+    "direction": "shadow",
+    "primary_influence": 20,
+    "influence_tags": {
+      "dark": 10
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "shadow",
+      "deep_shadow",
+      "living_shadow"
     ]
   },
   {
@@ -65,6 +97,39 @@
     ]
   },
   {
+    "id": "eyes_luminous",
+    "display_name": "Gene Mắt Phát Sáng",
+    "locus": "eyes",
+    "direction": "luminous",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "luminous",
+      "radiant",
+      "transcendent_luminous"
+    ]
+  },
+  {
+    "id": "eyes_moon",
+    "display_name": "Gene Mắt Nguyệt",
+    "locus": "eyes",
+    "direction": "moon",
+    "primary_influence": 20,
+    "influence_tags": {
+      "lunar": 10,
+      "mystic": 4
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "moon",
+      "crescent",
+      "eclipse"
+    ]
+  },
+  {
     "id": "fur_fluffy",
     "display_name": "Gene Lông Dày",
     "locus": "fur",
@@ -94,120 +159,6 @@
       "sleek",
       "satin",
       "ethereal_sleek"
-    ]
-  },
-  {
-    "id": "coat_shadow",
-    "display_name": "Gene Vân Bóng Tối",
-    "locus": "coat",
-    "direction": "shadow",
-    "primary_influence": 20,
-    "influence_tags": {
-      "dark": 10
-    },
-    "rarity": "rare",
-    "expression_chain": [
-      "shadow",
-      "deep_shadow",
-      "living_shadow"
-    ]
-  },
-  {
-    "id": "coat_nebula",
-    "display_name": "Gene Vân Tinh Vân",
-    "locus": "coat",
-    "direction": "nebula",
-    "primary_influence": 20,
-    "influence_tags": {
-      "mystic": 6,
-      "mutation": 3
-    },
-    "rarity": "rare",
-    "expression_chain": [
-      "nebula",
-      "astral_nebula",
-      "cosmic_nebula"
-    ]
-  },
-  {
-    "id": "tail_long",
-    "display_name": "Gene Đuôi Dài",
-    "locus": "tail",
-    "direction": "long",
-    "primary_influence": 20,
-    "influence_tags": {
-      "agile": 6
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "long",
-      "elongated",
-      "regal_long"
-    ]
-  },
-  {
-    "id": "tail_fluffy",
-    "display_name": "Gene Đuôi Xù",
-    "locus": "tail",
-    "direction": "fluffy",
-    "primary_influence": 20,
-    "influence_tags": {
-      "physical": 4
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "fluffy",
-      "plume",
-      "grand_plume"
-    ]
-  },
-  {
-    "id": "body_sturdy",
-    "display_name": "Gene Thân Thể Cường Tráng",
-    "locus": "body",
-    "direction": "sturdy",
-    "primary_influence": 20,
-    "influence_tags": {
-      "physical": 8
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "sturdy",
-      "powerful",
-      "guardian"
-    ]
-  },
-  {
-    "id": "whiskers_starlight",
-    "display_name": "Gene Râu Ánh Sao",
-    "locus": "whiskers",
-    "direction": "starlight",
-    "primary_influence": 20,
-    "influence_tags": {
-      "mystic": 6
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "starlight",
-      "radiant",
-      "astral"
-    ]
-  },
-  {
-    "id": "paws_luminous",
-    "display_name": "Gene Bàn Chân Phát Sáng",
-    "locus": "paws",
-    "direction": "luminous",
-    "primary_influence": 20,
-    "influence_tags": {
-      "mystic": 4,
-      "agile": 3
-    },
-    "rarity": "uncommon",
-    "expression_chain": [
-      "luminous",
-      "radiant",
-      "runic"
     ]
   },
   {
@@ -242,6 +193,88 @@
       "moon",
       "eclipse",
       "ascended_eclipse"
+    ]
+  },
+  {
+    "id": "paws_luminous",
+    "display_name": "Gene Bàn Chân Phát Sáng",
+    "locus": "paws",
+    "direction": "luminous",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 4,
+      "agile": 3
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "luminous",
+      "radiant",
+      "runic"
+    ]
+  },
+  {
+    "id": "structure_spirit",
+    "display_name": "Gene Cấu Trúc Linh Thể",
+    "locus": "structure",
+    "direction": "spirit",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 8,
+      "mutation": 4
+    },
+    "rarity": "rare",
+    "expression_chain": [
+      "spirit",
+      "ascended_spirit",
+      "transcendent_spirit"
+    ]
+  },
+  {
+    "id": "tail_fluffy",
+    "display_name": "Gene Đuôi Xù",
+    "locus": "tail",
+    "direction": "fluffy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "fluffy",
+      "plume",
+      "grand_plume"
+    ]
+  },
+  {
+    "id": "tail_long",
+    "display_name": "Gene Đuôi Dài",
+    "locus": "tail",
+    "direction": "long",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 6
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "long",
+      "elongated",
+      "regal_long"
+    ]
+  },
+  {
+    "id": "whiskers_starlight",
+    "display_name": "Gene Râu Ánh Sao",
+    "locus": "whiskers",
+    "direction": "starlight",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6
+    },
+    "rarity": "uncommon",
+    "expression_chain": [
+      "starlight",
+      "radiant",
+      "astral"
     ]
   }
 ]

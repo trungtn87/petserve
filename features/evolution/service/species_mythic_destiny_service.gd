@@ -62,12 +62,15 @@ func from_gene_recipe(
 		return {}
 
 	var matches: Array[SpeciesMythicMutationDefinition] = []
+	var accumulated_loci := _gene_loci_from_ids(
+		accumulated_gene_ids
+	)
 
 	for definition in _species_definitions(
 		identity
 	):
 		if definition.recipe_matches(
-			accumulated_gene_ids
+			accumulated_loci
 		):
 			matches.append(
 				definition
@@ -86,11 +89,16 @@ func from_gene_recipe(
 		)
 	]
 
+	var recipe_gene_ids := _matching_gene_ids_for_loci(
+		accumulated_gene_ids,
+		selected.required_loci()
+	)
+
 	return _build_destiny(
 		identity,
 		selected,
 		SOURCE_GENE_RECIPE,
-		selected.required_gene_ids()
+		recipe_gene_ids
 	)
 
 
@@ -175,7 +183,9 @@ func validate_for_identity(
 			return false
 
 		if not definition.recipe_matches(
-			recipe_value as Array
+			_gene_loci_from_ids(
+				recipe_value as Array
+			)
 		):
 			return false
 
@@ -260,7 +270,99 @@ func _build_destiny(
 		"recipe_gene_ids": (
 			serialized_recipe
 		),
+		"recipe_loci": (
+			_string_array(
+				_gene_loci_from_ids(
+					serialized_recipe
+				)
+			)
+		),
 	}
+
+
+
+func _matching_gene_ids_for_loci(
+	gene_ids: Array,
+	required_loci: Array[StringName]
+) -> Array[String]:
+	var result: Array[String] = []
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+
+	for value in gene_ids:
+		var definition := catalog.find_by_id(
+			definitions,
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			definition == null
+			or not required_loci.has(
+				definition.locus()
+			)
+		):
+			continue
+
+		var gene_id := String(
+			definition.id()
+		)
+
+		if not result.has(
+			gene_id
+		):
+			result.append(
+				gene_id
+			)
+
+	result.sort()
+	return result
+
+
+func _gene_loci_from_ids(
+	gene_ids: Array
+) -> Array[StringName]:
+	var result: Array[StringName] = []
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+
+	for value in gene_ids:
+		var definition := catalog.find_by_id(
+			definitions,
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			definition == null
+			or result.has(
+				definition.locus()
+			)
+		):
+			continue
+
+		result.append(
+			definition.locus()
+		)
+
+	result.sort()
+	return result
+
+
+func _string_array(
+	values: Array
+) -> Array[String]:
+	var result: Array[String] = []
+
+	for value in values:
+		result.append(
+			String(value)
+		)
+
+	result.sort()
+	return result
 
 
 func _species_definitions(

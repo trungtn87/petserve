@@ -29,31 +29,31 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 
 	var catalog := GeneCatalog.new()
 	var definitions := catalog.load_default()
-	var eyes := catalog.find_by_id(
+	var body := catalog.find_by_id(
 		definitions,
-		&"eyes_moon"
+		&"body_sturdy"
 	)
-	var mark := catalog.find_by_id(
+	var tail := catalog.find_by_id(
 		definitions,
-		&"mark_moon"
+		&"tail_long"
 	)
 
 	_expect(
-		eyes != null
-		and mark != null,
+		body != null
+		and tail != null,
 		"Gene fixtures must exist"
 	)
 
-	if eyes == null or mark == null:
+	if body == null or tail == null:
 		return
 
 	var generator := ItemGenerator.new()
 	var eye_item := generator.generate_gene(
-		eyes,
+		body,
 		91001
 	)
 	var mark_item := generator.generate_gene(
-		mark,
+		tail,
 		91002
 	)
 	var food_item := generator.generate_for_stage(

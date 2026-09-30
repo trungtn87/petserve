@@ -244,10 +244,10 @@ func _test_two_loci_and_retry_guards() -> void:
 	var fixture := _save_stage_two_fixture(
 		8102,
 		{
-			"tail": "long",
+			"eyes": "luminous",
 		},
 		[
-			&"gene_expr_tail_long_s1",
+			&"gene_expr_eyes_luminous_s1",
 		],
 		{}
 	)
@@ -268,10 +268,10 @@ func _test_two_loci_and_retry_guards() -> void:
 		bool(
 			gene_state.record_gene_item(
 				policy,
-				"accept_eyes",
-				&"eyes_moon",
-				&"eyes",
-				&"moon",
+				"accept_body",
+				&"body_sturdy",
+				&"body",
+				&"sturdy",
 				20.0,
 				{}
 			).get(
@@ -279,16 +279,16 @@ func _test_two_loci_and_retry_guards() -> void:
 				false
 			)
 		),
-		"record eyes Gene"
+		"record body Gene"
 	)
 	_expect(
 		bool(
 			gene_state.record_gene_item(
 				policy,
-				"accept_mark",
-				&"mark_moon",
-				&"mark",
-				&"moon",
+				"accept_tail",
+				&"tail_long",
+				&"tail",
+				&"long",
 				20.0,
 				{}
 			).get(
@@ -296,7 +296,7 @@ func _test_two_loci_and_retry_guards() -> void:
 				false
 			)
 		),
-		"record mark Gene"
+		"record tail Gene"
 	)
 
 	var state := {
@@ -358,13 +358,13 @@ func _test_two_loci_and_retry_guards() -> void:
 		and (deltas_value as Array).size() == 2
 		and next != null
 		and next.get_trait(
-			&"eyes",
+			&"body",
 			&"base"
-		) == &"moon"
+		) == &"sturdy"
 		and next.get_trait(
-			&"mark",
+			&"tail",
 			&"base"
-		) == &"moon",
+		) == &"long",
 		"two Stage 2 loci both survive into target Genome"
 	)
 	_expect(
@@ -437,13 +437,13 @@ func _test_two_loci_and_retry_guards() -> void:
 		committed_genome != null
 		and committed_genome.stage() == 3
 		and committed_genome.get_trait(
-			&"eyes",
+			&"body",
 			&"base"
-		) == &"moon"
+		) == &"sturdy"
 		and committed_genome.get_trait(
-			&"mark",
+			&"tail",
 			&"base"
-		) == &"moon",
+		) == &"long",
 		"two-locus commit preserves both selected Gene expressions"
 	)
 
