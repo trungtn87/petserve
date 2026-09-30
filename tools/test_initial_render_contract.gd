@@ -103,12 +103,21 @@ func _initialize() -> void:
 			"Create one young cat pet"
 		)
 		and request.positive_prompt.contains(
+			"premium fantasy game character art"
+		)
+		and request.positive_prompt.contains(
+			"evolved chibi proportions"
+		)
+		and request.positive_prompt.contains(
+			"juvenile-to-adolescent"
+		)
+		and request.positive_prompt.contains(
 			"slight chibi"
 		)
 		and request.positive_prompt.contains(
 			"smoky blue-black and violet"
 		),
-		"Stage 1 must stay simple: species + light fantasy/chibi + element cues"
+		"Stage 1 must use the approved premium fantasy / evolved-chibi direction"
 	)
 
 	_expect(

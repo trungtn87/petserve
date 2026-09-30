@@ -129,22 +129,25 @@ func _test_natural_stage_one_plan() -> void:
 			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 2"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"Stage 1 ancestry cues:"
+			"Premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
-			"visibly look older and more developed than Stage 1"
+			"evolved chibi proportions"
 		)
 		and request.positive_prompt.contains(
-			"Target stage morphology:"
+			"juvenile-to-adolescent"
+		)
+		and request.positive_prompt.contains(
+			"Make the pet slightly older than Stage 1 only"
 		)
 		and request.positive_prompt.contains(
 			"No special fantasy mutation is active"
 		)
 		and request.positive_prompt.contains(
-			"28 to 32 percent"
+			"25 to 30 percent"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -386,22 +389,25 @@ func _test_gene_stage_one_plan() -> void:
 			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 2"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"Stage 1 ancestry cues:"
+			"Premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
-			"visibly look older and more developed than Stage 1"
+			"evolved chibi proportions"
+		)
+		and request.positive_prompt.contains(
+			"juvenile-to-adolescent"
+		)
+		and request.positive_prompt.contains(
+			"Make the pet slightly older than Stage 1 only"
 		)
 		and request.positive_prompt.contains(
 			"Apply only these Gene changes selected by code:"
 		)
 		and request.positive_prompt.contains(
-			"Target stage morphology:"
-		)
-		and request.positive_prompt.contains(
-			"28 to 32 percent"
+			"25 to 30 percent"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"

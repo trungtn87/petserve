@@ -878,34 +878,60 @@ func build_stage_regenerate_request(
 	var phenotype := PhenotypePromptBuilder.new().describe(
 		target_genome
 	)
-	var positive_prompt := (
-		"Create a NEW image for evolution Stage %d. "
-		+ "Do not copy, trace or image-edit the previous stage. "
-		+ "This must visibly look older and more developed than Stage %d. "
-		+ "Preserve the same pet lineage: species, elemental color family, face language, "
-		+ "forehead lineage sigil, fur motif language and exactly one normal tail unless a locked mutation says otherwise. "
-		+ "Use the same deterministic lineage seed so the new image still reads as the same individual design family. "
-	) % [
-		target_stage,
-		previous_genome.stage(),
-	]
+	var positive_prompt := ""
 
-	positive_prompt += (
-		"Stage 1 ancestry cues: "
-		+ stage_one_detail
-		+ " Target stage morphology: "
-		+ target_stage_detail
-		+ " "
-		+ species_profile.species_anatomy
-		+ " "
-		+ species_profile.freestyle_pose
-	)
+	if target_stage == 2:
+		positive_prompt = (
+			"Create one slightly older "
+			+ String(identity.species())
+			+ " pet. Element: "
+			+ PetElementCatalog.prompt_name(
+				identity.element()
+			)
+			+ ". "
+			+ "Premium fantasy game character art, painterly fantasy game art, evolved chibi proportions, "
+			+ "juvenile-to-adolescent fantasy character design language, slight chibi, natural feline anatomy, "
+			+ "soft fur and a simple readable design. "
+			+ "Element traits: "
+			+ _simple_element_traits(
+				identity.element()
+			)
+			+ " Stage 2. Juvenile-to-adolescent fantasy cat. "
+			+ "Make the pet slightly older than Stage 1 only: slightly taller body, slightly longer legs, "
+			+ "slightly more developed torso, slightly fuller fur, and a face that is a little less baby-like, "
+			+ "but still cute and youthful. "
+			+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+			+ "Keep fantasy details subtle."
+		)
+	else:
+		positive_prompt = (
+			"Create a NEW image for evolution Stage %d. "
+			+ "Do not copy, trace or image-edit the previous stage. "
+			+ "This must visibly look older and more developed than Stage %d. "
+			+ "Preserve the same pet lineage: species, elemental color family, face language, "
+			+ "forehead lineage sigil, fur motif language and exactly one normal tail unless a locked mutation says otherwise. "
+			+ "Use the same deterministic lineage seed so the new image still reads as the same individual design family. "
+		) % [
+			target_stage,
+			previous_genome.stage(),
+		]
 
-	positive_prompt += (
-		" Target phenotype from game code: "
-		+ phenotype
-		+ "."
-	)
+		positive_prompt += (
+			"Stage 1 ancestry cues: "
+			+ stage_one_detail
+			+ " Target stage morphology: "
+			+ target_stage_detail
+			+ " "
+			+ species_profile.species_anatomy
+			+ " "
+			+ species_profile.freestyle_pose
+		)
+
+		positive_prompt += (
+			" Target phenotype from game code: "
+			+ phenotype
+			+ "."
+		)
 
 	var visual_catalog := MutationVisualCatalog.new()
 	var visuals := visual_catalog.load_default()
@@ -985,27 +1011,47 @@ func build_stage_regenerate_request(
 			+ "Do not add horns, wings, extra tails or other mythical mutation anatomy."
 		)
 
-	positive_prompt += (
-		" Create a simple natural fantasy environment matching the "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
+	if target_stage == 2:
+		positive_prompt += (
+			" Simple natural fantasy background matching the same element. "
+			+ "Keep it uncluttered and atmospheric. "
+			+ "Exactly one pet. Full body visible. "
+			+ "Vertical 9:16 mobile scene. "
+			+ "Pet about 25 to 30 percent of image height in the lower third. "
+			+ "Background occupies most of the image. "
+			+ "Keep the upper area calm for UI. No text or UI. "
+			+ "Keep the design simple enough for later evolution."
 		)
-		+ " element. "
-		+ _scene_rebuild_prompt(
-			scene_profile
+	else:
+		positive_prompt += (
+			" Create a simple natural fantasy environment matching the "
+			+ PetElementCatalog.prompt_name(
+				identity.element()
+			)
+			+ " element. "
+			+ _scene_rebuild_prompt(
+				scene_profile
+			)
+			+ " Vertical 9:16 mobile scene. Full body visible. "
+			+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
+			+ "Background occupies most of the image. Keep the upper area calm for UI. "
+			+ "No text or UI."
 		)
-		+ " Vertical 9:16 mobile scene. Full body visible. "
-		+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
-		+ "Background occupies most of the image. Keep the upper area calm for UI. "
-		+ "No text or UI."
-	)
 
 	var negative_prompt := (
-		"same-age copy of previous stage, unchanged kitten proportions, image-edit look, "
-		+ "extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
 		+ "heavy accessories, text, UI, logo, watermark"
 	)
+
+	if target_stage == 2:
+		negative_prompt += (
+			", fully adult cat, old cat, drastic redesign, different species, different element"
+		)
+	else:
+		negative_prompt += (
+			", same-age copy of previous stage, unchanged kitten proportions, image-edit look"
+		)
 
 	if not mythic_active:
 		negative_prompt += (

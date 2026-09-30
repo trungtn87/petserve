@@ -78,7 +78,9 @@ func build(
 	)
 
 	spec.style_section = (
-		"Painterly fantasy game art, slight chibi, natural feline anatomy, soft fur and a simple readable design. "
+		"Premium fantasy game character art, painterly fantasy game art, evolved chibi proportions, "
+		+ "juvenile-to-adolescent fantasy character design language, slight chibi, natural feline anatomy, "
+		+ "soft fur and a simple readable design. "
 		+ "Element traits: "
 		+ _simple_element_traits(
 			identity.element()
@@ -86,7 +88,9 @@ func build(
 	)
 
 	spec.form_section = (
-		"Stage 1. Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+		"Stage 1. Young juvenile fantasy cat, at the youngest end of the juvenile-to-adolescent range. "
+		+ "Keep the pet cute, compact and youthful. "
+		+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
 		+ "Keep fantasy details subtle."
 	)
 
@@ -113,7 +117,7 @@ func build(
 	spec.negative_prompt = (
 		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
-		+ "heavy accessories, text, UI, logo, watermark"
+		+ "heavy accessories, fully adult cat, old cat, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
