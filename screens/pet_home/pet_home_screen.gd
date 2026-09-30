@@ -1364,18 +1364,6 @@ func _open_crystallization() -> void:
 		)
 	)
 
-	_add_info_row(
-		"I",
-		"1h • 70% vật phẩm No • 30% → II"
-	)
-	_add_info_row(
-		"II",
-		"3h • 70% vật phẩm Growth • 30% → III"
-	)
-	_add_info_row(
-		"III",
-		"8h • Kết tinh mang Gene"
-	)
 
 	var last_value: Variant = crystal.get(
 		"last_result",
