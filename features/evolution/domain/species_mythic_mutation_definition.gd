@@ -173,7 +173,7 @@ func required_traits_match(
 		var locus := StringName(
 			str(key_value)
 		)
-		var required := StringName(
+		var required_trait := StringName(
 			str(
 				_required_traits[
 					key_value
@@ -184,7 +184,7 @@ func required_traits_match(
 		if genome.get_trait(
 			locus,
 			PetGenomeSchema.BASE_TRAIT
-		) != required:
+		) != required_trait:
 			return false
 
 	return true
