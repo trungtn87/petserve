@@ -153,6 +153,12 @@ func snapshot() -> Dictionary:
 	state["inventory_count"] = (
 		_inventory.count()
 	)
+	state["chest_fragments"] = (
+		_chests.fragment_count()
+	)
+	state["chest_fragments_required"] = (
+		ChestService.FRAGMENTS_PER_RECYCLED_CHEST
+	)
 	state["evolution_plan_pending"] = (
 		_evolution_plan_pending
 	)
@@ -582,6 +588,75 @@ func use_item(
 		}
 
 	return result
+
+
+func salvage_item(
+	uid: String
+) -> Dictionary:
+	var item := _inventory.get_item(
+		uid
+	)
+
+	if item.is_empty():
+		return {
+			"ok": false,
+			"message": "Không tìm thấy vật phẩm để phân giải.",
+		}
+
+	var before := _meta.duplicate(
+		true
+	)
+
+	if not _inventory.remove_item(
+		uid
+	):
+		return {
+			"ok": false,
+			"message": "Không thể lấy vật phẩm khỏi Hòm Item.",
+		}
+
+	var stage_index := int(
+		_lifecycle.snapshot().get(
+			"stage_index",
+			_stage_index
+		)
+	)
+	var crafted := _chests.add_salvage_fragments(
+		1,
+		_run_id,
+		stage_index
+	)
+
+	if not save():
+		_restore(
+			before
+		)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được. Vật phẩm vẫn còn trong Hòm Item.",
+		}
+
+	var fragments := _chests.fragment_count()
+	var message := (
+		"Đã phân giải thành 1 mảnh rương • %d/%d"
+		% [
+			fragments,
+			ChestService.FRAGMENTS_PER_RECYCLED_CHEST,
+		]
+	)
+
+	if crafted > 0:
+		message = (
+			"Đủ 10 mảnh • đã ghép %d Rương Tái Chế"
+			% crafted
+		)
+
+	return {
+		"ok": true,
+		"fragments": fragments,
+		"crafted_chests": crafted,
+		"message": message,
+	}
 
 
 func describe_item(

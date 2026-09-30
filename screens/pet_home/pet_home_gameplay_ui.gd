@@ -12,6 +12,7 @@ var dialogs_only: bool = false
 
 signal chest_open_requested
 signal item_use_requested(uid: String)
+signal item_salvage_requested(uid: String)
 signal entertainment_requested
 signal evolution_requested
 
@@ -38,6 +39,7 @@ var _detail_meta: Label
 var _detail_effect: Label
 var _detail_mods: Label
 var _detail_use_button: Button
+var _detail_salvage_button: Button
 var _detail_item: Dictionary = {}
 var _detail_allow_use: bool = false
 var _evolve_button: Button
@@ -826,6 +828,17 @@ func _build_item_detail() -> void:
 		_detail_use_button
 	)
 
+	_detail_salvage_button = Button.new()
+	_detail_salvage_button.text = "PHÂN GIẢI • +1 MẢNH RƯƠNG"
+	_detail_salvage_button.custom_minimum_size.y = 42
+	_detail_salvage_button.focus_mode = Control.FOCUS_NONE
+	_detail_salvage_button.pressed.connect(
+		_on_detail_salvage
+	)
+	root.add_child(
+		_detail_salvage_button
+	)
+
 
 func _show_item_detail(
 	item: Dictionary,
@@ -921,6 +934,8 @@ func _show_item_detail(
 		if usable
 		else "CHƯA THỂ DÙNG"
 	)
+	_detail_salvage_button.visible = allow_use
+	_detail_salvage_button.disabled = not allow_use
 
 	_layout_overlay()
 	_detail_overlay.visible = true
@@ -955,6 +970,29 @@ func _on_detail_use() -> void:
 	_emit_item_use(
 		uid
 	)
+
+func _on_detail_salvage() -> void:
+	if (
+		_detail_item.is_empty()
+		or not _detail_allow_use
+	):
+		return
+
+	var uid := String(
+		_detail_item.get(
+			"uid",
+			""
+		)
+	)
+
+	if uid.is_empty():
+		return
+
+	_hide_item_detail()
+	item_salvage_requested.emit(
+		uid
+	)
+
 
 func _mods(item: Dictionary) -> String:
 	var parts: Array[String] = []
