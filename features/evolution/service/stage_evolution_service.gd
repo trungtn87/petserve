@@ -591,23 +591,30 @@ func _accumulated_gene_ids(
 				"selected_changes",
 				[]
 			)
+			var added_from_changes := false
 
 			if typeof(changes_value) == TYPE_ARRAY:
 				for raw_change in changes_value as Array:
 					if typeof(raw_change) != TYPE_DICTIONARY:
 						continue
 
+					var history_gene_id := String(
+						(raw_change as Dictionary).get(
+							"gene_id",
+							""
+						)
+					).strip_edges()
+
+					if history_gene_id.is_empty():
+						continue
+
 					_append_unique_gene_id(
 						result,
-						String(
-							(raw_change as Dictionary).get(
-								"gene_id",
-								""
-							)
-						)
+						history_gene_id
 					)
+					added_from_changes = true
 
-			if result.is_empty():
+			if not added_from_changes:
 				_append_unique_gene_id(
 					result,
 					String(
