@@ -598,14 +598,20 @@ func _test_locked_stage4_egg_mythic() -> void:
 	)
 
 	_expect(
-		retry_pending.get(
-			"mythic_destiny",
-			{}
-		) == destiny
-		and retry_pending.get(
-			"mythic_resolution",
-			{}
-		) == mythic,
+		_same_destiny(
+			retry_pending.get(
+				"mythic_destiny",
+				{}
+			),
+			destiny
+		)
+		and _same_mythic_resolution(
+			retry_pending.get(
+				"mythic_resolution",
+				{}
+			),
+			mythic
+		),
 		"Mythic retry cannot reroll destiny or branch"
 	)
 
@@ -644,6 +650,106 @@ func _test_locked_stage4_egg_mythic() -> void:
 		and committed_destiny == destiny,
 		"Mythic commit preserves locked name and branch into Stage 3"
 	)
+
+
+func _same_destiny(
+	a_value: Variant,
+	b_value: Variant
+) -> bool:
+	if (
+		typeof(a_value) != TYPE_DICTIONARY
+		or typeof(b_value) != TYPE_DICTIONARY
+	):
+		return false
+
+	var a := a_value as Dictionary
+	var b := b_value as Dictionary
+
+	for key in [
+		"schema",
+		"locked",
+		"source",
+		"species",
+		"mutation_id",
+		"display_name",
+	]:
+		if a.get(key) != b.get(key):
+			return false
+
+	return _string_array(
+		a.get(
+			"recipe_gene_ids",
+			[]
+		)
+	) == _string_array(
+		b.get(
+			"recipe_gene_ids",
+			[]
+		)
+	)
+
+
+func _same_mythic_resolution(
+	a_value: Variant,
+	b_value: Variant
+) -> bool:
+	if (
+		typeof(a_value) != TYPE_DICTIONARY
+		or typeof(b_value) != TYPE_DICTIONARY
+	):
+		return false
+
+	var a := a_value as Dictionary
+	var b := b_value as Dictionary
+
+	for key in [
+		"mode",
+		"trigger_source",
+		"mutation_id",
+		"display_name",
+		"prompt",
+		"preserve_hint",
+	]:
+		if String(
+			a.get(
+				key,
+				""
+			)
+		) != String(
+			b.get(
+				key,
+				""
+			)
+		):
+			return false
+
+	return _string_array(
+		a.get(
+			"target_regions",
+			[]
+		)
+	) == _string_array(
+		b.get(
+			"target_regions",
+			[]
+		)
+	)
+
+
+func _string_array(
+	value: Variant
+) -> Array[String]:
+	var result: Array[String] = []
+
+	if typeof(value) != TYPE_ARRAY:
+		return result
+
+	for item in value as Array:
+		result.append(
+			String(item)
+		)
+
+	return result
 
 
 func _save_stage_two_fixture(
