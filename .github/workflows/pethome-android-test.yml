@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - pethome
+  pull_request:
+    branches:
+      - pethome
   workflow_dispatch:
 
 jobs:
