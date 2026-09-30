@@ -287,6 +287,18 @@ func open_next() -> Array[Dictionary]:
 
 		var rewards := _roll_rewards(chest)
 
+		if rewards.is_empty():
+			push_error(
+				"ChestService: chest produced no rewards; keeping it unopened: "
+				+ String(
+					chest.get(
+						"uid",
+						"unknown"
+					)
+				)
+			)
+			return []
+
 		chest["opened"] = true
 		chest["opened_at_unix"] = int(Time.get_unix_time_from_system())
 		chest["reward_uids"] = _reward_uids(rewards)
@@ -487,6 +499,12 @@ func _roll_evolution_chest(
 			item.is_empty()
 			and item_type == ItemGenerator.TYPE_GENE
 		):
+			if to_stage == 2:
+				push_error(
+					"ChestService: Evolution I must produce a valid Stage 2 Gene."
+				)
+				return []
+
 			item = _generator.generate(
 				ItemGenerator.TYPE_FUTURE_FRAGMENT,
 				item_seed
