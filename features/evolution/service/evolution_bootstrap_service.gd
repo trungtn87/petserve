@@ -78,4 +78,5 @@ func build_from_hatch() -> Dictionary:
 		"genome": genome,
 		"scene_profile": scene_profile,
 		"pet_name": hatch_state.pet_name,
+		"egg_stage": egg_state.stage,
 	}
