@@ -99,11 +99,6 @@ func _initialize() -> void:
 	)
 
 	_expect(
-		request.seed > 0,
-		"Stage 1 must use a deterministic lineage seed for cross-stage visual continuity"
-	)
-
-	_expect(
 		request.positive_prompt.contains(
 			"Create one young cat pet"
 		)

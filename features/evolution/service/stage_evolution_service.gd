@@ -358,7 +358,7 @@ func _prepare_resolved_stage(
 		)
 
 	var coordinator := EvolutionEditCoordinator.new()
-	var plan := coordinator.build_stage_regenerate_request(
+	var plan: Dictionary = coordinator.build_stage_regenerate_request(
 		identity,
 		genome,
 		final_genome,
