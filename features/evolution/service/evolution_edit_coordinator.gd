@@ -183,7 +183,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v10_stage_%d"
+		+ "_pethome_v11_stage_%d"
 		% target_stage
 	)
 
