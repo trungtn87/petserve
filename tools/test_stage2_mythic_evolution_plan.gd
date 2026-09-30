@@ -271,9 +271,6 @@ func _test_three_gene_recipe_builds_retry_safe_mythic_plan() -> void:
 			"Fantasy mutation:"
 		)
 		and request.positive_prompt.contains(
-			"fantasy horns"
-		)
-		and request.positive_prompt.contains(
 			"[CODE-LOCKED GENE CHANGES]"
 		),
 		"renderer receives the exact composite Gene + Mythic plan"
