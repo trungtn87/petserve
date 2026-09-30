@@ -592,7 +592,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v10_stage_3"
+			"_pethome_v11_stage_3"
 		)
 		and request_two.positive_prompt.contains(
 			"[PETHOME SCALE LOCK]"
@@ -698,7 +698,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v10_stage_4"
+			"_pethome_v11_stage_4"
 		)
 		and request_three.positive_prompt.contains(
 			"[PETHOME SCALE LOCK]"
