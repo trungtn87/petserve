@@ -1647,10 +1647,14 @@ func _format_stage_time(
 			float(seconds) / 60.0
 		)
 	)
-	var days := total_minutes / 1440
-	var hours := (
-		total_minutes % 1440
-	) / 60
+	var days := int(
+		total_minutes / 1440
+	)
+	var hours := int(
+		(
+			total_minutes % 1440
+		) / 60
+	)
 	var minutes := total_minutes % 60
 	var parts: Array[String] = []
 
