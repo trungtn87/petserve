@@ -1,1 +1,2 @@
 Trigger pethome Android validation build for 2026-09-30.
+Retry after Android SDK setup fix.
