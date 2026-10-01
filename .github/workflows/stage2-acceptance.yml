@@ -9,6 +9,7 @@ on:
       - "feat/stage2-*"
       - "feat/stage3-*"
       - "feat/stage4-*"
+      - "feat/legacy-*"
 
 permissions:
   contents: read
@@ -57,6 +58,9 @@ jobs:
 
       - name: Stage 4 Growth + Final Evolution foundation
         run: godot --headless --path . res://tools/test_stage4_growth_final_evolution.tscn
+
+      - name: Legacy item inheritance
+        run: godot --headless --path . res://tools/test_legacy_item_inheritance.tscn
 
       - name: Gene evolution render contract
         run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd

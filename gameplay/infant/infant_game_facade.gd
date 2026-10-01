@@ -19,6 +19,7 @@ var _lifecycle: StageLifecycle = StageLifecycle.new()
 var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
 var _crystallization = ElementCrystallizationServiceScript.new()
 var _evolution_save: EvolutionSaveService = EvolutionSaveService.new()
+var _legacy: LegacyInheritanceService = LegacyInheritanceService.new()
 var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
 var _gene_definitions: Array[GeneDefinition] = []
@@ -51,6 +52,11 @@ func setup(
 		}
 	else:
 		_meta["schema"] = META_SCHEMA
+
+	var legacy_claim := _legacy.apply_pending_to_meta(
+		_meta,
+		run_id
+	)
 
 	_sanitize_dev_test_talent()
 
@@ -123,7 +129,28 @@ func setup(
 		run_id
 	)
 
-	return save()
+	var saved := save()
+
+	if (
+		saved
+		and bool(
+			legacy_claim.get(
+				"applied",
+				false
+			)
+		)
+	):
+		_legacy.mark_claimed(
+			String(
+				legacy_claim.get(
+					"inheritance_id",
+					""
+				)
+			),
+			run_id
+		)
+
+	return saved
 
 
 func tick(
@@ -192,6 +219,23 @@ func snapshot() -> Dictionary:
 	)
 	state["crystallization"] = (
 		_crystallization.snapshot()
+	)
+	state["legacy_inheritance_id"] = String(
+		_meta.get(
+			"legacy_inheritance_id",
+			""
+		)
+	)
+	var legacy_item_value: Variant = _meta.get(
+		"legacy_inherited_item",
+		{}
+	)
+	state["legacy_inherited_item"] = (
+		(legacy_item_value as Dictionary).duplicate(
+			true
+		)
+		if typeof(legacy_item_value) == TYPE_DICTIONARY
+		else {}
 	)
 
 	if (
