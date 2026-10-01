@@ -705,49 +705,16 @@ func _open_pet_info() -> void:
 		)
 	)
 	_add_info_row(
-		"Giai đoạn",
-		PetHomeThemeScript.stage_label(
-			genome.stage()
-		)
-	)
-	var gameplay_state := _game.snapshot()
-	_add_info_row(
-		"Trưởng thành",
-		"%d%%" % (
-			100
-			if bool(
-				gameplay_state.get(
-					"final_form",
-					false
-				)
-			)
-			else int(
-				gameplay_state.get(
-					"growth_percent",
-					0
-				)
-			)
-		)
-	)
-	if bool(
-		gameplay_state.get(
-			"instant_evolution_talent",
-			false
-		)
-	):
-		_add_info_row(
-			"Thiên phú",
-			"Tiến hóa ngay [TEST]"
-		)
-	_add_info_row(
 		"Loài",
 		String(
 			identity.species()
 		).capitalize()
 	)
-	_add_mythic_name_row(
-		identity,
-		genome
+	_add_info_row(
+		"Giai đoạn",
+		PetHomeThemeScript.stage_label(
+			genome.stage()
+		)
 	)
 	_add_info_row(
 		"Thế hệ",
@@ -756,8 +723,13 @@ func _open_pet_info() -> void:
 			+ 1
 		)
 	)
+	var gameplay_state := _game.snapshot()
 	_add_skill_rows(
 		gameplay_state
+	)
+	_add_mythic_name_row(
+		identity,
+		genome
 	)
 	var inherited_value: Variant = gameplay_state.get(
 		"legacy_inherited_item",
@@ -775,22 +747,6 @@ func _open_pet_info() -> void:
 				inherited_value as Dictionary
 			)
 		)
-	_add_info_row(
-		"Phong cách",
-		String(
-			scene.palette_id
-		).replace(
-			"_",
-			" "
-		).capitalize()
-	)
-	_add_current_trait_rows(
-		genome
-	)
-	_add_gene_choice_rows(
-		gameplay_state
-	)
-	_add_last_evolution_row()
 
 	_section_overlay.visible = true
 
@@ -2005,10 +1961,6 @@ func _open_evolution() -> void:
 		)
 	)
 
-	_add_skill_rows(
-		state
-	)
-
 	if stage_index >= StageLifecycle.FINAL_STAGE:
 		_add_info_row(
 			"Giai đoạn",
@@ -2052,16 +2004,6 @@ func _open_evolution() -> void:
 		)
 	)
 	_add_info_row(
-		"Tuổi stage",
-		"%d%%"
-		% int(
-			state.get(
-				"age_percent",
-				0
-			)
-		)
-	)
-	_add_info_row(
 		"Deadline",
 		(
 			"Đã tới hạn"
@@ -2073,20 +2015,6 @@ func _open_evolution() -> void:
 			)
 			else "Còn " + _format_stage_time(
 				age_remaining
-			)
-		)
-	)
-	_add_info_row(
-		"Thức ăn",
-		_format_stage_time(
-			maxi(
-				0,
-				int(
-					state.get(
-						"food_seconds",
-						0
-					)
-				)
 			)
 		)
 	)
@@ -2115,19 +2043,6 @@ func _open_evolution() -> void:
 			"SẴN SÀNG TIẾN HÓA"
 		)
 
-		if (
-			not naturally_ready
-			and bool(
-				state.get(
-					"instant_evolution_talent",
-					false
-				)
-			)
-		):
-			_add_info_row(
-				"Thiên phú TEST",
-				"Bỏ qua thời gian chờ"
-			)
 
 		_section_button(
 			"TIẾN HÓA → %s"
