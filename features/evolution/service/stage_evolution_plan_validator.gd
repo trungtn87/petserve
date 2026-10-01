@@ -611,24 +611,57 @@ func _restore_deltas(
 func _normal_resolution_signature(
 	resolution: Dictionary
 ) -> Dictionary:
-	var delta_dict: Dictionary = {}
+	var raw_delta: Dictionary = {}
 	var delta_value: Variant = resolution.get(
 		"delta",
 		{}
 	)
 
 	if delta_value is EvolutionDelta:
-		delta_dict = (
+		raw_delta = (
 			delta_value as EvolutionDelta
 		).to_dict()
 	elif typeof(delta_value) == TYPE_DICTIONARY:
-		delta_dict = (
+		raw_delta = (
 			delta_value as Dictionary
 		).duplicate(true)
 
-	# Only gameplay-authoritative fields participate in plan integrity.
-	# Probability, roll and candidate_ids are diagnostics and can change
-	# representation after JSON round-trip without changing the locked result.
+	var delta_dict: Dictionary = {}
+	if not raw_delta.is_empty():
+		delta_dict = {
+			"mutation_id": String(
+				raw_delta.get(
+					"mutation_id",
+					""
+				)
+			),
+			"target_trait": String(
+				raw_delta.get(
+					"target_trait",
+					""
+				)
+			),
+			"from_trait": String(
+				raw_delta.get(
+					"from_trait",
+					""
+				)
+			),
+			"to_trait": String(
+				raw_delta.get(
+					"to_trait",
+					""
+				)
+			),
+			"step_index": int(
+				raw_delta.get(
+					"step_index",
+					0
+				)
+			),
+		}
+
+	# Normalize JSON number types before comparing the authoritative result.
 	return {
 		"mode": String(
 			resolution.get(
