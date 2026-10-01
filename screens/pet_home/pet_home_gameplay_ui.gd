@@ -122,16 +122,37 @@ func refresh_status(s: Dictionary) -> void:
 		)
 	)
 	_growth_bar.value = percent
-	_food_label.text = (
-		"Thức ăn  "
-		+ _duration(
-			int(
-				s.get(
-					"food_seconds",
-					0
-				)
-			)
+	var food_percent := int(
+		s.get(
+			"food_percent",
+			0
 		)
+	)
+	var growth_speed_percent := int(
+		s.get(
+			"growth_speed_percent",
+			0
+		)
+	)
+	var hibernating := bool(
+		s.get(
+			"hibernating",
+			false
+		)
+	)
+	_food_label.text = (
+		"Độ no %d%% • %s"
+		% [
+			food_percent,
+			_duration(
+				int(
+					s.get(
+						"food_seconds",
+						0
+					)
+				)
+			),
+		]
 	)
 
 	if final_form:
@@ -143,20 +164,17 @@ func refresh_status(s: Dictionary) -> void:
 			% percent
 		)
 		_state_label.text = (
-			"Sẵn sàng tiến hóa"
-			if ready
+			"Ngủ đông • cần cho ăn"
+			if hibernating
 			else (
-				"Có thể tiến hóa ngay [TEST]"
-				if can_evolve
+				"Sẵn sàng tiến hóa"
+				if ready
 				else (
-					"Còn ~"
-					+ _duration(
-						int(
-							s.get(
-								"growth_remaining_seconds",
-								0
-							)
-						)
+					"Có thể tiến hóa ngay [TEST]"
+					if can_evolve
+					else (
+						"Tăng trưởng %d%%"
+						% growth_speed_percent
 					)
 				)
 			)
@@ -912,13 +930,38 @@ func _show_item_detail(
 		item
 	)
 
+	var detail_lines: Array[String] = []
 	var mods := _mods(
 		item
 	)
-	_detail_mods.text = (
-		mods
-		if not mods.is_empty()
-		else "Không có thuộc tính phụ."
+
+	if not mods.is_empty():
+		detail_lines.append(
+			mods
+		)
+
+	if StringName(
+		item.get(
+			"item_type",
+			""
+		)
+	) == ItemGenerator.TYPE_GENE:
+		var gene_context := _gene_context_text(
+			item
+		)
+
+		if not gene_context.is_empty():
+			detail_lines.append(
+				gene_context
+			)
+
+	if detail_lines.is_empty():
+		detail_lines.append(
+			"Không có thuộc tính phụ."
+		)
+
+	_detail_mods.text = "\n".join(
+		detail_lines
 	)
 
 	var usable := (
@@ -992,6 +1035,212 @@ func _on_detail_salvage() -> void:
 	item_salvage_requested.emit(
 		uid
 	)
+
+
+func _gene_context_text(
+	item: Dictionary
+) -> String:
+	if _facade == null:
+		return ""
+
+	var context := _facade.gene_item_context(
+		item
+	)
+
+	if context.is_empty():
+		return ""
+
+	var stages_value: Variant = context.get(
+		"allowed_stages",
+		[]
+	)
+	var stage_labels: Array[String] = []
+
+	if typeof(stages_value) == TYPE_ARRAY:
+		for stage_value in stages_value as Array:
+			stage_labels.append(
+				PetHomeTheme.stage_label(
+					int(stage_value)
+				)
+			)
+
+	var current_score := float(
+		context.get(
+			"current_score",
+			0.0
+		)
+	)
+	var item_score := float(
+		context.get(
+			"item_score",
+			0.0
+		)
+	)
+	var projected_score := float(
+		context.get(
+			"projected_score",
+			current_score + item_score
+		)
+	)
+	var current_tier_label := String(
+		context.get(
+			"current_tier_label",
+			"Chưa biểu hiện"
+		)
+	)
+	var projected_tier_label := String(
+		context.get(
+			"projected_tier_label",
+			current_tier_label
+		)
+	)
+	var next_threshold := float(
+		context.get(
+			"next_threshold",
+			0.0
+		)
+	)
+	var element_lock := String(
+		context.get(
+			"element_lock",
+			""
+		)
+	)
+	var element_compatible := bool(
+		context.get(
+			"element_compatible",
+			true
+		)
+	)
+	var lines: Array[String] = [
+		"Bộ phận: %s" % _gene_locus_label(
+			StringName(
+				context.get(
+					"locus",
+					""
+				)
+			)
+		),
+		"Hướng: %s" % _gene_value_label(
+			StringName(
+				context.get(
+					"direction",
+					""
+				)
+			)
+		),
+		"Stage dùng được: %s" % (
+			" • ".join(
+				stage_labels
+			)
+			if not stage_labels.is_empty()
+			else "Không có"
+		),
+		"Điểm hiện tại: %d • Item +%d → %d"
+		% [
+			int(round(current_score)),
+			int(round(item_score)),
+			int(round(projected_score)),
+		],
+		"Biểu hiện: %s → %s"
+		% [
+			current_tier_label,
+			projected_tier_label,
+		],
+	]
+
+	if next_threshold > 0.0:
+		lines.append(
+			"Mốc tiếp theo: %d điểm"
+			% int(
+				round(
+					next_threshold
+				)
+			)
+		)
+	else:
+		lines.append(
+			"Biểu hiện đã đạt cấp Cực đại."
+		)
+
+	if not element_lock.is_empty():
+		lines.append(
+			"Hệ yêu cầu: %s • %s"
+			% [
+				element_lock.capitalize(),
+				(
+					"phù hợp pet hiện tại"
+					if element_compatible
+					else "giữ lại cho pet/kế thừa phù hợp"
+				),
+			]
+		)
+
+	if bool(
+		context.get(
+			"evolution_plan_pending",
+			false
+		)
+	):
+		lines.append(
+			"Plan tiến hóa đã khóa: item được giữ lại."
+		)
+
+	lines.append(
+		"Điểm Gene cộng dồn qua các Stage; prompt tiến hóa đọc cấp biểu hiện từ tổng điểm."
+	)
+
+	return "\n".join(
+		lines
+	)
+
+
+func _gene_locus_label(
+	locus: StringName
+) -> String:
+	match locus:
+		&"body":
+			return "Cơ thể"
+		&"eyes":
+			return "Mắt"
+		&"ears":
+			return "Tai"
+		&"whiskers":
+			return "Râu"
+		&"fur":
+			return "Lông"
+		&"coat":
+			return "Vân lông"
+		&"tail":
+			return "Đuôi"
+		&"paws":
+			return "Bàn chân"
+		&"mane":
+			return "Bờm"
+		&"mark":
+			return "Dấu"
+		&"structure":
+			return "Cấu trúc"
+		&"aura":
+			return "Hào quang"
+		_:
+			return String(
+				locus
+			).replace(
+				"_",
+				" "
+			).capitalize()
+
+
+func _gene_value_label(
+	value: StringName
+) -> String:
+	return String(
+		value
+	).replace(
+		"_",
+		" "
+	).capitalize()
 
 
 func _mods(item: Dictionary) -> String:

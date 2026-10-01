@@ -7,6 +7,7 @@ const CHEST_DAILY: StringName = &"daily"
 const CHEST_EVOLUTION: StringName = &"evolution"
 const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
 const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
+const STAGE2_ACTIVITY_REWARD_COUNT: int = 4
 const CHEST_RECYCLED: StringName = &"recycled"
 const FRAGMENTS_PER_RECYCLED_CHEST: int = 10
 
@@ -294,6 +295,14 @@ func ensure_stage_activity_chest(
 		"game_id": game_id,
 		"reward_index": reward_index,
 		"reward_tier": tier,
+		"guaranteed_gene": (
+			stage_index == 2
+			and reward_index
+				== _guaranteed_stage_gene_reward_index(
+					run_id,
+					stage_index
+				)
+		),
 		"opened": false,
 	})
 
@@ -347,6 +356,18 @@ func open_next() -> Array[Dictionary]:
 			continue
 
 		var rewards := _roll_rewards(chest)
+
+		if rewards.is_empty():
+			push_error(
+				"ChestService: chest produced no rewards; keeping it unopened: "
+				+ String(
+					chest.get(
+						"uid",
+						"unknown"
+					)
+				)
+			)
+			return []
 
 		chest["opened"] = true
 		chest["opened_at_unix"] = int(Time.get_unix_time_from_system())
@@ -550,6 +571,12 @@ func _roll_evolution_chest(
 			item.is_empty()
 			and item_type == ItemGenerator.TYPE_GENE
 		):
+			if to_stage == 2:
+				push_error(
+					"ChestService: Evolution I must produce a valid Stage 2 Gene."
+				)
+				return []
+
 			item = _generator.generate(
 				ItemGenerator.TYPE_FUTURE_FRAGMENT,
 				item_seed
@@ -612,6 +639,37 @@ func _roll_stage_activity_chest(
 			"stage_activity"
 		)
 	)
+	var stage_index := int(
+		chest.get(
+			"stage_index",
+			2
+		)
+	)
+	var run_id := int(
+		chest.get(
+			"run_id",
+			0
+		)
+	)
+	var reward_index := int(
+		chest.get(
+			"reward_index",
+			0
+		)
+	)
+	var guaranteed_gene := bool(
+		chest.get(
+			"guaranteed_gene",
+			(
+				stage_index == 2
+				and reward_index
+					== _guaranteed_stage_gene_reward_index(
+						run_id,
+						stage_index
+					)
+			)
+		)
+	)
 	var tier := clampi(
 		int(
 			chest.get(
@@ -658,25 +716,40 @@ func _roll_stage_activity_chest(
 		0.0
 	))
 	var rewards: Array[Dictionary] = []
+	var guaranteed_gene_slot := -1
+
+	if guaranteed_gene:
+		guaranteed_gene_slot = (
+			0
+			if reward_count <= 1
+			else rng.randi_range(
+				0,
+				reward_count - 1
+			)
+		)
 
 	for index in range(
 		reward_count
 	):
-		var roll := rng.randf()
 		var item_type: StringName
 
-		if roll <= fragment_chance:
-			item_type = (
-				ItemGenerator.TYPE_FUTURE_FRAGMENT
-			)
-		elif roll <= fragment_chance + 0.42:
-			item_type = (
-				ItemGenerator.TYPE_GROWTH
-			)
+		if index == guaranteed_gene_slot:
+			item_type = ItemGenerator.TYPE_GENE
 		else:
-			item_type = (
-				ItemGenerator.TYPE_FOOD
-			)
+			var roll := rng.randf()
+
+			if roll <= fragment_chance:
+				item_type = (
+					ItemGenerator.TYPE_FUTURE_FRAGMENT
+				)
+			elif roll <= fragment_chance + 0.42:
+				item_type = (
+					ItemGenerator.TYPE_GROWTH
+				)
+			else:
+				item_type = (
+					ItemGenerator.TYPE_FOOD
+				)
 
 		var item_seed := absi(
 			hash(
@@ -696,16 +769,27 @@ func _roll_stage_activity_chest(
 				+ 1
 			)
 
-		var item := _generator.generate_for_stage(
-			item_type,
-			item_seed,
-			int(
-				chest.get(
-					"stage_index",
-					2
-				)
+		var item := (
+			_generate_gene_for_stage(
+				stage_index,
+				item_seed
+			)
+			if item_type == ItemGenerator.TYPE_GENE
+			else _generator.generate_for_stage(
+				item_type,
+				item_seed,
+				stage_index
 			)
 		)
+
+		if (
+			item_type == ItemGenerator.TYPE_GENE
+			and item.is_empty()
+		):
+			push_error(
+				"ChestService: Stage 2 guaranteed Gene generation failed."
+			)
+			return []
 
 		if not item.is_empty():
 			rewards.append(
@@ -766,6 +850,30 @@ func _roll_recycled_chest(
 		return []
 
 	return [item]
+
+
+func _guaranteed_stage_gene_reward_index(
+	run_id: int,
+	stage_index: int
+) -> int:
+	if stage_index != 2:
+		return -1
+
+	# Stable for the same life, varied across lineage seeds.
+	# Do not use the current clock or chest-open order: reload must not reroll it.
+	var mixed_seed := (
+		run_id * 1103515245
+		+ stage_index * 12345
+		+ 1013904223
+	)
+
+	return (
+		posmod(
+			mixed_seed,
+			STAGE2_ACTIVITY_REWARD_COUNT
+		)
+		+ 1
+	)
 
 
 func _generate_gene_for_stage(

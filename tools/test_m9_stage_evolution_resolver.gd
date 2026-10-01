@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 
 
 const SEED: int = 9404
@@ -7,10 +7,11 @@ const SEED: int = 9404
 var _failures: int = 0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_test_natural_growth()
 	_test_stage_one_gene_expression()
 	_test_stage_two_new_gene_branch()
+	_test_stage_two_two_loci_apply_both()
 	_test_stage_two_reinforcement_chain()
 	_test_stage_two_same_locus_resolves_once()
 	_test_stage_mismatch_is_rejected()
@@ -19,14 +20,14 @@ func _initialize() -> void:
 		print(
 			"M9.4 Stage Evolution Resolver: PASS"
 		)
-		quit(0)
+		get_tree().quit(0)
 		return
 
 	push_error(
 		"M9.4 Stage Evolution Resolver: FAIL (%d)"
 		% _failures
 	)
-	quit(1)
+	get_tree().quit(1)
 
 
 func _test_natural_growth() -> void:
@@ -85,20 +86,16 @@ func _test_stage_one_gene_expression() -> void:
 	var identity := _identity()
 	var genome := PetGenomeFactory.new().create_initial()
 	var policy := StageGenePolicy.load_default()
-	var state := GeneDevelopmentState.new(
-		1
-	)
+	var state := GeneDevelopmentState.new(1)
 
 	state.record_gene_item(
 		policy,
-		"gene_tail_fixture",
-		&"tail_long",
-		&"tail",
-		&"long",
+		"gene_whiskers_fixture",
+		&"whiskers_starlight",
+		&"whiskers",
+		&"starlight",
 		20.0,
-		{
-			"agile": 6.0,
-		}
+		{"mystic": 6.0}
 	)
 
 	var resolved := StageEvolutionResolver.new().resolve(
@@ -106,52 +103,25 @@ func _test_stage_one_gene_expression() -> void:
 		genome,
 		state
 	)
-	var delta := resolved.get(
-		"delta"
-	) as EvolutionDelta
-	var next := resolved.get(
-		"genome"
-	) as PetGenome
+	var delta := resolved.get("delta") as EvolutionDelta
+	var next := resolved.get("genome") as PetGenome
 
 	_expect(
-		bool(
-			resolved.get(
-				"ok",
-				false
-			)
-		)
+		bool(resolved.get("ok", false))
 		and delta != null
-		and delta.target_trait()
-			== &"tail"
-		and delta.from_trait()
-			== &"base"
-		and delta.to_trait()
-			== &"long"
-		and delta.mutation_id()
-			== &"gene_expr_tail_long_s1",
-		"Stage 1 Gene must become one explicit EvolutionDelta"
+		and delta.target_trait() == &"whiskers"
+		and delta.from_trait() == &"base"
+		and delta.to_trait() == &"starlight"
+		and delta.mutation_id() == &"gene_expr_whiskers_starlight_s1",
+		"Stage 1 small-detail Gene must become one explicit EvolutionDelta"
 	)
 	_expect(
 		next != null
-		and next.get_trait(
-			&"tail",
-			&"base"
-		) == &"long"
-		and StringName(
-			resolved.get(
-				"resolved_trait",
-				""
-			)
-		) == &"long"
-		and not bool(
-			resolved.get(
-				"reinforced",
-				true
-			)
-		),
-		"Stage 1 Gene must open its first expression"
+		and next.get_trait(&"whiskers", &"base") == &"starlight"
+		and StringName(resolved.get("resolved_trait", "")) == &"starlight"
+		and not bool(resolved.get("reinforced", true)),
+		"Stage 1 Gene must open its first small-detail expression"
 	)
-
 
 func _test_stage_two_new_gene_branch() -> void:
 	var genome := _stage_two_genome({
@@ -204,6 +174,49 @@ func _test_stage_two_new_gene_branch() -> void:
 		"Stage 2 must express newly unlocked body Gene"
 	)
 
+
+func _test_stage_two_two_loci_apply_both() -> void:
+	var genome := _stage_two_genome({})
+	var policy := StageGenePolicy.load_default()
+	var state := GeneDevelopmentState.new(2)
+
+	state.record_gene_item(
+		policy,
+		"gene_body_fixture",
+		&"body_sturdy",
+		&"body",
+		&"sturdy",
+		20.0,
+		{}
+	)
+	state.record_gene_item(
+		policy,
+		"gene_mane_fixture",
+		&"mane_astral",
+		&"mane",
+		&"astral",
+		20.0,
+		{}
+	)
+
+	var result := StageEvolutionResolver.new().resolve(
+		_identity(),
+		genome,
+		state
+	)
+	var next := result.get("genome") as PetGenome
+	var deltas_value: Variant = result.get("deltas", [])
+
+	_expect(
+		bool(result.get("ok", false))
+		and next != null
+		and next.get_trait(&"body", &"base") == &"sturdy"
+		and next.get_trait(&"mane", &"base") == &"astral"
+		and typeof(deltas_value) == TYPE_ARRAY
+		and (deltas_value as Array).size() == 2
+		and int(result.get("resolved_locus_count", 0)) == 2,
+		"two Stage 2 form Genes in different loci must both express in one evolution"
+	)
 
 func _test_stage_two_reinforcement_chain() -> void:
 	var genome := _stage_two_genome({

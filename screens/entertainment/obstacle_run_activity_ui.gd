@@ -174,14 +174,30 @@ func _finish_match() -> void:
 func _sync_reward() -> void:
 	if _reward_label == null:
 		return
+
 	if _reward_enabled:
-		_reward_label.text = "Rương Stage 2 chung với Snake: %d/%d" % [_reward_claimed, _reward_max]
+		var remaining := maxi(
+			0,
+			_reward_max - _reward_claimed
+		)
+		_reward_label.text = (
+			"Rương chung Vượt chướng ngại + Snake còn %d/%d"
+			% [
+				remaining,
+				_reward_max,
+			]
+			if remaining > 0
+			else "Rương chung Vượt chướng ngại + Snake còn 0/%d • vẫn chơi tự do"
+				% _reward_max
+		)
 	else:
-		_reward_label.text = "Chơi tự do • Rương thưởng mở ở Stage 2."
+		_reward_label.text = "Chơi tự do • rương hoạt động chỉ có ở Stage 2."
+
 	_reward_button.visible = (
 		_game != null and _game.result() == ObstacleRunGame.RESULT_WIN
 		and _reward_enabled and _reward_claimed < _reward_max and not _match_rewarded
 	)
+
 
 func _on_reward_pressed() -> void:
 	if _game == null or _game.result() != ObstacleRunGame.RESULT_WIN:

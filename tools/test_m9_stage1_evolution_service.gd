@@ -123,60 +123,43 @@ func _test_natural_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v9_stage_2"
-		)
-		and request.target_region
-			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
-		and request.positive_prompt.contains(
-			"[STAGE 2 FULL REGENERATE]"
+			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"visibly older and more physically mature than Stage 1"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENT MORPHOLOGY STAGE 2]"
+			"Premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
-			"[SPECIES FREESTYLE]"
+			"evolved chibi proportions"
 		)
 		and request.positive_prompt.contains(
-			"pose and camera-relative stance are freestyle"
-		)
-		and not request.positive_prompt.contains(
-			"[QUADRUPED BODY PLAN]"
+			"juvenile-to-adolescent"
 		)
 		and request.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"Make the pet clearly older and more developed than Stage 1"
 		)
 		and request.positive_prompt.contains(
-			"35 percent"
+			"fuller layered fur"
 		)
 		and request.positive_prompt.contains(
-			"10 percent"
+			"gentle elemental glow"
 		)
 		and request.positive_prompt.contains(
-			"90 percent"
+			"No special fantasy mutation is active"
 		)
 		and request.positive_prompt.contains(
-			"body=base"
-		)
-		and request.positive_prompt.contains(
-			"aura=base"
-		)
-		and not request.positive_prompt.contains(
-			"[ANATOMY REQUIREMENT]"
+			"30 to 34 percent"
 		)
 		and request.negative_prompt.contains(
-			"duplicated appendage"
-		)
-		and not request.negative_prompt.contains(
-			"bipedal"
+			"extra tail"
 		)
 		and request.seed > 0,
-		"Natural request must carry full phenotype and explicit no-Gene contract"
+		"Natural Stage 1 -> 2 must full-regenerate a visibly older pet"
 	)
 
 	var first_request := (
@@ -270,7 +253,7 @@ func _test_natural_stage_one_plan() -> void:
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v9_full_regenerate"
+			) == "evolution_pethome_v12_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -299,13 +282,13 @@ func _test_gene_stage_one_plan() -> void:
 	)
 	var recorded := gene_state.record_gene_item(
 		policy,
-		"gene_tail_runtime",
-		&"tail_long",
-		&"tail",
-		&"long",
+		"gene_whiskers_runtime",
+		&"whiskers_starlight",
+		&"whiskers",
+		&"starlight",
 		20.0,
 		{
-			"agile": 6.0,
+			"mystic": 6.0,
 		}
 	)
 
@@ -379,13 +362,13 @@ func _test_gene_stage_one_plan() -> void:
 				"mutation_id",
 				""
 			)
-		) == "gene_expr_tail_long_s1"
+		) == "gene_expr_whiskers_starlight_s1"
 		and String(
 			delta.get(
 				"target_trait",
 				""
 			)
-		) == "tail",
+		) == "whiskers",
 		"Gene plan must persist the code-selected delta"
 	)
 
@@ -393,9 +376,9 @@ func _test_gene_stage_one_plan() -> void:
 		next != null
 		and next.stage() == 2
 		and next.get_trait(
-			&"tail",
+			&"whiskers",
 			&"base"
-		) == &"long",
+		) == &"starlight",
 		"Gene plan must persist the selected phenotype into Stage 2 Genome"
 	)
 
@@ -406,65 +389,43 @@ func _test_gene_stage_one_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v9_stage_2"
-		)
-		and request.target_region == &"tail"
-		and request.positive_prompt.contains(
-			"[STAGE 2 FULL REGENERATE]"
+			"_pethome_v12_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"[ELEMENT MORPHOLOGY STAGE 2]"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"[SPECIES FREESTYLE]"
+			"Premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
-			"pose and camera-relative stance are freestyle"
-		)
-		and not request.positive_prompt.contains(
-			"[QUADRUPED BODY PLAN]"
+			"evolved chibi proportions"
 		)
 		and request.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"juvenile-to-adolescent"
 		)
 		and request.positive_prompt.contains(
-			"35 percent"
+			"Make the pet clearly older and more developed than Stage 1"
 		)
 		and request.positive_prompt.contains(
-			"10 percent"
+			"fuller layered fur"
 		)
 		and request.positive_prompt.contains(
-			"90 percent"
+			"gentle elemental glow"
 		)
 		and request.positive_prompt.contains(
-			"[SOURCE PHENOTYPE BLUEPRINT]"
+			"Apply only these Gene changes selected by code:"
 		)
 		and request.positive_prompt.contains(
-			"tail=base"
-		)
-		and request.positive_prompt.contains(
-			"tail=long"
-		)
-		and request.positive_prompt.contains(
-			"Do not invent any other gene trait"
-		)
-		and request.positive_prompt.contains(
-			"[ONE GENE EXPRESSION]"
-		)
-		and not request.positive_prompt.contains(
-			"[ANATOMY REQUIREMENT]"
+			"30 to 34 percent"
 		)
 		and request.negative_prompt.contains(
-			"duplicated appendage"
-		)
-		and not request.negative_prompt.contains(
-			"bipedal"
+			"extra tail"
 		)
 		and request.seed > 0,
-		"Gene request must expose full current/target phenotype and one-change contract"
+		"Gene Stage 1 -> 2 must full-regenerate and apply only the selected Gene"
 	)
 
 	var gene_resolution: Dictionary = pending.get(
@@ -477,7 +438,7 @@ func _test_gene_stage_one_plan() -> void:
 				"selected_gene_id",
 				""
 			)
-		) == "tail_long"
+		) == "whiskers_starlight"
 		and is_equal_approx(
 			float(
 				(
@@ -486,7 +447,7 @@ func _test_gene_stage_one_plan() -> void:
 						{}
 					) as Dictionary
 				).get(
-					"agile",
+					"mystic",
 					0.0
 				)
 			),
@@ -539,21 +500,21 @@ func _test_gene_stage_one_plan() -> void:
 			committed_genome != null
 			and committed_genome.stage() == 2
 			and committed_genome.get_trait(
-				&"tail",
+				&"whiskers",
 				&"base"
-			) == &"long"
+			) == &"starlight"
 			and String(
 				current_visual.get(
 					"mutation_id",
 					""
 				)
-			) == "gene_expr_tail_long_s1"
+			) == "gene_expr_whiskers_starlight_s1"
 			and String(
 				current_visual.get(
 					"source_mode",
 					""
 				)
-			) == "evolution_pethome_v9_full_regenerate"
+			) == "evolution_pethome_v12_full_regenerate"
 			and history.size() == 1
 			and String(
 				(
@@ -859,17 +820,15 @@ func _test_stage_two_natural_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path == image_path
-		and request.target_region
-			== EvolutionEditCoordinator.NATURAL_TARGET_REGION
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
-			"[NATURAL STAGE ADVANCE]"
+			"Create a NEW image for evolution Stage 3"
 		)
 		and request.positive_prompt.contains(
-			"from Stage 2 to Stage 3"
+			"visibly look older and more developed than Stage 2"
 		),
-		"Natural Stage 2 must image-edit the current visual without inventing a Gene"
+		"Natural Stage 2 must full-regenerate Stage 3 without inventing a Gene"
 	)
 
 
@@ -1005,13 +964,12 @@ func _test_stage_two_gene_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path == image_path
-		and request.target_region == &"tail"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
 			"elongated"
 		),
-		"Stage 2 Gene plan must image-edit the current visual using resolved phenotype"
+		"Stage 2 Gene plan must full-regenerate using resolved phenotype"
 	)
 
 	if request != null:
@@ -1059,14 +1017,32 @@ func _test_stage_one_gene_visual_matrix() -> void:
 	var genome := PetGenomeFactory.new().create_initial()
 	var policy := StageGenePolicy.load_default()
 	var genes := GeneCatalog.new().load_default()
-	var visuals := MutationVisualCatalog.new().load_default()
-
-	_expect(
-		genes.size() == 10,
-		"Stage 1 Gene matrix fixture must contain 10 definitions"
-	)
+	var compatible_genes: Array[GeneDefinition] = []
 
 	for definition in genes:
+		if (
+			policy.can_accept_gene(
+				1,
+				definition.locus()
+			)
+			and definition.is_element_compatible(
+				identity.element()
+			)
+		):
+			compatible_genes.append(
+				definition
+			)
+
+	_expect(
+		genes.size() == 64,
+		"Gene catalog fixture must contain 64 definitions"
+	)
+	_expect(
+		compatible_genes.size() == 52,
+		"Dark pet must see 50 shared + Dark Mark/Aura definitions"
+	)
+
+	for definition in compatible_genes:
 		var state := GeneDevelopmentState.new(
 			1
 		)
@@ -1079,8 +1055,10 @@ func _test_stage_one_gene_visual_matrix() -> void:
 			definition.id(),
 			definition.locus(),
 			definition.direction(),
-			definition.primary_influence(),
-			definition.influence_tags()
+			20.0,
+			definition.influence_tags(),
+			"uncommon",
+			definition.element_lock()
 		)
 		var resolved := StageEvolutionResolver.new().resolve(
 			identity,
@@ -1090,6 +1068,11 @@ func _test_stage_one_gene_visual_matrix() -> void:
 		var delta := resolved.get(
 			"delta"
 		) as EvolutionDelta
+		var score_prompt := GenePromptResolver.new().build(
+			state,
+			identity.element(),
+			2
+		)
 
 		_expect(
 			bool(
@@ -1105,25 +1088,19 @@ func _test_stage_one_gene_visual_matrix() -> void:
 				)
 			)
 			and delta != null,
-			"every Stage 1 Gene must resolve: %s"
+			"every compatible Stage 1 Gene must resolve: %s"
 			% String(
 				definition.id()
 			)
 		)
-
-		if delta == null:
-			continue
-
-		var visual := MutationVisualCatalog.new().find_by_id(
-			visuals,
-			delta.mutation_id()
-		)
-
 		_expect(
-			visual != null
-			and visual.target_region()
-				== definition.locus(),
-			"every Stage 1 Gene delta must have a curated matching visual: %s"
+			not definition.prompt_stem().is_empty()
+			and score_prompt.contains(
+				String(
+					definition.direction()
+				)
+			),
+			"every Gene must provide score-driven prompt metadata: %s"
 			% String(
 				definition.id()
 			)
@@ -1255,7 +1232,7 @@ func _save_stage_two_fixture(
 	visual.visual_index = 1
 	visual.image_path = image_path
 	visual.source_mode = (
-		&"evolution_pethome_v9_full_regenerate"
+		&"evolution_pethome_v12_full_regenerate"
 	)
 	visual.mutation_id = &"gene_expr_tail_long_s1"
 	visual.renderer_id = &"test"
