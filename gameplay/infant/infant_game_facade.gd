@@ -784,12 +784,12 @@ func can_use_item(
 
 	if (
 		item_type == ItemGenerator.TYPE_GENE
-		and bool(
+		and float(
 			state.get(
-				"hibernating",
-				false
+				"food_ratio",
+				0.0
 			)
-		)
+		) <= 0.0
 	):
 		return false
 
