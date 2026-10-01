@@ -1,0 +1,54 @@
+[
+  {
+    "id": "cat_horned_spirit",
+    "display_name": "Giác Linh Miêu",
+    "species": "cat",
+    "first_expression_stage": 3,
+    "final_expression_stage": 4,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "whiskers",
+      "mark",
+      "ears"
+    ],
+    "target_regions": [
+      "structure",
+      "mark",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken one small symmetrical pair of elegant spirit horns from the forehead, naturally integrated with the cat's established ear, mark and whisker development. Keep the horns clearly secondary to the feline body.",
+      "4": "Complete the horned fantasy form with mature elegant horns and a controlled elemental aura while preserving the same feline body plan."
+    },
+    "preserve_hint": "Keep the same species, four-leg feline body plan, two ears and exactly one tail. Do not add wings or unrelated anatomy."
+  },
+  {
+    "id": "cat_winged_spirit",
+    "display_name": "Dực Linh Miêu",
+    "species": "cat",
+    "first_expression_stage": 3,
+    "final_expression_stage": 4,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "fur",
+      "body",
+      "mane"
+    ],
+    "target_regions": [
+      "structure",
+      "mane",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken one small symmetrical pair of soft fantasy wings from the upper back, naturally integrated with the cat's established fur, body and mane development. Keep the wings compact and secondary to the feline body.",
+      "4": "Complete the winged fantasy form with mature elegant wings and a controlled elemental aura while preserving natural feline anatomy."
+    },
+    "preserve_hint": "Keep the same species, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
+  }
+]
