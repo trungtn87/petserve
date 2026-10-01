@@ -15,6 +15,108 @@ const GENE_RARITY_STATS := {
 	"legendary": {"score": 80.0, "growth": 15.0},
 }
 
+# Food/Growth now follow the same five rarity tiers as Gene items.
+# Rarity determines the base value range; quality/properties/defects still
+# mutate the individual item instance afterwards.
+const RESOURCE_RARITY_STATS := {
+	"common": {
+		"food_min_seconds": 20 * 60,
+		"food_max_seconds": 30 * 60,
+		"growth_min_seconds": 6 * 60,
+		"growth_max_seconds": 12 * 60,
+	},
+	"uncommon": {
+		"food_min_seconds": 30 * 60,
+		"food_max_seconds": 45 * 60,
+		"growth_min_seconds": 10 * 60,
+		"growth_max_seconds": 16 * 60,
+	},
+	"rare": {
+		"food_min_seconds": 45 * 60,
+		"food_max_seconds": 65 * 60,
+		"growth_min_seconds": 15 * 60,
+		"growth_max_seconds": 25 * 60,
+	},
+	"epic": {
+		"food_min_seconds": 60 * 60,
+		"food_max_seconds": 90 * 60,
+		"growth_min_seconds": 25 * 60,
+		"growth_max_seconds": 40 * 60,
+	},
+	"legendary": {
+		"food_min_seconds": 90 * 60,
+		"food_max_seconds": 120 * 60,
+		"growth_min_seconds": 40 * 60,
+		"growth_max_seconds": 60 * 60,
+	},
+}
+
+const FOOD_DEFINITIONS_BY_RARITY := {
+	"common": [
+		{"id": "food_small_fish", "display_name": "Cá nhỏ"},
+		{"id": "food_soft_meat", "display_name": "Thịt mềm"},
+		{"id": "food_warm_milk", "display_name": "Sữa ấm"},
+		{"id": "food_wild_berries", "display_name": "Quả mọng"},
+	],
+	"uncommon": [
+		{"id": "food_silver_fish", "display_name": "Cá bạc"},
+		{"id": "food_energy_meat", "display_name": "Thịt giàu năng lượng"},
+		{"id": "food_honey_root", "display_name": "Củ mật"},
+		{"id": "food_nutri_milk", "display_name": "Sữa hạt tinh lực"},
+	],
+	"rare": [
+		{"id": "food_moon_fish", "display_name": "Cá ánh trăng"},
+		{"id": "food_spirit_meat", "display_name": "Thịt Linh Thú"},
+		{"id": "food_vital_fruit", "display_name": "Quả sinh lực"},
+		{"id": "food_crystal_milk", "display_name": "Sữa pha lê"},
+	],
+	"epic": [
+		{"id": "food_nebula_fish", "display_name": "Cá Tinh Vân"},
+		{"id": "food_ancient_meat", "display_name": "Thịt Cổ Thú"},
+		{"id": "food_growth_fruit", "display_name": "Quả Tăng Trưởng"},
+		{"id": "food_spirit_nectar", "display_name": "Mật Linh"},
+	],
+	"legendary": [
+		{"id": "food_galaxy_fish", "display_name": "Cá Ngân Hà"},
+		{"id": "food_celestial_meat", "display_name": "Thịt Thiên Thú"},
+		{"id": "food_life_fruit", "display_name": "Quả Sinh Mệnh"},
+		{"id": "food_eternal_nectar", "display_name": "Mật Trường Sinh"},
+	],
+}
+
+const GROWTH_DEFINITIONS_BY_RARITY := {
+	"common": [
+		{"id": "growth_vitamin_gel", "display_name": "Gel vitamin"},
+		{"id": "growth_nutrient_serum", "display_name": "Dịch dinh dưỡng"},
+		{"id": "growth_metabolic_yeast", "display_name": "Men chuyển hóa"},
+		{"id": "growth_basic_tonic", "display_name": "Thuốc bổ tăng trưởng"},
+	],
+	"uncommon": [
+		{"id": "growth_concentrate", "display_name": "Tinh chất tăng trưởng"},
+		{"id": "growth_accelerator", "display_name": "Dung dịch tăng tốc"},
+		{"id": "growth_bio_catalyst", "display_name": "Xúc tác sinh học"},
+		{"id": "growth_absorption_serum", "display_name": "Dịch hấp thu"},
+	],
+	"rare": [
+		{"id": "growth_spirit_serum", "display_name": "Huyết thanh linh lực"},
+		{"id": "growth_crystal_extract", "display_name": "Tinh chất pha lê"},
+		{"id": "growth_adaptive_enzyme", "display_name": "Enzyme thích nghi"},
+		{"id": "growth_vital_core", "display_name": "Lõi sinh lực"},
+	],
+	"epic": [
+		{"id": "growth_nebula_serum", "display_name": "Huyết thanh Tinh Vân"},
+		{"id": "growth_ancient_catalyst", "display_name": "Xúc tác Cổ Đại"},
+		{"id": "growth_evolution_essence", "display_name": "Tinh chất Tiến Hóa"},
+		{"id": "growth_star_core", "display_name": "Lõi Sao"},
+	],
+	"legendary": [
+		{"id": "growth_life_core", "display_name": "Lõi Sinh Mệnh"},
+		{"id": "growth_celestial_essence", "display_name": "Tinh chất Thiên Thể"},
+		{"id": "growth_genesis_serum", "display_name": "Huyết thanh Khởi Nguyên"},
+		{"id": "growth_eternal_core", "display_name": "Lõi Trường Sinh"},
+	],
+}
+
 const RARITY_WEIGHTS := {
 	"common": 55.0,
 	"uncommon": 25.0,
@@ -114,6 +216,97 @@ func generate(
 		_:
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
 			return {}
+
+
+func generate_resource_for_rarity(
+	item_type: StringName,
+	seed_value: int,
+	rarity: String
+) -> Dictionary:
+	var normalized_rarity := rarity.strip_edges().to_lower()
+
+	if not RESOURCE_RARITY_STATS.has(
+		normalized_rarity
+	):
+		return {}
+
+	if (
+		item_type != TYPE_FOOD
+		and item_type != TYPE_GROWTH
+	):
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(1, abs(seed_value))
+	var quality: String = _roll_weighted(
+		rng,
+		QUALITY_WEIGHTS
+	)
+
+	if item_type == TYPE_FOOD:
+		return _generate_food(
+			rng,
+			normalized_rarity,
+			quality,
+			seed_value
+		)
+
+	return _generate_growth(
+		rng,
+		normalized_rarity,
+		quality,
+		seed_value
+	)
+
+
+func resource_definition_count(
+	item_type: StringName,
+	rarity: String
+) -> int:
+	var normalized_rarity := rarity.strip_edges().to_lower()
+	var catalog: Dictionary = (
+		FOOD_DEFINITIONS_BY_RARITY
+		if item_type == TYPE_FOOD
+		else GROWTH_DEFINITIONS_BY_RARITY
+		if item_type == TYPE_GROWTH
+		else {}
+	)
+	var value: Variant = catalog.get(
+		normalized_rarity,
+		[]
+	)
+
+	if typeof(value) != TYPE_ARRAY:
+		return 0
+
+	return (value as Array).size()
+
+
+func resource_base_range_for_rarity(
+	item_type: StringName,
+	rarity: String
+) -> Vector2i:
+	var stats: Dictionary = RESOURCE_RARITY_STATS.get(
+		rarity.strip_edges().to_lower(),
+		{}
+	)
+
+	if stats.is_empty():
+		return Vector2i.ZERO
+
+	if item_type == TYPE_FOOD:
+		return Vector2i(
+			int(stats.get("food_min_seconds", 0)),
+			int(stats.get("food_max_seconds", 0))
+		)
+
+	if item_type == TYPE_GROWTH:
+		return Vector2i(
+			int(stats.get("growth_min_seconds", 0)),
+			int(stats.get("growth_max_seconds", 0))
+		)
+
+	return Vector2i.ZERO
 
 
 func generate_for_stage(
@@ -498,7 +691,19 @@ func _generate_food(
 	quality: String,
 	seed_value: int
 ) -> Dictionary:
-	var base_seconds := rng.randi_range(20 * 60, 30 * 60)
+	var stats: Dictionary = RESOURCE_RARITY_STATS.get(
+		rarity,
+		RESOURCE_RARITY_STATS["common"]
+	)
+	var definition := _pick_resource_definition(
+		rng,
+		FOOD_DEFINITIONS_BY_RARITY,
+		rarity
+	)
+	var base_seconds := rng.randi_range(
+		int(stats.get("food_min_seconds", 20 * 60)),
+		int(stats.get("food_max_seconds", 30 * 60))
+	)
 	var main_seconds := int(round(
 		float(base_seconds) * float(QUALITY_MULTIPLIER[quality])
 	))
@@ -544,9 +749,30 @@ func _generate_food(
 
 	return {
 		"uid": _make_uid(seed_value, TYPE_FOOD),
-		"definition_id": "food",
+		"definition_id": String(
+			definition.get(
+				"id",
+				"food"
+			)
+		),
 		"item_type": String(TYPE_FOOD),
-		"display_name": _food_name(quality, properties, defects),
+		"display_name": _food_name(
+			String(
+				definition.get(
+					"display_name",
+					"Khẩu phần"
+				)
+			),
+			quality,
+			properties,
+			defects
+		),
+		"base_display_name": String(
+			definition.get(
+				"display_name",
+				"Khẩu phần"
+			)
+		),
 		"rarity": rarity,
 		"quality": quality,
 		"main_value_seconds": main_seconds,
@@ -567,7 +793,19 @@ func _generate_growth(
 	quality: String,
 	seed_value: int
 ) -> Dictionary:
-	var base_seconds := rng.randi_range(6 * 60, 12 * 60)
+	var stats: Dictionary = RESOURCE_RARITY_STATS.get(
+		rarity,
+		RESOURCE_RARITY_STATS["common"]
+	)
+	var definition := _pick_resource_definition(
+		rng,
+		GROWTH_DEFINITIONS_BY_RARITY,
+		rarity
+	)
+	var base_seconds := rng.randi_range(
+		int(stats.get("growth_min_seconds", 6 * 60)),
+		int(stats.get("growth_max_seconds", 12 * 60))
+	)
 	var main_seconds := int(round(
 		float(base_seconds) * float(QUALITY_MULTIPLIER[quality])
 	))
@@ -614,9 +852,30 @@ func _generate_growth(
 
 	return {
 		"uid": _make_uid(seed_value, TYPE_GROWTH),
-		"definition_id": "growth",
+		"definition_id": String(
+			definition.get(
+				"id",
+				"growth"
+			)
+		),
 		"item_type": String(TYPE_GROWTH),
-		"display_name": _growth_name(quality, properties, defects),
+		"display_name": _growth_name(
+			String(
+				definition.get(
+					"display_name",
+					"Gel tăng trưởng"
+				)
+			),
+			quality,
+			properties,
+			defects
+		),
+		"base_display_name": String(
+			definition.get(
+				"display_name",
+				"Gel tăng trưởng"
+			)
+		),
 		"rarity": rarity,
 		"quality": quality,
 		"main_value_seconds": main_seconds,
@@ -762,67 +1021,92 @@ func _salvage_value(
 
 
 func _food_name(
+	base_name: String,
 	quality: String,
-	properties: Array[String],
+	_properties: Array[String],
 	defects: Array[String]
 ) -> String:
 	if defects.has("rotten"):
-		return "Khẩu phần hỏng nặng"
+		return "Hỏng nặng: " + base_name
 	if defects.has("spoiled"):
-		return "Khẩu phần ôi"
-
-	var base := "Khẩu phần"
+		return "Ôi: " + base_name
 
 	match quality:
 		"broken":
-			base = "Khẩu phần vụn"
+			return "Mẻ lỗi: " + base_name
 		"poor":
-			base = "Khẩu phần kém"
+			return "Loại kém: " + base_name
 		"good":
-			base = "Khẩu phần tươi"
+			return "Loại tốt: " + base_name
 		"perfect":
-			base = "Khẩu phần hoàn hảo"
-
-	if properties.has("dense"):
-		base += " đậm đặc"
-	elif properties.has("nutritious"):
-		base += " dinh dưỡng"
-	elif properties.has("growth_rich"):
-		base += " tăng trưởng"
-
-	return base
+			return "Hoàn hảo: " + base_name
+		_:
+			return base_name
 
 
 func _growth_name(
+	base_name: String,
 	quality: String,
-	properties: Array[String],
+	_properties: Array[String],
 	defects: Array[String]
 ) -> String:
 	if defects.has("backfire"):
-		return "Chất xúc tác bất ổn"
+		return "Bất ổn: " + base_name
 	if defects.has("expired"):
-		return "Tinh chất hết hạn"
-
-	var base := "Gel tăng trưởng"
+		return "Hết hạn: " + base_name
 
 	match quality:
 		"broken":
-			base = "Dung dịch lỗi"
+			return "Mẻ lỗi: " + base_name
 		"poor":
-			base = "Gel loãng"
+			return "Loại kém: " + base_name
 		"good":
-			base = "Tinh chất tăng trưởng"
+			return "Loại tốt: " + base_name
 		"perfect":
-			base = "Lõi tăng trưởng"
+			return "Hoàn hảo: " + base_name
+		_:
+			return base_name
 
-	if properties.has("concentrated"):
-		base += " cô đặc"
-	elif properties.has("burst"):
-		base += " bùng nổ"
-	elif properties.has("pure"):
-		base += " tinh khiết"
 
-	return base
+func _pick_resource_definition(
+	rng: RandomNumberGenerator,
+	catalog: Dictionary,
+	rarity: String
+) -> Dictionary:
+	var value: Variant = catalog.get(
+		rarity,
+		[]
+	)
+
+	if (
+		typeof(value) != TYPE_ARRAY
+		or (value as Array).is_empty()
+	):
+		value = catalog.get(
+			"common",
+			[]
+		)
+
+	if (
+		typeof(value) != TYPE_ARRAY
+		or (value as Array).is_empty()
+	):
+		return {}
+
+	var pool := value as Array
+	var picked: Variant = pool[
+		rng.randi_range(
+			0,
+			pool.size() - 1
+		)
+	]
+
+	if typeof(picked) != TYPE_DICTIONARY:
+		return {}
+
+	return (picked as Dictionary).duplicate(
+		true
+	)
 
 
 func _future_fragment_name(family: StringName) -> String:
