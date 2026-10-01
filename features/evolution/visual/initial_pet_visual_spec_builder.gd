@@ -80,7 +80,7 @@ func build(
 	spec.style_section = (
 	"Premium fantasy pet illustration, premium fantasy game character art, "
 	+ "polished stylized 3D appearance, evolved chibi proportions, "
-	+ "cute youthful feline proportions, large expressive eyes, soft fluffy fur, "
+	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
 	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
 	+ "harmonious collectible game-pet design. "
 	+ "Elemental features must feel organically grown from or naturally integrated into the fur and body design, "
@@ -93,10 +93,14 @@ func build(
 )
 
 	spec.form_section = (
-		"Stage 1. Young juvenile fantasy cat, at the youngest end of the juvenile-to-adolescent range. "
+		"Stage 1. Young juvenile fantasy "
+		+ String(identity.species())
+		+ ", at the youngest end of the juvenile-to-adolescent range. "
 		+ "Keep the pet youthful with its individual inherited frame. "
-		+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
-		+ "Keep fantasy details subtle."
+		+ species_profile.infant_form
+		+ " "
+		+ species_profile.species_anatomy
+		+ " Keep fantasy details subtle."
 	)
 
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
@@ -107,7 +111,10 @@ func build(
 	)
 
 	spec.composition_section = (
-		"Exactly one pet. Full body visible."
+		"Exactly one pet. Full body visible. "
+		+ species_profile.composition
+		+ " "
+		+ species_profile.freestyle_pose
 	)
 
 	spec.ui_safe_section = (
@@ -122,9 +129,10 @@ func build(
 	)
 
 	spec.negative_prompt = (
-		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		species_profile.forbidden_advanced_features
+		+ ", duplicate anatomy, extra limb, multiple pets, "
 		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
-		+ "heavy accessories, fully adult cat, old cat, text, UI, logo, watermark"
+		+ "heavy accessories, fully adult animal, old animal, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
