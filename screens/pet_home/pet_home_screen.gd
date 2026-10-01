@@ -1326,6 +1326,8 @@ func _setup_gameplay() -> void:
 	)
 	_hub.caro_win_reward_requested.connect(_reward)
 	_hub.obstacle_reward_requested.connect(_reward_obstacle)
+	_hub.energy_2048_api = _game
+	_hub.energy_2048_reward_received.connect(_refresh_gameplay)
 	_hub.snake_reward_requested.connect(_reward_snake)
 	_refresh_gameplay()
 
