@@ -510,6 +510,19 @@ func _resolve_duplicate_gene_rewards(
 					gene_id
 				)
 
+	if _gene_state != null:
+		for gene_id in _gene_state.used_gene_ids_snapshot():
+			if (
+				not gene_id.is_empty()
+				and not seen_lookup.has(
+					gene_id
+				)
+			):
+				seen_lookup[gene_id] = true
+				seen_ids.append(
+					gene_id
+				)
+
 	for stored in _inventory.list_items():
 		if StringName(
 			stored.get(
