@@ -1,407 +1,193 @@
-extends SceneTree
-
+extends Node
 
 var _failures: int = 0
 
-
-func _initialize() -> void:
-	_test_catalog_and_item_contract()
-	_test_gene_development_tags()
+func _ready() -> void:
+	_test_catalog_contract()
+	_test_rarity_score_contract()
 	_test_inventory_stage_gate()
-	_test_stage_one_facade_consumption()
+	_test_unlimited_facade()
+	_test_element_effect_gate()
 
 	if _failures == 0:
-		print(
-			"M9.3 Gene Items: PASS"
-		)
-		quit(0)
+		print("M9.3 Gene Items: PASS")
+		get_tree().quit(0)
 		return
-
-	push_error(
-		"M9.3 Gene Items: FAIL (%d)"
-		% _failures
-	)
-	quit(1)
+	push_error("M9.3 Gene Items: FAIL (%d)" % _failures)
+	get_tree().quit(1)
 
 
-func _test_catalog_and_item_contract() -> void:
-	var catalog := GeneCatalog.new()
-	var definitions := catalog.load_default()
+func _test_catalog_contract() -> void:
+	var definitions := GeneCatalog.new().load_default()
+	var shared_count := 0
+	var effect_count := 0
+	var loci: Dictionary = {}
 
-	_expect(
-		definitions.size() == 10,
-		"Stage 1 reference catalog must contain 10 Gene definitions"
-	)
-
-	var seen: Dictionary = {}
+	_expect(definitions.size() == 64, "Gene catalog must contain 64 base definitions")
 
 	for definition in definitions:
-		_expect(
-			definition != null
-			and definition.is_valid(),
-			"every Gene definition must be valid"
-		)
-
 		if definition == null:
 			continue
-
+		loci[String(definition.locus())] = true
 		_expect(
-			not seen.has(
-				definition.id()
-			),
-			"Gene definition ids must be unique"
+			not definition.prompt_stem().is_empty(),
+			"every Gene must define score-prompt metadata: %s" % String(definition.id())
 		)
-		seen[definition.id()] = true
-
-	var tail := catalog.find_by_id(
-		definitions,
-		&"tail_long"
-	)
-
-	_expect(
-		tail != null
-		and tail.locus() == &"tail"
-		and tail.direction() == &"long"
-		and is_equal_approx(
-			tail.primary_influence(),
-			20.0
-		),
-		"tail_long definition contract"
-	)
-
-	if tail == null:
-		return
-
-	var item := ItemGenerator.new().generate_gene(
-		tail,
-		91001
-	)
-
-	_expect(
-		StringName(
-			item.get(
-				"item_type",
-				""
+		if definition.locus() in [&"mark", &"aura"]:
+			effect_count += 1
+			_expect(
+				not String(definition.element_lock()).is_empty(),
+				"mark/aura Gene must be element locked: %s" % String(definition.id())
 			)
-		) == ItemGenerator.TYPE_GENE
-		and StringName(
-			item.get(
-				"gene_locus",
-				""
+		else:
+			shared_count += 1
+			_expect(
+				String(definition.element_lock()).is_empty(),
+				"physical Gene must be shared: %s" % String(definition.id())
 			)
-		) == &"tail"
-		and StringName(
-			item.get(
-				"gene_direction",
-				""
-			)
-		) == &"long"
-		and float(
-			item.get(
-				"gene_influence",
-				0.0
-			)
-		) > 0.0,
-		"generated Gene Item must carry canonical Gene fields"
-	)
+
+	_expect(shared_count == 50, "Gene catalog must contain 50 shared physical Genes")
+	_expect(effect_count == 14, "Gene catalog must contain 14 element effect Genes")
+	_expect(loci.size() == 12, "all 12 visual loci must have Gene content")
 
 
-func _test_gene_development_tags() -> void:
-	var policy := StageGenePolicy.load_default()
-	var state := GeneDevelopmentState.new(
-		1
-	)
-
-	var result := state.record_gene_item(
-		policy,
-		"gene_test_tag",
-		&"tail_long",
-		&"tail",
-		&"long",
-		20.0,
-		{
-			"agile": 6.0,
-			"lunar": 2.0,
-		}
-	)
-
-	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and is_equal_approx(
-			float(
-				state.tag_influences_snapshot().get(
-					"agile",
-					0.0
-				)
-			),
-			6.0
-		),
-		"GeneDevelopmentState must retain hidden influence tags"
-	)
-
-	var restored := GeneDevelopmentState.from_dict(
-		state.to_dict(),
-		policy
-	)
-
-	_expect(
-		restored != null
-		and is_equal_approx(
-			float(
-				restored.tag_influences_snapshot().get(
-					"lunar",
-					0.0
-				)
-			),
-			2.0
-		),
-		"Gene influence tags must survive serialization"
-	)
-
-
-func _test_inventory_stage_gate() -> void:
+func _test_rarity_score_contract() -> void:
 	var catalog := GeneCatalog.new()
-	var definitions := catalog.load_default()
-	var tail := catalog.find_by_id(
-		definitions,
-		&"tail_long"
+	var definition := catalog.find_by_id(
+		catalog.load_default(),
+		&"fur_sleek"
 	)
-
-	if tail == null:
-		_expect(
-			false,
-			"tail fixture must exist"
-		)
-		return
-
-	var item := ItemGenerator.new().generate_gene(
-		tail,
-		91002
-	)
-	var policy := StageGenePolicy.load_default()
-	var meta := {
-		"inventory": [
-			item,
-		],
-	}
-	var inventory := InventoryService.new()
-	inventory.setup(
-		meta
-	)
-
-	_expect(
-		inventory.can_use_in_stage(
-			item,
-			1,
-			policy
-		),
-		"Stage 1 inventory must expose an allowed Gene Item"
-	)
-
-	_expect(
-		not inventory.can_use_in_stage(
-			item,
-			4,
-			policy
-		),
-		"Stage 4 inventory must reject visual Gene Items"
-	)
-
-
-func _test_stage_one_facade_consumption() -> void:
-	SaveManager.delete_meta()
-
-	var catalog := GeneCatalog.new()
-	var definitions := catalog.load_default()
-	var tail := catalog.find_by_id(
-		definitions,
-		&"tail_long"
-	)
-	var eyes := catalog.find_by_id(
-		definitions,
-		&"eyes_luminous"
-	)
-
-	if tail == null or eyes == null:
-		_expect(
-			false,
-			"facade Gene fixtures must exist"
-		)
+	_expect(definition != null, "rarity fixture exists")
+	if definition == null:
 		return
 
 	var generator := ItemGenerator.new()
+	for seed_value in range(93000, 93120):
+		var item := generator.generate_gene(definition, seed_value)
+		var rarity := String(item.get("rarity", ""))
+		_expect(
+			is_equal_approx(
+				float(item.get("gene_score", 0.0)),
+				generator.gene_score_for_rarity(rarity)
+			)
+			and is_equal_approx(
+				float(item.get("growth_bonus_percent", 0.0)),
+				generator.gene_growth_for_rarity(rarity)
+			),
+			"Gene rarity must map to score and Growth without creating another definition"
+		)
+
+
+func _test_inventory_stage_gate() -> void:
+	var definitions := GeneCatalog.new().load_default()
+	var tail := GeneCatalog.new().find_by_id(definitions, &"tail_long")
+	_expect(tail != null, "inventory Gene fixture exists")
+	if tail == null:
+		return
+
+	var item := ItemGenerator.new().generate_gene(tail, 91002)
+	var policy := StageGenePolicy.load_default()
+	var inventory := InventoryService.new()
+	inventory.setup({"inventory": [item]})
+
+	for stage_index in [1, 2, 3]:
+		_expect(
+			inventory.can_use_in_stage(item, stage_index, policy),
+			"shared Gene must be usable in growth Stage %d" % stage_index
+		)
+	_expect(
+		not inventory.can_use_in_stage(item, 4, policy),
+		"Final Form must block new Gene use"
+	)
+
+
+func _test_unlimited_facade() -> void:
+	SaveManager.delete_meta()
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+	var generator := ItemGenerator.new()
 	var first := generator.generate_gene(
-		tail,
+		catalog.find_by_id(definitions, &"whiskers_starlight"),
 		92001
 	)
 	var second := generator.generate_gene(
-		eyes,
+		catalog.find_by_id(definitions, &"tail_long"),
 		92002
+	)
+	var third := generator.generate_gene(
+		catalog.find_by_id(definitions, &"eyes_luminous"),
+		92003
 	)
 
 	_expect(
 		SaveManager.save_meta({
-			"schema": 3,
-			"inventory": [
-				first,
-				second,
-			],
-			"chest_queue": [],
+			"schema": InfantGameFacade.META_SCHEMA,
+			"inventory": [first, second, third],
+			"chest_queue": []
 		}),
-		"save M9.3 inventory fixture"
+		"save unlimited Gene fixture"
 	)
 
 	var game := InfantGameFacade.new()
+	_expect(game.setup(920, 1, &"dark"), "Stage 1 facade setup")
 
-	_expect(
-		game.setup(
-			920,
-			1
-		),
-		"Stage 1 facade setup with Gene Items"
-	)
-
-	var before := game.snapshot()
-	var before_growth := int(
-		before.get(
-			"growth_percent",
-			-1
+	for item in [first, second, third]:
+		_expect(game.can_use_item(item), "Gene remains usable without stage slot cap")
+		_expect(
+			bool(game.use_item(String(item.get("uid", ""))).get("ok", false)),
+			"consume Gene without stage slot cap"
 		)
-	)
 
+	var state := game.snapshot()
 	_expect(
-		game.can_use_item(
-			first
-		),
-		"first Stage 1 Gene Item must be usable"
+		int(state.get("gene_items_used", -1)) == 3
+		and bool(state.get("gene_unlimited", false))
+		and int(state.get("gene_slots_remaining", 0)) == -1
+		and int(state.get("gene_items_used_lifetime", -1)) == 3,
+		"Stage snapshot exposes unlimited Gene use and lifetime count"
 	)
-
-	var used := game.use_item(
-		String(
-			first.get(
-				"uid",
-				""
-			)
-		)
-	)
-
-	var after := game.snapshot()
-
-	_expect(
-		bool(
-			used.get(
-				"ok",
-				false
-			)
-		)
-		and int(
-			after.get(
-				"gene_items_used",
-				0
-			)
-		) == 1
-		and int(
-			after.get(
-				"gene_slots_remaining",
-				-1
-			)
-		) == 0,
-		"using Gene Item must consume the Stage 1 Gene slot"
-	)
-
-	_expect(
-		int(
-			after.get(
-				"growth_percent",
-				-2
-			)
-		) == before_growth,
-		"using Gene Item must not change Maturity"
-	)
-
-	_expect(
-		is_equal_approx(
-			float(
-				after.get(
-					"gene_influences",
-					{}
-				).get(
-					"tail.long",
-					0.0
-				)
-			),
-			20.0
-		)
-		and is_equal_approx(
-			float(
-				after.get(
-					"gene_tag_influences",
-					{}
-				).get(
-					"agile",
-					0.0
-				)
-			),
-			6.0
-		),
-		"facade must expose primary and tag Gene influence"
-	)
-
-	_expect(
-		not game.can_use_item(
-			second
-		),
-		"Stage 1 second Gene Item must be blocked by cap"
-	)
-
-	_expect(
-		game.advance_to_stage(
-			2
-		),
-		"advance to Stage 2"
-	)
-
-	var stage_two := game.snapshot()
-
-	_expect(
-		int(
-			stage_two.get(
-				"gene_items_used",
-				-1
-			)
-		) == 0
-		and int(
-			stage_two.get(
-				"gene_item_limit",
-				-1
-			)
-		) == 2,
-		"new Stage must reset GeneDevelopmentState and use Stage 2 cap"
-	)
-
-	_expect(
-		game.can_use_item(
-			second
-		),
-		"unused Gene Item may be used again when Stage 2 policy allows it"
-	)
-
 	SaveManager.delete_meta()
 
 
-func _expect(
-	condition: bool,
-	message: String
-) -> void:
-	if condition:
+func _test_element_effect_gate() -> void:
+	SaveManager.delete_meta()
+	var catalog := GeneCatalog.new()
+	var definition := catalog.find_by_id(
+		catalog.load_default(),
+		&"aura_water"
+	)
+	_expect(definition != null, "element effect fixture exists")
+	if definition == null:
 		return
 
-	_failures += 1
-	push_error(
-		message
+	var item := ItemGenerator.new().generate_gene(definition, 94001)
+	_expect(
+		SaveManager.save_meta({
+			"schema": InfantGameFacade.META_SCHEMA,
+			"inventory": [item],
+			"chest_queue": []
+		}),
+		"save wrong-element Gene fixture"
 	)
+
+	var fire_game := InfantGameFacade.new()
+	_expect(fire_game.setup(940, 1, &"fire"), "fire facade setup")
+	_expect(
+		not fire_game.can_use_item(item)
+		and fire_game.inventory().size() >= 1,
+		"wrong-element effect Gene stays in inventory instead of becoming junk"
+	)
+	var context := fire_game.gene_item_context(item)
+	_expect(
+		String(context.get("element_lock", "")) == "water"
+		and not bool(context.get("element_compatible", true)),
+		"item detail exposes future-use element requirement"
+	)
+	SaveManager.delete_meta()
+
+
+func _expect(condition: bool, message: String) -> void:
+	if condition:
+		return
+	_failures += 1
+	push_error(message)
