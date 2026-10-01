@@ -126,12 +126,12 @@ The numbers below are **base Stage 1 ranges before quality, property, defect, an
 | Epic | 60–90 min | 25–40 min |
 | Legendary | 90–120 min | 40–60 min |
 
-Stage scaling remains unchanged:
+Stage scaling follows the 48-hour Stage 2/3 baseline:
 
 ```text
 Stage 1 ×1
 Stage 2 ×12
-Stage 3 ×18
+Stage 3 ×12
 ```
 
 Quality, properties and defects are applied after the rarity base value is selected, so a bad high-rarity roll can still be damaged by defects. This preserves the existing design where junk/bad items are intentional rather than silently normalized away.
