@@ -1227,6 +1227,20 @@ func commit(
 		)
 
 	if visual_mutation_id.is_empty():
+		var normal_value_commit: Variant = pending.get(
+			"normal_mutation_resolution",
+			{}
+		)
+
+		if typeof(normal_value_commit) == TYPE_DICTIONARY:
+			visual_mutation_id = String(
+				(normal_value_commit as Dictionary).get(
+					"mutation_id",
+					""
+				)
+			)
+
+	if visual_mutation_id.is_empty():
 		var deltas_value_commit: Variant = pending.get(
 			"deltas",
 			[]
