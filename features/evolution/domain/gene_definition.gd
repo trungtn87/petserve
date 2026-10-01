@@ -94,7 +94,7 @@ func is_valid() -> bool:
 	if (
 		String(_id).is_empty()
 		or _display_name.is_empty()
-		or not PetGenomeSchema.is_visual_locus(_locus)
+		or not PetGenomeSchema.is_gene_locus(_locus)
 		or String(_direction).is_empty()
 		or _direction == PetGenomeSchema.BASE_TRAIT
 		or _primary_influence <= 0.0
