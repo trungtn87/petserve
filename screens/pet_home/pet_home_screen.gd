@@ -36,6 +36,8 @@ var _menu_button: Button
 var _drawer
 var _section_overlay: Control
 var _section_title: Label
+var _section_tabs: HBoxContainer
+var _section_tab_buttons: Dictionary = {}
 var _section_body: VBoxContainer
 var _active_section: StringName = &""
 var _crystal_status_value: Label
@@ -625,6 +627,27 @@ func _build_section_overlay() -> void:
 	separator.modulate.a = 0.45
 	root.add_child(separator)
 
+	_section_tabs = HBoxContainer.new()
+	_section_tabs.visible = false
+	_section_tabs.add_theme_constant_override(
+		"separation",
+		6
+	)
+	root.add_child(_section_tabs)
+
+	_add_pet_info_tab_button(
+		"THÔNG TIN",
+		&"info"
+	)
+	_add_pet_info_tab_button(
+		"KỸ NĂNG & GENE",
+		&"skills_gene"
+	)
+	_add_pet_info_tab_button(
+		"TIẾN HÓA",
+		&"evolution"
+	)
+
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = (
 		Control.SIZE_EXPAND_FILL
@@ -667,22 +690,78 @@ func _on_drawer_action(
 		&"entertainment":
 			_open_games()
 		&"evolution":
-			_open_evolution()
+			_open_pet_info_tab(
+				&"evolution"
+			)
 		&"achievement":
 			_open_achievements()
 		&"settings":
 			_open_settings()
 
 
+func _add_pet_info_tab_button(
+	label_text: String,
+	tab_id: StringName
+) -> void:
+	var button := Button.new()
+	button.text = label_text
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size.y = 38
+	button.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	button.pressed.connect(
+		_open_pet_info_tab.bind(
+			tab_id
+		)
+	)
+	_section_tabs.add_child(button)
+	_section_tab_buttons[tab_id] = button
+
+
 func _open_pet_info() -> void:
+	_open_pet_info_tab(
+		&"info"
+	)
+
+
+func _open_pet_info_tab(
+	tab_id: StringName
+) -> void:
+	_prepare_section(
+		"Thông tin pet",
+		&"pet_info"
+	)
+	_section_tabs.visible = true
+
+	for key in _section_tab_buttons:
+		var button := (
+			_section_tab_buttons[key]
+			as Button
+		)
+		if button != null:
+			button.disabled = (
+				StringName(key)
+				== tab_id
+			)
+
+	match tab_id:
+		&"skills_gene":
+			_populate_pet_skills_gene_tab()
+		&"evolution":
+			_populate_pet_evolution_tab()
+		_:
+			_populate_pet_info_tab()
+
+	_section_overlay.visible = true
+
+
+func _populate_pet_info_tab() -> void:
 	var identity = _data.get(
 		"_identity_object"
 	)
 	var genome = _data.get(
 		"_genome_object"
-	)
-	_prepare_section(
-		"Thông tin pet"
 	)
 
 	_add_info_row(
@@ -719,14 +798,12 @@ func _open_pet_info() -> void:
 			+ 1
 		)
 	)
-	var gameplay_state := _game.snapshot()
-	_add_skill_rows(
-		gameplay_state
-	)
 	_add_mythic_name_row(
 		identity,
 		genome
 	)
+
+	var gameplay_state := _game.snapshot()
 	var inherited_value: Variant = gameplay_state.get(
 		"legacy_inherited_item",
 		{}
@@ -744,7 +821,39 @@ func _open_pet_info() -> void:
 			)
 		)
 
-	_section_overlay.visible = true
+
+func _populate_pet_skills_gene_tab() -> void:
+	var state := _game.snapshot()
+	var skills_value: Variant = state.get(
+		"skills",
+		[]
+	)
+
+	if (
+		typeof(skills_value) != TYPE_ARRAY
+		or (skills_value as Array).is_empty()
+	):
+		_add_info_row(
+			"Kỹ năng",
+			"Chưa có"
+		)
+	else:
+		_add_skill_rows(
+			state
+		)
+
+	var genome := _data.get(
+		"_genome_object"
+	) as PetGenome
+	if genome != null:
+		_add_current_trait_rows(
+			genome
+		)
+
+	_add_gene_choice_rows(
+		state
+	)
+	_add_last_evolution_row()
 
 
 func _add_mythic_name_row(
@@ -1228,6 +1337,8 @@ func _prepare_section(
 	_crystal_stage_value = null
 	_crystal_timer_value = null
 	_section_title.text = title
+	if _section_tabs != null:
+		_section_tabs.visible = false
 
 	for child in _section_body.get_children():
 		child.queue_free()
@@ -1918,7 +2029,12 @@ func _sync_entertainment_reward_state() -> void:
 	)
 
 func _open_evolution() -> void:
-	_prepare_section("Tiến hóa")
+	_open_pet_info_tab(
+		&"evolution"
+	)
+
+
+func _populate_pet_evolution_tab() -> void:
 	var state := _game.snapshot()
 	var stage_index := int(
 		state.get(
@@ -1980,7 +2096,6 @@ func _open_evolution() -> void:
 			"CHỌN DI SẢN",
 			_open_legacy_inheritance
 		)
-		_section_overlay.visible = true
 		return
 
 	_add_info_row(
@@ -2015,31 +2130,11 @@ func _open_evolution() -> void:
 		)
 	)
 
-	var genome := _data.get(
-		"_genome_object"
-	) as PetGenome
-
-	if genome != null:
-		_add_current_trait_rows(
-			genome
-		)
-
-	_add_gene_choice_rows(
-		state
-	)
-
-	if stage_index >= StageLifecycle.FINAL_STAGE:
-		_add_info_row(
-			"Trạng thái",
-			"Đã đạt hình thái cuối"
-		)
-	elif can_evolve:
+	if can_evolve:
 		_add_info_row(
 			"Trạng thái",
 			"SẴN SÀNG TIẾN HÓA"
 		)
-
-
 		_section_button(
 			"TIẾN HÓA → %s"
 			% PetHomeTheme.stage_label(
@@ -2054,8 +2149,6 @@ func _open_evolution() -> void:
 				growth_remaining
 			)
 		)
-
-	_section_overlay.visible = true
 
 
 func _open_legacy_inheritance() -> void:
