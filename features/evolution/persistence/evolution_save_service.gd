@@ -100,6 +100,21 @@ func load_data() -> Dictionary:
 	return parsed as Dictionary
 
 
+func delete_data() -> bool:
+	if not FileAccess.file_exists(
+		SAVE_PATH
+	):
+		return true
+
+	return (
+		DirAccess.remove_absolute(
+			ProjectSettings.globalize_path(
+				SAVE_PATH
+			)
+		) == OK
+	)
+
+
 func load_scene_profile():
 	var data := load_data()
 
