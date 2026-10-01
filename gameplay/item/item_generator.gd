@@ -782,7 +782,7 @@ func describe(item: Dictionary) -> String:
 		TYPE_FOOD:
 			var food_seconds := int(item.get("main_value_seconds", 0))
 			var growth_delta := int(item.get("growth_delta_seconds", 0))
-			var text := "No +" + _format_minutes(food_seconds)
+			var text := "Độ no +" + _format_minutes(food_seconds)
 			if growth_delta > 0:
 				text += " • Trưởng thành -" + _format_minutes(growth_delta)
 			elif growth_delta < 0:
@@ -798,7 +798,7 @@ func describe(item: Dictionary) -> String:
 			else:
 				text = "Trưởng thành +" + _format_minutes(abs(growth_seconds))
 			if food_delta > 0:
-				text += " • No +" + _format_minutes(food_delta)
+				text += " • Độ no +" + _format_minutes(food_delta)
 			elif food_delta < 0:
 				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
 			return text
@@ -873,12 +873,14 @@ func describe(item: Dictionary) -> String:
 
 		TYPE_GENE_FRAGMENT:
 			return (
-				"Mảnh gen %s • số lượng %d"
+				"Mảnh của %s • số lượng %d"
 				% [
-					String(
-						item.get(
-							"target_gene_id",
-							"?"
+					ViDisplay.gene_name(
+						String(
+							item.get(
+								"target_gene_id",
+								""
+							)
 						)
 					),
 					int(
