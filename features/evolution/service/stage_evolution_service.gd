@@ -464,6 +464,9 @@ func _prepare_resolved_stage(
 		"gene_scores": (
 			gene_state.gene_scores_snapshot()
 		),
+		"gene_items_used": (
+			gene_state.gene_items_snapshot()
+		),
 		"gene_lifetime_tag_influences": (
 			gene_state.lifetime_tag_influences_snapshot()
 		),
