@@ -10,6 +10,11 @@ const SPECIES: Array[StringName] = [
 	&"rabbit",
 	&"lizard",
 	&"bird",
+	&"dragon",
+	&"phoenix",
+	&"horse",
+	&"qilin",
+	&"deer",
 ]
 
 
