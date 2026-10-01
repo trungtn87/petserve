@@ -847,6 +847,17 @@ func build_stage_regenerate_request(
 				"error": "PetHome Scene Profile full-regenerate không hợp lệ.",
 			}
 
+	if target_stage >= 3:
+		return _build_reference_stage_request(
+			identity,
+			previous_genome,
+			target_genome,
+			deltas,
+			source_visual,
+			target_stage,
+			mythic_resolution
+		)
+
 	var stage_one_detail := _element_stage_prompt(
 		identity.element(),
 		1
@@ -1078,6 +1089,187 @@ func build_stage_regenerate_request(
 		return {
 			"ok": false,
 			"error": "Evolution full-regenerate request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
+func _build_reference_stage_request(
+	identity: PetIdentity,
+	previous_genome: PetGenome,
+	target_genome: PetGenome,
+	deltas: Array[EvolutionDelta],
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	mythic_resolution: Dictionary
+) -> Dictionary:
+	if (
+		source_visual.image_path.is_empty()
+		or not FileAccess.file_exists(
+			source_visual.image_path
+		)
+	):
+		return {
+			"ok": false,
+			"error": "Không tìm thấy ảnh Stage trước để làm reference.",
+		}
+
+	var style := MythicStyleProfile.load_default()
+
+	if style == null:
+		return {
+			"ok": false,
+			"error": "Không load được MythicStyleProfile cho reference evolution.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new().describe(
+		target_genome
+	)
+	var positive_prompt := (
+		"[REFERENCE EVOLUTION RULE]\n"
+		+ "Use the supplied previous-stage image as the canonical reference for this exact pet. "
+		+ "This is the same individual, not a redesign and not a new character. Preserve face identity, species, body plan, existing anatomy, coat identity and already-visible Gene traits unless a code-authorized Gene change below explicitly modifies that locus. "
+		+ "Stage progression itself does not authorize random anatomy, markings, accessories or silhouette changes."
+	)
+
+	positive_prompt += (
+		"\n\n[GENE-ONLY PET CHANGE]\n"
+		+ "The pet may visibly change only at Gene loci authorized by game code. "
+		+ "The structural Gene deltas below plus the [ACCUMULATED GENE SCORE PHENOTYPE] section appended to this request are the complete Gene authority. "
+		+ "Use the reference image as the baseline. Keep any unlisted locus visually consistent with the source. "
+		+ "For listed loci, total Gene score controls expression strength: preserve existing expression, strengthen it when the score tier requires it, and blend secondary scored directions without inventing a direction that is absent. "
+		+ "Target phenotype bookkeeping: "
+		+ phenotype
+		+ "."
+	)
+
+	var visual_catalog := MutationVisualCatalog.new()
+	var visuals := visual_catalog.load_default()
+	var edit_strength := NATURAL_EDIT_STRENGTH
+
+	if deltas.is_empty():
+		positive_prompt += (
+			"\nNo new structural Gene delta is selected for this transition. "
+			+ "Do not redesign the pet; only maintain or refine already-authorized accumulated Gene expression."
+		)
+	else:
+		positive_prompt += "\nCurrent transition Gene deltas:"
+
+		for delta in deltas:
+			if delta == null or not delta.is_valid():
+				return {
+					"ok": false,
+					"error": "Reference evolution có Gene delta không hợp lệ.",
+				}
+
+			var visual := visual_catalog.find_by_id(
+				visuals,
+				delta.mutation_id()
+			)
+
+			if visual == null:
+				return {
+					"ok": false,
+					"error": "Thiếu visual definition cho %s."
+					% String(delta.mutation_id()),
+				}
+
+			edit_strength = maxf(
+				edit_strength,
+				visual.edit_strength()
+			)
+			positive_prompt += (
+				"\n- Locus %s: %s %s"
+				% [
+					String(delta.target_trait()),
+					visual.instruction(),
+					visual.preserve_hint(),
+				]
+			)
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if mythic_active:
+		edit_strength = maxf(
+			edit_strength,
+			MYTHIC_EDIT_STRENGTH
+		)
+		positive_prompt += (
+			"\n\n[CODE-LOCKED MYTHIC RESULT]\n"
+			+ "This Mythic result is allowed only because game code resolved it from the pet's Gene history: "
+			+ String(mythic_resolution.get("display_name", ""))
+			+ ". "
+			+ String(mythic_resolution.get("prompt", ""))
+			+ " "
+			+ String(mythic_resolution.get("preserve_hint", ""))
+			+ " Do not substitute another Mythic branch or add unrelated mutation anatomy."
+		)
+	else:
+		positive_prompt += (
+			"\n\n[NO MYTHIC OVERRIDE]\n"
+			+ "No Mythic anatomy is authorized. Do not invent horns, wings, extra tails or other special mutation anatomy."
+		)
+
+	positive_prompt += (
+		"\n\n[ELEMENT AND BACKGROUND]\n"
+		+ "Element family: "
+		+ PetElementCatalog.prompt_name(identity.element())
+		+ ". The background is NOT continuity-locked. It may be changed or reimagined freely as long as the environment and atmosphere clearly fit this element. "
+		+ "Do not alter pet anatomy merely to express the element. Keep the output suitable for a vertical PetHome image, but do not lock camera angle, exact pet scale, exact position or previous background composition. "
+		+ "Show one readable pet. No text, UI, logo or watermark."
+	)
+
+	var negative_prompt := _append_negative_guard(
+		style.negative_prompt()
+		+ ", different pet identity, unrelated gene trait, random mutation, unauthorized body redesign, "
+		+ "wrong mythical creature, mixed mythical branches, extra pet, text, UI, logo, watermark"
+	)
+
+	if not mythic_active:
+		negative_prompt += ", horns, wings, extra tails, mythical mutation anatomy"
+
+	var request := PetRenderRequest.new()
+	request.mode = PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = negative_prompt
+	request.source_image_path = source_visual.image_path
+	request.target_region = (
+		COMPOSITE_MYTHIC_TARGET_REGION
+		if mythic_active
+		else COMPOSITE_GENE_TARGET_REGION
+	)
+	request.edit_strength = edit_strength
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		_composite_seed_key(
+			deltas,
+			mythic_resolution
+		)
+	)
+	request.output_key = _stage_one_output_key(
+		identity,
+		target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Reference evolution image-edit request không hợp lệ.",
 		}
 
 	return {

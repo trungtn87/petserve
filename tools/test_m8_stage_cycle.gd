@@ -66,8 +66,8 @@ func _test_stage_lifecycle() -> void:
 				"duration_seconds",
 				0
 			)
-		) == 3 * 24 * 60 * 60,
-		"stage 3 uses three-day design baseline"
+		) == 2 * 24 * 60 * 60,
+		"stage 3 uses 48-hour design baseline"
 	)
 
 	var meta: Dictionary = {}
@@ -1060,18 +1060,21 @@ func _test_evolution_two_and_three() -> void:
 			"_pethome_v12_stage_3"
 		)
 		and request_two.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request_two.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request_two.source_image_path == "user://m8_pet.png"
 		and request_two.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 3"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request_two.positive_prompt.contains(
+			"[GENE-ONLY PET CHANGE]"
+		)
+		and request_two.positive_prompt.contains(
+			"background is NOT continuity-locked"
+		)
+		and not request_two.positive_prompt.contains(
 			"28 to 32 percent"
-		)
-		and request_two.positive_prompt.contains(
-			"Background occupies most of the image"
 		),
-		"Evolution II request"
+		"Evolution II uses Stage 2 image reference without hard PetHome composition lock"
 	)
 
 	check(
@@ -1169,18 +1172,21 @@ func _test_evolution_two_and_three() -> void:
 			"_pethome_v12_stage_4"
 		)
 		and request_three.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request_three.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request_three.source_image_path == "user://m8_pet.png"
 		and request_three.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 4"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request_three.positive_prompt.contains(
+			"[GENE-ONLY PET CHANGE]"
+		)
+		and request_three.positive_prompt.contains(
+			"background is NOT continuity-locked"
+		)
+		and not request_three.positive_prompt.contains(
 			"28 to 32 percent"
-		)
-		and request_three.positive_prompt.contains(
-			"Background occupies most of the image"
 		),
-		"Evolution III request"
+		"Evolution III uses Stage 3 image reference without hard PetHome composition lock"
 	)
 
 	check(

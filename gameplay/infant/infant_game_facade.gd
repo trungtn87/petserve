@@ -461,10 +461,14 @@ func open_next_chest() -> Array[Dictionary]:
 	var before := _meta.duplicate(
 		true
 	)
-	var rewards := _chests.open_next()
+	var raw_rewards := _chests.open_next()
 
-	if rewards.is_empty():
+	if raw_rewards.is_empty():
 		return []
+
+	var rewards := _resolve_duplicate_gene_rewards(
+		raw_rewards
+	)
 
 	_inventory.add_items(
 		rewards
@@ -477,6 +481,170 @@ func open_next_chest() -> Array[Dictionary]:
 		return []
 
 	return rewards
+
+
+func _resolve_duplicate_gene_rewards(
+	rewards: Array[Dictionary]
+) -> Array[Dictionary]:
+	var seen_lookup: Dictionary = {}
+	var seen_ids: Array[String] = []
+	var seen_value: Variant = _meta.get(
+		"gene_seen_ids",
+		[]
+	)
+
+	if typeof(seen_value) == TYPE_ARRAY:
+		for raw_id in seen_value as Array:
+			var gene_id := String(
+				raw_id
+			)
+
+			if gene_id.is_empty():
+				continue
+
+			if not seen_lookup.has(
+				gene_id
+			):
+				seen_lookup[gene_id] = true
+				seen_ids.append(
+					gene_id
+				)
+
+	if _gene_state != null:
+		for gene_id in _gene_state.used_gene_ids_snapshot():
+			if (
+				not gene_id.is_empty()
+				and not seen_lookup.has(
+					gene_id
+				)
+			):
+				seen_lookup[gene_id] = true
+				seen_ids.append(
+					gene_id
+				)
+
+	for stored in _inventory.list_items():
+		if StringName(
+			stored.get(
+				"item_type",
+				""
+			)
+		) != ItemGenerator.TYPE_GENE:
+			continue
+
+		var stored_gene_id := String(
+			stored.get(
+				"gene_id",
+				stored.get(
+					"definition_id",
+					""
+				)
+			)
+		)
+
+		if (
+			not stored_gene_id.is_empty()
+			and not seen_lookup.has(
+				stored_gene_id
+			)
+		):
+			seen_lookup[stored_gene_id] = true
+			seen_ids.append(
+				stored_gene_id
+			)
+
+	var resolved: Array[Dictionary] = []
+
+	for reward in rewards:
+		if StringName(
+			reward.get(
+				"item_type",
+				""
+			)
+		) != ItemGenerator.TYPE_GENE:
+			resolved.append(
+				reward
+			)
+			continue
+
+		var gene_id := String(
+			reward.get(
+				"gene_id",
+				reward.get(
+					"definition_id",
+					""
+				)
+			)
+		)
+
+		if (
+			gene_id.is_empty()
+			or not seen_lookup.has(
+				gene_id
+			)
+		):
+			if not gene_id.is_empty():
+				seen_lookup[gene_id] = true
+				seen_ids.append(
+					gene_id
+				)
+			resolved.append(
+				reward
+			)
+			continue
+
+		var fragment_seed := absi(
+			hash(
+				"duplicate:%s"
+				% String(
+					reward.get(
+						"uid",
+						gene_id
+					)
+				)
+			)
+		)
+
+		if fragment_seed == 0:
+			fragment_seed = 1
+
+		var fragment := _generator.generate_gene_fragment(
+			reward,
+			fragment_seed,
+			_generator.duplicate_gene_fragment_amount(
+				String(
+					reward.get(
+						"rarity",
+						"common"
+					)
+				)
+			)
+		)
+
+		if fragment.is_empty():
+			resolved.append(
+				reward
+			)
+			continue
+
+		fragment["converted_from_duplicate"] = true
+
+		if reward.has(
+			"chest_tier"
+		):
+			fragment["chest_tier"] = reward["chest_tier"]
+
+		if reward.has(
+			"chest_roll"
+		):
+			fragment["chest_roll"] = reward["chest_roll"]
+
+		resolved.append(
+			fragment
+		)
+
+	_meta["gene_seen_ids"] = seen_ids
+	return resolved
 
 
 func can_use_item(

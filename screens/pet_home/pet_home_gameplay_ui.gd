@@ -1245,10 +1245,68 @@ func _gene_value_label(
 
 func _mods(item: Dictionary) -> String:
 	var parts: Array[String] = []
+	var effects_value: Variant = item.get(
+		"secondary_effects",
+		[]
+	)
+
+	if typeof(effects_value) == TYPE_ARRAY:
+		for raw_effect in effects_value as Array:
+			if typeof(raw_effect) != TYPE_DICTIONARY:
+				continue
+
+			var effect := raw_effect as Dictionary
+			var polarity := String(
+				effect.get(
+					"polarity",
+					""
+				)
+			)
+			var sign := (
+				"+"
+				if polarity == "positive"
+				else "-"
+			)
+			var label := String(
+				effect.get(
+					"label",
+					"Hiệu ứng"
+				)
+			)
+			var level_label := String(
+				effect.get(
+					"level_label",
+					""
+				)
+			)
+
+			parts.append(
+				"%s%s %s"
+				% [
+					sign,
+					label,
+					level_label,
+				]
+			)
+
+	if not parts.is_empty():
+		return "  ".join(parts)
+
 	for value in item.get("properties", []):
-		parts.append("+" + _facade.property_label(StringName(value)))
+		parts.append(
+			"+"
+			+ _facade.property_label(
+				StringName(value)
+			)
+		)
 	for value in item.get("defects", []):
-		parts.append("-" + _facade.defect_label(StringName(value)))
+		parts.append(
+			"-"
+			+ _facade.defect_label(
+				StringName(value)
+			)
+		)
+
 	return "  ".join(parts)
 
 func _add_filter(label: String, filter_type: StringName) -> void:
@@ -1282,6 +1340,8 @@ func _rarity_color(rarity: String) -> Color:
 			return Color(0.76, 0.47, 1.0)
 		"legendary":
 			return Color(1.0, 0.72, 0.28)
+		"mythic":
+			return Color(0.96, 0.42, 0.86)
 		_:
 			return Color(0.68, 0.68, 0.74)
 

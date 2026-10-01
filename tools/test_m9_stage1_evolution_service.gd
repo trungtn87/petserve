@@ -820,15 +820,21 @@ func _test_stage_two_natural_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"Create a NEW image for evolution Stage 3"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request.positive_prompt.contains(
-			"visibly look older and more developed than Stage 2"
+			"[GENE-ONLY PET CHANGE]"
+		)
+		and request.positive_prompt.contains(
+			"No new structural Gene delta is selected"
+		)
+		and request.positive_prompt.contains(
+			"background is NOT continuity-locked"
 		),
-		"Natural Stage 2 must full-regenerate Stage 3 without inventing a Gene"
+		"Natural Stage 2 must use the Stage 2 image as reference without inventing a Gene"
 	)
 
 
@@ -964,12 +970,18 @@ func _test_stage_two_gene_plan() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
 			"elongated"
+		)
+		and request.positive_prompt.contains(
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
+		)
+		and request.positive_prompt.contains(
+			"Only Gene loci listed below are authorized to differ"
 		),
-		"Stage 2 Gene plan must full-regenerate using resolved phenotype"
+		"Stage 2 Gene plan must edit the reference image from the lifetime Gene score plan"
 	)
 
 	if request != null:

@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 11
+const PLAN_SCHEMA: int = 12
 const FINAL_STAGE: int = 4
 
 
@@ -132,12 +132,20 @@ func validate(
 	):
 		return "Pending evolution có render request không khớp identity/stage."
 
-	if (
+	if to_stage == 2:
+		if (
+			request.mode
+				!= PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+			or not request.source_image_path.is_empty()
+		):
+			return "Stage 1 -> 2 phải dùng full-regenerate text-to-image."
+	elif (
 		request.mode
-			!= PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		or not request.source_image_path.is_empty()
+			!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		or request.source_image_path
+			!= source_visual.image_path
 	):
-		return "Mọi evolution phải tạo ảnh mới bằng text-to-image, không dùng ảnh stage trước làm reference."
+		return "Stage 3/4 phải dùng ảnh stage trước làm reference image-edit."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(
@@ -424,8 +432,18 @@ func validate(
 		expected_request != null
 		and not expected_gene_prompt.is_empty()
 	):
+		var gene_scope_rule := ""
+
+		if to_stage >= 3:
+			gene_scope_rule = (
+				"Use the reference image as the baseline. Only Gene loci listed below are authorized to differ from the source pet. "
+				+ "Total lifetime score controls expression strength; the highest-scored direction is dominant and other scored directions may blend. "
+				+ "Do not invent a new direction or redesign an unlisted locus.\n"
+			)
+
 		expected_request.positive_prompt += (
 			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ gene_scope_rule
 			+ expected_gene_prompt
 		)
 
