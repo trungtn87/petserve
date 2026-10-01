@@ -10,6 +10,7 @@ const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
 const STAGE2_ACTIVITY_REWARD_COUNT: int = 4
 const CHEST_RECYCLED: StringName = &"recycled"
 const FRAGMENTS_PER_RECYCLED_CHEST: int = 10
+const STAGE3_TIER: int = 3
 
 
 var _meta: Dictionary = {}
@@ -213,6 +214,12 @@ func ensure_evolution_chest(
 		"run_id": run_id,
 		"from_stage": from_stage,
 		"to_stage": to_stage,
+		"stage_index": to_stage,
+		"chest_tier": (
+			STAGE3_TIER
+			if to_stage == STAGE3_TIER
+			else to_stage
+		),
 		"opened": false,
 	})
 	_meta["chest_queue"] = queue
@@ -522,6 +529,11 @@ func _roll_evolution_chest(
 			1
 		)
 	)
+	if to_stage == STAGE3_TIER:
+		return _roll_tier3_chest(
+			chest
+		)
+
 	var seed_value := absi(
 		hash(uid)
 	)
@@ -645,6 +657,11 @@ func _roll_stage_activity_chest(
 			2
 		)
 	)
+	if stage_index == STAGE3_TIER:
+		return _roll_tier3_chest(
+			chest
+		)
+
 	var run_id := int(
 		chest.get(
 			"run_id",
@@ -818,6 +835,11 @@ func _roll_recycled_chest(
 		1,
 		StageLifecycle.FINAL_STAGE
 	)
+	if stage_index == STAGE3_TIER:
+		return _roll_tier3_chest(
+			chest
+		)
+
 	var seed_value := absi(
 		hash(uid)
 	)
@@ -850,6 +872,467 @@ func _roll_recycled_chest(
 		return []
 
 	return [item]
+
+
+func _roll_tier3_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(
+		chest.get(
+			"uid",
+			"stage3_tier3"
+		)
+	)
+	var seed_value := absi(
+		hash(
+			"tier3:%s" % uid
+		)
+	)
+
+	if seed_value == 0:
+		seed_value = 1
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var rewards: Array[Dictionary] = []
+
+	# Roll 1 — Survival: always useful and defect-free.
+	var survival_seed := _tier3_slot_seed(
+		seed_value,
+		"survival"
+	)
+	var survival_roll := rng.randf()
+	var survival: Dictionary = {}
+
+	if survival_roll <= 0.45:
+		survival = _generate_stage3_safe_resource(
+			ItemGenerator.TYPE_FOOD,
+			survival_seed,
+			"common"
+		)
+	elif survival_roll <= 0.70:
+		survival = _generate_stage3_safe_resource(
+			ItemGenerator.TYPE_FOOD,
+			survival_seed,
+			"rare"
+		)
+	elif survival_roll <= 0.90:
+		survival = _generate_stage3_safe_resource(
+			ItemGenerator.TYPE_GROWTH,
+			survival_seed,
+			"uncommon"
+		)
+	else:
+		survival = _generate_stage3_safe_resource(
+			ItemGenerator.TYPE_GROWTH,
+			survival_seed,
+			"epic"
+		)
+
+	_append_tier3_reward(
+		rewards,
+		survival,
+		"survival"
+	)
+
+	# Roll 2 — Wild: normal / good / trade-off / bad / fragment / Gene fragment.
+	var wild_seed := _tier3_slot_seed(
+		seed_value,
+		"wild"
+	)
+	var wild_roll := rng.randf()
+	var wild: Dictionary = {}
+
+	if wild_roll <= 0.30:
+		wild = _generator.generate_for_stage(
+			(
+				ItemGenerator.TYPE_FOOD
+				if rng.randf() <= 0.5
+				else ItemGenerator.TYPE_GROWTH
+			),
+			wild_seed,
+			STAGE3_TIER
+		)
+	elif wild_roll <= 0.55:
+		wild = _generate_stage3_safe_resource(
+			(
+				ItemGenerator.TYPE_FOOD
+				if rng.randf() <= 0.5
+				else ItemGenerator.TYPE_GROWTH
+			),
+			wild_seed,
+			(
+				"rare"
+				if rng.randf() <= 0.75
+				else "epic"
+			)
+		)
+	elif wild_roll <= 0.75:
+		wild = _generate_stage3_tradeoff_resource(
+			wild_seed,
+			rng.randf() <= 0.5
+		)
+	elif wild_roll <= 0.90:
+		wild = _generate_stage3_bad_resource(
+			wild_seed,
+			rng.randf() <= 0.5
+		)
+	elif wild_roll <= 0.97:
+		wild = _generator.generate_for_stage(
+			ItemGenerator.TYPE_FUTURE_FRAGMENT,
+			wild_seed,
+			STAGE3_TIER
+		)
+	else:
+		wild = _generate_gene_fragment_for_stage(
+			STAGE3_TIER,
+			wild_seed
+		)
+
+	_append_tier3_reward(
+		rewards,
+		wild,
+		"wild"
+	)
+
+	# Roll 3 — Evolution:
+	# 30% material, 30% Gene fragment, 20% Common/Uncommon,
+	# 12% Rare, 6% Epic, 2% Legendary.
+	var evolution_seed := _tier3_slot_seed(
+		seed_value,
+		"evolution"
+	)
+	var evolution_roll := rng.randf()
+	var evolution: Dictionary = {}
+
+	if evolution_roll <= 0.30:
+		evolution = _generator.generate_for_stage(
+			ItemGenerator.TYPE_FUTURE_FRAGMENT,
+			evolution_seed,
+			STAGE3_TIER
+		)
+	elif evolution_roll <= 0.60:
+		evolution = _generate_gene_fragment_for_stage(
+			STAGE3_TIER,
+			evolution_seed
+		)
+	elif evolution_roll <= 0.80:
+		evolution = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			evolution_seed,
+			(
+				"common"
+				if rng.randf() <= 0.65
+				else "uncommon"
+			)
+		)
+	elif evolution_roll <= 0.92:
+		evolution = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			evolution_seed,
+			"rare"
+		)
+	elif evolution_roll <= 0.98:
+		evolution = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			evolution_seed,
+			"epic"
+		)
+	else:
+		evolution = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			evolution_seed,
+			"legendary"
+		)
+
+	_append_tier3_reward(
+		rewards,
+		evolution,
+		"evolution"
+	)
+
+	# Roll 4 — Jackpot: 75% none, 15% Rare, 6% Epic,
+	# 3% Legendary, 1% Mythic component. Never a complete Mythic Gene.
+	var jackpot_seed := _tier3_slot_seed(
+		seed_value,
+		"jackpot"
+	)
+	var jackpot_roll := rng.randf()
+	var jackpot: Dictionary = {}
+
+	if jackpot_roll <= 0.75:
+		pass
+	elif jackpot_roll <= 0.90:
+		jackpot = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			jackpot_seed,
+			"rare"
+		)
+	elif jackpot_roll <= 0.96:
+		jackpot = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			jackpot_seed,
+			"epic"
+		)
+	elif jackpot_roll <= 0.99:
+		jackpot = _generate_gene_for_stage_with_rarity(
+			STAGE3_TIER,
+			jackpot_seed,
+			"legendary"
+		)
+	else:
+		jackpot = _generator.generate_mythic_component(
+			jackpot_seed
+		)
+
+	_append_tier3_reward(
+		rewards,
+		jackpot,
+		"jackpot"
+	)
+
+	return rewards
+
+
+func _append_tier3_reward(
+	rewards: Array[Dictionary],
+	item: Dictionary,
+	roll_name: String
+) -> void:
+	if item.is_empty():
+		return
+
+	item["chest_tier"] = STAGE3_TIER
+	item["chest_roll"] = roll_name
+	rewards.append(
+		item
+	)
+
+
+func _tier3_slot_seed(
+	chest_seed: int,
+	slot_name: String
+) -> int:
+	var value := absi(
+		hash(
+			"%s:%s"
+			% [
+				chest_seed,
+				slot_name,
+			]
+		)
+	)
+
+	return (
+		value
+		if value != 0
+		else chest_seed + slot_name.length() + 1
+	)
+
+
+func _generate_stage3_safe_resource(
+	item_type: StringName,
+	seed_value: int,
+	rarity: String
+) -> Dictionary:
+	var fallback: Dictionary = {}
+
+	for offset in range(32):
+		var item := _generator.generate_resource_for_rarity(
+			item_type,
+			seed_value + offset,
+			rarity
+		)
+
+		if item.is_empty():
+			continue
+
+		fallback = item
+		var defects_value: Variant = item.get(
+			"defects",
+			[]
+		)
+
+		if (
+			typeof(defects_value) == TYPE_ARRAY
+			and (defects_value as Array).is_empty()
+		):
+			return _generator.scale_for_stage(
+				item,
+				STAGE3_TIER
+			)
+
+	if fallback.is_empty():
+		return {}
+
+	return _generator.scale_for_stage(
+		fallback,
+		STAGE3_TIER
+	)
+
+
+func _generate_stage3_bad_resource(
+	seed_value: int,
+	prefer_food: bool
+) -> Dictionary:
+	var item_type := (
+		ItemGenerator.TYPE_FOOD
+		if prefer_food
+		else ItemGenerator.TYPE_GROWTH
+	)
+	var fallback: Dictionary = {}
+
+	for offset in range(64):
+		var item := _generator.generate_for_stage(
+			item_type,
+			seed_value + offset,
+			STAGE3_TIER
+		)
+
+		if item.is_empty():
+			continue
+
+		fallback = item
+		var defects_value: Variant = item.get(
+			"defects",
+			[]
+		)
+
+		if (
+			typeof(defects_value) == TYPE_ARRAY
+			and not (defects_value as Array).is_empty()
+		):
+			return item
+
+	return fallback
+
+
+func _generate_stage3_tradeoff_resource(
+	seed_value: int,
+	prefer_food: bool
+) -> Dictionary:
+	var item_type := (
+		ItemGenerator.TYPE_FOOD
+		if prefer_food
+		else ItemGenerator.TYPE_GROWTH
+	)
+	var fallback: Dictionary = {}
+
+	for offset in range(96):
+		var item := _generator.generate_for_stage(
+			item_type,
+			seed_value + offset,
+			STAGE3_TIER
+		)
+
+		if item.is_empty():
+			continue
+
+		fallback = item
+		var effects_value: Variant = item.get(
+			"secondary_effects",
+			[]
+		)
+
+		if typeof(effects_value) != TYPE_ARRAY:
+			continue
+
+		var has_positive := false
+		var has_negative := false
+
+		for raw_effect in effects_value as Array:
+			if typeof(raw_effect) != TYPE_DICTIONARY:
+				continue
+
+			var polarity := String(
+				(raw_effect as Dictionary).get(
+					"polarity",
+					""
+				)
+			)
+
+			if polarity == "positive":
+				has_positive = true
+			elif polarity == "negative":
+				has_negative = true
+
+		if has_positive and has_negative:
+			return item
+
+	if not fallback.is_empty():
+		return fallback
+
+	return _generate_stage3_bad_resource(
+		seed_value,
+		prefer_food
+	)
+
+
+func _generate_gene_fragment_for_stage(
+	stage_index: int,
+	seed_value: int
+) -> Dictionary:
+	var gene := _generate_gene_for_stage_with_rarity(
+		stage_index,
+		seed_value,
+		"common"
+	)
+
+	if gene.is_empty():
+		return {}
+
+	return _generator.generate_gene_fragment(
+		gene,
+		seed_value,
+		1
+	)
+
+
+func _generate_gene_for_stage_with_rarity(
+	stage_index: int,
+	seed_value: int,
+	rarity: String
+) -> Dictionary:
+	var policy := StageGenePolicy.load_default()
+
+	if policy == null:
+		return {}
+
+	var definitions := GeneCatalog.new().load_default()
+	var candidates: Array[GeneDefinition] = []
+
+	for definition in definitions:
+		if (
+			definition != null
+			and policy.can_accept_gene(
+				stage_index,
+				definition.locus()
+			)
+		):
+			candidates.append(
+				definition
+			)
+
+	if candidates.is_empty():
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(
+		1,
+		absi(seed_value)
+	)
+	var definition := candidates[
+		rng.randi_range(
+			0,
+			candidates.size() - 1
+		)
+	]
+
+	return _generator.generate_gene_for_rarity(
+		definition,
+		seed_value,
+		rarity
+	)
 
 
 func _guaranteed_stage_gene_reward_index(
