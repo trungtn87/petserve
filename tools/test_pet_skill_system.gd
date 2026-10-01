@@ -192,7 +192,7 @@ func _test_growth_and_hunger_effects() -> void:
 	baseline.setup(
 		baseline_meta,
 		8401,
-		1
+		2
 	)
 	var base_before := baseline.snapshot()
 	var food_item := {
@@ -217,7 +217,7 @@ func _test_growth_and_hunger_effects() -> void:
 	hearty_skills.setup(
 		hearty_meta,
 		8402,
-		1
+		2
 	)
 	var hearty := StageLifecycle.new()
 	hearty.setup(
@@ -251,7 +251,7 @@ func _test_growth_and_hunger_effects() -> void:
 	long_skills.setup(
 		long_meta,
 		8403,
-		1
+		2
 	)
 	var long_life := StageLifecycle.new()
 	long_life.setup(
@@ -289,7 +289,7 @@ func _test_growth_and_hunger_effects() -> void:
 	stomach_skills.setup(
 		stomach_meta,
 		8404,
-		1
+		2
 	)
 	var stomach := StageLifecycle.new()
 	stomach.setup(
