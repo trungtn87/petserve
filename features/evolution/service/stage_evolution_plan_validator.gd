@@ -616,16 +616,9 @@ func _normal_resolution_signature(
 			delta_value as Dictionary
 		).duplicate(true)
 
-	var candidate_value: Variant = resolution.get(
-		"candidate_ids",
-		[]
-	)
-	var candidates: Array = (
-		(candidate_value as Array).duplicate(true)
-		if typeof(candidate_value) == TYPE_ARRAY
-		else []
-	)
-
+	# Only gameplay-authoritative fields participate in plan integrity.
+	# Probability, roll and candidate_ids are diagnostics and can change
+	# representation after JSON round-trip without changing the locked result.
 	return {
 		"mode": String(
 			resolution.get(
@@ -645,19 +638,6 @@ func _normal_resolution_signature(
 				""
 			)
 		),
-		"probability_basis_points": int(
-			resolution.get(
-				"probability_basis_points",
-				0
-			)
-		),
-		"roll_basis_points": int(
-			resolution.get(
-				"roll_basis_points",
-				-1
-			)
-		),
-		"candidate_ids": candidates,
 		"delta": delta_dict,
 	}
 
