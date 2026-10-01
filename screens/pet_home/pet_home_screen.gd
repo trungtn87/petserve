@@ -2903,26 +2903,6 @@ func _owns_skill(
 	return false
 
 
-func _legacy_inventory_item(
-	uid: String
-) -> Dictionary:
-	if uid.is_empty():
-		return {}
-
-	for item in _game.inventory():
-		if String(
-			item.get(
-				"uid",
-				""
-			)
-		) == uid:
-			return item.duplicate(
-				true
-			)
-
-	return {}
-
-
 func _legacy_item_label(
 	item: Dictionary
 ) -> String:
