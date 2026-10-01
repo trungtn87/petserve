@@ -47,10 +47,36 @@ func build_from_hatch() -> Dictionary:
 			"error": "Pet chưa xác nhận tên.",
 		}
 
-	var identity := PetIdentityFactory.new().create_initial(
+	var legacy_binding := LegacyInheritanceService.new().bind_to_run(
+		egg_state.run_seed
+	)
+
+	if not bool(
+		legacy_binding.get(
+			"ok",
+			false
+		)
+	):
+		return {
+			"ok": false,
+			"error": String(
+				legacy_binding.get(
+					"error",
+					"Không gắn được dữ liệu kế thừa."
+				)
+			),
+		}
+
+	var identity := PetIdentityFactory.new().create(
 		egg_state.run_seed,
 		StringName(egg_state.egg_type),
-		&"cat"
+		&"cat",
+		int(
+			legacy_binding.get(
+				"generation",
+				0
+			)
+		)
 	)
 
 	var genome := PetGenomeFactory.new().create_initial()
