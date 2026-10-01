@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 13
+const PLAN_SCHEMA: int = 14
 const FINAL_STAGE: int = 5
 
 
@@ -126,7 +126,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v13_stage_%d"
+				+ "_pethome_v14_stage_%d"
 				% to_stage
 			)
 	):
@@ -428,27 +428,8 @@ func validate(
 		"request"
 	) as PetRenderRequest
 
-	if (
-		expected_request != null
-		and not expected_gene_prompt.is_empty()
-	):
-		var gene_scope_rule := ""
-
-		if to_stage >= 3:
-			gene_scope_rule = (
-				"Use the reference for individual identity. Natural maturation and the morphology plan may change proportions and pose. Only listed Gene directions may add specialized traits. "
-				+ "Total lifetime score controls expression strength; the highest-scored direction is dominant and other scored directions may blend. "
-				+ "Do not invent unlisted Gene directions or unauthorized appendages.\n"
-			)
-
-		expected_request.positive_prompt += (
-			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
-			+ gene_scope_rule
-			+ expected_gene_prompt
-		)
-
 	if expected_request != null:
-		expected_request.positive_prompt += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, to_stage, gene_scores)
+		expected_request.positive_prompt = preload("res://features/evolution/visual/resolved_form_prompt.gd").new().build(identity, to_stage, gene_scores, mythic)
 
 	if (
 		not bool(

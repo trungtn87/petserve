@@ -17,6 +17,8 @@ var source := TextureRect.new()
 var output := TextureRect.new()
 var generate := Button.new()
 var controls: VBoxContainer
+var render_mode := OptionButton.new()
+var preset_active := false
 var busy := false
 var last_path := ""
 
@@ -48,6 +50,12 @@ func _ready() -> void:
 	for stage in range(1, 6):
 		target.add_item("Stage %d" % stage if stage < 5 else "Final (sau Stage 4)")
 	controls.add_child(target)
+	_label("Chế độ thử ảnh", controls)
+	render_mode.add_item("Theo game: ảnh tham chiếu từ Stage 3")
+	render_mode.add_item("Thử dựng ảnh mới: cùng hình thái đích")
+	controls.add_child(render_mode)
+	render_mode.item_selected.connect(func(_index: int): _invalidate())
+	_button("Nạp mẫu Mộc vừa test (seed + Gene)", _load_wood_preset, controls)
 	target.item_selected.connect(func(_index: int): _refresh())
 	element.item_selected.connect(func(_index: int): _reset())
 	seed_input.value_changed.connect(func(_value: float): _reset())
@@ -101,6 +109,7 @@ func _new_lineage() -> void:
 	var next_seed := rng.randi_range(1, 2147483646)
 	if next_seed == int(seed_input.value):
 		next_seed = next_seed % 2147483646 + 1
+	preset_active = false
 	seed_input.value = next_seed
 
 func _reset() -> void:
@@ -133,6 +142,9 @@ func _refresh() -> void:
 		output.texture = _texture(session.snapshots[stage].current_visual.image_path)
 	for index in range(1, 5):
 		target.set_item_disabled(index, not session.snapshots.has(index))
+
+	if preset_active and element.selected == 1 and int(seed_input.value) == 1420288088:
+		_fill_wood_preset()
 
 func _add_gene() -> void:
 	if busy or target.selected == 0:
@@ -183,6 +195,11 @@ func _prepare() -> void:
 		status.text = str(plan.get("error", "Không tạo được câu lệnh."))
 		return
 	request = plan.request
+	if render_mode.selected == 1 and target.selected >= 2:
+		request.mode = PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		request.source_image_path = ""
+		request.target_region = &""
+		request.edit_strength = 0.0
 	prompt.text = renderer._compose_prompt(request)
 	generate.disabled = false
 	status.text = "Sẵn sàng tạo Stage %d • %s • seed %d" % [target.selected + 1, "Tạo mới" if request.mode != PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT else "Sửa ảnh tham chiếu", request.seed]
@@ -207,6 +224,8 @@ func _render() -> void:
 	last_path = result.image_path
 	var report := request.to_debug_dict()
 	report["wire_prompt"] = prompt.text
+	report["experiment"] = "fresh_target_form" if render_mode.selected == 1 else "production_reference"
+	report["morphology"] = preload("res://features/evolution/visual/lineage_morphology.gd").new().resolve(session.identity, target.selected + 1, session.pending_genes.gene_scores_snapshot())
 	report["result"] = {"model": String(result.model_id), "metadata": result.metadata, "image_path": result.image_path}
 	report["gene_state"] = session.pending_genes.to_dict()
 	var saved := AtomicJson.write(result.image_path.get_basename() + ".json", report)
@@ -228,3 +247,28 @@ func _set_disabled(node: Node, value: bool) -> void:
 func _texture(path: String) -> Texture2D:
 	var image := Image.load_from_file(path)
 	return ImageTexture.create_from_image(image) if image != null else null
+
+func _load_wood_preset() -> void:
+	if busy:
+		return
+	preset_active = true
+	element.select(1)
+	seed_input.set_value_no_signal(1420288088)
+	_reset()
+	status.text = "Đã nạp mẫu Mộc. Tạo từ Stage 1; Gene mẫu tự điền khi chọn stage tiếp theo."
+
+func _fill_wood_preset() -> void:
+	var stages := {
+		2: [["aura_wood", "rare", 1], ["ears_softfan", "epic", 1]],
+		3: [["eyes_moon", "uncommon", 1], ["mane_astral", "epic", 1], ["paws_luminous", "epic", 1]],
+		4: [["aura_wood", "epic", 1], ["ears_rounded", "epic", 1], ["tail_fluffy", "legendary", 2], ["whiskers_starlight", "rare", 1]],
+	}
+	for values in stages.get(target.selected + 1, []):
+		_add_gene()
+		var row := rows.get_child(rows.get_child_count() - 1)
+		var choice: OptionButton = row.get_meta("choice")
+		for index in range(choice.item_count):
+			if String(choice.get_item_metadata(index)) == String(values[0]):
+				choice.select(index)
+		(row.get_meta("rarity") as OptionButton).select(RARITIES.find(String(values[1])))
+		(row.get_meta("count") as SpinBox).value = int(values[2])

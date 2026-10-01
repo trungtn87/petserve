@@ -201,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v13_stage_%d"
+		+ "_pethome_v14_stage_%d"
 		% target_stage
 	)
 
@@ -1081,7 +1081,7 @@ func build_stage_regenerate_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v13_stage_%d"
+		+ "_pethome_v14_stage_%d"
 		% target_stage
 	)
 
@@ -1851,7 +1851,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v13_stage_%d"
+		+ "_pethome_v14_stage_%d"
 		% target_stage
 	)
 
