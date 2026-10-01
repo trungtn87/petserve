@@ -14,7 +14,7 @@ const SAVE_PATH: String = (
 	"user://evolution_pet_v1.json"
 )
 
-const CURRENT_SCHEMA: int = 2
+const CURRENT_SCHEMA: int = 3
 
 
 func save_initial(
@@ -23,7 +23,8 @@ func save_initial(
 	visual: PetVisualRecord,
 	pet_name: String,
 	scene_profile = null,
-	mythic_destiny: Dictionary = {}
+	mythic_destiny: Dictionary = {},
+	egg_stage: int = 1
 ) -> bool:
 	if scene_profile == null and identity != null:
 		scene_profile = (
@@ -61,6 +62,11 @@ func save_initial(
 		"genome": genome.to_dict(),
 		"scene_profile": scene_profile.to_dict(),
 		"current_visual": visual.to_dict(),
+		"egg_stage": clampi(
+			egg_stage,
+			1,
+			4
+		),
 	}
 
 	if not mythic_destiny.is_empty():
