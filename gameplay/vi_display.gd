@@ -15,6 +15,10 @@ const LOCUS_LABELS := {
 	"mark": "Ấn",
 	"structure": "Cấu trúc",
 	"aura": "Hào quang",
+	"horns": "Sừng",
+	"wings": "Cánh",
+	"hooves": "Móng",
+	"antlers": "Gạc",
 }
 
 
