@@ -2,22 +2,22 @@
   {
     "stage": 1,
     "duration_seconds": 7200,
-    "starting_food_seconds": 900,
-    "starved_growth_multiplier": 0.75,
+    "starting_food_seconds": 3600,
+    "food_capacity_seconds": 3600,
     "tutorial_protected": true
   },
   {
     "stage": 2,
     "duration_seconds": 172800,
     "starting_food_seconds": 0,
-    "starved_growth_multiplier": 0.75,
+    "food_capacity_seconds": 43200,
     "tutorial_protected": true
   },
   {
     "stage": 3,
     "duration_seconds": 259200,
     "starting_food_seconds": 0,
-    "starved_growth_multiplier": 0.75,
+    "food_capacity_seconds": 64800,
     "tutorial_protected": true
   }
 ]

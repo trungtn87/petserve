@@ -137,7 +137,8 @@ func count() -> int:
 
 func can_use_in_stage(
 	item: Dictionary,
-	stage_index: int
+	stage_index: int,
+	gene_policy: StageGenePolicy = null
 ) -> bool:
 	if stage_index < 1 or stage_index >= StageLifecycle.FINAL_STAGE:
 		return false
@@ -148,6 +149,20 @@ func can_use_in_stage(
 			""
 		)
 	)
+
+	if item_type == ItemGenerator.TYPE_GENE:
+		if gene_policy == null:
+			return false
+
+		return gene_policy.can_accept_gene(
+			stage_index,
+			StringName(
+				item.get(
+					"gene_locus",
+					""
+				)
+			)
+		)
 
 	if (
 		item_type != ItemGenerator.TYPE_FOOD
