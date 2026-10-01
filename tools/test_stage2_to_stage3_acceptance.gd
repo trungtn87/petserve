@@ -9,6 +9,7 @@ func _ready() -> void:
 	_test_natural_zero_gene()
 	_test_two_loci_and_retry_guards()
 	_test_locked_stage4_egg_mythic()
+	_test_gene_visual_catalog_coverage()
 	_cleanup()
 
 	if _failures == 0:
@@ -23,6 +24,43 @@ func _ready() -> void:
 		% _failures
 	)
 	get_tree().quit(1)
+
+
+func _test_gene_visual_catalog_coverage() -> void:
+	var gene_definitions := GeneCatalog.new().load_default()
+	var visual_catalog := MutationVisualCatalog.new()
+	var visual_definitions := visual_catalog.load_default()
+
+	_expect(
+		not gene_definitions.is_empty(),
+		"Gene catalog is available for visual coverage"
+	)
+
+	for gene in gene_definitions:
+		if gene == null:
+			continue
+
+		for source_stage in range(1, 4):
+			var mutation_id := StringName(
+				"gene_expr_%s_s%d"
+				% [
+					String(gene.id()),
+					source_stage,
+				]
+			)
+			var visual := visual_catalog.find_by_id(
+				visual_definitions,
+				mutation_id
+			)
+
+			_expect(
+				visual != null
+				and visual.is_valid()
+				and visual.mutation_id() == mutation_id
+				and visual.target_region() == gene.locus(),
+				"visual coverage %s"
+				% String(mutation_id)
+			)
 
 
 func _test_natural_zero_gene() -> void:
