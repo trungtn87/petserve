@@ -195,8 +195,18 @@ func _stage_one_fantasy_hint(
 		&"rabbit_jade_horn": "a tiny central jade-colored horn bud, barely emerging.",
 		&"lizard_dragonkin": "tiny paired horn ridges and a very small dorsal crest hint.",
 		&"lizard_basilisk": "a subtle crown-crest hint and slightly more intense eyes.",
-		&"bird_phoenix": "a few warm luminous feather edges and one tiny ember-like wisp.",
+		&"bird_phoenix": "slightly brighter sacred wing edges and a tiny golden feather accent; remain an ordinary Bird lineage.",
 		&"bird_thunder_roc": "slightly stronger crown feathers and a faint storm-like wing marking.",
+		&"dragon_celestial": "a tiny elegant horn-crown hint and one faint cloudlike mane wisp.",
+		&"dragon_abyss": "slightly denser shoulder scales and a restrained dark horn-ridge hint.",
+		&"phoenix_sun": "a few warm luminous feather edges and one tiny rebirth-light wisp.",
+		&"phoenix_void": "one faint eclipse-like feather mark and a cool subtle eye glow.",
+		&"horse_celestial_steed": "a barely longer airy mane and a tiny luminous edge on the hooves.",
+		&"horse_nightmare": "a faint shadow tint in the mane and slightly brighter supernatural eyes.",
+		&"qilin_celestial": "a tiny sacred horn glow and one small cloudlike mane curl.",
+		&"qilin_dread": "a slightly darker sacred scale patch and a firmer horn silhouette.",
+		&"deer_worldtree_stag": "tiny symmetrical antler buds and one subtle woodland coat mark.",
+		&"deer_moonveil": "tiny pale antler buds and a very soft moonlit eye sheen.",
 	}
 
 	return String(
