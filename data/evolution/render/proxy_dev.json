@@ -1,0 +1,8 @@
+{
+  "proxy_url": "https://petverse-render-proxy.trungtn87.workers.dev/v1/render/initial",
+  "client_key": "",
+  "model_id": "@cf/black-forest-labs/flux-2-klein-4b",
+  "width": 576,
+  "height": 1024,
+  "timeout_seconds": 180
+}

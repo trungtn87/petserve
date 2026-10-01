@@ -1,59 +1,156 @@
 # PetVerse — Design Decisions
 
-This file records decisions that should not be casually reopened during implementation. A changed decision should be explicitly documented rather than silently overwritten in code.
+This file records decisions that should not be casually reopened during implementation.
 
-## PET-001 — Pet is a subject
-Pet is modeled and presented as a living subject, not a collection of player-facing statistics.
+## EVO-000 — M0 removes the retired pet presentation stack
+The previous 3D, 2D/2.5D, Pet Home, expression, motion and direct pet-interaction implementations are not part of the new baseline.
 
-## PET-002 — No permanent numeric progression HUD
-Do not permanently expose Level, EXP, age/day, hunger or mood as numeric HUD on Pet Home. Internal numeric simulation is allowed.
+## EVO-001 — Evolution is the core direction
+The next gameplay foundation is pet evolution, not a simulation-heavy pet-care runtime.
 
-## PET-003 — State communicates simulation
-Internal values are resolved into states; states are communicated through behavior, expression, motion, FX and sound.
+## EVO-002 — A pet must preserve lineage
+Future visual forms must develop from the same individual pet rather than being independently regenerated as unrelated characters.
 
-## PET-004 — Pet Home remains visually minimal
-The main composition prioritizes pet + environment. Necessary secondary functions live behind an expandable/hidden menu.
+## EVO-003 — Code decides evolution
+Evolution identity, genome and mutation changes are decided by deterministic/domain code. A renderer may visualize those decisions but must not invent the evolution rules.
 
-## PET-005 — Direct interaction belongs on the pet
-Basic interaction should be direct (initially tap; later gestures as needed), not a permanent generic interaction button.
+## EVO-004 — Small controlled deltas
+Evolution should be developed as a sequence of small controlled changes. New mutation types should primarily be data additions once the rule system is stable.
 
-## PET-006 — Dark Pet is Reference Pet 001
-Dark Pet validates the generic Pet Framework. Core/domain/brain code must not depend on Dark Pet identity.
+## EVO-005 — Visual direction belongs to the visual-spec layer
+The art family is controlled by visual-spec data rather than gameplay rules. The original Galaxy direction was later superseded by EVO-028.
 
-## PET-007 — New pets inherit the framework
-Adding a new pet should primarily mean adding/configuring assets and pet-specific presentation data. Shared state/behavior/interaction logic is inherited.
+## ARCH-001 — Main coordinates only
+Main/root code remains orchestration-focused.
 
-## PET-008 — Main coordinates only
-Main/root screen code must remain orchestration-focused. Pet logic belongs to the pet module; feature logic belongs to its feature module.
+## ARCH-002 — Stable milestone development
+Each layer is completed and tested before the next layer is added.
 
-## PET-009 — Preserve Egg v1.1 during Pet foundation work
-The existing egg/hatch implementation remains the baseline. Pet work is additive until transition integration is explicitly implemented and tested.
+## ARCH-003 — Preserve Egg v1.1 during Evolution Core work
+Egg incubation, hatch and naming remain baseline behavior until an evolution replacement explicitly changes that flow.
 
-## PET-010 — First pet milestone
-The first milestone is not full pet gameplay. It is: Pet Home composition + one expressive Dark Pet + idle micro-behaviors + lightweight tap interaction.
+## ARCH-004 — Side branches are historical/experimental references
+M0 cleanup must not rewrite or delete existing side branches.
 
-## ARCH-001 — Extensible, reusable, diverse
-All major systems are designed for three properties: extension without duplication, reuse of stable frameworks, and content diversity through data/capabilities rather than copied logic.
 
-## ARCH-002 — Adding content is not editing Core
-Adding another entry of an existing content type (pet, element/attribute, home, expression, item, event, etc.) must not require modifying shared Core merely to recognize its identity. Prefer definitions, registries, capabilities and assets.
+## EVO-006 — PetIdentity is immutable across evolution
+A single pet life keeps the same pet_id, species, element, lineage_seed and generation through every later growth/evolution visual change. Stage, genome mutations and rendered images must not be stored as identity fields.
 
-## ARCH-003 — New capability may extend the framework
-"No Core edits for new content" does not prohibit architecture evolution. A genuinely new gameplay capability may add a generic API/component. Once added, additional content using that capability should be data-driven.
+## EVO-007 — Identity is deterministic
+The same species + element + lineage_seed + generation must produce the same pet_id. Identity generation must not depend on AI output or image content.
 
-## ARCH-004 — Avoid identity condition chains
-Generic systems must not grow chains such as `if dark / elif fire / elif water`. Identity-specific differences belong in definitions, capabilities, assets or explicit presentation overrides.
 
-## HOME-001 — Pet Home is a reusable host
-Pet Home is not a specific room. It hosts replaceable environment, decoration, actor, effect and UI layers. New homes should primarily be HomeDefinition + assets.
+## EVO-008 — Genome is separate from identity
+Stage, body growth, visual traits and mutation IDs belong to PetGenome, never PetIdentity.
 
-## HOME-002 — Pet and home are independent
-A pet is not bound to a specific home scene. The same pet can inhabit different HomeDefinitions and the same home can host different pets without duplicating controller logic.
+## EVO-009 — Genome starts small and extensible
+The V1 genome exposes only stage, body_growth, an open trait map and mutation IDs. New visual channels should be added as trait data rather than new core fields unless a future capability genuinely requires a typed field.
 
-## PET-011 — Fixed-camera Cat 2.5D production presentation
-The primary Pet Home uses the reusable native-Godot Cat 2.5D Framework.
-Sprite parts, pivot motion, texture swaps and lightweight FX preserve the
-concept appearance for limited interactions. No free/360-degree camera.
-Dark is Reference Pack 01; element/stage variations are profiles and assets,
-not identity checks in Core. Existing 3D scenes remain R&D.
-See `docs/design/CAT_2_5D_FRAMEWORK.md` for implementation and limits.
+## EVO-010 — Genome is a snapshot
+PetGenome does not expose mutable internal collections. A later evolution service creates a new validated genome snapshot instead of letting arbitrary UI/render code mutate the current genome in place.
+
+## EVO-011 — M2 contains no evolution probability
+Mutation rarity, compatibility, item influence and next-evolution selection are explicitly deferred to the Evolution Rules milestone.
+
+
+## EVO-012 — One M3 step changes one trait
+An EvolutionDelta changes exactly one genome trait and appends exactly one mutation ID. Stage and body-growth progression are not silently bundled into the same mutation step.
+
+## EVO-013 — Mutation selection is deterministic
+The same stable identity, genome state and mutation catalog must select the same next mutation. Mutation selection cannot depend on AI output.
+
+## EVO-014 — Mutation definitions are data-driven
+Mutation identity, target trait, prerequisites, stage constraints, weights, allowed species/elements and conflicts belong in mutation data rather than hard-coded identity condition chains.
+
+## EVO-015 — Existing mutation IDs cannot repeat within one genome
+A mutation already recorded on a pet is not eligible again. Absolute uniqueness between different pets is a separate future signature/registry capability.
+
+## EVO-016 — Evolution applies by snapshot replacement
+Applying an EvolutionDelta creates a new PetGenome snapshot. The old genome remains unchanged.
+
+
+## EVO-017 — M4 is renderer-neutral
+Visual Spec and Prompt Builder describe the desired edit but contain no vendor/model API assumptions.
+
+## EVO-018 — Shared visual family with element-specific accents
+All base pets use one shared quality/style contract with element-specific accent palettes. The original Galaxy family was later superseded by Mythic Elemental Chibi in EVO-028.
+
+## EVO-019 — Visual wording is separate from mutation probability
+Gameplay MutationDefinition remains independent from MutationVisualDefinition. Art prompt changes must not alter evolution weights or eligibility.
+
+## EVO-020 — Every rendered evolution starts from the previous pet image
+The future renderer must treat the previous individual pet image as the source of truth. M4 prompts explicitly request the same individual, not a new text-only character.
+
+## EVO-021 — M4 rejects multi-trait drift
+A visual spec is produced only when the M3 transition changes one target trait and appends one mutation. Any unrelated genome change invalidates the visual request.
+
+## EVO-022 — Magical detail stays restrained
+Elemental magic is localized and readable. Full-body noisy textures, excessive particles and effects that obscure the pet silhouette are explicitly rejected.
+
+
+## EVO-023 — Initial infant render is text-to-image
+The first infant visual is created without a source image. It establishes the visual identity that every later edit must preserve.
+
+## EVO-024 — Initial infant is intentionally mutation-free
+The M6 base pet requires stage 1, body_growth 0, base traits and an empty mutation history. Advanced visual mutations are explicitly excluded from the initial prompt.
+
+## EVO-025 — Renderer is behind an adapter
+Gameplay and visual-spec layers do not call a provider API directly. PetRenderRequest / PetRenderer / PetRenderResult form the provider boundary.
+
+## EVO-026 — Direct OpenAI renderer is development-only
+The direct Images API adapter reads its API key only from an environment variable and no key is committed to the repository. A production Android build must later use a controlled backend/proxy rather than shipping a provider secret in the client.
+
+## EVO-027 — Rendered initial art is cached
+A successful initial render is saved under user:// and linked to PetIdentity + PetGenome through EvolutionSaveService. Re-entering the screen reuses the saved image for the same pet unless the user explicitly regenerates it.
+
+
+## EVO-028 — Base visual family changed to Mythic Elemental Chibi
+The Galaxy-heavy direction is retired for base pets. Base infants use soft Mythic Elemental Chibi art with restrained magical effects.
+
+## EVO-029 — Element lineage anchors exist before mutation
+Base infants may carry element palette, eye color, one small forehead lineage sigil and one restrained tail-centered effect while the genome remains mutation-free. These cues identify lineage rather than mutation state.
+
+## EVO-030 — Stable M3 mutation IDs are not renamed for visual-only changes
+M3 rule IDs remain stable even when M4 reinterpretation changes their art wording. Visual meaning belongs to M4 data.
+
+## EVO-031 — Initial identity render uses Sunburst
+The first text-to-image render uses gpt-image-2.5-sunburst in the development adapter because this image becomes the visual origin for the pet's later evolution lineage.
+
+
+## EVO-032 — Prototype renderer uses Cloudflare Workers AI
+M5/M6 development rendering uses FLUX.2 Klein 4B through Cloudflare Workers AI to keep prototype image generation within the available free quota.
+
+## EVO-033 — Provider choice does not enter gameplay domain
+Cloudflare is only a PetRenderer adapter. M1 identity, M2 genome, M3 rules and M4 visual specification remain provider-independent so a paid API can replace Cloudflare later.
+
+## EVO-034 — Direct Cloudflare credentials are development-only
+The local Godot test reads CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN from environment variables. Production builds must not ship this token.
+
+
+## EVO-035 — M7 evolution render is always image-edit
+Every post-hatch evolution render uses the previous complete PetHome image as its source. Text-only regeneration is not a valid evolution path.
+
+## EVO-036 — M7 persists the render plan before network I/O
+The exact evolution image-edit request is saved before contacting the renderer. Retry restores the persisted request and must not reroll mutation, target region, edit strength, source image or prompt.
+
+## EVO-037 — Stage advancement is explicit visual data
+M3 continues to describe one same-stage mutation delta. M7 supplies the next visual stage explicitly to the visual-spec builder; string replacement of stage text is not allowed.
+
+## EVO-038 — PetHome world continuity is part of M7 identity preservation
+An evolution edit preserves the previous environment, palette, lighting, camera/framing and UI-safe composition while changing only the selected biological target plus normal maturity implied by the next stage.
+
+
+## EVO-039 — M8 generalizes growth lifecycle instead of adding parallel stage code
+Stage 1, Stage 2 and Stage 3 use one StageLifecycle with stage timing supplied by data. Stage-specific timers must not be duplicated inside PetHome UI or separate services.
+
+## EVO-040 — Stage timing after infancy is tunable data
+The current Stage 2 = 2 days and Stage 3 = 3 days values come from the gameplay design's initial framework and are not hard-locked balance constants. Stage 1 keeps the existing 2-hour tutorial/prototype duration.
+
+## EVO-041 — The same M7 transaction powers all three evolutions
+Evolution I, II and III use StageEvolutionService + EvolutionEditCoordinator. Each transition advances exactly one stage, adds one deterministic mutation and starts from the previous PetHome image.
+
+## EVO-042 — M8 ends at Stage 4
+Stage 4 is a stable final form with no further M8 growth/evolution timer. Aging, natural death, neglect death, Legacy Chest and inheritance belong to later milestones.
+
+## EVO-043 — M8 does not invent item-influence balance
+Food and Growth remain timing resources. Element influence, gene influence, rare unlocks and fragment crafting are not added until their own gameplay milestone.
