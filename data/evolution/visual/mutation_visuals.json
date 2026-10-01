@@ -35,6 +35,13 @@
     "edit_strength": 0.18
   },
   {
+    "mutation_id": "gene_expr_aura_elemental_s3",
+    "target_region": "aura",
+    "instruction": "Develop a controlled elemental aura around the mature silhouette, clearly stronger than earlier stages but still readable and restrained.",
+    "preserve_hint": "Keep body anatomy, face, coat, markings and all physical appendages unchanged; aura is energy only.",
+    "edit_strength": 0.2
+  },
+  {
     "mutation_id": "gene_expr_body_sturdy_s2",
     "target_region": "body",
     "instruction": "Develop the existing quadruped body toward a sturdier, more capable juvenile build with stronger torso and shoulder presence while remaining agile and chibi.",
@@ -231,6 +238,13 @@
     "edit_strength": 0.19
   },
   {
+    "mutation_id": "gene_expr_mark_moon_s1",
+    "target_region": "mark",
+    "instruction": "Add one small refined moon-lineage marking in the established mark region. Keep it subtle, clean and naturally integrated into the fur as a minor Stage 1 detail.",
+    "preserve_hint": "Do not add extra symbols or alter the face, eyes, coat pattern or head anatomy.",
+    "edit_strength": 0.12
+  },
+  {
     "mutation_id": "gene_expr_mark_moon_s2",
     "target_region": "mark",
     "instruction": "Develop one refined moon-lineage marking at the established mark region, subtle and integrated with the elemental identity.",
@@ -245,6 +259,13 @@
     "edit_strength": 0.16
   },
   {
+    "mutation_id": "gene_expr_paws_luminous_s1",
+    "target_region": "paws",
+    "instruction": "Give the four existing paws a faint elemental luminescence contained inside the fur. Keep the effect small and restrained for Stage 1.",
+    "preserve_hint": "Keep paw count, leg length, stance, body silhouette and all non-paw Gene traits unchanged.",
+    "edit_strength": 0.12
+  },
+  {
     "mutation_id": "gene_expr_paws_luminous_s2",
     "target_region": "paws",
     "instruction": "Evolve the four existing paws toward a soft luminous elemental quality without changing their count, attachment or stance.",
@@ -257,6 +278,13 @@
     "instruction": "Evolve the four existing paws toward a soft luminous elemental quality without changing their count, attachment or stance. At Stage 3, express the code-selected branch as a stronger final-stage progression while preserving every non-target Gene locus.",
     "preserve_hint": "Keep leg length, paw count, body silhouette, face and all non-paw Gene traits unchanged.",
     "edit_strength": 0.16
+  },
+  {
+    "mutation_id": "gene_expr_structure_spirit_s3",
+    "target_region": "structure",
+    "instruction": "Refine the mature pet's structural silhouette with subtle integrated spirit-form contours and supernatural body language. Do not create horns, wings, extra tails or new appendages unless a separate Mythic Mutation is active.",
+    "preserve_hint": "Keep species anatomy, limb count, face, existing Gene traits and all appendages unchanged unless explicitly controlled by an active Mythic branch.",
+    "edit_strength": 0.22
   },
   {
     "mutation_id": "gene_expr_tail_fluffy_s1",
@@ -299,6 +327,13 @@
     "instruction": "Make the same single tail moderately longer while preserving its root position, direction, thickness family, fur style and elemental effect. At Stage 2, make the selected direction clearly more developed when the current phenotype already follows this Gene. At Stage 3, express the code-selected branch as a stronger final-stage progression while preserving every non-target Gene locus.",
     "preserve_hint": "Do not add another tail, split the tail, or change the pet's pose.",
     "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "gene_expr_whiskers_starlight_s1",
+    "target_region": "whiskers",
+    "instruction": "Give the existing whiskers a very subtle starlight quality with tiny soft luminous tips. Keep this as a small Stage 1 detail, not a major fantasy effect.",
+    "preserve_hint": "Keep muzzle, mouth, nose, face shape, eye placement and all non-whisker Gene traits unchanged.",
+    "edit_strength": 0.12
   },
   {
     "mutation_id": "gene_expr_whiskers_starlight_s2",
