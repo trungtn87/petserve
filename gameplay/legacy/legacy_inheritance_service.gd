@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const SAVE_PATH: String = "user://legacy_inheritance_v1.json"
-const CURRENT_SCHEMA: int = 1
+const CURRENT_SCHEMA: int = 2
 
 const STATUS_PENDING: String = "pending"
 const STATUS_BOUND: String = "bound"
@@ -12,7 +12,8 @@ const STATUS_CLAIMED: String = "claimed"
 
 func prepare(
 	source_identity: PetIdentity,
-	item: Dictionary = {}
+	item: Dictionary = {},
+	skill_id: StringName = &""
 ) -> Dictionary:
 	if (
 		source_identity == null
@@ -47,18 +48,38 @@ func prepare(
 			true
 		)
 
+	var inherited_skill := String(
+		skill_id
+	).strip_edges()
+
+	if (
+		not inherited_skill.is_empty()
+		and not PetSkillCatalog.is_valid(
+			StringName(inherited_skill)
+		)
+	):
+		return _error(
+			"Kỹ năng kế thừa không hợp lệ."
+		)
+
 	var item_uid := String(
 		inherited_item.get(
 			"uid",
 			"none"
 		)
 	)
+	var skill_token := (
+		inherited_skill
+		if not inherited_skill.is_empty()
+		else "none"
+	)
 	var inheritance_id := (
-		"%s:g%d:%s"
+		"%s:g%d:%s:%s"
 		% [
 			source_identity.pet_id(),
 			source_identity.generation(),
 			item_uid,
+			skill_token,
 		]
 	)
 
@@ -71,6 +92,7 @@ func prepare(
 		"target_generation": source_identity.generation() + 1,
 		"target_run_seed": 0,
 		"item": inherited_item,
+		"skill_id": inherited_skill,
 	}
 
 	if not _save_data(
@@ -88,6 +110,8 @@ func prepare(
 		"item": inherited_item.duplicate(
 			true
 		),
+		"has_skill": not inherited_skill.is_empty(),
+		"skill_id": inherited_skill,
 	}
 
 
@@ -152,6 +176,21 @@ func bind_to_run(
 			"Không gắn được kế thừa với đời mới."
 		)
 
+	var item_value: Variant = data.get(
+		"item",
+		{}
+	)
+	var has_item := (
+		typeof(item_value) == TYPE_DICTIONARY
+		and not (item_value as Dictionary).is_empty()
+	)
+	var inherited_skill := String(
+		data.get(
+			"skill_id",
+			""
+		)
+	)
+
 	return {
 		"ok": true,
 		"has_legacy": true,
@@ -167,12 +206,14 @@ func bind_to_run(
 				0
 			)
 		),
-		"has_item": not (
-			data.get(
-				"item",
-				{}
-			) as Dictionary
-		).is_empty(),
+		"has_item": has_item,
+		"has_skill": (
+			not inherited_skill.is_empty()
+			and PetSkillCatalog.is_valid(
+				StringName(inherited_skill)
+			)
+		),
+		"skill_id": inherited_skill,
 	}
 
 
@@ -209,7 +250,7 @@ func apply_pending_to_meta(
 	var inheritance_id := String(
 		data.get(
 			"inheritance_id",
-				""
+			""
 		)
 	)
 
@@ -217,6 +258,13 @@ func apply_pending_to_meta(
 		return {
 			"applied": false,
 		}
+
+	var inherited_skill := String(
+		data.get(
+			"skill_id",
+			""
+		)
+	)
 
 	if String(
 		meta.get(
@@ -228,6 +276,8 @@ func apply_pending_to_meta(
 			"applied": true,
 			"already_present": true,
 			"inheritance_id": inheritance_id,
+			"has_skill": not inherited_skill.is_empty(),
+			"skill_id": inherited_skill,
 		}
 
 	var item_value: Variant = data.get(
@@ -278,6 +328,14 @@ func apply_pending_to_meta(
 			true
 		)
 
+	if (
+		not inherited_skill.is_empty()
+		and PetSkillCatalog.is_valid(
+			StringName(inherited_skill)
+		)
+	):
+		meta["legacy_inherited_skill_id"] = inherited_skill
+
 	meta["legacy_inheritance_id"] = inheritance_id
 	meta["legacy_source_pet_id"] = String(
 		data.get(
@@ -306,6 +364,8 @@ func apply_pending_to_meta(
 		"item": inherited_item.duplicate(
 			true
 		),
+		"has_skill": not inherited_skill.is_empty(),
+		"skill_id": inherited_skill,
 	}
 
 
@@ -366,14 +426,20 @@ func load_data() -> Dictionary:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return {}
 
-	var data := parsed as Dictionary
-
-	if int(
+	var data := (
+		parsed as Dictionary
+	).duplicate(true)
+	var schema := int(
 		data.get(
 			"schema",
 			0
 		)
-	) != CURRENT_SCHEMA:
+	)
+
+	if schema == 1:
+		data["schema"] = CURRENT_SCHEMA
+		data["skill_id"] = ""
+	elif schema != CURRENT_SCHEMA:
 		return {}
 
 	return data
