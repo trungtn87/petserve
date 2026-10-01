@@ -26,14 +26,25 @@ func _force_hit(game: ObstacleRunGame) -> void:
 
 func _safe_target(game: ObstacleRunGame) -> float:
 	var player_center := game.player_rect().get_center().x
-	var danger: Array[Rect2] = []
+	var falling: Array[Rect2] = []
+	var front_y := -999.0
 	for obstacle in game.obstacles():
 		var rect := game.obstacle_rect(obstacle)
-		if rect.position.y >= 235.0 and rect.position.y <= 410.0:
-			danger.append(rect)
+		if rect.position.y < 170.0:
+			continue
+		falling.append(rect)
+		front_y = maxf(front_y, rect.position.y)
+
+	if falling.is_empty():
+		return player_center
+
+	var imminent: Array[Rect2] = []
+	for rect in falling:
+		if rect.position.y >= front_y - 58.0:
+			imminent.append(rect)
 
 	var current_safe := true
-	for rect in danger:
+	for rect in imminent:
 		if absf(rect.get_center().x - player_center) < 34.0:
 			current_safe = false
 			break
@@ -45,7 +56,7 @@ func _safe_target(game: ObstacleRunGame) -> float:
 	for candidate_value in ObstacleRunGame.LANE_CENTERS:
 		var candidate := float(candidate_value)
 		var blocked := false
-		for rect in danger:
+		for rect in imminent:
 			if absf(rect.get_center().x - candidate) < 34.0:
 				blocked = true
 				break
