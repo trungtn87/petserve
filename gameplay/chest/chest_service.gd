@@ -177,7 +177,7 @@ func ensure_evolution_chest(
 	if (
 		from_stage < 1
 		or to_stage != from_stage + 1
-		or to_stage > StageLifecycle.FINAL_STAGE
+		or to_stage >= StageLifecycle.FINAL_STAGE
 	):
 		return false
 
