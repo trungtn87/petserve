@@ -891,38 +891,26 @@ func _add_mythic_name_row(
 	):
 		return
 
-	var destiny_value: Variant = _data.get(
-		"mythic_destiny",
-		{}
-	)
 	var name := ""
+	var catalog := SpeciesMythicMutationCatalog.new()
+	var definitions := catalog.load_default()
 
-	if typeof(destiny_value) == TYPE_DICTIONARY:
-		name = (
-			SpeciesMythicDestinyService.new()
-			.display_name_for(
-				destiny_value as Dictionary,
-				identity
-			)
+	# Mythic Destiny is intentionally hidden until the branch actually
+	# awakens in the Genome. Stage-1 hints stay visual only so players
+	# can notice something unusual without the UI revealing the answer.
+	for mutation_id in genome.mutation_ids():
+		var definition := catalog.find_by_id(
+			definitions,
+			mutation_id
 		)
 
-	if name.is_empty():
-		var catalog := SpeciesMythicMutationCatalog.new()
-		var definitions := catalog.load_default()
-
-		for mutation_id in genome.mutation_ids():
-			var definition := catalog.find_by_id(
-				definitions,
-				mutation_id
-			)
-
-			if (
-				definition != null
-				and definition.species()
-					== identity.species()
-			):
-				name = definition.display_name()
-				break
+		if (
+			definition != null
+			and definition.species()
+				== identity.species()
+		):
+			name = definition.display_name()
+			break
 
 	if name.is_empty():
 		return
