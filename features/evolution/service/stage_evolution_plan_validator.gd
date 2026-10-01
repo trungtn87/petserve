@@ -286,15 +286,25 @@ func validate(
 	):
 		return "Không rebuild được Normal Mutation resolution."
 
-	if (
-		_normal_resolution_signature(
-			stored_normal
+	var stored_normal_signature := _normal_resolution_signature(
+		stored_normal
+	)
+	var expected_normal_signature := _normal_resolution_signature(
+		expected_normal
+	)
+
+	if stored_normal_signature != expected_normal_signature:
+		return (
+			"Pending Normal Mutation resolution đã drift. stored=%s expected=%s"
+			% [
+				JSON.stringify(
+					stored_normal_signature
+				),
+				JSON.stringify(
+					expected_normal_signature
+				),
+			]
 		)
-		!= _normal_resolution_signature(
-			expected_normal
-		)
-	):
-		return "Pending Normal Mutation resolution đã drift."
 
 	var normal_genome := expected_normal.get(
 		"genome"
