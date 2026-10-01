@@ -12,12 +12,12 @@ func _ready() -> void:
 	_cleanup()
 
 	if _failures == 0:
-		print("Legacy Item Inheritance: PASS")
+		print("Legacy Full Inventory Inheritance: PASS")
 		get_tree().quit(0)
 		return
 
 	push_error(
-		"Legacy Item Inheritance: FAIL (%d)"
+		"Legacy Full Inventory Inheritance: FAIL (%d)"
 		% _failures
 	)
 	get_tree().quit(1)
@@ -30,11 +30,21 @@ func _test_service_idempotency() -> void:
 		&"cat",
 		2
 	)
-	var item := ItemGenerator.new().generate_for_stage(
+	var generator := ItemGenerator.new()
+	var food := generator.generate_for_stage(
 		ItemGenerator.TYPE_FOOD,
 		7002,
 		4
 	)
+	var growth := generator.generate_for_stage(
+		ItemGenerator.TYPE_GROWTH,
+		7003,
+		4
+	)
+	var items: Array = [
+		food,
+		growth,
+	]
 	var legacy := LegacyInheritanceService.new()
 
 	_expect(
@@ -42,16 +52,21 @@ func _test_service_idempotency() -> void:
 		"source identity fixture must exist"
 	)
 	_expect(
-		not item.is_empty(),
-		"legacy item fixture must exist"
+		not food.is_empty()
+		and not growth.is_empty(),
+		"legacy inventory fixtures must exist"
 	)
 
-	if source == null or item.is_empty():
+	if (
+		source == null
+		or food.is_empty()
+		or growth.is_empty()
+	):
 		return
 
 	var prepared := legacy.prepare(
 		source,
-		item
+		items
 	)
 	_expect(
 		bool(
@@ -65,8 +80,14 @@ func _test_service_idempotency() -> void:
 				"target_generation",
 				0
 			)
-		) == 3,
-		"prepare must advance generation by one"
+		) == 3
+		and int(
+			prepared.get(
+				"item_count",
+				0
+			)
+		) == 2,
+		"prepare must carry the full inventory and advance generation by one"
 	)
 
 	var binding := legacy.bind_to_run(
@@ -90,8 +111,14 @@ func _test_service_idempotency() -> void:
 				"generation",
 				0
 			)
-		) == 3,
-		"pending legacy must bind to exactly one next-life run"
+		) == 3
+		and int(
+			binding.get(
+				"item_count",
+				0
+			)
+		) == 2,
+		"pending legacy must bind the complete inventory to exactly one next-life run"
 	)
 
 	var meta := {
@@ -106,6 +133,12 @@ func _test_service_idempotency() -> void:
 		7100
 	)
 
+	var stored := (
+		meta.get(
+			"inventory",
+			[]
+		) as Array
+	)
 	_expect(
 		bool(
 			first.get(
@@ -113,13 +146,8 @@ func _test_service_idempotency() -> void:
 				false
 			)
 		)
-		and (
-			meta.get(
-				"inventory",
-				[]
-			) as Array
-		).size() == 1,
-		"first legacy claim must add exactly one inherited item"
+		and stored.size() == 2,
+		"first legacy claim must add every inherited item"
 	)
 	_expect(
 		bool(
@@ -134,41 +162,53 @@ func _test_service_idempotency() -> void:
 				false
 			)
 		)
-		and (
-			meta.get(
-				"inventory",
-				[]
-			) as Array
-		).size() == 1,
-		"reloading the same legacy claim must not duplicate the item"
+		and stored.size() == 2,
+		"reloading the same legacy claim must not duplicate inherited inventory"
 	)
 
-	var inherited := (
-		meta.get(
-			"inventory",
-			[]
-		) as Array
-	)[0] as Dictionary
-
-	_expect(
-		bool(
-			inherited.get(
-				"legacy_inherited",
-				false
-			)
-		)
-		and String(
-			inherited.get(
-				"uid",
-				""
-			)
-		) == String(
-			item.get(
+	var expected_uids := [
+		String(
+			food.get(
 				"uid",
 				""
 			)
 		),
-		"inherited item must preserve item identity and carry legacy metadata"
+		String(
+			growth.get(
+				"uid",
+				""
+			)
+		),
+	]
+	var inherited_uids: Array[String] = []
+
+	for raw in stored:
+		if typeof(raw) != TYPE_DICTIONARY:
+			continue
+		var inherited := raw as Dictionary
+		_expect(
+			bool(
+				inherited.get(
+					"legacy_inherited",
+					false
+				)
+			),
+			"every inherited item must carry legacy metadata"
+		)
+		inherited_uids.append(
+			String(
+				inherited.get(
+					"uid",
+					""
+				)
+			)
+		)
+
+	inherited_uids.sort()
+	expected_uids.sort()
+	_expect(
+		inherited_uids == expected_uids,
+		"full-inventory inheritance must preserve every item identity"
 	)
 
 	var inheritance_id := String(
@@ -202,29 +242,44 @@ func _test_generation_bootstrap_and_inventory_claim() -> void:
 		&"cat",
 		0
 	)
-	var item := ItemGenerator.new().generate_gene(
+	var generator := ItemGenerator.new()
+	var gene := generator.generate_gene(
 		GeneCatalog.new().find_by_id(
 			GeneCatalog.new().load_default(),
 			&"tail_long"
 		),
 		7202
 	)
+	var food := generator.generate_for_stage(
+		ItemGenerator.TYPE_FOOD,
+		7203,
+		4
+	)
+	var items: Array = [
+		gene,
+		food,
+	]
 	var legacy := LegacyInheritanceService.new()
 
 	_expect(
 		source != null
-		and not item.is_empty(),
+		and not gene.is_empty()
+		and not food.is_empty(),
 		"bootstrap legacy fixtures must exist"
 	)
 
-	if source == null or item.is_empty():
+	if (
+		source == null
+		or gene.is_empty()
+		or food.is_empty()
+	):
 		return
 
 	_expect(
 		bool(
 			legacy.prepare(
 				source,
-				item,
+				items,
 				&"slow_digestion"
 			).get(
 				"ok",
@@ -287,7 +342,8 @@ func _test_generation_bootstrap_and_inventory_claim() -> void:
 		"next PetHome must initialize"
 	)
 
-	var inherited_item: Dictionary = {}
+	var inherited_items: Array = []
+
 	for stored in game.inventory():
 		if bool(
 			stored.get(
@@ -295,43 +351,53 @@ func _test_generation_bootstrap_and_inventory_claim() -> void:
 				false
 			)
 		):
-			inherited_item = stored
-			break
+			inherited_items.append(
+				stored
+			)
 
 	_expect(
-		not inherited_item.is_empty(),
-		"next PetHome inventory must receive the inherited item"
+		inherited_items.size() == 2,
+		"next PetHome inventory must receive every inherited item"
 	)
+
+	var inherited_uids: Array[String] = []
+	for inherited in inherited_items:
+		inherited_uids.append(
+			String(
+				inherited.get(
+					"uid",
+					""
+				)
+			)
+		)
+
+	var expected_uids: Array[String] = [
+		String(gene.get("uid", "")),
+		String(food.get("uid", "")),
+	]
+	inherited_uids.sort()
+	expected_uids.sort()
+
 	_expect(
-		String(
-			inherited_item.get(
-				"uid",
-				""
-			)
-		) == String(
-			item.get(
-				"uid",
-				""
-			)
-		),
-		"next PetHome must receive the exact selected item"
+		inherited_uids == expected_uids,
+		"next PetHome must receive the exact previous-life inventory"
 	)
 
 	var snapshot := game.snapshot()
-	var snapshot_item: Variant = snapshot.get(
-		"legacy_inherited_item",
-		{}
+	var snapshot_items: Variant = snapshot.get(
+		"legacy_inherited_items",
+		[]
 	)
 	var inherited_skills: Variant = snapshot.get(
 		"skills",
 		[]
 	)
 	_expect(
-		typeof(snapshot_item) == TYPE_DICTIONARY
-		and not (
-			snapshot_item as Dictionary
-		).is_empty(),
-		"PetHome snapshot must expose inherited item feedback"
+		typeof(snapshot_items) == TYPE_ARRAY
+		and (
+			snapshot_items as Array
+		).size() == 2,
+		"PetHome snapshot must expose the complete inherited inventory feedback"
 	)
 	_expect(
 		typeof(inherited_skills) == TYPE_ARRAY
