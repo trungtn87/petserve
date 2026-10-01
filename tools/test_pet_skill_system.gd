@@ -217,13 +217,13 @@ func _test_growth_and_hunger_effects() -> void:
 	hearty_skills.setup(
 		hearty_meta,
 		8402,
-		2
+		1
 	)
 	var hearty := StageLifecycle.new()
 	hearty.setup(
 		hearty_meta,
 		8402,
-		1,
+		2,
 		hearty_skills
 	)
 	var hearty_before := hearty.snapshot()
@@ -251,13 +251,13 @@ func _test_growth_and_hunger_effects() -> void:
 	long_skills.setup(
 		long_meta,
 		8403,
-		2
+		1
 	)
 	var long_life := StageLifecycle.new()
 	long_life.setup(
 		long_meta,
 		8403,
-		1,
+		2,
 		long_skills
 	)
 	var direct_growth := {
@@ -289,13 +289,13 @@ func _test_growth_and_hunger_effects() -> void:
 	stomach_skills.setup(
 		stomach_meta,
 		8404,
-		2
+		1
 	)
 	var stomach := StageLifecycle.new()
 	stomach.setup(
 		stomach_meta,
 		8404,
-		1,
+		2,
 		stomach_skills
 	)
 	var stomach_start := stomach.snapshot()
