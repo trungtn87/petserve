@@ -5,6 +5,9 @@ extends RefCounted
 const NEXT_PHASE_SCENE: PackedScene = preload(
 	"res://scenes/evolution_transition.tscn"
 )
+const PETHOME_SCENE: PackedScene = preload(
+	"res://scenes/pet/pet_home.tscn"
+)
 
 
 var _root: Control
@@ -24,6 +27,22 @@ func start(
 		return true
 
 	_root = root
+
+	var visual_state := _current_pet_visual_state()
+
+	if visual_state == &"current":
+		_started = true
+		call_deferred(
+			"_resume_pet_home"
+		)
+		return true
+
+	if visual_state == &"stale":
+		_started = true
+		call_deferred(
+			"_resume_render_transition"
+		)
+		return true
 
 
 	# =====================================================
@@ -116,6 +135,95 @@ func get_egg() -> EggFacade:
 
 func get_hatch() -> HatchFacade:
 	return _hatch
+
+
+func _current_pet_visual_state() -> StringName:
+	var data := EvolutionSaveService.new().load_data()
+
+	if data.is_empty():
+		return &"none"
+
+	var visual_value: Variant = data.get(
+		"current_visual",
+		{}
+	)
+
+	if typeof(visual_value) != TYPE_DICTIONARY:
+		return &"none"
+
+	var visual := PetVisualRecord.from_dict(
+		visual_value as Dictionary
+	)
+
+	if (
+		visual == null
+		or not FileAccess.file_exists(
+			visual.image_path
+		)
+	):
+		return &"none"
+
+	if (
+		visual.source_mode in [
+			&"initial_pethome_v5_text_to_image",
+			&"initial_pethome_v6_text_to_image",
+			&"initial_pethome_v7_text_to_image",
+			&"initial_pethome_v8_text_to_image",
+			&"initial_pethome_v9_text_to_image",
+			&"evolution_pethome_v5_image_edit",
+			&"evolution_pethome_v7_full_regenerate",
+			&"evolution_pethome_v7_image_edit",
+			&"evolution_pethome_v8_full_regenerate",
+			&"evolution_pethome_v8_image_edit",
+			&"evolution_pethome_v9_full_regenerate",
+			&"evolution_pethome_v9_image_edit",
+			&"evolution_pethome_v10_full_regenerate",
+			&"evolution_pethome_v10_image_edit",
+			&"evolution_pethome_v11_full_regenerate",
+			&"evolution_pethome_v11_image_edit",
+		]
+	):
+		return &"current"
+
+	return &"stale"
+
+
+func _resume_pet_home() -> void:
+	if _root == null:
+		return
+
+	var tree := _root.get_tree()
+
+	if tree == null:
+		return
+
+	var error := tree.change_scene_to_packed(
+		PETHOME_SCENE
+	)
+
+	if error != OK:
+		push_error(
+			"GameApp: Không chuyển được sang PetHome."
+		)
+
+
+func _resume_render_transition() -> void:
+	if _root == null:
+		return
+
+	var tree := _root.get_tree()
+
+	if tree == null:
+		return
+
+	var error := tree.change_scene_to_packed(
+		NEXT_PHASE_SCENE
+	)
+
+	if error != OK:
+		push_error(
+			"GameApp: Không chuyển được sang render transition."
+		)
 
 
 func _enter_next_phase() -> void:

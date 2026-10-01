@@ -2,6 +2,11 @@ class_name EvolutionInitialScreen
 extends Control
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+
+
 @onready var _pet_name_label: Label = %PetNameLabel
 @onready var _identity_label: Label = %IdentityLabel
 @onready var _status_label: Label = %StatusLabel
@@ -12,7 +17,7 @@ extends Control
 
 var _identity: PetIdentity
 var _genome: PetGenome
-var _scene_profile: PetSceneProfile
+var _scene_profile
 var _pet_name: String = ""
 
 var _coordinator: InitialPetRenderCoordinator
@@ -48,7 +53,7 @@ func _bootstrap() -> void:
 	_genome = data.get("genome") as PetGenome
 	_scene_profile = data.get(
 		"scene_profile"
-	) as PetSceneProfile
+	)
 	_pet_name = str(
 		data.get("pet_name", "")
 	)
@@ -58,7 +63,9 @@ func _bootstrap() -> void:
 		"%s • %s • INFANT"
 		% [
 			String(_identity.species()).to_upper(),
-			String(_identity.element()).to_upper(),
+			PetElementCatalog.display_name_upper(
+			_identity.element()
+		),
 		]
 	)
 
@@ -146,7 +153,9 @@ func _start_generate(
 	_generate_button.disabled = true
 	_status_label.text = (
 		"Đang tạo PetHome %s từ một prompt..."
-		% String(_identity.element()).to_upper()
+		% PetElementCatalog.display_name_upper(
+			_identity.element()
+		)
 	)
 
 	var result: PetRenderResult = await (
@@ -176,7 +185,7 @@ func _start_generate(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_pethome_text_to_image"
+	visual.source_mode = &"initial_pethome_v8_text_to_image"
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -230,7 +239,7 @@ func _try_load_existing_visual() -> bool:
 	if typeof(scene_value) != TYPE_DICTIONARY:
 		return false
 
-	var saved_scene := PetSceneProfile.from_dict(
+	var saved_scene = PetSceneProfileScript.from_dict(
 		scene_value as Dictionary
 	)
 
@@ -258,7 +267,7 @@ func _try_load_existing_visual() -> bool:
 	if (
 		visual == null
 		or visual.source_mode
-			!= &"initial_pethome_text_to_image"
+			!= &"initial_pethome_v8_text_to_image"
 	):
 		return false
 

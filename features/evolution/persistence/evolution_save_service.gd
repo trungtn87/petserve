@@ -2,6 +2,14 @@ class_name EvolutionSaveService
 extends RefCounted
 
 
+const PetSceneProfileScript = preload(
+	"res://features/evolution/domain/pet_scene_profile.gd"
+)
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
+
+
 const SAVE_PATH: String = (
 	"user://evolution_pet_v1.json"
 )
@@ -14,13 +22,24 @@ func save_initial(
 	genome: PetGenome,
 	visual: PetVisualRecord,
 	pet_name: String,
-	scene_profile: PetSceneProfile = null
+	scene_profile = null,
+	mythic_destiny: Dictionary = {}
 ) -> bool:
 	if scene_profile == null and identity != null:
 		scene_profile = (
-			PetSceneProfileFactory.new()
+			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
+
+	if (
+		not mythic_destiny.is_empty()
+		and not SpeciesMythicDestinyService.new()
+			.validate_for_identity(
+				mythic_destiny,
+				identity
+			)
+	):
+		return false
 
 	if (
 		identity == null
@@ -44,20 +63,18 @@ func save_initial(
 		"current_visual": visual.to_dict(),
 	}
 
-	var file := FileAccess.open(
-		SAVE_PATH,
-		FileAccess.WRITE
-	)
+	if not mythic_destiny.is_empty():
+		data["mythic_destiny"] = (
+			mythic_destiny.duplicate(
+				true
+			)
+		)
 
-	if file == null:
-		return false
+	return save_data(data)
 
-	file.store_string(
-		JSON.stringify(data)
-	)
-	file.close()
 
-	return true
+func save_data(data: Dictionary) -> bool:
+	return AtomicJson.write(SAVE_PATH, data)
 
 
 func load_data() -> Dictionary:
@@ -83,7 +100,7 @@ func load_data() -> Dictionary:
 	return parsed as Dictionary
 
 
-func load_scene_profile() -> PetSceneProfile:
+func load_scene_profile():
 	var data := load_data()
 
 	if data.is_empty():
@@ -97,6 +114,6 @@ func load_scene_profile() -> PetSceneProfile:
 	if typeof(value) != TYPE_DICTIONARY:
 		return null
 
-	return PetSceneProfile.from_dict(
+	return PetSceneProfileScript.from_dict(
 		value as Dictionary
 	)

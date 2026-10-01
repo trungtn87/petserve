@@ -5,6 +5,9 @@ extends Node
 const ProxyPetRendererScript = preload(
 	"res://features/evolution/render/proxy_pet_renderer.gd"
 )
+const PetSceneProfileFactoryScript = preload(
+	"res://features/evolution/domain/pet_scene_profile_factory.gd"
+)
 
 
 var _render_service: PetRenderService
@@ -18,7 +21,8 @@ func _ready() -> void:
 func build_request(
 	identity: PetIdentity,
 	genome: PetGenome,
-	scene_profile: PetSceneProfile = null
+	scene_profile = null,
+	mythic_destiny: Dictionary = {}
 ) -> Dictionary:
 	var style := MythicStyleProfile.load_default()
 
@@ -30,7 +34,7 @@ func build_request(
 
 	if scene_profile == null:
 		scene_profile = (
-			PetSceneProfileFactory.new()
+			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
 
@@ -68,21 +72,54 @@ func build_request(
 		}
 
 	var prompt_builder := InitialPetPromptBuilder.new()
+	var positive_prompt := (
+		prompt_builder.build_positive(
+			spec
+		)
+	)
+
+	if not mythic_destiny.is_empty():
+		var destiny_service := SpeciesMythicDestinyService.new()
+		var definition := destiny_service.definition_for(
+			mythic_destiny,
+			identity
+		)
+
+		if definition == null:
+			return {
+				"ok": false,
+				"error": "Mythic Destiny ban đầu không hợp lệ.",
+			}
+
+		var mutation_hint := _stage_one_fantasy_hint(
+			definition.id()
+		)
+
+		if not mutation_hint.is_empty():
+			positive_prompt += (
+				" Fantasy mutation: "
+				+ mutation_hint
+			)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
 		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
 	)
 	request.pet_id = identity.pet_id()
-	request.positive_prompt = (
-		prompt_builder.build_positive(spec)
-	)
+	request.positive_prompt = positive_prompt
 	request.negative_prompt = (
 		prompt_builder.build_negative(spec)
 	)
+	request.seed = max(
+		1,
+		posmod(
+			identity.lineage_seed(),
+			2147483647
+		)
+	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant"
+		+ "_pethome_infant_v11_lineage"
 	)
 
 	if not request.is_valid():
@@ -99,7 +136,7 @@ func build_request(
 	}
 
 
-func render_initial(
+func render(
 	request: PetRenderRequest
 ) -> PetRenderResult:
 	var config := PetRenderConfig.load_default()
@@ -123,6 +160,15 @@ func render_initial(
 	)
 
 
+# Compatibility alias for the M5/M6 call site.
+func render_initial(
+	request: PetRenderRequest
+) -> PetRenderResult:
+	return await render(
+		request
+	)
+
+
 func has_render_endpoint() -> bool:
 	var config := PetRenderConfig.load_default()
 
@@ -130,3 +176,16 @@ func has_render_endpoint() -> bool:
 		config != null
 		and config.is_configured()
 	)
+
+
+
+func _stage_one_fantasy_hint(
+	mutation_id: StringName
+) -> String:
+	match mutation_id:
+		&"cat_horned_spirit":
+			return "tiny subtle spirit horn buds on the forehead."
+		&"cat_winged_spirit":
+			return "one small symmetrical pair of soft wing buds on the upper back."
+		_:
+			return ""
