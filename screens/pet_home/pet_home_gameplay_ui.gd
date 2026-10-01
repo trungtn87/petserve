@@ -343,7 +343,7 @@ func _build_notice_bar() -> void:
 	_notice_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_notice_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_notice_label.add_theme_font_size_override("font_size", 12)
-	_notice_label.text = "Pet đang phát triển bình thường."
+	_notice_label.text = "Thú cưng đang phát triển bình thường."
 	margin.add_child(_notice_label)
 
 
@@ -387,7 +387,7 @@ func _refresh_notice(s: Dictionary) -> void:
 		return
 
 	if final_form:
-		_notice_label.text = "Pet đã đạt hình thái cuối."
+		_notice_label.text = "Thú cưng đã đạt hình thái cuối."
 		return
 
 	var food_percent := int(
@@ -420,7 +420,7 @@ func _refresh_notice(s: Dictionary) -> void:
 			]
 		)
 	else:
-		_notice_label.text = "Pet đang phát triển bình thường."
+		_notice_label.text = "Thú cưng đang phát triển bình thường."
 
 
 func _build_overlay() -> void:
@@ -481,7 +481,7 @@ func _build_overlay() -> void:
 	_add_filter("Tất cả", &"")
 	_add_filter("Ăn", ItemGenerator.TYPE_FOOD)
 	_add_filter("Lớn", ItemGenerator.TYPE_GROWTH)
-	_add_filter("Gene", ItemGenerator.TYPE_GENE)
+	_add_filter("Gen", ItemGenerator.TYPE_GENE)
 	_add_filter("Khác", ItemGenerator.TYPE_FUTURE_FRAGMENT)
 
 	var scroll := ScrollContainer.new()
@@ -1254,14 +1254,14 @@ func _gene_context_text(
 				)
 			)
 		),
-		"Stage dùng được: %s" % (
+		"Giai đoạn dùng được: %s" % (
 			" • ".join(
 				stage_labels
 			)
 			if not stage_labels.is_empty()
 			else "Không có"
 		),
-		"Điểm hiện tại: %d • Item +%d → %d"
+		"Điểm hiện tại: %d • Vật phẩm +%d → %d"
 		% [
 			int(round(current_score)),
 			int(round(item_score)),
@@ -1292,11 +1292,13 @@ func _gene_context_text(
 		lines.append(
 			"Hệ yêu cầu: %s • %s"
 			% [
-				element_lock.capitalize(),
+				ViDisplay.element_label(
+					StringName(element_lock)
+				),
 				(
-					"phù hợp pet hiện tại"
+					"phù hợp thú cưng hiện tại"
 					if element_compatible
-					else "giữ lại cho pet/kế thừa phù hợp"
+					else "giữ lại cho thú cưng hoặc kế thừa phù hợp"
 				),
 			]
 		)
@@ -1308,11 +1310,11 @@ func _gene_context_text(
 		)
 	):
 		lines.append(
-			"Plan tiến hóa đã khóa: item được giữ lại."
+			"Kế hoạch tiến hóa đã khóa: vật phẩm được giữ lại."
 		)
 
 	lines.append(
-		"Điểm Gene cộng dồn qua các Stage; prompt tiến hóa đọc cấp biểu hiện từ tổng điểm."
+		"Điểm gen cộng dồn qua các giai đoạn; cơ chế tiến hóa đọc cấp biểu hiện từ tổng điểm."
 	)
 
 	return "\n".join(
@@ -1323,49 +1325,17 @@ func _gene_context_text(
 func _gene_locus_label(
 	locus: StringName
 ) -> String:
-	match locus:
-		&"body":
-			return "Cơ thể"
-		&"eyes":
-			return "Mắt"
-		&"ears":
-			return "Tai"
-		&"whiskers":
-			return "Râu"
-		&"fur":
-			return "Lông"
-		&"coat":
-			return "Vân lông"
-		&"tail":
-			return "Đuôi"
-		&"paws":
-			return "Bàn chân"
-		&"mane":
-			return "Bờm"
-		&"mark":
-			return "Dấu"
-		&"structure":
-			return "Cấu trúc"
-		&"aura":
-			return "Hào quang"
-		_:
-			return String(
-				locus
-			).replace(
-				"_",
-				" "
-			).capitalize()
+	return ViDisplay.locus_label(
+		locus
+	)
 
 
 func _gene_value_label(
 	value: StringName
 ) -> String:
-	return String(
+	return ViDisplay.trait_value(
 		value
-	).replace(
-		"_",
-		" "
-	).capitalize()
+	)
 
 
 func _mods(item: Dictionary) -> String:
