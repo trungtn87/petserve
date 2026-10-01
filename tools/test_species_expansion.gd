@@ -41,6 +41,7 @@ func _initialize() -> void:
 	_test_species_mutations()
 	_test_mutation_visual_contracts()
 	_test_anatomy_loci()
+	_test_normal_mutation_resolver()
 	_test_mythic_branches()
 
 	if _failures == 0:
@@ -126,6 +127,125 @@ func _test_anatomy_loci() -> void:
 		_expect(
 			PetGenomeSchema.is_visual_locus(locus),
 			"missing anatomy locus: %s" % String(locus)
+		)
+
+
+func _test_normal_mutation_resolver() -> void:
+	var catalog := MutationCatalog.new()
+	var all_definitions := catalog.load_default()
+	var resolver := SpeciesNormalMutationResolver.new()
+
+	for species_key in EXPECTED_SPECIES_MUTATIONS.keys():
+		var species := StringName(
+			String(species_key)
+		)
+		var definitions: Array[MutationDefinition] = []
+
+		for mutation_id in EXPECTED_SPECIES_MUTATIONS[species_key]:
+			var definition := catalog.find_by_id(
+				all_definitions,
+				StringName(mutation_id)
+			)
+			if definition != null:
+				definitions.append(
+					definition
+				)
+
+		_expect(
+			not definitions.is_empty(),
+			"species mutation resolver needs definitions: %s" % species_key
+		)
+
+		var found := false
+		for seed_value in range(1, 160):
+			var identity := PetIdentityFactory.new().create(
+				seed_value,
+				&"dark",
+				species,
+				0
+			)
+			var genome := PetGenome.new(
+				3,
+				0.0,
+				PetGenomeSchema.base_traits(),
+				[]
+			)
+			var first := resolver.resolve(
+				identity,
+				genome,
+				4,
+				definitions
+			)
+			var second := resolver.resolve(
+				identity,
+				genome,
+				4,
+				definitions
+			)
+
+			_expect(
+				String(
+					first.get(
+						"mode",
+						""
+					)
+				) == String(
+					second.get(
+						"mode",
+						""
+					)
+				)
+				and String(
+					first.get(
+						"mutation_id",
+						""
+					)
+				) == String(
+					second.get(
+						"mutation_id",
+						""
+					)
+				),
+				"normal mutation roll must be deterministic: %s seed %d"
+				% [species_key, seed_value]
+			)
+
+			if StringName(
+				first.get(
+					"mode",
+					"none"
+				)
+			) != SpeciesNormalMutationResolver.MODE_MUTATE:
+				continue
+
+			var selected_id := String(
+				first.get(
+					"mutation_id",
+					""
+				)
+			)
+			_expect(
+				(EXPECTED_SPECIES_MUTATIONS[species_key] as Array).has(
+					selected_id
+				),
+				"normal mutation must stay inside species pool: %s -> %s"
+				% [species_key, selected_id]
+			)
+			var changed := first.get(
+				"genome"
+			) as PetGenome
+			_expect(
+				changed != null
+				and changed.mutation_ids().size() == 1,
+				"normal resolver applies at most one mutation per stage"
+			)
+			found = true
+			break
+
+		_expect(
+			found,
+			"sampled seeds must contain at least one normal mutation for %s"
+			% species_key
 		)
 
 
