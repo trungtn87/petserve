@@ -681,10 +681,6 @@ func _open_pet_info() -> void:
 	var genome = _data.get(
 		"_genome_object"
 	)
-	var scene = _data.get(
-		"_scene_object"
-	)
-
 	_prepare_section(
 		"Thông tin pet"
 	)
