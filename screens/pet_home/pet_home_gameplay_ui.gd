@@ -19,6 +19,7 @@ signal evolution_requested
 var _facade: InfantGameFacade
 var _pet_name_label: Label
 var _growth_bar: ProgressBar
+var _fullness_bar: ProgressBar
 var _growth_label: Label
 var _food_label: Label
 var _state_label: Label
@@ -31,6 +32,8 @@ var _title: Label
 var _list: GridContainer
 var _filters: HBoxContainer
 var _toast: Label
+var _notice_bar: PanelContainer
+var _notice_label: Label
 var _detail_overlay: Control
 var _detail_panel: PanelContainer
 var _detail_icon_host: CenterContainer
@@ -185,6 +188,7 @@ func refresh_status(s: Dictionary) -> void:
 	_chest_button.text = "RƯƠNG • %d" % pending if pending > 0 else "RƯƠNG"
 	_chest_button.disabled = pending <= 0
 	_inventory_button.text = "ITEM • %d" % int(s.get("inventory_count", 0))
+	_refresh_notice(s)
 
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
@@ -254,6 +258,12 @@ func _build_hud() -> void:
 	_growth_label.add_theme_font_size_override("font_size", 12)
 	box.add_child(_growth_label)
 
+	_fullness_bar = ProgressBar.new()
+	_fullness_bar.max_value = 100
+	_fullness_bar.show_percentage = false
+	_fullness_bar.custom_minimum_size = Vector2(0, 9)
+	box.add_child(_fullness_bar)
+
 	var row := HBoxContainer.new()
 	box.add_child(row)
 	_food_label = Label.new()
@@ -269,11 +279,13 @@ func _build_hud() -> void:
 	_evolve_button.anchor_right = 0.82
 	_evolve_button.anchor_top = 1.0
 	_evolve_button.anchor_bottom = 1.0
-	_evolve_button.offset_top = -126
-	_evolve_button.offset_bottom = -78
+	_evolve_button.offset_top = -170
+	_evolve_button.offset_bottom = -122
 	_evolve_button.visible = false
 	_evolve_button.pressed.connect(func(): evolution_requested.emit())
 	add_child(_evolve_button)
+
+	_build_notice_bar()
 
 	var actions := HBoxContainer.new()
 	actions.anchor_left = 0.5
@@ -298,6 +310,109 @@ func _build_hud() -> void:
 	_entertainment_button = _action_button("CHƠI")
 	_entertainment_button.pressed.connect(_emit_entertainment)
 	actions.add_child(_entertainment_button)
+
+func _build_notice_bar() -> void:
+	_notice_bar = PanelContainer.new()
+	_notice_bar.anchor_left = 0.04
+	_notice_bar.anchor_top = 1.0
+	_notice_bar.anchor_right = 0.96
+	_notice_bar.anchor_bottom = 1.0
+	_notice_bar.offset_top = -116
+	_notice_bar.offset_bottom = -76
+	_notice_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notice_bar.add_theme_stylebox_override(
+		"panel",
+		_style(
+			Color(0.06, 0.04, 0.12, 0.94),
+			Color(0.52, 0.38, 0.78, 0.92)
+		)
+	)
+	add_child(_notice_bar)
+
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	_notice_bar.add_child(margin)
+
+	_notice_label = Label.new()
+	_notice_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notice_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_notice_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_notice_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_notice_label.add_theme_font_size_override("font_size", 12)
+	_notice_label.text = "Pet đang phát triển bình thường."
+	margin.add_child(_notice_label)
+
+
+func _refresh_notice(s: Dictionary) -> void:
+	if _notice_label == null:
+		return
+
+	var crystallization_value: Variant = s.get(
+		"crystallization_notice",
+		{}
+	)
+	if (
+		typeof(crystallization_value) == TYPE_DICTIONARY
+		and not (crystallization_value as Dictionary).is_empty()
+	):
+		var crystallization_notice := crystallization_value as Dictionary
+		var crystallization_message := String(
+			crystallization_notice.get(
+				"message",
+				""
+			)
+		)
+		if not crystallization_message.is_empty():
+			_notice_label.text = crystallization_message
+			return
+
+	var ready := bool(
+		s.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	var final_form := bool(
+		s.get(
+			"final_form",
+			false
+		)
+	)
+	if ready and not final_form:
+		_notice_label.text = "Đã đủ điều kiện tiến hóa."
+		return
+
+	if final_form:
+		_notice_label.text = "Pet đã đạt hình thái cuối."
+		return
+
+	var food_percent := int(
+		s.get(
+			"food_percent",
+			0
+		)
+	)
+	var growth_speed_percent := int(
+		s.get(
+			"growth_speed_percent",
+			0
+		)
+	)
+
+	if food_percent <= 0:
+		_notice_label.text = "Độ no đã hết • trưởng thành đang tạm dừng."
+	elif food_percent <= 50:
+		_notice_label.text = (
+			"Độ no thấp đang làm chậm trưởng thành • tốc độ hiện tại %d%%."
+			% growth_speed_percent
+		)
+	else:
+		_notice_label.text = "Pet đang phát triển bình thường."
+
 
 func _build_overlay() -> void:
 	_overlay = Control.new()
