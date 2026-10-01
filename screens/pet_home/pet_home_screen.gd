@@ -751,6 +751,9 @@ func _open_pet_info() -> void:
 			+ 1
 		)
 	)
+	_add_skill_rows(
+		gameplay_state
+	)
 	var inherited_value: Variant = gameplay_state.get(
 		"legacy_inherited_item",
 		{}
