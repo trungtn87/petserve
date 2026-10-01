@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 4
-const PENDING_SCHEMA: int = 7
+const PENDING_SCHEMA: int = 11
 
 
 var _save := EvolutionSaveService.new()
@@ -13,7 +13,9 @@ var _plan_validator := StageEvolutionPlanValidator.new()
 func prepare(
 	state: Dictionary
 ) -> Dictionary:
-	var data := _save.load_data()
+	var data := _migrate_illegal_birth_talent(
+		_save.load_data()
+	)
 	var identity := PetIdentity.from_dict(
 		data.get(
 			"identity",
@@ -224,47 +226,148 @@ func _prepare_resolved_stage(
 			""
 		)
 	)
-	var delta := resolution.get(
-		"delta"
-	) as EvolutionDelta
+	var deltas: Array[EvolutionDelta] = []
+	var deltas_value: Variant = resolution.get(
+		"deltas",
+		[]
+	)
+
+	if typeof(deltas_value) == TYPE_ARRAY:
+		for raw_delta in deltas_value as Array:
+			var typed_delta := raw_delta as EvolutionDelta
+
+			if typed_delta != null:
+				deltas.append(
+					typed_delta
+				)
+
+	var delta := (
+		deltas[0]
+		if not deltas.is_empty()
+		else resolution.get(
+			"delta"
+		) as EvolutionDelta
+	)
+
+	if (
+		mode == StageEvolutionResolver.MODE_GENE
+		and deltas.is_empty()
+		and delta != null
+	):
+		deltas.append(
+			delta
+		)
+
+	var accumulated_gene_ids := _accumulated_gene_ids(
+		data,
+		gene_state
+	)
+	var destiny_value: Variant = data.get(
+		"mythic_destiny",
+		{}
+	)
+	var mythic_destiny: Dictionary = (
+		(destiny_value as Dictionary).duplicate(
+			true
+		)
+		if typeof(destiny_value) == TYPE_DICTIONARY
+		else {}
+	)
+	var destiny_service := SpeciesMythicDestinyService.new()
+
+	if (
+		not mythic_destiny.is_empty()
+		and not destiny_service.validate_for_identity(
+			mythic_destiny,
+			identity
+		)
+	):
+		return _error(
+			"Mythic Destiny đã lưu không hợp lệ với pet hiện tại."
+		)
+
+	if mythic_destiny.is_empty():
+		mythic_destiny = destiny_service.from_gene_recipe(
+			identity,
+			accumulated_gene_ids
+		)
+
+	var mythic_resolution := SpeciesMythicMutationResolver.new().resolve(
+		identity,
+		resolved_genome,
+		gene_state,
+		target_stage,
+		[],
+		mythic_destiny,
+		accumulated_gene_ids
+	)
+
+	if not bool(
+		mythic_resolution.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			String(
+				mythic_resolution.get(
+					"error",
+					"Không resolve được Mythic Mutation."
+				)
+			)
+		)
+
+	var final_genome := mythic_resolution.get(
+		"genome"
+	) as PetGenome
+
+	if final_genome == null:
+		return _error(
+			"Mythic resolver không trả về PetGenome hợp lệ."
+		)
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and delta != null
+	):
+		return _error(
+			"Natural Growth không được có EvolutionDelta."
+		)
+
+	if (
+		mode == StageEvolutionResolver.MODE_GENE
+		and delta == null
+	):
+		return _error(
+			"Gene Expression thiếu EvolutionDelta."
+		)
+
+	if mode not in [
+		StageEvolutionResolver.MODE_NATURAL,
+		StageEvolutionResolver.MODE_GENE,
+	]:
+		return _error(
+			"Evolution Resolver trả về mode không hợp lệ."
+		)
+
 	var coordinator := EvolutionEditCoordinator.new()
-	var plan: Dictionary = {}
-
-	match mode:
-		StageEvolutionResolver.MODE_NATURAL:
-			if delta != null:
-				return _error(
-					"Natural Growth không được có EvolutionDelta."
-				)
-
-			plan = coordinator.build_natural_request(
-				identity,
-				genome,
-				source_visual,
-				target_stage,
-				scene_profile
-			)
-
-		StageEvolutionResolver.MODE_GENE:
-			if delta == null:
-				return _error(
-					"Gene Expression thiếu EvolutionDelta."
-				)
-
-			plan = coordinator.build_request(
-				identity,
-				genome,
-				resolved_genome,
-				delta,
-				source_visual,
-				target_stage,
-				scene_profile
-			)
-
-		_:
-			return _error(
-				"Evolution Resolver trả về mode không hợp lệ."
-			)
+	var plan: Dictionary = coordinator.build_stage_regenerate_request(
+		identity,
+		genome,
+		final_genome,
+		deltas,
+		source_visual,
+		target_stage,
+		scene_profile,
+		mythic_resolution
+	)
 
 	if not bool(
 		plan.get(
@@ -290,11 +393,23 @@ func _prepare_resolved_stage(
 			"Evolution render request bị rỗng."
 		)
 
+	var gene_score_prompt := GenePromptResolver.new().build(
+		gene_state,
+		identity.element(),
+		target_stage
+	)
+
+	if not gene_score_prompt.is_empty():
+		request.positive_prompt += (
+			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ gene_score_prompt
+		)
+
 	var next := PetGenome.new(
 		target_stage,
 		0.0,
-		resolved_genome.traits_snapshot(),
-		resolved_genome.mutation_ids()
+		final_genome.traits_snapshot(),
+		final_genome.mutation_ids()
 	)
 
 	if not next.is_valid():
@@ -315,11 +430,34 @@ func _prepare_resolved_stage(
 			if delta != null
 			else {}
 		),
+		"deltas": _serialize_deltas(
+			deltas
+		),
 		"gene_resolution": (
 			_serializable_gene_resolution(
 				resolution
 			)
 		),
+		"mythic_resolution": (
+			_serializable_mythic_resolution(
+				mythic_resolution
+			)
+		),
+		"mythic_destiny": (
+			mythic_destiny.duplicate(
+				true
+			)
+		),
+		"accumulated_gene_ids": (
+			accumulated_gene_ids.duplicate()
+		),
+		"gene_scores": (
+			gene_state.gene_scores_snapshot()
+		),
+		"gene_lifetime_tag_influences": (
+			gene_state.lifetime_tag_influences_snapshot()
+		),
+		"gene_expression_prompt": gene_score_prompt,
 		"source_phenotype": (
 			_string_key_dict(
 				genome.visual_traits_snapshot()
@@ -422,6 +560,165 @@ func _gene_state_from_runtime(
 	}
 
 
+func _accumulated_gene_ids(
+	data: Dictionary,
+	gene_state: GeneDevelopmentState
+) -> Array[String]:
+	var result: Array[String] = []
+	var history_value: Variant = data.get(
+		"evolution_history",
+		[]
+	)
+
+	if typeof(history_value) == TYPE_ARRAY:
+		for raw_plan in history_value as Array:
+			if typeof(raw_plan) != TYPE_DICTIONARY:
+				continue
+
+			var gene_resolution_value: Variant = (
+				(raw_plan as Dictionary).get(
+					"gene_resolution",
+					{}
+				)
+			)
+
+			if typeof(gene_resolution_value) != TYPE_DICTIONARY:
+				continue
+
+			var gene_resolution := gene_resolution_value as Dictionary
+			var changes_value: Variant = gene_resolution.get(
+				"selected_changes",
+				[]
+			)
+			var added_from_changes := false
+
+			if typeof(changes_value) == TYPE_ARRAY:
+				for raw_change in changes_value as Array:
+					if typeof(raw_change) != TYPE_DICTIONARY:
+						continue
+
+					var history_gene_id := String(
+						(raw_change as Dictionary).get(
+							"gene_id",
+							""
+						)
+					).strip_edges()
+
+					if history_gene_id.is_empty():
+						continue
+
+					_append_unique_gene_id(
+						result,
+						history_gene_id
+					)
+					added_from_changes = true
+
+			if not added_from_changes:
+				_append_unique_gene_id(
+					result,
+					String(
+						gene_resolution.get(
+							"selected_gene_id",
+							""
+						)
+					)
+				)
+
+	if gene_state != null:
+		for gene_id in gene_state.used_gene_ids_snapshot():
+			_append_unique_gene_id(
+				result,
+				gene_id
+			)
+
+	result.sort()
+	return result
+
+
+func _append_unique_gene_id(
+	result: Array[String],
+	gene_id: String
+) -> void:
+	var normalized := gene_id.strip_edges().to_lower()
+
+	if (
+		normalized.is_empty()
+		or result.has(
+			normalized
+		)
+	):
+		return
+
+	result.append(
+		normalized
+	)
+
+
+func _serialize_deltas(
+	deltas: Array[EvolutionDelta]
+) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+
+	for delta in deltas:
+		if delta != null:
+			result.append(
+				delta.to_dict()
+			)
+
+	return result
+
+
+func _serializable_mythic_resolution(
+	resolution: Dictionary
+) -> Dictionary:
+	return {
+		"mode": String(
+			resolution.get(
+				"mode",
+				"none"
+			)
+		),
+		"trigger_source": String(
+			resolution.get(
+				"trigger_source",
+				""
+			)
+		),
+		"mutation_id": String(
+			resolution.get(
+				"mutation_id",
+				""
+			)
+		),
+		"display_name": String(
+			resolution.get(
+				"display_name",
+				""
+			)
+		),
+		"target_regions": (
+			resolution.get(
+				"target_regions",
+				[]
+			) as Array
+		).duplicate(
+			true
+		),
+		"prompt": String(
+			resolution.get(
+				"prompt",
+				""
+			)
+		),
+		"preserve_hint": String(
+			resolution.get(
+				"preserve_hint",
+				""
+			)
+		),
+	}
+
+
 func _serializable_gene_resolution(
 	resolution: Dictionary
 ) -> Dictionary:
@@ -479,6 +776,28 @@ func _serializable_gene_resolution(
 				"primary_influence",
 				0.0
 			)
+		),
+		"resolved_locus_count": int(
+			resolution.get(
+				"resolved_locus_count",
+				0
+			)
+		),
+		"selected_changes": (
+			resolution.get(
+				"selected_changes",
+				[]
+			) as Array
+		).duplicate(
+			true
+		),
+		"selected_item_uids": (
+			resolution.get(
+				"selected_item_uids",
+				[]
+			) as Array
+		).duplicate(
+			true
 		),
 		"gene_influences": (
 			resolution.get(
@@ -597,7 +916,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",
@@ -721,22 +1040,50 @@ func commit(
 	visual.visual_index = (
 		previous_visual.visual_index + 1
 	)
-	visual.mutation_id = StringName(
-		str(
-			pending.get(
-				"delta",
-				{}
-			).get(
+	var mythic_resolution_value: Variant = pending.get(
+		"mythic_resolution",
+		{}
+	)
+	var visual_mutation_id := ""
+
+	if typeof(mythic_resolution_value) == TYPE_DICTIONARY:
+		visual_mutation_id = String(
+			(mythic_resolution_value as Dictionary).get(
 				"mutation_id",
 				""
 			)
 		)
+
+	if visual_mutation_id.is_empty():
+		var deltas_value_commit: Variant = pending.get(
+			"deltas",
+			[]
+		)
+
+		if (
+			typeof(deltas_value_commit) == TYPE_ARRAY
+			and not (deltas_value_commit as Array).is_empty()
+		):
+			var last_delta_value: Variant = (
+				(deltas_value_commit as Array).back()
+			)
+
+			if typeof(last_delta_value) == TYPE_DICTIONARY:
+				visual_mutation_id = String(
+					(last_delta_value as Dictionary).get(
+						"mutation_id",
+						""
+					)
+				)
+
+	visual.mutation_id = StringName(
+		visual_mutation_id
 	)
 	visual.source_mode = (
-		&"evolution_pethome_v8_full_regenerate"
+		&"evolution_pethome_v12_full_regenerate"
 		if expected_request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		else &"evolution_pethome_v8_image_edit"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		else &"evolution_pethome_v12_image_edit"
 	)
 	visual.image_path = result.image_path
 	visual.renderer_id = result.renderer_id
@@ -753,6 +1100,29 @@ func commit(
 	data["evolution_history"] = history
 	data["genome"] = next.to_dict()
 	data["current_visual"] = visual.to_dict()
+
+	var pending_destiny_value: Variant = pending.get(
+		"mythic_destiny",
+		{}
+	)
+
+	if typeof(pending_destiny_value) == TYPE_DICTIONARY:
+		var pending_destiny := pending_destiny_value as Dictionary
+
+		if (
+			not pending_destiny.is_empty()
+			and SpeciesMythicDestinyService.new()
+				.validate_for_identity(
+					pending_destiny,
+					identity
+				)
+		):
+			data["mythic_destiny"] = (
+				pending_destiny.duplicate(
+					true
+				)
+			)
+
 	data.erase(
 		"pending_evolution"
 	)
@@ -760,6 +1130,99 @@ func commit(
 	return _save.save_data(
 		data
 	)
+
+
+func _migrate_illegal_birth_talent(
+	data: Dictionary
+) -> Dictionary:
+	if data.is_empty():
+		return data
+
+	var destiny_value: Variant = data.get(
+		"mythic_destiny",
+		{}
+	)
+
+	if typeof(destiny_value) != TYPE_DICTIONARY:
+		return data
+
+	var destiny := destiny_value as Dictionary
+
+	if String(
+		destiny.get(
+			"source",
+			""
+		)
+	) != "birth_talent":
+		return data
+
+	var migrated := data.duplicate(
+		true
+	)
+	migrated.erase(
+		"mythic_destiny"
+	)
+	migrated.erase(
+		"pending_evolution"
+	)
+
+	var genome := PetGenome.from_dict(
+		migrated.get(
+			"genome",
+			{}
+		)
+	)
+
+	if genome != null:
+		var kept_mutations: Array[StringName] = []
+
+		for mutation_id in genome.mutation_ids():
+			if mutation_id not in [
+				&"cat_horned_spirit",
+				&"cat_winged_spirit",
+			]:
+				kept_mutations.append(
+					mutation_id
+				)
+
+		var clean_genome := PetGenome.new(
+			genome.stage(),
+			genome.body_growth(),
+			genome.traits_snapshot(),
+			kept_mutations
+		)
+
+		if clean_genome != null and clean_genome.is_valid():
+			migrated["genome"] = clean_genome.to_dict()
+
+	var visual_value: Variant = migrated.get(
+		"current_visual",
+		{}
+	)
+
+	if typeof(visual_value) == TYPE_DICTIONARY:
+		var visual := (
+			visual_value as Dictionary
+		).duplicate(true)
+		var mutation_id := String(
+			visual.get(
+				"mutation_id",
+				""
+			)
+		)
+
+		if mutation_id in [
+			"cat_horned_spirit",
+			"cat_winged_spirit",
+		]:
+			visual["mutation_id"] = ""
+			migrated["current_visual"] = visual
+
+	_save.save_data(
+		migrated
+	)
+
+	return migrated
 
 
 func _error(

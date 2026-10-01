@@ -17,7 +17,9 @@ func resolve(
 	genome: PetGenome,
 	gene_state: GeneDevelopmentState = null,
 	target_stage: int = -1,
-	definitions: Array = []
+	definitions: Array = [],
+	mythic_destiny: Dictionary = {},
+	accumulated_gene_ids: Array = []
 ) -> Dictionary:
 	if (
 		identity == null
@@ -126,6 +128,7 @@ func resolve(
 				MODE_CONTINUE
 			),
 			"configured": true,
+			"trigger_source": "existing",
 			"target_stage": next_stage,
 			"mutation_id": String(
 				active.id()
@@ -153,6 +156,93 @@ func resolve(
 			],
 			"genome": genome,
 		}
+
+	var locked_definition := _locked_destiny_definition(
+		identity,
+		species_definitions,
+		mythic_destiny
+	)
+
+	if locked_definition != null:
+		if not locked_definition.supports_stage(
+			next_stage
+		):
+			return _none(
+				genome,
+				next_stage,
+				true,
+				[
+					String(
+						locked_definition.id()
+					),
+				],
+				0,
+				-1
+			)
+
+		return _awaken(
+			genome,
+			locked_definition,
+			next_stage,
+			String(
+				mythic_destiny.get(
+					"source",
+					"egg_stage4"
+				)
+			),
+			0,
+			-1,
+			[
+				String(
+					locked_definition.id()
+				),
+			]
+		)
+
+	var recipe_matches: Array[SpeciesMythicMutationDefinition] = []
+	var accumulated_loci := _gene_loci_from_ids(
+		accumulated_gene_ids
+	)
+
+	for definition in species_definitions:
+		if (
+			definition.supports_stage(
+				next_stage
+			)
+			and definition.required_traits_match(
+				genome
+			)
+			and definition.recipe_matches(
+				accumulated_loci
+			)
+		):
+			recipe_matches.append(
+				definition
+			)
+
+	if not recipe_matches.is_empty():
+		var recipe_selected := recipe_matches[
+			posmod(
+				_stable_seed(
+					identity,
+					next_stage,
+					"gene_recipe"
+				),
+				recipe_matches.size()
+			)
+		]
+
+		return _awaken(
+			genome,
+			recipe_selected,
+			next_stage,
+			"gene_recipe",
+			10000,
+			0,
+			_string_definition_ids(
+				recipe_matches
+			)
+		)
 
 	var tag_influences: Dictionary = {}
 
@@ -264,62 +354,47 @@ func resolve(
 			"Không chọn được Mythic Mutation candidate."
 		)
 
-	var mutations: Array = []
-
-	for mutation_id in genome.mutation_ids():
-		mutations.append(
-			mutation_id
-		)
-
-	mutations.append(
-		selected.id()
+	return _awaken(
+		genome,
+		selected,
+		next_stage,
+		"random",
+		activation_probability,
+		activation_roll,
+		candidate_ids
 	)
 
-	var changed := _factory.create_snapshot(
-		genome.stage(),
-		genome.body_growth(),
-		genome.traits_snapshot(),
-		mutations
-	)
 
-	if changed == null:
-		return _error(
-			"Không tạo được Genome sau Mythic Mutation."
-		)
 
-	return {
-		"ok": true,
-		"mode": String(
-			MODE_AWAKEN
-		),
-		"configured": true,
-		"target_stage": next_stage,
-		"mutation_id": String(
-			selected.id()
-		),
-		"display_name": (
-			selected.display_name()
-		),
-		"target_regions": (
-			_string_regions(
-				selected.target_regions()
+func _gene_loci_from_ids(
+	gene_ids: Array
+) -> Array[StringName]:
+	var result: Array[StringName] = []
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+
+	for value in gene_ids:
+		var definition := catalog.find_by_id(
+			definitions,
+			StringName(
+				str(value)
 			)
-		),
-		"prompt": selected.prompt_for_stage(
-			next_stage
-		),
-		"preserve_hint": (
-			selected.preserve_hint()
-		),
-		"probability_basis_points": (
-			activation_probability
-		),
-		"roll_basis_points": (
-			activation_roll
-		),
-		"candidate_ids": candidate_ids,
-		"genome": changed,
-	}
+		)
+
+		if (
+			definition == null
+			or result.has(
+				definition.locus()
+			)
+		):
+			continue
+
+		result.append(
+			definition.locus()
+		)
+
+	result.sort()
+	return result
 
 
 func _existing_mythic_definitions(
@@ -348,6 +423,129 @@ func _existing_mythic_definitions(
 	return result
 
 
+func _awaken(
+	genome: PetGenome,
+	selected: SpeciesMythicMutationDefinition,
+	target_stage: int,
+	trigger_source: String,
+	probability_basis_points: int,
+	roll_basis_points: int,
+	candidate_ids: Array[String]
+) -> Dictionary:
+	var mutations: Array = []
+
+	for mutation_id in genome.mutation_ids():
+		mutations.append(
+			mutation_id
+		)
+
+	if not mutations.has(
+		selected.id()
+	):
+		mutations.append(
+			selected.id()
+		)
+
+	var changed := _factory.create_snapshot(
+		genome.stage(),
+		genome.body_growth(),
+		genome.traits_snapshot(),
+		mutations
+	)
+
+	if changed == null:
+		return _error(
+			"Không tạo được Genome sau Mythic Mutation."
+		)
+
+	return {
+		"ok": true,
+		"mode": String(
+			MODE_AWAKEN
+		),
+		"configured": true,
+		"trigger_source": trigger_source,
+		"target_stage": target_stage,
+		"mutation_id": String(
+			selected.id()
+		),
+		"display_name": (
+			selected.display_name()
+		),
+		"target_regions": (
+			_string_regions(
+				selected.target_regions()
+			)
+		),
+		"prompt": selected.prompt_for_stage(
+			target_stage
+		),
+		"preserve_hint": (
+			selected.preserve_hint()
+		),
+		"probability_basis_points": (
+			probability_basis_points
+		),
+		"roll_basis_points": (
+			roll_basis_points
+		),
+		"candidate_ids": candidate_ids.duplicate(),
+		"genome": changed,
+	}
+
+
+func _locked_destiny_definition(
+	identity: PetIdentity,
+	definitions: Array[SpeciesMythicMutationDefinition],
+	destiny: Dictionary
+) -> SpeciesMythicMutationDefinition:
+	if (
+		destiny.is_empty()
+		or not bool(
+			destiny.get(
+				"locked",
+				false
+			)
+		)
+		or StringName(
+			destiny.get(
+				"species",
+				""
+			)
+		) != identity.species()
+	):
+		return null
+
+	var mutation_id := StringName(
+		destiny.get(
+			"mutation_id",
+			""
+		)
+	)
+
+	for definition in definitions:
+		if definition.id() == mutation_id:
+			return definition
+
+	return null
+
+
+func _string_definition_ids(
+	definitions: Array[SpeciesMythicMutationDefinition]
+) -> Array[String]:
+	var result: Array[String] = []
+
+	for definition in definitions:
+		result.append(
+			String(
+				definition.id()
+			)
+		)
+
+	result.sort()
+	return result
+
+
 func _none(
 	genome: PetGenome,
 	target_stage: int,
@@ -362,6 +560,7 @@ func _none(
 			MODE_NONE
 		),
 		"configured": configured,
+		"trigger_source": "",
 		"target_stage": target_stage,
 		"mutation_id": "",
 		"display_name": "",

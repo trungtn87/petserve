@@ -1,34 +1,54 @@
 [
   {
-    "id": "cat_nekomata",
-    "display_name": "Nekomata",
+    "id": "cat_horned_spirit",
+    "display_name": "Giác Linh Miêu",
     "species": "cat",
     "first_expression_stage": 3,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
-    "target_regions": ["tail", "eyes", "aura"],
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "whiskers",
+      "mark",
+      "ears"
+    ],
+    "target_regions": [
+      "structure",
+      "mark",
+      "aura"
+    ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Begin a restrained Nekomata branch on this same cat individual. Keep one shared tail root but let the far tail structure develop a clearly forked or twin-tip silhouette, accompanied by a subtle spirit-cat quality in the eyes and aura. The result must still be recognizably the same pet, not a different cat and not a fully transformed adult monster.",
-      "4": "Complete the established Nekomata branch while preserving the exact same cat identity and the Stage 3 forked-tail direction. Refine the twin-tip tail flow, spirit-cat gaze and restrained supernatural aura into a mature mythic form without replacing the species, face identity or PetHome context."
+      "3": "Awaken one small symmetrical pair of elegant spirit horns from the forehead, naturally integrated with the cat's established ear, mark and whisker development. Keep the horns clearly secondary to the feline body.",
+      "4": "Complete the horned fantasy form with mature elegant horns and a controlled elemental aura while preserving the same feline body plan."
     },
-    "preserve_hint": "Preserve the same face, coat family, four-leg body plan, scene identity and every non-target Gene trait. The tail may fork only as defined by this Nekomata branch; do not create unrelated extra limbs, wings, horns or a second body."
+    "preserve_hint": "Keep the same species, four-leg feline body plan, two ears and exactly one tail. Do not add wings or unrelated anatomy."
   },
   {
-    "id": "cat_bakeneko",
-    "display_name": "Bakeneko",
+    "id": "cat_winged_spirit",
+    "display_name": "Dực Linh Miêu",
     "species": "cat",
     "first_expression_stage": 3,
     "final_expression_stage": 4,
     "activation_basis_points": 0,
-    "target_regions": ["eyes", "fur", "mark", "aura"],
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "fur",
+      "body",
+      "mane"
+    ],
+    "target_regions": [
+      "structure",
+      "mane",
+      "aura"
+    ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Begin a restrained Bakeneko spirit-cat branch on this same cat individual. Keep the normal single-tail body plan while introducing a more uncanny mythic gaze, subtle spirit-fire traces through existing fur or markings, and a controlled supernatural presence. Do not change the pet into another species or redesign its established identity.",
-      "4": "Complete the established Bakeneko branch as the mature form of the same individual. Refine the spirit-cat gaze, integrated spectral fur or marking accents and controlled supernatural aura while retaining the original face, body plan, coat lineage and recognizable personal identity."
+      "3": "Awaken one small symmetrical pair of soft fantasy wings from the upper back, naturally integrated with the cat's established fur, body and mane development. Keep the wings compact and secondary to the feline body.",
+      "4": "Complete the winged fantasy form with mature elegant wings and a controlled elemental aura while preserving natural feline anatomy."
     },
-    "preserve_hint": "Preserve the same cat identity, single-tail anatomy, four natural legs, face proportions, coat lineage and all non-target Gene traits. Do not add wings, horns, duplicate limbs, extra tails or unrelated monster anatomy."
+    "preserve_hint": "Keep the same species, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
   }
 ]
