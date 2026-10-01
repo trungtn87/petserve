@@ -1,7 +1,7 @@
 name: Image Lab morphology contracts
 on:
   push:
-    branches: [test/ai-image-gene-stages]
+    branches: [test/ai-image-gene-stages, pethome]
   workflow_dispatch:
 permissions:
   contents: read

@@ -1264,19 +1264,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v12_stage_3"
+			"_pethome_v14_stage_3"
 		)
 		and request_two.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_two.source_image_path == "user://m8_pet.png"
 		and request_two.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"If a reference is supplied, use it for face and color recognition"
 		)
 		and request_two.positive_prompt.contains(
-			"[GENE-ONLY PET CHANGE]"
+			"INDIVIDUAL FRAME:"
 		)
 		and request_two.positive_prompt.contains(
-			"background is NOT continuity-locked"
+			"SCENE: uncluttered natural"
 		)
 		and not request_two.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1376,19 +1376,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v12_stage_4"
+			"_pethome_v14_stage_4"
 		)
 		and request_three.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_three.source_image_path == "user://m8_pet.png"
 		and request_three.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"If a reference is supplied, use it for face and color recognition"
 		)
 		and request_three.positive_prompt.contains(
-			"[GENE-ONLY PET CHANGE]"
+			"INDIVIDUAL FRAME:"
 		)
 		and request_three.positive_prompt.contains(
-			"background is NOT continuity-locked"
+			"SCENE: uncluttered natural"
 		)
 		and not request_three.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1509,13 +1509,13 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		final_request != null
 		and final_request.output_key.ends_with(
-			"_pethome_v12_stage_5"
+			"_pethome_v14_stage_5"
 		)
 		and final_request.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and final_request.source_image_path == "user://m8_pet.png"
 		and final_request.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"If a reference is supplied, use it for face and color recognition"
 		),
 		"Final Evolution edits the Stage 4 visual into Final Form"
 	)

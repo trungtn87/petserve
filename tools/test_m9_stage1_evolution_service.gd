@@ -153,34 +153,34 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v12_stage_2"
+			"_pethome_v14_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Create one slightly older cat pet"
+			"TARGET IMAGE: one cat, Stage 2"
 		)
 		and request.positive_prompt.contains(
-			"Premium fantasy game character art"
+			"polished stylized 3D fantasy pet illustration"
 		)
 		and request.positive_prompt.contains(
-			"evolved chibi proportions"
+			"INDIVIDUAL FRAME:"
 		)
 		and request.positive_prompt.contains(
-			"juvenile-to-adolescent"
+			"AGE AND BODY: Juvenile:"
 		)
 		and request.positive_prompt.contains(
-			"Make the pet clearly older and more developed than Stage 1"
+			"Visible bodily maturation is required even without new Genes"
 		)
 		and request.positive_prompt.contains(
-			"fuller layered fur"
+			"distinct tail and chest outline"
 		)
 		and request.positive_prompt.contains(
-			"gentle elemental glow"
+			"Use sparse organic elemental cues"
 		)
 		and request.positive_prompt.contains(
-			"No special fantasy mutation is active"
+			"no horns or wings"
 		)
 		and request.positive_prompt.contains(
-			"30 to 34 percent"
+			"full body and tail within frame"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -446,34 +446,34 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v12_stage_2"
+			"_pethome_v14_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"Create one slightly older cat pet"
+			"TARGET IMAGE: one cat, Stage 2"
 		)
 		and request.positive_prompt.contains(
-			"Premium fantasy game character art"
+			"polished stylized 3D fantasy pet illustration"
 		)
 		and request.positive_prompt.contains(
-			"evolved chibi proportions"
+			"INDIVIDUAL FRAME:"
 		)
 		and request.positive_prompt.contains(
-			"juvenile-to-adolescent"
+			"AGE AND BODY: Juvenile:"
 		)
 		and request.positive_prompt.contains(
-			"Make the pet clearly older and more developed than Stage 1"
+			"Visible bodily maturation is required even without new Genes"
 		)
 		and request.positive_prompt.contains(
-			"fuller layered fur"
+			"distinct tail and chest outline"
 		)
 		and request.positive_prompt.contains(
-			"gentle elemental glow"
+			"Use sparse organic elemental cues"
 		)
 		and request.positive_prompt.contains(
-			"Apply only these Gene changes selected by code:"
+			"PRIORITY FEATURES:"
 		)
 		and request.positive_prompt.contains(
-			"30 to 34 percent"
+			"full body and tail within frame"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -885,16 +885,16 @@ func _test_stage_two_natural_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"If a reference is supplied, use it for face and color recognition"
 		)
 		and request.positive_prompt.contains(
-			"[GENE-ONLY PET CHANGE]"
+			"INDIVIDUAL FRAME:"
 		)
 		and request.positive_prompt.contains(
-			"No new structural Gene delta is selected"
+			"Visible bodily maturation is required even without new Genes"
 		)
 		and request.positive_prompt.contains(
-			"background is NOT continuity-locked"
+			"SCENE: uncluttered natural"
 		),
 		"Natural Stage 2 must use the Stage 2 image as reference without inventing a Gene"
 	)
@@ -1035,13 +1035,13 @@ func _test_stage_two_gene_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"elongated"
+			"Tail:"
 		)
 		and request.positive_prompt.contains(
-			"[ACCUMULATED GENE SCORE PHENOTYPE]"
+			"PRIORITY FEATURES:"
 		)
 		and request.positive_prompt.contains(
-			"Only Gene loci listed below are authorized to differ"
+			"authorized Gene shapes develop"
 		),
 		"Stage 2 Gene plan must edit the reference image from the lifetime Gene score plan"
 	)

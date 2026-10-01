@@ -139,7 +139,7 @@ func run() -> void:
 		)
 		check(
 			request.output_key.ends_with(
-				"_pethome_v12_stage_2"
+				"_pethome_v14_stage_2"
 			),
 			"stage output key"
 		)
@@ -160,7 +160,7 @@ func run() -> void:
 				"fuller layered fur"
 			)
 			and request.positive_prompt.contains(
-				"gentle elemental glow"
+				"Prioritize distinct body proportions"
 			)
 			and request.positive_prompt.contains(
 				"Apply only these Gene changes selected by code:"

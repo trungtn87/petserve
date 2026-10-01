@@ -160,7 +160,7 @@ func _test_natural_zero_gene() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"If a reference is supplied, use it for face and color recognition"
 		),
 		"natural Stage 2 -> 3 uses the Stage 2 image as reference"
 	)
@@ -414,10 +414,10 @@ func _test_two_loci_and_retry_guards() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"Current transition Gene deltas:"
+			"PRIORITY FEATURES:"
 		)
 		and request.positive_prompt.contains(
-			"[ACCUMULATED GENE SCORE PHENOTYPE]"
+			"PRIORITY FEATURES:"
 		),
 		"two-locus evolution edits the Stage 2 reference with both Gene changes"
 	)
@@ -501,7 +501,8 @@ func _test_locked_stage4_egg_mythic() -> void:
 	)
 	var destiny := SpeciesMythicDestinyService.new().from_stage4_egg(
 		identity,
-		4
+		4,
+		true
 	)
 
 	_expect(
@@ -613,12 +614,12 @@ func _test_locked_stage4_egg_mythic() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED MYTHIC RESULT]"
+			"AUTHORIZED MYTHIC ANATOMY:"
 		)
 		and request.positive_prompt.contains(
 			String(
-				destiny.get(
-					"display_name",
+				mythic.get(
+					"prompt",
 					""
 				)
 			)

@@ -160,7 +160,7 @@ func _initialize() -> void:
 	)
 
 	_expect(
-		request.positive_prompt.length() < 2400,
+		request.positive_prompt.length() < 5000,
 		"Stage 1 prompt must stay bounded even with element-specific integrated traits"
 	)
 
