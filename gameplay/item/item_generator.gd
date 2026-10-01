@@ -586,7 +586,9 @@ func describe(item: Dictionary) -> String:
 				text = "Trưởng thành -" + _format_minutes(growth_seconds)
 			else:
 				text = "Trưởng thành +" + _format_minutes(abs(growth_seconds))
-			if food_delta < 0:
+			if food_delta > 0:
+				text += " • No +" + _format_minutes(food_delta)
+			elif food_delta < 0:
 				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
 			return text
 
