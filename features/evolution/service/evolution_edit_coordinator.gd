@@ -2,23 +2,31 @@ class_name EvolutionEditCoordinator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 1
+const InitialSpeciesCatalogScript = preload(
+	"res://features/evolution/visual/initial_species_catalog.gd"
+)
+
+
+const PLAN_SCHEMA: int = 2
 const NATURAL_TARGET_REGION: StringName = &"whole_pet_age"
 const NATURAL_EDIT_STRENGTH: float = 0.18
+const STAGE_TWO_EDIT_STRENGTH: float = 0.30
+const COMPOSITE_GENE_TARGET_REGION: StringName = &"whole_pet_gene"
+const COMPOSITE_MYTHIC_TARGET_REGION: StringName = &"whole_pet_mythic"
+const MYTHIC_EDIT_STRENGTH: float = 0.24
 const SEED_MODULUS: int = 2147483647
 const ANATOMY_LOCK_PROMPT: String = (
-	"Preserve the reference pet's anatomy exactly: same number of legs, paws, "
-	+ "ears, tails and all other body parts. Do not add, duplicate, remove or "
-	+ "invent limbs or appendages. Preserve limb attachment points, joint layout, "
-	+ "stance, body orientation and pose. A body part hidden by perspective must "
-	+ "remain hidden naturally instead of being duplicated or moved into view."
+	"Preserve the reference pet's species body plan and existing anatomy exactly. "
+	+ "Keep every existing limb, wing, foot or paw, ear, tail, horn and other appendage "
+	+ "consistent with the reference. Do not add, duplicate, remove or invent appendages. "
+	+ "Preserve attachment points, joint layout, stance, body orientation and pose. "
+	+ "A body part hidden by perspective must remain naturally hidden rather than being "
+	+ "duplicated or moved into view."
 )
 const ANATOMY_NEGATIVE_PROMPT: String = (
-	"extra leg, extra legs, extra limb, extra limbs, extra paw, extra paws, "
-	+ "duplicate leg, duplicated limb, duplicate paw, duplicated paw, "
-	+ "extra tail, duplicate tail, extra ear, duplicate ear, second body, "
-	+ "duplicated body parts, malformed anatomy, deformed legs, changed limb count, "
-	+ "changed paw count"
+	"extra limb, duplicate limb, duplicated appendage, extra appendage, second body, "
+	+ "duplicated body parts, malformed anatomy, deformed anatomy, impossible joint, "
+	+ "detached appendage, anatomy inconsistent with the species"
 )
 
 
@@ -47,6 +55,19 @@ func build_request(
 			"error": error,
 		}
 
+	return build_stage_regenerate_request(
+		identity,
+		previous_genome,
+		mutated_genome,
+		[
+			delta,
+		],
+		source_visual,
+		target_stage,
+		scene_profile,
+		{}
+	)
+
 	var style := MythicStyleProfile.load_default()
 
 	if style == null:
@@ -72,12 +93,13 @@ func build_request(
 		previous_genome.stage() == 1
 		and target_stage == 2
 	):
-		return _build_stage_one_gene_regenerate(
+		return _build_stage_one_gene_edit(
 			identity,
 			previous_genome,
 			mutated_genome,
 			delta,
 			visual,
+			source_visual,
 			target_stage,
 			scene_profile
 		)
@@ -127,9 +149,9 @@ func build_request(
 	positive_prompt += (
 		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
 		+ stage_detail
-		+ " This is stage presentation detail, not a new Gene. It may refine "
-		+ "existing fur edges, markings, material feel and restrained aura across "
-		+ "the current silhouette, but must not create new limbs or replace the body plan."
+		+ " This is stage presentation guidance, not a new Gene. For Stage 3/4, "
+		+ "use this progression only to style the selected target region and its immediate visual transition. "
+		+ "It does not authorize redesigning unrelated body parts, markings, anatomy or silhouette."
 	)
 
 	positive_prompt += _local_edit_boundary(
@@ -179,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% target_stage
 	)
 
@@ -218,6 +240,17 @@ func build_natural_request(
 			"error": error,
 		}
 
+	return build_stage_regenerate_request(
+		identity,
+		current_genome,
+		current_genome,
+		[],
+		source_visual,
+		target_stage,
+		scene_profile,
+		{}
+	)
+
 	if (
 		current_genome.stage() != 1
 		or target_stage != 2
@@ -230,116 +263,27 @@ func build_natural_request(
 			scene_profile
 		)
 
-	var style := MythicStyleProfile.load_default()
-
-	if style == null:
-		return {
-			"ok": false,
-			"error": "Không load được MythicStyleProfile.",
-		}
-
-	var stage_two_morphology := _element_stage_prompt(
-		identity.element(),
-		2
-	)
-
-	if stage_two_morphology.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
-			% String(identity.element()),
-		}
-
-	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
-		"[IDENTITY BLUEPRINT]\n"
-		+ style.identity_lock()
-		+ " Species: "
-		+ String(identity.species())
-		+ ". Element family: "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
+		_stage_two_base_prompt(
+			identity
 		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[MYTHIC ELEMENTAL STYLE]\n"
-		+ style.base_style()
-		+ " Element lineage appearance: "
-		+ style.accent_for(
-			identity.element()
-		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
-		+ "with a mature juvenile body rather than a giant baby head, while keeping the locked on-screen PetHome scale. "
-		+ "This is a whole-body age transition, so secondary morphology is intentionally allowed to change."
-	)
-
-	positive_prompt += (
-		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
-		+ stage_two_morphology
-		+ " Let elemental lineage shape the silhouette and body language, not just the colors. "
-		+ "The seven elements should remain distinguishable in grayscale."
-	)
-
-	positive_prompt += (
-		"\n\n[PHENOTYPE GUIDANCE]\n"
-		+ "Existing Gene values remain canonical constraints, but they are not a literal pixel-shape lock. "
-		+ "Target phenotype: "
-		+ phenotype.describe(
-			current_genome
-		)
-		+ ". You may redesign secondary fur silhouette, ear styling, tail fur contour and body proportions "
-		+ "according to the Stage 2 element morphology above, as long as these Gene values do not change. "
-		+ "Do not invent an unrelated Gene, extra appendage or different species."
-	)
-
-	positive_prompt += (
-		"\n\n[QUADRUPED BODY PLAN]\n"
-		+ _stage_two_body_plan_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCALE LOCK]\n"
-		+ _stage_two_composition_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCENE REBUILD]\n"
-		+ _scene_rebuild_prompt(
-			scene_profile
-		)
-		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "portrait with no text or UI."
+		+ " No new Gene mutation."
 	)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
-		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
-		style.negative_prompt()
-		+ ", infant proportions, tiny baby body, oversized baby head, "
-		+ "unchanged infant body, extra tail, new gene trait, random mutation, "
-		+ "new horn, unrelated new marking, unrelated new aura, changed Gene tail type, changed Gene eye type, "
-		+ "changed Gene ear type, changed Gene coat pattern, redesigned species, "
-		+ _stage_two_negative_prompt()
-	)
+	request.negative_prompt = _stage_two_simple_negative()
+	request.source_image_path = source_visual.image_path
 	request.target_region = NATURAL_TARGET_REGION
-	request.edit_strength = 0.0
+	request.edit_strength = STAGE_TWO_EDIT_STRENGTH
 	request.seed = _request_seed(
 		identity,
 		target_stage,
-		&"stage2_full_regenerate_natural"
+		&"natural_stage_2"
 	)
 	request.output_key = _stage_one_output_key(
 		identity,
@@ -349,7 +293,7 @@ func build_natural_request(
 	if not request.is_valid():
 		return {
 			"ok": false,
-			"error": "Stage 1 Natural full-regenerate request không hợp lệ.",
+			"error": "Stage 1 -> 2 Natural image-edit request không hợp lệ.",
 		}
 
 	return {
@@ -357,7 +301,6 @@ func build_natural_request(
 		"schema": PLAN_SCHEMA,
 		"request": request,
 	}
-
 
 
 func _build_later_natural_edit(
@@ -479,6 +422,671 @@ func _build_later_natural_edit(
 	}
 
 
+func build_composite_request(
+	identity: PetIdentity,
+	previous_genome: PetGenome,
+	target_genome: PetGenome,
+	deltas: Array[EvolutionDelta],
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile = null,
+	mythic_resolution: Dictionary = {}
+) -> Dictionary:
+	if (
+		identity == null
+		or previous_genome == null
+		or target_genome == null
+		or source_visual == null
+		or not identity.is_valid()
+		or not previous_genome.is_valid()
+		or not target_genome.is_valid()
+		or not source_visual.is_valid()
+		or target_stage != previous_genome.stage() + 1
+		or target_genome.stage() != previous_genome.stage()
+		or source_visual.pet_id != identity.pet_id()
+	):
+		return {
+			"ok": false,
+			"error": "Dữ liệu composite evolution không hợp lệ.",
+		}
+
+	if (
+		source_visual.image_path.is_empty()
+		or not FileAccess.file_exists(
+			source_visual.image_path
+		)
+	):
+		return {
+			"ok": false,
+			"error": "Không tìm thấy ảnh PetHome nguồn cho composite evolution.",
+		}
+
+	if scene_profile != null:
+		if (
+			not scene_profile.is_valid()
+			or scene_profile.element
+				!= identity.element()
+		):
+			return {
+				"ok": false,
+				"error": "PetHome Scene Profile composite không hợp lệ.",
+			}
+
+	return build_stage_regenerate_request(
+		identity,
+		previous_genome,
+		target_genome,
+		deltas,
+		source_visual,
+		target_stage,
+		scene_profile,
+		mythic_resolution
+	)
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if (
+		previous_genome.stage() == 1
+		and target_stage == 2
+	):
+		if deltas.size() > 1:
+			return {
+				"ok": false,
+				"error": "Stage 1 không được có nhiều hơn một Gene delta.",
+			}
+
+		var base_plan := (
+			build_natural_request(
+				identity,
+				previous_genome,
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+			if deltas.is_empty()
+			else build_request(
+				identity,
+				previous_genome,
+				target_genome,
+				deltas[0],
+				source_visual,
+				target_stage,
+				scene_profile
+			)
+		)
+
+		if (
+			not bool(
+				base_plan.get(
+					"ok",
+					false
+				)
+			)
+			or not mythic_active
+		):
+			return base_plan
+
+		var stage_two_request := base_plan.get(
+			"request"
+		) as PetRenderRequest
+
+		if stage_two_request == null:
+			return {
+				"ok": false,
+				"error": "Stage 2 composite request bị rỗng.",
+			}
+
+		_apply_mythic_prompt(
+			stage_two_request,
+			mythic_resolution
+		)
+		stage_two_request.target_region = COMPOSITE_MYTHIC_TARGET_REGION
+		stage_two_request.edit_strength = maxf(
+			stage_two_request.edit_strength,
+			STAGE_TWO_EDIT_STRENGTH
+		)
+		stage_two_request.seed = _request_seed(
+			identity,
+			target_stage,
+			_composite_seed_key(
+				deltas,
+				mythic_resolution
+			)
+		)
+
+		return base_plan
+
+	var style := MythicStyleProfile.load_default()
+
+	if style == null:
+		return {
+			"ok": false,
+			"error": "Không load được MythicStyleProfile cho composite evolution.",
+		}
+
+	var stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if stage_detail.is_empty():
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho composite evolution.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new()
+	var positive_prompt := (
+		"[IDENTITY LOCK]\n"
+		+ style.identity_lock()
+		+ " Species: "
+		+ String(identity.species())
+		+ ". Element family: "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ "."
+	)
+
+	positive_prompt += (
+		"\n\n[SOURCE PHENOTYPE]\n"
+		+ phenotype.describe(
+			previous_genome
+		)
+		+ "\n\n[TARGET PHENOTYPE]\n"
+		+ phenotype.describe(
+			target_genome
+		)
+	)
+
+	var visual_catalog := MutationVisualCatalog.new()
+	var visuals := visual_catalog.load_default()
+	var edit_strength := NATURAL_EDIT_STRENGTH
+
+	if not deltas.is_empty():
+		positive_prompt += (
+			"\n\n[CODE-LOCKED GENE CHANGES]\n"
+			+ "Apply every Gene change below in this same evolution. "
+			+ "Do not drop one selected locus and do not invent a combined trait that is not listed."
+		)
+
+		for delta in deltas:
+			if (
+				delta == null
+				or not delta.is_valid()
+			):
+				return {
+					"ok": false,
+					"error": "Composite evolution có Gene delta không hợp lệ.",
+				}
+
+			var visual := visual_catalog.find_by_id(
+				visuals,
+				delta.mutation_id()
+			)
+
+			if visual == null:
+				return {
+					"ok": false,
+					"error": "Thiếu visual definition cho %s."
+					% String(
+						delta.mutation_id()
+					),
+				}
+
+			edit_strength = maxf(
+				edit_strength,
+				visual.edit_strength()
+			)
+			positive_prompt += (
+				"\n- %s: %s %s"
+				% [
+					String(
+						delta.target_trait()
+					),
+					visual.instruction(),
+					visual.preserve_hint(),
+				]
+			)
+
+	positive_prompt += (
+		"\n\n[ELEMENTAL DETAIL PROGRESSION]\n"
+		+ stage_detail
+		+ " This stage detail may refine existing surfaces but may not override the code-selected Gene or Mythic plan."
+	)
+
+	if mythic_active:
+		edit_strength = maxf(
+			edit_strength,
+			MYTHIC_EDIT_STRENGTH
+		)
+		positive_prompt += (
+			"\n\n[CODE-LOCKED MYTHIC DESTINY]\n"
+			+ "Mythical beast: "
+			+ String(
+				mythic_resolution.get(
+					"display_name",
+					""
+				)
+			)
+			+ ". "
+			+ String(
+				mythic_resolution.get(
+					"prompt",
+					""
+				)
+			)
+			+ " "
+			+ String(
+				mythic_resolution.get(
+					"preserve_hint",
+					""
+				)
+			)
+			+ " This Mythic branch was selected by code. Do not replace it with another mythical creature or mix branches."
+		)
+
+	positive_prompt += _anatomy_lock_section()
+	positive_prompt += _pethome_scale_lock_section()
+	positive_prompt += (
+		"\n\n[PETHOME CONTINUITY]\n"
+		+ _scene_continuity_prompt(
+			scene_profile
+		)
+		+ " Keep this the same individual in the same world and framing. "
+		+ "Return ONE complete pet + background portrait with no text or UI."
+	)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = _append_negative_guard(
+		style.negative_prompt()
+		+ ", unrelated gene trait, random mutation, wrong mythical creature, mixed mythical branches, "
+		+ "redesigned species, different pet identity, changed PetHome world"
+	)
+	request.source_image_path = source_visual.image_path
+	request.target_region = (
+		COMPOSITE_MYTHIC_TARGET_REGION
+		if mythic_active
+		else COMPOSITE_GENE_TARGET_REGION
+	)
+	request.edit_strength = edit_strength
+	request.seed = _request_seed(
+		identity,
+		target_stage,
+		_composite_seed_key(
+			deltas,
+			mythic_resolution
+		)
+	)
+	request.output_key = _stage_one_output_key(
+		identity,
+		target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Composite evolution render request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
+func _apply_mythic_prompt(
+	request: PetRenderRequest,
+	mythic_resolution: Dictionary
+) -> void:
+	var prompt := String(
+		mythic_resolution.get(
+			"prompt",
+			""
+		)
+	).strip_edges()
+
+	if prompt.is_empty():
+		return
+
+	request.positive_prompt += (
+		" Fantasy mutation: "
+		+ prompt
+	)
+	request.negative_prompt += (
+		", unrelated fantasy mutation, mixed mutation branches"
+	)
+
+
+func _composite_seed_key(
+	deltas: Array[EvolutionDelta],
+	mythic_resolution: Dictionary
+) -> StringName:
+	var parts: Array[String] = [
+		"composite",
+	]
+
+	for delta in deltas:
+		if delta == null:
+			continue
+		parts.append(
+			String(
+				delta.mutation_id()
+			)
+		)
+
+	var mythic_id := String(
+		mythic_resolution.get(
+			"mutation_id",
+			""
+		)
+	)
+
+	if not mythic_id.is_empty():
+		parts.append(
+			mythic_id
+		)
+
+	return StringName(
+		"_".join(
+			parts
+		)
+	)
+
+
+func build_stage_regenerate_request(
+	identity: PetIdentity,
+	previous_genome: PetGenome,
+	target_genome: PetGenome,
+	deltas: Array[EvolutionDelta],
+	source_visual: PetVisualRecord,
+	target_stage: int,
+	scene_profile: PetSceneProfile = null,
+	mythic_resolution: Dictionary = {}
+) -> Dictionary:
+	if (
+		identity == null
+		or previous_genome == null
+		or target_genome == null
+		or source_visual == null
+		or not identity.is_valid()
+		or not previous_genome.is_valid()
+		or not target_genome.is_valid()
+		or not source_visual.is_valid()
+		or source_visual.pet_id != identity.pet_id()
+		or target_stage != previous_genome.stage() + 1
+		or target_genome.stage() != previous_genome.stage()
+	):
+		return {
+			"ok": false,
+			"error": "Dữ liệu full-regenerate evolution không hợp lệ.",
+		}
+
+	if scene_profile != null:
+		if (
+			not scene_profile.is_valid()
+			or scene_profile.element != identity.element()
+		):
+			return {
+				"ok": false,
+				"error": "PetHome Scene Profile full-regenerate không hợp lệ.",
+			}
+
+	var stage_one_detail := _element_stage_prompt(
+		identity.element(),
+		1
+	)
+	var target_stage_detail := _element_stage_prompt(
+		identity.element(),
+		target_stage
+	)
+
+	if (
+		stage_one_detail.is_empty()
+		or target_stage_detail.is_empty()
+	):
+		return {
+			"ok": false,
+			"error": "Thiếu Element Stage profile cho full-regenerate.",
+		}
+
+	var species_profile := _species_profile(
+		identity.species()
+	)
+
+	if species_profile == null:
+		return {
+			"ok": false,
+			"error": "Thiếu species profile cho full-regenerate.",
+		}
+
+	var phenotype := PhenotypePromptBuilder.new().describe(
+		target_genome
+	)
+	var positive_prompt := ""
+
+	if target_stage == 2:
+		positive_prompt = (
+			"Create one slightly older "
+			+ String(identity.species())
+			+ " pet. Element: "
+			+ PetElementCatalog.prompt_name(
+				identity.element()
+			)
+			+ ". "
+			+ "Premium fantasy game character art, painterly fantasy game art, evolved chibi proportions, "
+			+ "juvenile-to-adolescent fantasy character design language, slight chibi, natural feline anatomy, "
+			+ "soft fur and a simple readable design. "
+			+ "Element traits: "
+			+ _simple_element_traits(
+				identity.element()
+			)
+			+ " Stage 2. Juvenile-to-adolescent fantasy cat. "
+			+ "Make the pet clearly older and more developed than Stage 1 while keeping the same art direction: "
+			+ "noticeably larger overall body, taller body, longer legs, a more developed chest and torso, "
+			+ "fuller layered fur around the chest, cheeks and tail, and a face that is less baby-like while still cute and youthful. "
+			+ "Use evolved chibi proportions: keep the head expressive, but reduce the tiny-kitten body proportions from Stage 1. "
+			+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+			+ "Keep fantasy details subtle but richer than Stage 1: gentle elemental glow, refined magical fur accents, "
+			+ "faint luminous markings and a few restrained elemental sparkles."
+		)
+	else:
+		positive_prompt = (
+			"Create a NEW image for evolution Stage %d. "
+			+ "Do not copy, trace or image-edit the previous stage. "
+			+ "This must visibly look older and more developed than Stage %d. "
+			+ "Preserve the same pet lineage: species, elemental color family, face language, "
+			+ "forehead lineage sigil, fur motif language and exactly one normal tail unless a locked mutation says otherwise. "
+			+ "Use the same deterministic lineage seed so the new image still reads as the same individual design family. "
+		) % [
+			target_stage,
+			previous_genome.stage(),
+		]
+
+		positive_prompt += (
+			"Stage 1 ancestry cues: "
+			+ stage_one_detail
+			+ " Target stage morphology: "
+			+ target_stage_detail
+			+ " "
+			+ species_profile.species_anatomy
+			+ " "
+			+ species_profile.freestyle_pose
+		)
+
+		positive_prompt += (
+			" Target phenotype from game code: "
+			+ phenotype
+			+ "."
+		)
+
+	if not deltas.is_empty():
+		positive_prompt += (
+			" Apply only these Gene changes selected by code:"
+		)
+
+		for delta in deltas:
+			if (
+				delta == null
+				or not delta.is_valid()
+			):
+				return {
+					"ok": false,
+					"error": "Full-regenerate có Gene delta không hợp lệ.",
+				}
+
+			positive_prompt += (
+				" Locus %s changes from %s to %s."
+				% [
+					String(
+						delta.target_trait()
+					),
+					String(
+						delta.from_trait()
+					),
+					String(
+						delta.to_trait()
+					),
+				]
+			)
+
+	var mythic_mode := StringName(
+		mythic_resolution.get(
+			"mode",
+			"none"
+		)
+	)
+	var mythic_active := mythic_mode in [
+		SpeciesMythicMutationResolver.MODE_AWAKEN,
+		SpeciesMythicMutationResolver.MODE_CONTINUE,
+	]
+
+	if mythic_active:
+		positive_prompt += (
+			" Special fantasy mutation is ACTIVE because game conditions were met: "
+			+ String(
+				mythic_resolution.get(
+					"display_name",
+					""
+				)
+			)
+			+ ". "
+			+ String(
+				mythic_resolution.get(
+					"prompt",
+					""
+				)
+			)
+			+ " "
+			+ String(
+				mythic_resolution.get(
+					"preserve_hint",
+					""
+				)
+			)
+		)
+	else:
+		positive_prompt += (
+			" No special fantasy mutation is active. "
+			+ "Do not add horns, wings, extra tails or other mythical mutation anatomy."
+		)
+
+	if target_stage == 2:
+		positive_prompt += (
+			" Simple natural fantasy background matching the same element. "
+			+ "Keep it uncluttered and atmospheric. "
+			+ "Exactly one pet. Full body visible. "
+			+ "Vertical 9:16 mobile scene. "
+			+ "Pet about 30 to 34 percent of image height in the lower third. "
+			+ "Background occupies most of the image. "
+			+ "Keep the upper area calm for UI. No text or UI. "
+			+ "Keep the design simple enough for later evolution."
+		)
+	else:
+		positive_prompt += (
+			" Create a simple natural fantasy environment matching the "
+			+ PetElementCatalog.prompt_name(
+				identity.element()
+			)
+			+ " element. "
+			+ _scene_rebuild_prompt(
+				scene_profile
+			)
+			+ " Vertical 9:16 mobile scene. Full body visible. "
+			+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
+			+ "Background occupies most of the image. Keep the upper area calm for UI. "
+			+ "No text or UI."
+		)
+
+	var negative_prompt := (
+		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
+		+ "heavy accessories, text, UI, logo, watermark"
+	)
+
+	if target_stage == 2:
+		negative_prompt += (
+			", fully adult cat, old cat, tiny kitten proportions, baby body, very short legs, "
+			+ "round infant torso, drastic redesign, different species, different element"
+		)
+	else:
+		negative_prompt += (
+			", same-age copy of previous stage, unchanged kitten proportions, image-edit look"
+		)
+
+	if not mythic_active:
+		negative_prompt += (
+			", horns, wings, mythical mutation anatomy"
+		)
+
+	var request := PetRenderRequest.new()
+	request.mode = (
+		PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+	)
+	request.pet_id = identity.pet_id()
+	request.positive_prompt = positive_prompt
+	request.negative_prompt = negative_prompt
+	request.seed = max(
+		1,
+		posmod(
+			identity.lineage_seed(),
+			SEED_MODULUS
+		)
+	)
+	request.output_key = (
+		identity.pet_id()
+		+ "_pethome_v12_stage_%d"
+		% target_stage
+	)
+
+	if not request.is_valid():
+		return {
+			"ok": false,
+			"error": "Evolution full-regenerate request không hợp lệ.",
+		}
+
+	return {
+		"ok": true,
+		"schema": PLAN_SCHEMA,
+		"request": request,
+	}
+
+
 func serialize_request(
 	request: PetRenderRequest
 ) -> Dictionary:
@@ -530,6 +1138,10 @@ func request_from_dict(
 			!= int(
 				PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 			)
+		and mode_value
+			!= int(
+				PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+			)
 	):
 		return null
 
@@ -548,6 +1160,13 @@ func request_from_dict(
 		):
 			request.mode = (
 				PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			)
+
+		int(
+			PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		):
+			request.mode = (
+				PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 			)
 
 	request.pet_id = str(
@@ -584,140 +1203,37 @@ func request_from_dict(
 	return request
 
 
-func _build_stage_one_gene_regenerate(
+func _build_stage_one_gene_edit(
 	identity: PetIdentity,
 	previous_genome: PetGenome,
 	mutated_genome: PetGenome,
 	delta: EvolutionDelta,
 	visual: MutationVisualDefinition,
+	source_visual: PetVisualRecord,
 	target_stage: int,
 	scene_profile: PetSceneProfile
 ) -> Dictionary:
-	var style := MythicStyleProfile.load_default()
-
-	if style == null:
-		return {
-			"ok": false,
-			"error": "Không load được MythicStyleProfile.",
-		}
-
-	var stage_two_morphology := _element_stage_prompt(
-		identity.element(),
-		2
-	)
-
-	if stage_two_morphology.is_empty():
-		return {
-			"ok": false,
-			"error": "Thiếu Stage 2 morphology profile cho hệ %s."
-			% String(identity.element()),
-		}
-
-	var phenotype := PhenotypePromptBuilder.new()
 	var positive_prompt := (
-		"[IDENTITY BLUEPRINT]\n"
-		+ style.identity_lock()
-		+ " Species: "
-		+ String(identity.species())
-		+ ". Element family: "
-		+ PetElementCatalog.prompt_name(
-			identity.element()
+		_stage_two_base_prompt(
+			identity
 		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[MYTHIC ELEMENTAL STYLE]\n"
-		+ style.base_style()
-		+ " Element lineage appearance: "
-		+ style.accent_for(
-			identity.element()
-		)
-		+ "."
-	)
-
-	positive_prompt += (
-		"\n\n[STAGE 2 FULL REGENERATE]\n"
-		+ "Create a completely new full portrait from scratch for this same canonical pet lineage. "
-		+ "Do not copy infant body geometry. Stage 2 must be visibly older and more physically mature than Stage 1, "
-		+ "with a mature juvenile body while keeping the locked on-screen PetHome scale. Secondary morphology is intentionally allowed to change."
-	)
-
-	positive_prompt += (
-		"\n\n[ELEMENT MORPHOLOGY STAGE 2]\n"
-		+ stage_two_morphology
-		+ " Let elemental lineage reshape the silhouette and body language, not just the colors. "
-		+ "The seven elements should remain distinguishable in grayscale."
-	)
-
-	positive_prompt += (
-		"\n\n[SOURCE PHENOTYPE BLUEPRINT]\n"
-		+ phenotype.describe(
-			previous_genome
-		)
-	)
-
-	positive_prompt += (
-		"\n\n[TARGET PHENOTYPE]\n"
-		+ phenotype.describe(
-			mutated_genome
-		)
-	)
-
-	positive_prompt += (
-		"\n\n[ONE GENE EXPRESSION]\n"
-		+ (
-			"The only newly introduced biological feature is in '%s': %s "
-			+ "Do not invent any other gene trait. %s"
-		) % [
-			String(visual.target_region()),
-			visual.instruction(),
-			visual.preserve_hint(),
-		]
-	)
-
-	positive_prompt += (
-		"\n\n[QUADRUPED BODY PLAN]\n"
-		+ _stage_two_body_plan_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCALE LOCK]\n"
-		+ _stage_two_composition_prompt()
-	)
-
-	positive_prompt += (
-		"\n\n[ANATOMY REQUIREMENT]\n"
-		+ "Render one anatomically coherent pet with exactly one head, one torso and four natural legs. "
-		+ "Keep one tail unless the selected Gene explicitly changes tail structure. "
-		+ "No duplicated, floating or human-like limbs."
-	)
-
-	positive_prompt += (
-		"\n\n[PETHOME SCENE REBUILD]\n"
-		+ _scene_rebuild_prompt(
-			scene_profile
-		)
-		+ " Recreate the same world identity from these scene descriptors while generating "
-		+ "a fresh image. Follow the PETHOME SCALE LOCK above exactly. Return one pet + background "
-		+ "portrait with no text or UI."
+		+ " Selected Gene change: "
+		+ visual.instruction()
 	)
 
 	var request := PetRenderRequest.new()
 	request.mode = (
-		PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
+		PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 	)
 	request.pet_id = identity.pet_id()
 	request.positive_prompt = positive_prompt
-	request.negative_prompt = _append_negative_guard(
-		style.negative_prompt()
-		+ ", infant proportions, tiny baby body, oversized baby head, "
-		+ "unchanged infant body, unrelated gene trait, random mutation, "
-		+ "unplanned horn, unrelated unplanned marking, redesigned species, "
-		+ _stage_two_negative_prompt()
+	request.negative_prompt = _stage_two_simple_negative()
+	request.source_image_path = source_visual.image_path
+	request.target_region = COMPOSITE_GENE_TARGET_REGION
+	request.edit_strength = maxf(
+		STAGE_TWO_EDIT_STRENGTH,
+		visual.edit_strength()
 	)
-	request.target_region = visual.target_region()
-	request.edit_strength = 0.0
 	request.seed = _request_seed(
 		identity,
 		target_stage,
@@ -731,7 +1247,7 @@ func _build_stage_one_gene_regenerate(
 	if not request.is_valid():
 		return {
 			"ok": false,
-			"error": "Stage 1 Gene full-regenerate request không hợp lệ.",
+			"error": "Stage 1 -> 2 Gene image-edit request không hợp lệ.",
 		}
 
 	return {
@@ -850,12 +1366,11 @@ func _local_edit_boundary(
 		return (
 			"\n\n[EDIT BOUNDARY]\n"
 			+ (
-				"Apply the code-selected Gene change clearly in target region '%s'. "
-				+ "Outside that region, preserve anatomy, limb count, pose, camera, face identity "
-				+ "and the established Stage 2 body silhouette. The ELEMENTAL DETAIL PROGRESSION "
-				+ "may add restrained surface-level fur contour, markings, material feel and aura "
-				+ "across existing body surfaces, but it may not create new limbs, a humanoid pose "
-				+ "or a different body plan."
+				"Apply the code-selected Gene change clearly and only in target region '%s'. "
+				+ "Outside that region, preserve the reference pixels conceptually: species anatomy, "
+				+ "appendage layout, pose, camera, face identity, existing markings, colors, silhouette "
+				+ "and environment must remain unchanged. The ELEMENTAL DETAIL PROGRESSION only describes "
+				+ "how the selected target region should evolve; it must not spill into unrelated regions."
 			) % String(target_region)
 		)
 
@@ -908,26 +1423,214 @@ func _element_stage_prompt(
 	)
 
 
-func _stage_two_body_plan_prompt() -> String:
+func _species_profile(
+	species: StringName
+) -> InitialSpeciesProfile:
+	var catalog := InitialSpeciesCatalogScript.new()
+
+	return catalog.find_by_species(
+		catalog.load_default(),
+		species
+	)
+
+
+func _stage_one_to_two_lineage_prompt(
+	identity: PetIdentity
+) -> String:
+	var stage_one := _element_stage_prompt(
+		identity.element(),
+		1
+	)
+	var stage_two := _element_stage_prompt(
+		identity.element(),
+		2
+	)
+
+	if (
+		stage_one.is_empty()
+		or stage_two.is_empty()
+	):
+		return ""
+
 	return (
-		"Natural feline quadruped only. Keep the spine and torso horizontally organized like a cat, "
-		+ "with two forelegs and two hind legs attached in anatomically correct positions. "
-		+ "The pet must be supported naturally on four paws or in a clearly four-legged feline pose. "
-		+ "Never stand upright on two legs, never use human shoulders or arms, never use a mascot pose, "
-		+ "and never make the forelegs hang like human hands. The body may differ by element, "
-		+ "but all seven elements remain coherent four-legged cats."
+		"[LINEAGE CONTINUITY]\n"
+		+ "The Stage 1 source image is the canonical individual identity. Preserve its unique face, fur pattern, markings and recognizable details. "
+		+ "Its element-family identity was established with these Stage 1 cues: "
+		+ stage_one
+		+ " Do not reset these cues or replace them with a new random face."
+		+ "\n\n[STAGE 2 MORPHOLOGY]\n"
+		+ stage_two
+		+ " Apply this as maturation of the same individual. It may change age-appropriate proportions and elemental shape language, "
+		+ "but it must preserve the source pet's personal identity and previously established details unless a code-selected Gene explicitly changes them."
+	)
+
+
+func _stage_two_base_prompt(
+	identity: PetIdentity
+) -> String:
+	return (
+		"Evolve the exact same cat from Stage 1 to Stage 2 using the reference image. "
+		+ "Keep the same individual face, fur pattern, element colors and exactly one tail. "
+		+ "Make it slightly older and more developed. "
+		+ "Painterly fantasy game art, slight chibi, natural feline anatomy. "
+		+ "Element: "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ ". "
+		+ _simple_element_traits(
+			identity.element()
+		)
+		+ " Simple element-themed background. Full body visible. "
+		+ "Keep the pet small in the lower third, about 28 to 32 percent of image height. "
+		+ "Background occupies most of the image. Keep the upper area calm for UI. "
+		+ "No text or UI."
+	)
+
+
+func _stage_two_simple_negative() -> String:
+	return (
+		"different individual, identity drift, extra tail, duplicate tail, split tail, "
+		+ "extra leg, extra ear, multiple pets, close-up portrait, pet filling the frame, "
+		+ "oversized pet, humanoid pose, heavy accessories, text, UI, logo, watermark"
+	)
+
+
+func _simple_element_traits(
+	element: StringName
+) -> String:
+	match element:
+		&"wood":
+			return (
+				"soft cream and warm light-brown fur with fresh green accents, "
+				+ "small living sprouts growing naturally from the head and ear fur, "
+				+ "leaf-like fur tufts, layered leafy chest fluff, "
+				+ "subtle vine-like markings blended into the coat, "
+				+ "and a soft bud-shaped leafy tail tip. "
+				+ "Plant features should look naturally grown as part of the pet, "
+				+ "not like loose leaves stuck onto the fur"
+			)
+
+		&"earth":
+			return (
+				"warm cream, beige and earthy brown fur with subtle mineral tones, "
+				+ "small smooth pebbles and polished natural crystals emerging gently from the fur, "
+				+ "especially around the forehead, chest and back, "
+				+ "soft stone-like markings blended into the coat and a grounded fluffy silhouette. "
+				+ "Mineral details should feel organically embedded in the body design, "
+				+ "not like rocks randomly thrown onto the pet"
+			)
+
+		&"fire":
+			return (
+				"soft cream, peach and warm orange fur with glowing ember accents, "
+				+ "small controlled flames naturally forming at the ear tips and tail tip, "
+				+ "subtle glowing flame-shaped markings on the forehead and cheeks, "
+				+ "and delicate warm ember lines flowing through the fur. "
+				+ "Fire should feel like magical living fur energy, "
+				+ "not like the pet is burning uncontrollably"
+			)
+
+		&"light":
+			return (
+				"soft ivory and warm pearl-white fur with pale golden accents, "
+				+ "a small luminous star-shaped forehead mark, "
+				+ "soft golden light woven naturally through the ear fur and tail, "
+				+ "a restrained elegant halo-like glow around the silhouette, "
+				+ "and tiny gentle light particles. "
+				+ "The light should feel soft, pure and magical, not overly bright or angelic"
+			)
+
+		&"metal":
+			return (
+				"silver-white and very pale cool-gray fur with clean icy-blue accents, "
+				+ "small polished metallic crystal facets growing naturally from the forehead and fur, "
+				+ "subtle silver leaf-like plates blended into the chest and leg fur, "
+				+ "fine metallic strands around the tail and a refined cool reflective sheen. "
+				+ "Metal details should feel elegant and organically integrated, "
+				+ "not like armor or mechanical equipment"
+			)
+
+		&"water":
+			return (
+				"pearl-white and soft aqua fur with clear turquoise accents, "
+				+ "small translucent water-drop crystals naturally forming on the forehead and fur, "
+				+ "soft wave-like fur tufts, flowing aqua gradients along the cheeks and tail, "
+				+ "and a few delicate suspended bubbles and droplets. "
+				+ "Water should feel naturally infused into the fur and body, "
+				+ "not like the pet is simply wet"
+			)
+
+		&"dark":
+			return (
+				"smoky blue-black, charcoal-indigo and muted violet fur with restrained cyan-violet highlights, "
+				+ "a subtle crescent or astral forehead mark, "
+				+ "soft shadow-like fur gradients, faint luminous eye accents, "
+				+ "restrained mist woven around the tail and silhouette, "
+				+ "and a few elegant dark magical markings blended into the coat. "
+				+ "Dark energy should feel mysterious and integrated into the pet, "
+				+ "not like galaxy texture or random purple effects covering the body"
+			)
+
+		_:
+			return "Soft elemental accents."
+
+
+func _stage_two_environment_prompt(
+	scene_profile: PetSceneProfile,
+	element: StringName
+) -> String:
+	var text := (
+		"Create a natural environmental background inspired by the "
+		+ PetElementCatalog.prompt_name(element)
+		+ " element. Let the AI freely invent the scenery, terrain, vegetation, atmosphere, weather and lighting so the world feels organically connected to the pet. "
+	)
+
+	if scene_profile != null:
+		text += (
+			"Use these existing descriptors only as loose inspiration, not as a continuity lock: "
+			+ scene_profile.environment_theme
+			+ "; "
+			+ scene_profile.palette_description
+			+ "; "
+			+ scene_profile.lighting_theme
+			+ ". "
+		)
+
+	text += (
+		"Avoid a studio backdrop. The environment should feel alive, natural and spacious."
+	)
+
+	return text
+
+
+func _stage_two_species_prompt(
+	profile: InitialSpeciesProfile
+) -> String:
+	if profile == null:
+		return ""
+
+	return (
+		profile.species_anatomy
+		+ " "
+		+ profile.freestyle_pose
+		+ " Keep natural animal anatomy and pose; otherwise allow broad visual freedom."
 	)
 
 
 func _stage_two_composition_prompt() -> String:
 	return (
-		"Use a vertical 9:16 environmental establishing shot, not a character portrait. "
-		+ "Show the complete pet from the highest visible point of the ears or fur through all paws and the full tail. "
-		+ "LOCKED SCALE FOR EVERY LIFE STAGE: the visible pet height must be about 35 percent of total image height, measured from the highest visible point of the pet to the lowest paw/ground contact point. "
-		+ "Place the lowest paw/ground contact point at about 90 percent of total image height, leaving about 10 percent of image height from the pet's feet to the bottom edge. "
-		+ "Keep the pet horizontally near center and in the lower-middle of the frame. Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
-		+ "Keep the environment dominant with clear foreground, midground and background depth. Leave the upper 24 to 28 percent calm and low-detail for UI. "
-		+ "Do not zoom in, do not crop paws or tail, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
+		"Use a vertical 9:16 WIDE environmental establishing shot with the camera pulled back, never a character portrait or showcase shot. "
+		+ "The environment is the main composition and the pet is a smaller focal subject living inside it. "
+		+ "Keep the whole pet comfortably inside the frame and its overall species silhouette readable. "
+		+ "Natural perspective and partial occlusion of limbs, tail or other appendages are allowed. "
+		+ "LOCKED SCALE FOR STAGE 2: the visible pet height should occupy only about 28 to 32 percent of total image height. "
+		+ "Visually, the pet should fit mostly inside the LOWER THIRD of the scene, with abundant environment visible above and around it. "
+		+ "Place the lowest visible pet point around 88 to 90 percent of total image height and keep the highest visible pet point below roughly 55 to 60 percent of total image height. "
+		+ "Do not enlarge the pet because it is older; Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
+		+ "Keep at least about 65 to 70 percent of the image reading as environment, with clear foreground, midground and background depth. "
+		+ "Leave the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
+		+ "Do not zoom in, do not crop the pet, do not let ears or head enter the top half of the frame, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
 	)
 
 
@@ -940,11 +1643,13 @@ func _pethome_scale_lock_section() -> String:
 
 func _stage_two_negative_prompt() -> String:
 	return (
-		"bipedal, two-legged stance, standing upright, humanoid pose, anthropomorphic body, "
-		+ "human arms, mascot pose, front paws used as hands, vertical human torso, close-up portrait, "
-		+ "medium portrait, bust shot, giant pet, oversized character, pet filling the frame, cropped paws, "
-		+ "cropped tail, plain studio background, gray studio background, empty backdrop, missing environment, "
-		+ "color-swap-only element design, identical silhouette across all elements"
+		"close-up portrait, medium portrait, bust shot, character showcase, character poster, giant pet, oversized character, "
+		+ "pet filling the frame, pet occupying most of the image, pet taller than 35 percent of image height, zoomed-in camera, "
+		+ "cropped pet, head in the upper half of the frame, plain studio background, gray studio background, "
+		+ "empty backdrop, missing environment, color-swap-only element design, "
+		+ "upright bipedal cat, cat standing on two hind legs, anthropomorphic cat pose, humanoid torso, mascot pose, arms, hands, "
+		+ "identical silhouette across all elements, duplicated appendage, duplicated body part, "
+		+ "malformed species anatomy, impossible joint, detached appendage"
 	)
 
 
@@ -954,7 +1659,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% target_stage
 	)
 

@@ -7,8 +7,9 @@ const CHEST_DAILY: StringName = &"daily"
 const CHEST_EVOLUTION: StringName = &"evolution"
 const CHEST_INFANT_ACTIVITY: StringName = &"infant_activity"
 const CHEST_STAGE_ACTIVITY: StringName = &"stage_activity"
-
 const STAGE2_ACTIVITY_REWARD_COUNT: int = 4
+const CHEST_RECYCLED: StringName = &"recycled"
+const FRAGMENTS_PER_RECYCLED_CHEST: int = 10
 
 
 var _meta: Dictionary = {}
@@ -24,6 +25,75 @@ func setup(
 
 	if not _meta.has("chest_queue"):
 		_meta["chest_queue"] = []
+	if not _meta.has("chest_fragments"):
+		_meta["chest_fragments"] = 0
+	if not _meta.has("recycled_chests_created"):
+		_meta["recycled_chests_created"] = 0
+
+
+func fragment_count() -> int:
+	return maxi(
+		0,
+		int(
+			_meta.get(
+				"chest_fragments",
+				0
+			)
+		)
+	)
+
+
+func add_salvage_fragments(
+	amount: int,
+	run_id: int,
+	stage_index: int
+) -> int:
+	if amount <= 0:
+		return 0
+
+	var fragments := fragment_count() + amount
+	var crafted := 0
+
+	while fragments >= FRAGMENTS_PER_RECYCLED_CHEST:
+		fragments -= FRAGMENTS_PER_RECYCLED_CHEST
+		crafted += 1
+		_enqueue_recycled_chest(
+			run_id,
+			stage_index
+		)
+
+	_meta["chest_fragments"] = fragments
+	return crafted
+
+
+func _enqueue_recycled_chest(
+	run_id: int,
+	stage_index: int
+) -> void:
+	var created := int(
+		_meta.get(
+			"recycled_chests_created",
+			0
+		)
+	) + 1
+	_meta["recycled_chests_created"] = created
+
+	var queue: Array = _meta.get(
+		"chest_queue",
+		[]
+	)
+	queue.append({
+		"uid": "recycled_%s_%s" % [run_id, created],
+		"chest_type": String(CHEST_RECYCLED),
+		"run_id": run_id,
+		"stage_index": clampi(
+			stage_index,
+			1,
+			StageLifecycle.FINAL_STAGE
+		),
+		"opened": false,
+	})
+	_meta["chest_queue"] = queue
 
 
 func ensure_hatch_chest(run_id: int) -> void:
@@ -324,6 +394,8 @@ func _roll_rewards(chest: Dictionary) -> Array[Dictionary]:
 			return _roll_infant_activity_chest(chest)
 		CHEST_STAGE_ACTIVITY:
 			return _roll_stage_activity_chest(chest)
+		CHEST_RECYCLED:
+			return _roll_recycled_chest(chest)
 		_:
 			push_error("ChestService: unsupported chest: " + String(chest_type))
 			return []
@@ -725,6 +797,59 @@ func _roll_stage_activity_chest(
 			)
 
 	return rewards
+
+
+func _roll_recycled_chest(
+	chest: Dictionary
+) -> Array[Dictionary]:
+	var uid := String(
+		chest.get(
+			"uid",
+			"recycled"
+		)
+	)
+	var stage_index := clampi(
+		int(
+			chest.get(
+				"stage_index",
+				1
+			)
+		),
+		1,
+		StageLifecycle.FINAL_STAGE
+	)
+	var seed_value := absi(
+		hash(uid)
+	)
+
+	if seed_value == 0:
+		seed_value = 1
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var item_type: StringName
+
+	if stage_index >= StageLifecycle.FINAL_STAGE:
+		item_type = ItemGenerator.TYPE_FUTURE_FRAGMENT
+	else:
+		var roll := rng.randf()
+		if roll <= 0.10:
+			item_type = ItemGenerator.TYPE_FUTURE_FRAGMENT
+		elif roll <= 0.55:
+			item_type = ItemGenerator.TYPE_GROWTH
+		else:
+			item_type = ItemGenerator.TYPE_FOOD
+
+	var item := _generator.generate_for_stage(
+		item_type,
+		seed_value,
+		stage_index
+	)
+
+	if item.is_empty():
+		return []
+
+	return [item]
 
 
 func _guaranteed_stage_gene_reward_index(

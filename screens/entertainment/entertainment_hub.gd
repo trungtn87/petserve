@@ -5,21 +5,24 @@ extends Control
 const CaroActivityScript = preload(
 	"res://screens/entertainment/caro_activity_ui.gd"
 )
-const MazeHuntActivityScript = preload(
-	"res://screens/entertainment/maze_hunt_activity_ui.gd"
+const ObstacleRunActivityScript = preload(
+	"res://screens/entertainment/obstacle_run_activity_ui.gd"
 )
 const SnakeHuntActivityScript = preload(
 	"res://screens/entertainment/snake_hunt_activity_ui.gd"
 )
 
 
+signal energy_2048_reward_received
 signal caro_win_reward_requested
-signal maze_reward_requested(score: int, match_id: String)
+signal obstacle_reward_requested(score: int, match_id: String)
 signal snake_reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
 
 var palette: Dictionary = {}
+var energy_2048_api: InfantGameFacade
+var _energy_2048_activity: Energy2048ActivityUI
 
 var _is_open: bool = false
 var _stage_index: int = 1
@@ -34,9 +37,9 @@ var _stage2_reward_enabled: bool = false
 
 var _hub_screen: Control
 var _caro_activity
-var _maze_activity
+var _obstacle_activity
 var _snake_activity
-var _maze_card: Button
+var _obstacle_card: Button
 var _snake_card: Button
 var _reward_label: Label
 
@@ -85,11 +88,14 @@ func close_hub() -> void:
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
-	if _maze_activity != null:
-		_maze_activity.close_activity()
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
 
 	if _snake_activity != null:
 		_snake_activity.close_activity()
+
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
 
 	visible = false
 	_is_open = false
@@ -141,11 +147,11 @@ func show_reward_message(
 		)
 
 
-func show_maze_reward_message(
+func show_obstacle_reward_message(
 	message: String
 ) -> void:
-	if _maze_activity != null:
-		_maze_activity.show_reward_message(
+	if _obstacle_activity != null:
+		_obstacle_activity.show_reward_message(
 			message
 		)
 
@@ -277,12 +283,13 @@ func _build_ui() -> void:
 	_build_caro_activity(
 		body
 	)
-	_build_maze_activity(
+	_build_obstacle_activity(
 		body
 	)
 	_build_snake_activity(
 		body
 	)
+	_build_energy_2048_activity(body)
 
 
 func _build_hub_screen(
@@ -368,15 +375,15 @@ func _build_hub_screen(
 		)
 	)
 
-	_maze_card = _activity_card(
-		"Maze Hunt",
-		"Chạy mê cung cùng pet",
+	_obstacle_card = _activity_card(
+		"Vượt chướng ngại",
+		"Chạm để nhảy",
 		true,
-		_open_maze,
+		_open_obstacle,
 		"◆"
 	)
 	grid.add_child(
-		_maze_card
+		_obstacle_card
 	)
 
 	_snake_card = _activity_card(
@@ -392,11 +399,11 @@ func _build_hub_screen(
 
 	grid.add_child(
 		_activity_card(
-			"Sắp mở",
-			"Hoạt động mới",
-			false,
-			Callable(),
-			"＋"
+			"2048",
+			"Ghép ô • Nhận mảnh rương",
+			true,
+			_open_energy_2048,
+			"▦"
 		)
 	)
 
@@ -448,25 +455,25 @@ func _build_caro_activity(
 	)
 
 
-func _build_maze_activity(
+func _build_obstacle_activity(
 	parent: Control
 ) -> void:
-	_maze_activity = MazeHuntActivityScript.new()
-	_maze_activity.palette = palette
+	_obstacle_activity = ObstacleRunActivityScript.new()
+	_obstacle_activity.palette = palette
 	parent.add_child(
-		_maze_activity
+		_obstacle_activity
 	)
-	_maze_activity.set_anchors_and_offsets_preset(
+	_obstacle_activity.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
-	_maze_activity.visible = false
-	_maze_activity.reward_requested.connect(
-		_on_maze_reward_requested
+	_obstacle_activity.visible = false
+	_obstacle_activity.reward_requested.connect(
+		_on_obstacle_reward_requested
 	)
-	_maze_activity.back_requested.connect(
+	_obstacle_activity.back_requested.connect(
 		_show_hub_screen
 	)
-	_maze_activity.match_finished.connect(
+	_obstacle_activity.match_finished.connect(
 		_on_match_finished
 	)
 
@@ -615,19 +622,19 @@ func _open_caro() -> void:
 		_caro_activity.open_activity()
 
 
-func _open_maze() -> void:
+func _open_obstacle() -> void:
 	_hide_activities()
 
 	if _hub_screen != null:
 		_hub_screen.visible = false
 
-	if _maze_activity != null:
-		_maze_activity.set_reward_status(
+	if _obstacle_activity != null:
+		_obstacle_activity.set_reward_status(
 			_stage2_reward_claimed,
 			_stage2_reward_max,
 			_stage2_reward_enabled
 		)
-		_maze_activity.open_activity()
+		_obstacle_activity.open_activity()
 
 
 func _open_snake() -> void:
@@ -655,11 +662,14 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
+
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
-	if _maze_activity != null:
-		_maze_activity.close_activity()
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
 
 	if _snake_activity != null:
 		_snake_activity.close_activity()
@@ -674,7 +684,7 @@ func _sync_reward_state() -> void:
 		)
 
 	for activity in [
-		_maze_activity,
+		_obstacle_activity,
 		_snake_activity,
 	]:
 		if activity != null:
@@ -684,7 +694,59 @@ func _sync_reward_state() -> void:
 				_stage2_reward_enabled
 			)
 
+	_update_stage2_card_subtitles()
 	_update_hub_reward_label()
+
+
+func _update_stage2_card_subtitles() -> void:
+	var remaining := maxi(
+		0,
+		_stage2_reward_max
+		- clampi(
+			_stage2_reward_claimed,
+			0,
+			_stage2_reward_max
+		)
+	)
+	var subtitle := ""
+
+	if _stage_index == 2:
+		subtitle = (
+			"Rương chung còn %d/%d"
+			% [
+				remaining,
+				_stage2_reward_max,
+			]
+			if remaining > 0
+			else "Hết rương • vẫn chơi tự do"
+		)
+	else:
+		subtitle = "Chơi tự do • thưởng ở Stage 2"
+
+	_set_card_subtitle(
+		_obstacle_card,
+		subtitle
+	)
+	_set_card_subtitle(
+		_snake_card,
+		subtitle
+	)
+
+
+func _set_card_subtitle(
+	card: Button,
+	text: String
+) -> void:
+	if card == null:
+		return
+
+	var label = card.get_meta(
+		"subtitle_label",
+		null
+	) as Label
+
+	if label != null:
+		label.text = text
 
 
 func _update_hub_reward_label() -> void:
@@ -708,24 +770,37 @@ func _update_hub_reward_label() -> void:
 		)
 	else:
 		lines.append(
-			"Caro: chơi tự do • không còn thưởng Stage 1"
+			"Caro: chơi tự do • không mở lại thưởng Stage 1"
 		)
 
-	if _stage2_reward_enabled:
-		lines.append(
-			"Stage 2: Rương Hoạt động chung %d/%d"
-			% [
-				clampi(
-					_stage2_reward_claimed,
-					0,
-					_stage2_reward_max
-				),
-				_stage2_reward_max,
-			]
-		)
+	var stage2_claimed := clampi(
+		_stage2_reward_claimed,
+		0,
+		_stage2_reward_max
+	)
+	var stage2_remaining := maxi(
+		0,
+		_stage2_reward_max
+		- stage2_claimed
+	)
+
+	if _stage_index == 2:
+		if stage2_remaining > 0:
+			lines.append(
+				"Vượt chướng ngại + Snake: Rương chung còn %d/%d"
+				% [
+					stage2_remaining,
+					_stage2_reward_max,
+				]
+			)
+		else:
+			lines.append(
+				"Vượt chướng ngại + Snake: Rương chung còn 0/%d • vẫn chơi tự do"
+				% _stage2_reward_max
+			)
 	else:
 		lines.append(
-			"Maze + Snake: chơi tự do • thưởng chỉ có ở Stage 2"
+			"Vượt chướng ngại + Snake: chơi tự do • rương chỉ thuộc Stage 2"
 		)
 
 	_reward_label.text = "\n".join(
@@ -737,11 +812,11 @@ func _on_caro_reward_requested() -> void:
 	caro_win_reward_requested.emit()
 
 
-func _on_maze_reward_requested(
+func _on_obstacle_reward_requested(
 	score: int,
 	match_id: String
 ) -> void:
-	maze_reward_requested.emit(
+	obstacle_reward_requested.emit(
 		score,
 		match_id
 	)
@@ -782,3 +857,21 @@ func _style(
 			Color("a98af4")
 		)
 	)
+
+
+func _build_energy_2048_activity(parent: Control) -> void:
+	_energy_2048_activity = Energy2048ActivityUI.new()
+	_energy_2048_activity.palette = palette
+	parent.add_child(_energy_2048_activity)
+	_energy_2048_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_energy_2048_activity.visible = false
+	_energy_2048_activity.back_requested.connect(_show_hub_screen)
+	_energy_2048_activity.reward_received.connect(func() -> void: energy_2048_reward_received.emit())
+	_energy_2048_activity.match_finished.connect(_on_match_finished)
+
+
+func _open_energy_2048() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_energy_2048_activity.game_api = energy_2048_api
+	_energy_2048_activity.open_activity()
