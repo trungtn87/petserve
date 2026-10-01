@@ -207,6 +207,11 @@ func _test_stage_scaling_keeps_identity() -> void:
 		) == 3,
 		"Stage 3 scaling metadata must be set"
 	)
+	_expect(
+		int(scaled.get("main_value_seconds", 0))
+		== int(round(float(base.get("main_value_seconds", 0)) * 12.0)),
+		"Stage 3 Food/Growth scaling must match the 48-hour x12 baseline"
+	)
 
 
 func _test_graded_secondary_effects() -> void:
