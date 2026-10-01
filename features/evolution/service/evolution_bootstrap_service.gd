@@ -95,7 +95,11 @@ func build_from_hatch() -> Dictionary:
 		SpeciesMythicDestinyService.new()
 		.from_stage4_egg(
 			identity,
-			int(egg_state.stage)
+			int(egg_state.stage),
+			(
+				egg_state.mutation_checked
+				and egg_state.mutation
+			)
 		)
 	)
 
