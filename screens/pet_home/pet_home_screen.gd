@@ -706,10 +706,17 @@ func _add_pet_info_tab_button(
 	var button := Button.new()
 	button.text = label_text
 	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size.y = 38
+	button.custom_minimum_size = Vector2(
+		0,
+		46
+	)
 	button.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	button.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	button.clip_text = true
 	button.pressed.connect(
 		_open_pet_info_tab.bind(
 			tab_id
@@ -1490,22 +1497,13 @@ func _refresh_gameplay() -> void:
 			if final_form
 			else "Trưởng thành"
 		)
-	var duration_seconds := maxi(
-		1,
-		int(
-			state.get(
-				"duration_seconds",
-				1
-			)
-		)
-	)
 	_fullness_bar.value = clampf(
 		float(
 			state.get(
-				"food_seconds",
+				"food_percent",
 				0
 			)
-		) / float(duration_seconds) * 100.0,
+		),
 		0,
 		100
 	)
