@@ -24,6 +24,10 @@ const VISUAL_LOCI: Array[StringName] = [
 	&"mark",
 	&"structure",
 	&"aura",
+	&"horns",
+	&"wings",
+	&"hooves",
+	&"antlers",
 ]
 
 
