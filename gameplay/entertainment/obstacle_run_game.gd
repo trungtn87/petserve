@@ -12,7 +12,7 @@ const PLAYER_SIZE := Vector2(34, 36)
 const PLAYER_MARGIN: float = 10.0
 const ROUND_SECONDS: float = 40.0
 const STARTING_LIVES: int = 3
-const MOVE_SPEED: float = 310.0
+const MOVE_SPEED: float = 340.0
 const STEP: float = 1.0 / 120.0
 const HIT_PROTECTION_SECONDS: float = 1.15
 const LANE_CENTERS := [38.0, 99.0, 160.0, 221.0, 282.0]
@@ -103,7 +103,7 @@ func _step(delta: float) -> void:
 	_spawn_left -= delta
 	if _spawn_left <= 0.0:
 		_spawn_pattern()
-		var base_interval := lerpf(0.88, 0.48, _difficulty())
+		var base_interval := lerpf(1.00, 0.62, _difficulty())
 		_spawn_left = _rng.randf_range(
 			base_interval * 0.86,
 			base_interval * 1.14
@@ -138,10 +138,8 @@ func _step(delta: float) -> void:
 func _spawn_pattern() -> void:
 	var blocked := 1
 	var difficulty := _difficulty()
-	if difficulty >= 0.42 and _rng.randf() < 0.34:
+	if difficulty >= 0.45 and _rng.randf() < 0.30:
 		blocked = 2
-	if difficulty >= 0.78 and _rng.randf() < 0.22:
-		blocked = 3
 
 	var chosen: Array[int] = []
 	while chosen.size() < blocked:
@@ -201,7 +199,7 @@ func passed() -> int:
 	return _passed
 
 func speed() -> float:
-	return lerpf(138.0, 228.0, _difficulty())
+	return lerpf(130.0, 205.0, _difficulty())
 
 func is_invulnerable() -> bool:
 	return _invulnerable > 0.0
