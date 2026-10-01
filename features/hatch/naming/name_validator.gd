@@ -20,7 +20,7 @@ func validate(
 		return {
 			"ok": false,
 			"name": "",
-			"error": LocalizationManager.text("HATCH_ERROR_EMPTY", "Enter a name for your pet.")
+			"error": "Hãy nhập tên cho pet."
 		}
 
 
@@ -28,7 +28,7 @@ func validate(
 		return {
 			"ok": false,
 			"name": "",
-			"error": LocalizationManager.text("HATCH_ERROR_SHORT", "Name is too short.")
+			"error": "Tên quá ngắn."
 		}
 
 
@@ -54,10 +54,7 @@ func validate(
 			return {
 				"ok": false,
 				"name": "",
-				"error": LocalizationManager.text(
-					"HATCH_ERROR_INVALID_CHARACTER",
-					"Name contains an invalid character."
-				)
+				"error": "Tên chứa ký tự không hợp lệ."
 			}
 
 

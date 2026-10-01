@@ -18,8 +18,6 @@ config/features=PackedStringArray("4.7")
 
 [autoload]
 
-SettingsManager="*res://core/settings_manager.gd"
-LocalizationManager="*res://core/localization_manager.gd"
 RandomManager="*res://core/random_manager.gd"
 SaveManager="*res://core/save_manager.gd"
 RunManager="*res://core/run_manager.gd"

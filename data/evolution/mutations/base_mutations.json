@@ -1,0 +1,90 @@
+[
+  {
+    "id": "galaxy_eye_ring",
+    "target_trait": "eyes",
+    "required_trait": "base",
+    "result_trait": "galaxy_ring",
+    "min_stage": 1,
+    "weight": 10
+  },
+  {
+    "id": "ear_star_tips",
+    "target_trait": "ears",
+    "required_trait": "base",
+    "result_trait": "star_tips",
+    "min_stage": 1,
+    "weight": 10
+  },
+  {
+    "id": "tail_long_fluffy",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "long_fluffy",
+    "min_stage": 1,
+    "weight": 10
+  },
+  {
+    "id": "moon_forehead_mark",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "crescent_moon",
+    "min_stage": 1,
+    "weight": 8
+  },
+  {
+    "id": "nebula_fur_speckles",
+    "target_trait": "fur",
+    "required_trait": "base",
+    "result_trait": "nebula_speckles",
+    "min_stage": 1,
+    "weight": 8
+  },
+  {
+    "id": "luminous_paws",
+    "target_trait": "paws",
+    "required_trait": "base",
+    "result_trait": "luminous",
+    "min_stage": 1,
+    "weight": 6
+  },
+  {
+    "id": "starlight_whiskers",
+    "target_trait": "whiskers",
+    "required_trait": "base",
+    "result_trait": "starlight",
+    "min_stage": 1,
+    "weight": 6
+  },
+  {
+    "id": "constellation_freckles",
+    "target_trait": "cheeks",
+    "required_trait": "base",
+    "result_trait": "constellation",
+    "min_stage": 1,
+    "weight": 5
+  },
+  {
+    "id": "astral_neck_fur",
+    "target_trait": "neck",
+    "required_trait": "base",
+    "result_trait": "astral_mane",
+    "min_stage": 2,
+    "weight": 5
+  },
+  {
+    "id": "tail_twin_tip",
+    "target_trait": "tail",
+    "required_trait": "long_fluffy",
+    "result_trait": "twin_tip",
+    "min_stage": 2,
+    "weight": 4
+  },
+  {
+    "id": "eclipse_forehead_mark",
+    "target_trait": "mark",
+    "required_trait": "crescent_moon",
+    "result_trait": "eclipse_mark",
+    "min_stage": 3,
+    "weight": 3
+  }
+]

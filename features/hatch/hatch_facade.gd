@@ -142,7 +142,7 @@ func submit_name(
 		_last_error = str(
 			validation.get(
 				"error",
-				LocalizationManager.text("HATCH_ERROR_INVALID_NAME", "Invalid name.")
+				"Tên không hợp lệ."
 			)
 		)
 

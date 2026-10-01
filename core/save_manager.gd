@@ -48,7 +48,7 @@ func load_meta() -> Dictionary:
 	)
 
 
-func has_meta() -> bool:
+func has_meta_save() -> bool:
 	return FileAccess.file_exists(META_PATH)
 
 
@@ -64,16 +64,7 @@ func _write_dictionary(
 	data: Dictionary,
 	error_message: String
 ) -> bool:
-	var file := FileAccess.open(path, FileAccess.WRITE)
-
-	if file == null:
-		push_error(error_message)
-		return false
-
-	file.store_string(JSON.stringify(data))
-	file.close()
-
-	return true
+	return AtomicJson.write(path, data)
 
 
 func _read_dictionary(
