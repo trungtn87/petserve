@@ -67,12 +67,12 @@ func profile(identity: PetIdentity) -> Dictionary:
 		species_key,
 		POSES
 	)
-	var surface_line := SURFACE_LINES[
+	var surface_line: String = String(SURFACE_LINES[
 		rng.randi_range(
 			0,
 			SURFACE_LINES.size() - 1
 		)
-	]
+	])
 	return {
 		"version": VERSION,
 		"frame": frame[3],
