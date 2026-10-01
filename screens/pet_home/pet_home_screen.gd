@@ -17,6 +17,8 @@ const PetSceneProfileScript = preload(
 
 
 var _game := InfantGameFacade.new()
+var _final_record_service := FinalRecordService.new()
+var _final_record_renderer := FinalRecordRenderer.new()
 var _hud: PetHomeGameplayUI
 var _hub: EntertainmentHubUI
 var _game_tick: float = 0.0
@@ -59,6 +61,7 @@ func _ready() -> void:
 	_build_drawer()
 	_build_section_overlay()
 	_setup_gameplay()
+	call_deferred("_maybe_open_final_record")
 
 
 func _unhandled_input(
@@ -665,6 +668,8 @@ func _on_drawer_action(
 			_open_games()
 		&"evolution":
 			_open_evolution()
+		&"achievement":
+			_open_achievements()
 		&"settings":
 			_open_settings()
 
@@ -2017,7 +2022,11 @@ func _open_evolution() -> void:
 		)
 		_add_info_row(
 			"Tiếp theo",
-			"Giữ 1 kỹ năng + tối đa 1 item → đời sau"
+			"Xem thành tích đời pet → chọn di sản → đời sau"
+		)
+		_section_button(
+			"XEM THÀNH TÍCH ĐỜI PET",
+			_open_current_final_record
 		)
 		_section_button(
 			"CHỌN DI SẢN",
@@ -2401,6 +2410,26 @@ func _start_next_generation(
 		)
 		return
 
+	var final_record_result := (
+		_final_record_service.ensure_current_record()
+	)
+	if not bool(
+		final_record_result.get(
+			"ok",
+			false
+		)
+	):
+		_hud.show_message(
+			"Không lưu được thành tích đời pet: "
+			+ String(
+				final_record_result.get(
+					"error",
+					"lỗi không xác định"
+				)
+			)
+		)
+		return
+
 	var prepared := LegacyInheritanceService.new().prepare(
 		identity,
 		item,
@@ -2654,6 +2683,518 @@ func _evolve() -> void:
 		get_tree().change_scene_to_file(
 			"res://scenes/evolution_update.tscn"
 		)
+
+
+func _maybe_open_final_record() -> void:
+	if _hud == null:
+		return
+
+	var state := _game.snapshot()
+	if not bool(
+		state.get(
+			"final_form",
+			false
+		)
+	):
+		return
+
+	var result := (
+		_final_record_service.ensure_current_record()
+	)
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var record_value: Variant = result.get(
+		"record",
+		{}
+	)
+	if typeof(record_value) != TYPE_DICTIONARY:
+		return
+
+	var record := record_value as Dictionary
+	if bool(
+		record.get(
+			"presented",
+			false
+		)
+	):
+		return
+
+	await _show_final_record(
+		record,
+		true
+	)
+
+
+func _open_current_final_record() -> void:
+	var result := (
+		_final_record_service.ensure_current_record()
+	)
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		_hud.show_message(
+			String(
+				result.get(
+					"error",
+					"Chưa tạo được thành tích đời pet."
+				)
+			)
+		)
+		return
+
+	var record_value: Variant = result.get(
+		"record",
+		{}
+	)
+	if typeof(record_value) != TYPE_DICTIONARY:
+		return
+
+	await _show_final_record(
+		record_value as Dictionary,
+		false
+	)
+
+
+func _open_final_record_by_id(
+	record_id: String
+) -> void:
+	var record := _final_record_service.get_record(
+		record_id
+	)
+
+	if record.is_empty():
+		_hud.show_message(
+			"Không tìm thấy Final Record."
+		)
+		return
+
+	await _show_final_record(
+		record,
+		false
+	)
+
+
+func _show_final_record(
+	record: Dictionary,
+	mark_as_presented: bool
+) -> void:
+	_prepare_section(
+		"Thành tích đời pet",
+		&"final_record"
+	)
+
+	_add_info_row(
+		"Pet",
+		String(
+			record.get(
+				"display_name",
+				"Pet"
+			)
+		)
+	)
+	_add_info_row(
+		"Đời",
+		"#%d"
+		% (
+			int(
+				record.get(
+					"generation",
+					0
+				)
+			)
+			+ 1
+		)
+	)
+
+	var loading := Label.new()
+	loading.text = "Đang dựng ảnh kỷ niệm 4 giai đoạn..."
+	loading.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	loading.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	_section_body.add_child(
+		loading
+	)
+	_section_overlay.visible = true
+
+	var preview := await _final_record_renderer.render_preview(
+		record,
+		self,
+		Vector2i(
+			960,
+			540
+		)
+	)
+
+	if _active_section != &"final_record":
+		return
+
+	if is_instance_valid(loading):
+		loading.queue_free()
+
+	if preview == null or preview.is_empty():
+		_add_info_row(
+			"Ảnh",
+			"Không dựng được preview."
+		)
+	else:
+		var texture_rect := TextureRect.new()
+		texture_rect.custom_minimum_size = Vector2(
+			0,
+			168
+		)
+		texture_rect.size_flags_horizontal = (
+			Control.SIZE_EXPAND_FILL
+		)
+		texture_rect.expand_mode = (
+			TextureRect.EXPAND_IGNORE_SIZE
+		)
+		texture_rect.stretch_mode = (
+			TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		)
+		texture_rect.texture = (
+			ImageTexture.create_from_image(
+				preview
+			)
+		)
+		_section_body.add_child(
+			texture_rect
+		)
+
+	var record_id := String(
+		record.get(
+			"record_id",
+			""
+		)
+	)
+	_section_button(
+		"LƯU ẢNH 16:9",
+		Callable(
+			self,
+			"_save_final_record"
+		).bind(
+			record_id
+		)
+	)
+	_section_button(
+		"BẢNG THÀNH TÍCH",
+		_open_achievements
+	)
+
+	if bool(
+		_game.snapshot().get(
+			"final_form",
+			false
+		)
+	):
+		_section_button(
+			"CHỌN DI SẢN",
+			_open_legacy_inheritance
+		)
+
+	if (
+		mark_as_presented
+		and not record_id.is_empty()
+	):
+		_final_record_service.mark_presented(
+			record_id
+		)
+
+
+func _save_final_record(
+	record_id: String
+) -> void:
+	var record := _final_record_service.get_record(
+		record_id
+	)
+
+	if record.is_empty():
+		_hud.show_message(
+			"Không tìm thấy Final Record."
+		)
+		return
+
+	_hud.show_message(
+		"Đang lưu ảnh 16:9..."
+	)
+	var result := await _final_record_renderer.export_png(
+		record,
+		self
+	)
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		_hud.show_message(
+			String(
+				result.get(
+					"error",
+					"Không lưu được ảnh."
+				)
+			)
+		)
+		return
+
+	var gallery_path := String(
+		result.get(
+			"gallery_path",
+			""
+		)
+	)
+
+	_hud.show_message(
+		(
+			"Đã lưu vào Pictures/PetVerse."
+			if not gallery_path.is_empty()
+			else "Đã lưu Final Record trong dữ liệu PetVerse."
+		)
+	)
+
+
+func _open_achievements() -> void:
+	_prepare_section(
+		"Bảng thành tích",
+		&"achievements"
+	)
+	var entries := (
+		_final_record_service.list_collection()
+	)
+
+	_add_info_row(
+		"Đã mở",
+		str(entries.size())
+	)
+
+	if entries.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = (
+			"Chưa có pet nào hoàn thành vòng đời."
+		)
+		empty_label.autowrap_mode = (
+			TextServer.AUTOWRAP_WORD_SMART
+		)
+		empty_label.horizontal_alignment = (
+			HORIZONTAL_ALIGNMENT_CENTER
+		)
+		empty_label.add_theme_color_override(
+			"font_color",
+			_theme.get(
+				"muted",
+				Color.WHITE
+			)
+		)
+		_section_body.add_child(
+			empty_label
+		)
+	else:
+		for entry in entries:
+			_add_achievement_tile(
+				entry
+			)
+
+	_section_overlay.visible = true
+
+
+func _add_achievement_tile(
+	entry: Dictionary
+) -> void:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size.y = 116
+	panel.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color = panel_color.lightened(
+		0.04
+	)
+	panel_color.a = 0.94
+	var accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	var border := accent
+	border.a = 0.34
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			border,
+			14
+		)
+	)
+	_section_body.add_child(
+		panel
+	)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		8
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		8
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		8
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		8
+	)
+	panel.add_child(
+		margin
+	)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(
+		"separation",
+		10
+	)
+	margin.add_child(
+		row
+	)
+
+	var thumb := TextureRect.new()
+	thumb.custom_minimum_size = Vector2(
+		62,
+		96
+	)
+	thumb.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
+	)
+	thumb.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	)
+	thumb.texture = _achievement_thumbnail(
+		String(
+			entry.get(
+				"thumbnail_path",
+				""
+			)
+		)
+	)
+	row.add_child(
+		thumb
+	)
+
+	var text_root := VBoxContainer.new()
+	text_root.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	row.add_child(
+		text_root
+	)
+
+	var name_label := Label.new()
+	name_label.text = String(
+		entry.get(
+			"display_name",
+			"Pet"
+		)
+	)
+	name_label.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	name_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	text_root.add_child(
+		name_label
+	)
+
+	var count_label := Label.new()
+	count_label.text = (
+		"Hoàn thành ×%d"
+		% int(
+			entry.get(
+				"completion_count",
+				1
+			)
+		)
+	)
+	count_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	text_root.add_child(
+		count_label
+	)
+
+	var record_id := String(
+		entry.get(
+			"latest_record_id",
+			""
+		)
+	)
+	if not record_id.is_empty():
+		var view := Button.new()
+		view.text = "XEM"
+		view.custom_minimum_size.y = 34
+		view.pressed.connect(
+			Callable(
+				self,
+				"_open_final_record_by_id"
+			).bind(
+				record_id
+			)
+		)
+		text_root.add_child(
+			view
+		)
+
+
+func _achievement_thumbnail(
+	path: String
+) -> Texture2D:
+	if path.strip_edges().is_empty():
+		return null
+
+	var image := Image.load_from_file(
+		path
+	)
+
+	if image == null:
+		return null
+
+	image.resize(
+		96,
+		144,
+		Image.INTERPOLATE_LANCZOS
+	)
+	return ImageTexture.create_from_image(
+		image
+	)
+
 
 func _open_settings() -> void:
 	_prepare_section("Cài đặt")

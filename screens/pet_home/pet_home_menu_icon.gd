@@ -44,6 +44,8 @@ func _draw() -> void:
 			_draw_game(center)
 		&"evolution":
 			_draw_crystal(center)
+		&"achievement":
+			_draw_achievement(center)
 		&"settings":
 			_draw_gear(center)
 		_:
@@ -217,6 +219,47 @@ func _draw_crystal(center: Vector2) -> void:
 		accent,
 		1.0,
 		true
+	)
+
+
+func _draw_achievement(center: Vector2) -> void:
+	var ribbon := secondary
+	var medal := accent
+	var left := PackedVector2Array([
+		center + Vector2(-8, 3),
+		center + Vector2(-2, 3),
+		center + Vector2(-5, 14),
+	])
+	var right := PackedVector2Array([
+		center + Vector2(2, 3),
+		center + Vector2(8, 3),
+		center + Vector2(5, 14),
+	])
+	draw_colored_polygon(left, ribbon)
+	draw_colored_polygon(right, ribbon)
+	draw_circle(center + Vector2(0, -4), 10.0, medal)
+	draw_arc(
+		center + Vector2(0, -4),
+		10.0,
+		0.0,
+		TAU,
+		28,
+		secondary,
+		2.0,
+		true
+	)
+	var star := PackedVector2Array()
+	for index in range(10):
+		var radius := 5.0 if index % 2 == 0 else 2.2
+		var angle := -PI * 0.5 + float(index) / 10.0 * TAU
+		star.append(
+			center
+			+ Vector2(0, -4)
+			+ Vector2(cos(angle), sin(angle)) * radius
+		)
+	draw_colored_polygon(
+		star,
+		Color(1.0, 0.94, 0.66, 0.95)
 	)
 
 
