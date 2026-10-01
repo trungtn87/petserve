@@ -174,6 +174,28 @@ static func rarity_label(
 	)
 
 
+static func gene_name(
+	gene_id: String
+) -> String:
+	var normalized := gene_id.strip_edges().to_lower()
+
+	if normalized.is_empty():
+		return "Gen chưa xác định"
+
+	var catalog := GeneCatalog.new()
+	var definition := catalog.find_by_id(
+		catalog.load_default(),
+		StringName(normalized)
+	)
+
+	if definition != null:
+		return item_name(
+			definition.display_name()
+		)
+
+	return "Gen chưa xác định"
+
+
 static func item_name(
 	raw_name: String
 ) -> String:
