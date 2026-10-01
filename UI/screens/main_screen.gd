@@ -2,7 +2,7 @@ class_name MainScreen
 extends RefCounted
 
 
-signal pet_home_requested
+signal next_phase_requested
 
 
 const UI_REFRESH_INTERVAL: float = 0.10
@@ -221,24 +221,24 @@ func _connect_signals() -> void:
 	if (
 		_hatch_controller != null
 		and
-		not _hatch_controller.pet_home_requested.is_connected(
-			_on_pet_home_requested
+		not _hatch_controller.next_phase_requested.is_connected(
+			_on_next_phase_requested
 		)
 	):
-		_hatch_controller.pet_home_requested.connect(
-			_on_pet_home_requested
+		_hatch_controller.next_phase_requested.connect(
+			_on_next_phase_requested
 		)
 
 func _on_hatch_completed() -> void:
 	_force_refresh()
 
 
-func _on_pet_home_requested() -> void:
-	_prepare_pet_home_transition()
-	pet_home_requested.emit()
+func _on_next_phase_requested() -> void:
+	_prepare_next_phase_transition()
+	next_phase_requested.emit()
 
 
-func _prepare_pet_home_transition() -> void:
+func _prepare_next_phase_transition() -> void:
 	if _name_dialog != null:
 		_name_dialog.close_dialog()
 

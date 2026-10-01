@@ -2,53 +2,101 @@ class_name EntertainmentHubUI
 extends Control
 
 
+const CaroActivityScript = preload(
+	"res://screens/entertainment/caro_activity_ui.gd"
+)
+const ObstacleRunActivityScript = preload(
+	"res://screens/entertainment/obstacle_run_activity_ui.gd"
+)
+const SnakeHuntActivityScript = preload(
+	"res://screens/entertainment/snake_hunt_activity_ui.gd"
+)
+
+
+signal energy_2048_reward_received
 signal caro_win_reward_requested
+signal obstacle_reward_requested(score: int, match_id: String)
+signal snake_reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
 
-const PET_THINK_DELAY: float = 0.55
+var palette: Dictionary = {}
+var energy_2048_api: InfantGameFacade
+var _energy_2048_activity: Energy2048ActivityUI
 
-
-var _game: TicTacToeGame = TicTacToeGame.new()
 var _is_open: bool = false
-var _pet_turn_pending: bool = false
+var _stage_index: int = 1
 
-var _reward_claimed: int = 0
-var _reward_max: int = 4
-var _reward_enabled: bool = true
-var _turn_ticket: int = 0
+var _caro_reward_claimed: int = 0
+var _caro_reward_max: int = 4
+var _caro_reward_enabled: bool = true
 
-var _status_label: Label
+var _stage2_reward_claimed: int = 0
+var _stage2_reward_max: int = 4
+var _stage2_reward_enabled: bool = false
+
+var _hub_screen: Control
+var _caro_activity
+var _obstacle_activity
+var _snake_activity
+var _obstacle_card: Button
+var _snake_card: Button
 var _reward_label: Label
-var _message_label: Label
-var _cells: Array[Button] = []
-var _new_round_button: Button
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	visible = false
 	_build_ui()
 
 
 func open_hub(
-	reward_claimed: int,
-	reward_max: int,
-	reward_enabled: bool
+	caro_claimed: int,
+	caro_max: int,
+	caro_enabled: bool,
+	stage_index: int = 1,
+	stage2_claimed: int = 0,
+	stage2_max: int = 4,
+	stage2_enabled: bool = false
 ) -> void:
-	_reward_claimed = reward_claimed
-	_reward_max = max(0, reward_max)
-	_reward_enabled = reward_enabled
-	_update_reward_label()
+	_caro_reward_claimed = caro_claimed
+	_caro_reward_max = maxi(
+		0,
+		caro_max
+	)
+	_caro_reward_enabled = caro_enabled
+	_stage_index = maxi(
+		1,
+		stage_index
+	)
+	_stage2_reward_claimed = stage2_claimed
+	_stage2_reward_max = maxi(
+		0,
+		stage2_max
+	)
+	_stage2_reward_enabled = stage2_enabled
+	_sync_reward_state()
+	_show_hub_screen()
 	visible = true
 	_is_open = true
-	_start_new_round()
 
 
 func close_hub() -> void:
-	_turn_ticket += 1
-	_pet_turn_pending = false
+	if _caro_activity != null:
+		_caro_activity.close_activity()
+
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
+
+	if _snake_activity != null:
+		_snake_activity.close_activity()
+
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
+
 	visible = false
 	_is_open = false
 
@@ -62,22 +110,76 @@ func set_reward_status(
 	reward_max: int,
 	reward_enabled: bool
 ) -> void:
-	_reward_claimed = reward_claimed
-	_reward_max = max(0, reward_max)
-	_reward_enabled = reward_enabled
-	_update_reward_label()
+	_caro_reward_claimed = reward_claimed
+	_caro_reward_max = maxi(
+		0,
+		reward_max
+	)
+	_caro_reward_enabled = reward_enabled
+	_sync_reward_state()
 
 
-func show_reward_message(message: String) -> void:
-	_message_label.text = message
+func set_stage2_reward_status(
+	reward_claimed: int,
+	reward_max: int,
+	reward_enabled: bool,
+	stage_index: int
+) -> void:
+	_stage2_reward_claimed = reward_claimed
+	_stage2_reward_max = maxi(
+		0,
+		reward_max
+	)
+	_stage2_reward_enabled = reward_enabled
+	_stage_index = maxi(
+		1,
+		stage_index
+	)
+	_sync_reward_state()
+
+
+func show_reward_message(
+	message: String
+) -> void:
+	if _caro_activity != null:
+		_caro_activity.show_reward_message(
+			message
+		)
+
+
+func show_obstacle_reward_message(
+	message: String
+) -> void:
+	if _obstacle_activity != null:
+		_obstacle_activity.show_reward_message(
+			message
+		)
+
+
+func show_snake_reward_message(
+	message: String
+) -> void:
+	if _snake_activity != null:
+		_snake_activity.show_reward_message(
+			message
+		)
 
 
 func _build_ui() -> void:
 	var scrim := ColorRect.new()
-	scrim.set_anchors_preset(Control.PRESET_FULL_RECT)
-	scrim.color = Color(0.015, 0.01, 0.03, 0.94)
+	scrim.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	scrim.color = Color(
+		0.015,
+		0.01,
+		0.03,
+		0.94
+	)
 	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(scrim)
+	add_child(
+		scrim
+	)
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.05
@@ -87,223 +189,689 @@ func _build_ui() -> void:
 	panel.add_theme_stylebox_override(
 		"panel",
 		_style(
-			Color(0.07, 0.045, 0.13, 0.99),
-			Color(0.55, 0.42, 0.80, 0.96)
+			Color(
+				0.07,
+				0.045,
+				0.13,
+				0.99
+			),
+			Color(
+				0.55,
+				0.42,
+				0.80,
+				0.96
+			)
 		)
 	)
-	add_child(panel)
+	add_child(
+		panel
+	)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 16)
-	margin.add_theme_constant_override("margin_top", 14)
-	margin.add_theme_constant_override("margin_right", 16)
-	margin.add_theme_constant_override("margin_bottom", 14)
-	panel.add_child(margin)
+	margin.add_theme_constant_override(
+		"margin_left",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		14
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		14
+	)
+	panel.add_child(
+		margin
+	)
 
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 10)
-	margin.add_child(root)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_theme_constant_override(
+		"separation",
+		10
+	)
+	margin.add_child(
+		root
+	)
 
 	var header := HBoxContainer.new()
-	root.add_child(header)
+	root.add_child(
+		header
+	)
 
 	var title := Label.new()
-	title.text = "GIẢI TRÍ • CARO 3×3"
+	title.text = "GIẢI TRÍ"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 19)
-	header.add_child(title)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override(
+		"font_size",
+		19
+	)
+	header.add_child(
+		title
+	)
 
 	var close := Button.new()
 	close.text = "×"
-	close.custom_minimum_size = Vector2(44, 44)
+	close.custom_minimum_size = Vector2(
+		44,
+		44
+	)
 	close.focus_mode = Control.FOCUS_NONE
-	close.pressed.connect(close_hub)
-	header.add_child(close)
+	close.pressed.connect(
+		close_hub
+	)
+	header.add_child(
+		close
+	)
 
-	_reward_label = Label.new()
-	_reward_label.add_theme_font_size_override("font_size", 12)
-	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	root.add_child(_reward_label)
+	var body := Control.new()
+	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(
+		body
+	)
 
-	var hint := Label.new()
-	hint.text = "Bạn là X • Pet là O"
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.add_theme_font_size_override("font_size", 11)
-	root.add_child(hint)
+	_build_hub_screen(
+		body
+	)
+	_build_caro_activity(
+		body
+	)
+	_build_obstacle_activity(
+		body
+	)
+	_build_snake_activity(
+		body
+	)
+	_build_energy_2048_activity(body)
 
-	_status_label = Label.new()
-	_status_label.text = "Lượt của bạn"
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 15)
-	root.add_child(_status_label)
 
-	var center := CenterContainer.new()
-	center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(center)
+func _build_hub_screen(
+	parent: Control
+) -> void:
+	_hub_screen = Control.new()
+	parent.add_child(
+		_hub_screen
+	)
+	_hub_screen.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+
+	var root := VBoxContainer.new()
+	_hub_screen.add_child(
+		root
+	)
+	root.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	root.add_theme_constant_override(
+		"separation",
+		10
+	)
+
+	var intro := Label.new()
+	intro.text = "Chọn một hoạt động để chơi cùng pet."
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	intro.add_theme_font_size_override(
+		"font_size",
+		12
+	)
+	intro.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	root.add_child(
+		intro
+	)
+
+	var game_label := Label.new()
+	game_label.text = "TRÒ CHƠI"
+	game_label.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	game_label.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	root.add_child(
+		game_label
+	)
 
 	var grid := GridContainer.new()
-	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 7)
-	grid.add_theme_constant_override("v_separation", 7)
-	center.add_child(grid)
-
-	for index in range(9):
-		var cell := Button.new()
-		cell.custom_minimum_size = Vector2(84, 84)
-		cell.focus_mode = Control.FOCUS_NONE
-		cell.add_theme_font_size_override("font_size", 34)
-		cell.pressed.connect(_on_cell_pressed.bind(index))
-		grid.add_child(cell)
-		_cells.append(cell)
-
-	_message_label = Label.new()
-	_message_label.text = "Thắng để nhận Rương Ấu thể."
-	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_message_label.add_theme_font_size_override("font_size", 11)
-	root.add_child(_message_label)
-
-	_new_round_button = Button.new()
-	_new_round_button.text = "VÁN MỚI"
-	_new_round_button.custom_minimum_size = Vector2(0, 48)
-	_new_round_button.focus_mode = Control.FOCUS_NONE
-	_new_round_button.pressed.connect(_start_new_round)
-	root.add_child(_new_round_button)
-
-	_start_new_round()
-
-
-func _start_new_round() -> void:
-	_turn_ticket += 1
-	_game.reset()
-	_pet_turn_pending = false
-	_status_label.text = "Lượt của bạn"
-	_message_label.text = (
-		"Thắng để nhận Rương Ấu thể."
-		if _reward_enabled and _reward_claimed < _reward_max
-		else "Có thể chơi tiếp • phần thưởng giai đoạn này đã hết."
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override(
+		"h_separation",
+		8
 	)
-	_render_board()
-
-
-func _on_cell_pressed(index: int) -> void:
-	if _pet_turn_pending:
-		return
-
-	if not _game.player_move(index):
-		return
-
-	_render_board()
-
-	var game_result := _game.result()
-
-	if game_result != TicTacToeGame.RESULT_PLAYING:
-		_finish_round(game_result)
-		return
-
-	_pet_turn_pending = true
-	_status_label.text = "Pet đang nghĩ..."
-	_render_board()
-
-	var ticket := _turn_ticket
-
-	get_tree().create_timer(PET_THINK_DELAY).timeout.connect(
-		_pet_turn.bind(ticket),
-		CONNECT_ONE_SHOT
+	grid.add_theme_constant_override(
+		"v_separation",
+		8
+	)
+	root.add_child(
+		grid
 	)
 
+	grid.add_child(
+		_activity_card(
+			"Caro 3×3",
+			"Đấu với pet",
+			true,
+			_open_caro,
+			"▦"
+		)
+	)
 
-func _pet_turn(ticket: int) -> void:
-	if ticket != _turn_ticket or not _is_open:
-		return
+	_obstacle_card = _activity_card(
+		"Vượt chướng ngại",
+		"Chạm để nhảy",
+		true,
+		_open_obstacle,
+		"◆"
+	)
+	grid.add_child(
+		_obstacle_card
+	)
 
-	_game.pet_move()
-	_pet_turn_pending = false
-	_render_board()
+	_snake_card = _activity_card(
+		"Snake Hunt",
+		"Rắn săn mồi",
+		true,
+		_open_snake,
+		"●"
+	)
+	grid.add_child(
+		_snake_card
+	)
 
-	var game_result := _game.result()
+	grid.add_child(
+		_activity_card(
+			"2048",
+			"Ghép ô • Nhận mảnh rương",
+			true,
+			_open_energy_2048,
+			"▦"
+		)
+	)
 
-	if game_result != TicTacToeGame.RESULT_PLAYING:
-		_finish_round(game_result)
-		return
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(
+		spacer
+	)
 
-	_status_label.text = "Lượt của bạn"
-	_render_board()
+	_reward_label = Label.new()
+	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_label.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	_reward_label.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	root.add_child(
+		_reward_label
+	)
 
 
-func _finish_round(game_result: StringName) -> void:
-	match game_result:
-		TicTacToeGame.RESULT_PLAYER:
-			_status_label.text = "Bạn thắng!"
-			_message_label.text = (
-				"Đang nhận Rương Ấu thể..."
-				if _reward_enabled and _reward_claimed < _reward_max
-				else "Bạn thắng • không còn rương thưởng."
+func _build_caro_activity(
+	parent: Control
+) -> void:
+	_caro_activity = CaroActivityScript.new()
+	_caro_activity.palette = palette
+	parent.add_child(
+		_caro_activity
+	)
+	_caro_activity.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_caro_activity.visible = false
+	_caro_activity.reward_requested.connect(
+		_on_caro_reward_requested
+	)
+	_caro_activity.back_requested.connect(
+		_show_hub_screen
+	)
+	_caro_activity.match_finished.connect(
+		_on_match_finished
+	)
+
+
+func _build_obstacle_activity(
+	parent: Control
+) -> void:
+	_obstacle_activity = ObstacleRunActivityScript.new()
+	_obstacle_activity.palette = palette
+	parent.add_child(
+		_obstacle_activity
+	)
+	_obstacle_activity.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_obstacle_activity.visible = false
+	_obstacle_activity.reward_requested.connect(
+		_on_obstacle_reward_requested
+	)
+	_obstacle_activity.back_requested.connect(
+		_show_hub_screen
+	)
+	_obstacle_activity.match_finished.connect(
+		_on_match_finished
+	)
+
+
+func _build_snake_activity(
+	parent: Control
+) -> void:
+	_snake_activity = SnakeHuntActivityScript.new()
+	_snake_activity.palette = palette
+	parent.add_child(
+		_snake_activity
+	)
+	_snake_activity.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_snake_activity.visible = false
+	_snake_activity.reward_requested.connect(
+		_on_snake_reward_requested
+	)
+	_snake_activity.back_requested.connect(
+		_show_hub_screen
+	)
+	_snake_activity.match_finished.connect(
+		_on_match_finished
+	)
+
+
+func _activity_card(
+	title_text: String,
+	subtitle_text: String,
+	enabled: bool,
+	callback: Callable,
+	icon_text: String
+) -> Button:
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(
+		0,
+		108
+	)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.focus_mode = Control.FOCUS_NONE
+	button.disabled = not enabled
+	button.add_theme_stylebox_override(
+		"normal",
+		_style(
+			Color(
+				0.11,
+				0.07,
+				0.18,
+				0.97
+			),
+			Color(
+				0.55,
+				0.42,
+				0.80,
+				0.82
 			)
+		)
+	)
 
-			if _reward_enabled and _reward_claimed < _reward_max:
-				caro_win_reward_requested.emit()
-
-		TicTacToeGame.RESULT_PET:
-			_status_label.text = "Pet thắng!"
-			_message_label.text = "Pet có vẻ khá đắc ý."
-
-		TicTacToeGame.RESULT_DRAW:
-			_status_label.text = "Hòa!"
-			_message_label.text = "Không mất gì • thử lại ván khác."
-
-	match_finished.emit(game_result)
-	_render_board()
-
-
-func _render_board() -> void:
-	var board := _game.board()
-	var game_over := _game.result() != TicTacToeGame.RESULT_PLAYING
-
-	for index in range(_cells.size()):
-		var cell := _cells[index]
-		var value := int(board[index])
-
-		match value:
-			TicTacToeGame.PLAYER:
-				cell.text = "X"
-			TicTacToeGame.PET:
-				cell.text = "O"
-			_:
-				cell.text = ""
-
-		cell.disabled = (
-			game_over
-			or _pet_turn_pending
-			or value != TicTacToeGame.EMPTY
+	if callback.is_valid():
+		button.pressed.connect(
+			callback
 		)
 
-	_new_round_button.disabled = _pet_turn_pending
+	var content := VBoxContainer.new()
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_theme_constant_override(
+		"separation",
+		4
+	)
+	button.add_child(
+		content
+	)
+
+	var icon := Label.new()
+	icon.text = icon_text
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.add_theme_font_size_override(
+		"font_size",
+		24
+	)
+	icon.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"accent",
+			Color.WHITE
+		)
+	)
+	content.add_child(
+		icon
+	)
+
+	var title := Label.new()
+	title.text = title_text
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override(
+		"font_size",
+		12
+	)
+	content.add_child(
+		title
+	)
+
+	var subtitle := Label.new()
+	subtitle.text = subtitle_text
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override(
+		"font_size",
+		9
+	)
+	subtitle.add_theme_color_override(
+		"font_color",
+		palette.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	content.add_child(
+		subtitle
+	)
+	button.set_meta(
+		"subtitle_label",
+		subtitle
+	)
+
+	return button
 
 
-func _update_reward_label() -> void:
-	var claimed := clampi(_reward_claimed, 0, _reward_max)
+func _open_caro() -> void:
+	_hide_activities()
 
-	if not _reward_enabled:
-		_reward_label.text = "Rương Ấu thể • giai đoạn thưởng đã kết thúc"
+	if _hub_screen != null:
+		_hub_screen.visible = false
+
+	if _caro_activity != null:
+		_caro_activity.set_reward_status(
+			_caro_reward_claimed,
+			_caro_reward_max,
+			_caro_reward_enabled
+		)
+		_caro_activity.open_activity()
+
+
+func _open_obstacle() -> void:
+	_hide_activities()
+
+	if _hub_screen != null:
+		_hub_screen.visible = false
+
+	if _obstacle_activity != null:
+		_obstacle_activity.set_reward_status(
+			_stage2_reward_claimed,
+			_stage2_reward_max,
+			_stage2_reward_enabled
+		)
+		_obstacle_activity.open_activity()
+
+
+func _open_snake() -> void:
+	_hide_activities()
+
+	if _hub_screen != null:
+		_hub_screen.visible = false
+
+	if _snake_activity != null:
+		_snake_activity.set_reward_status(
+			_stage2_reward_claimed,
+			_stage2_reward_max,
+			_stage2_reward_enabled
+		)
+		_snake_activity.open_activity()
+
+
+func _show_hub_screen() -> void:
+	_hide_activities()
+
+	if _hub_screen != null:
+		_hub_screen.visible = true
+
+	_sync_reward_state()
+
+
+func _hide_activities() -> void:
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
+
+	if _caro_activity != null:
+		_caro_activity.close_activity()
+
+	if _obstacle_activity != null:
+		_obstacle_activity.close_activity()
+
+	if _snake_activity != null:
+		_snake_activity.close_activity()
+
+
+func _sync_reward_state() -> void:
+	if _caro_activity != null:
+		_caro_activity.set_reward_status(
+			_caro_reward_claimed,
+			_caro_reward_max,
+			_caro_reward_enabled
+		)
+
+	for activity in [
+		_obstacle_activity,
+		_snake_activity,
+	]:
+		if activity != null:
+			activity.set_reward_status(
+				_stage2_reward_claimed,
+				_stage2_reward_max,
+				_stage2_reward_enabled
+			)
+
+	_update_stage2_card_subtitles()
+	_update_hub_reward_label()
+
+
+func _update_stage2_card_subtitles() -> void:
+	var remaining := maxi(
+		0,
+		_stage2_reward_max
+		- clampi(
+			_stage2_reward_claimed,
+			0,
+			_stage2_reward_max
+		)
+	)
+	var subtitle := ""
+
+	if _stage_index == 2:
+		subtitle = (
+			"Rương chung còn %d/%d"
+			% [
+				remaining,
+				_stage2_reward_max,
+			]
+			if remaining > 0
+			else "Hết rương • vẫn chơi tự do"
+		)
+	else:
+		subtitle = "Chơi tự do • thưởng ở Stage 2"
+
+	_set_card_subtitle(
+		_obstacle_card,
+		subtitle
+	)
+	_set_card_subtitle(
+		_snake_card,
+		subtitle
+	)
+
+
+func _set_card_subtitle(
+	card: Button,
+	text: String
+) -> void:
+	if card == null:
 		return
 
-	_reward_label.text = "Rương Caro  %d/%d" % [
-		claimed,
-		_reward_max,
-	]
+	var label = card.get_meta(
+		"subtitle_label",
+		null
+	) as Label
+
+	if label != null:
+		label.text = text
 
 
-func _style(bg: Color, border: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = bg
-	style.border_color = border
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 16
-	style.corner_radius_top_right = 16
-	style.corner_radius_bottom_right = 16
-	style.corner_radius_bottom_left = 16
-	return style
+func _update_hub_reward_label() -> void:
+	if _reward_label == null:
+		return
+
+	var lines: Array[String] = []
+	var caro_claimed := clampi(
+		_caro_reward_claimed,
+		0,
+		_caro_reward_max
+	)
+
+	if _caro_reward_enabled:
+		lines.append(
+			"Caro: Rương Ấu thể %d/%d"
+			% [
+				caro_claimed,
+				_caro_reward_max,
+			]
+		)
+	else:
+		lines.append(
+			"Caro: chơi tự do • không mở lại thưởng Stage 1"
+		)
+
+	var stage2_claimed := clampi(
+		_stage2_reward_claimed,
+		0,
+		_stage2_reward_max
+	)
+	var stage2_remaining := maxi(
+		0,
+		_stage2_reward_max
+		- stage2_claimed
+	)
+
+	if _stage_index == 2:
+		if stage2_remaining > 0:
+			lines.append(
+				"Vượt chướng ngại + Snake: Rương chung còn %d/%d"
+				% [
+					stage2_remaining,
+					_stage2_reward_max,
+				]
+			)
+		else:
+			lines.append(
+				"Vượt chướng ngại + Snake: Rương chung còn 0/%d • vẫn chơi tự do"
+				% _stage2_reward_max
+			)
+	else:
+		lines.append(
+			"Vượt chướng ngại + Snake: chơi tự do • rương chỉ thuộc Stage 2"
+		)
+
+	_reward_label.text = "\n".join(
+		lines
+	)
+
+
+func _on_caro_reward_requested() -> void:
+	caro_win_reward_requested.emit()
+
+
+func _on_obstacle_reward_requested(
+	score: int,
+	match_id: String
+) -> void:
+	obstacle_reward_requested.emit(
+		score,
+		match_id
+	)
+
+
+func _on_snake_reward_requested(
+	score: int,
+	match_id: String
+) -> void:
+	snake_reward_requested.emit(
+		score,
+		match_id
+	)
+
+
+func _on_match_finished(
+	result: StringName
+) -> void:
+	match_finished.emit(
+		result
+	)
+
+
+func _style(
+	bg: Color,
+	border: Color
+) -> StyleBoxFlat:
+	return PetHomeTheme.panel_style(
+		Color(
+			palette.get(
+				"panel",
+				Color("171229")
+			),
+			bg.a
+		),
+		palette.get(
+			"accent",
+			Color("a98af4")
+		)
+	)
+
+
+func _build_energy_2048_activity(parent: Control) -> void:
+	_energy_2048_activity = Energy2048ActivityUI.new()
+	_energy_2048_activity.palette = palette
+	parent.add_child(_energy_2048_activity)
+	_energy_2048_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_energy_2048_activity.visible = false
+	_energy_2048_activity.back_requested.connect(_show_hub_screen)
+	_energy_2048_activity.reward_received.connect(func() -> void: energy_2048_reward_received.emit())
+	_energy_2048_activity.match_finished.connect(_on_match_finished)
+
+
+func _open_energy_2048() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_energy_2048_activity.game_api = energy_2048_api
+	_energy_2048_activity.open_activity()
