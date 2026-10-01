@@ -174,7 +174,7 @@ func refresh_status(s: Dictionary) -> void:
 				"Sẵn sàng tiến hóa"
 				if ready
 				else (
-					"Có thể tiến hóa ngay [TEST]"
+					"Có thể tiến hóa ngay [THỬ NGHIỆM]"
 					if can_evolve
 					else (
 						"Tăng trưởng %d%%"
@@ -187,14 +187,14 @@ func refresh_status(s: Dictionary) -> void:
 	var pending := int(s.get("pending_chests", 0))
 	_chest_button.text = "RƯƠNG • %d" % pending if pending > 0 else "RƯƠNG"
 	_chest_button.disabled = pending <= 0
-	_inventory_button.text = "ITEM • %d" % int(s.get("inventory_count", 0))
+	_inventory_button.text = "VẬT PHẨM • %d" % int(s.get("inventory_count", 0))
 	_refresh_notice(s)
 
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
 	_hide_item_detail()
-	_title.text = "HÒM ITEM"
+	_title.text = "HÒM VẬT PHẨM"
 	_filters.visible = true
 	_fill(_facade.inventory(filter_type), true)
 	_layout_overlay()
@@ -238,7 +238,7 @@ func _build_hud() -> void:
 	margin.add_child(box)
 
 	_pet_name_label = Label.new()
-	_pet_name_label.text = "PET"
+	_pet_name_label.text = "THÚ CƯNG"
 	_pet_name_label.add_theme_font_size_override("font_size", 14)
 	box.add_child(_pet_name_label)
 
@@ -303,7 +303,7 @@ func _build_hud() -> void:
 	_chest_button.pressed.connect(_emit_chest_open)
 	actions.add_child(_chest_button)
 
-	_inventory_button = _action_button("HÒM ITEM")
+	_inventory_button = _action_button("HÒM VẬT PHẨM")
 	_inventory_button.pressed.connect(_open_inventory_all)
 	actions.add_child(_inventory_button)
 
