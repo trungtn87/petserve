@@ -127,9 +127,11 @@ func _test_locus_recipe_builds_retry_safe_mythic_plan() -> void:
 	)
 	_expect(
 		request != null
-		and request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request.positive_prompt.contains("Special fantasy mutation is ACTIVE"),
-		"renderer receives the composite Gene + Mythic plan"
+		and request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == source_path
+		and request.positive_prompt.contains("[CODE-LOCKED MYTHIC RESULT]")
+		and request.positive_prompt.contains("[ACCUMULATED GENE SCORE PHENOTYPE]"),
+		"renderer receives reference-based composite Gene + Mythic plan"
 	)
 	if request == null:
 		_clear_evolution_save()
