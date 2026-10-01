@@ -10,6 +10,11 @@ var _save := EvolutionSaveService.new()
 var _plan_validator := StageEvolutionPlanValidator.new()
 
 
+func _init(save_service: EvolutionSaveService = null) -> void:
+	if save_service != null:
+		_save = save_service
+
+
 func prepare(
 	state: Dictionary
 ) -> Dictionary:

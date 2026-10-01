@@ -10,10 +10,10 @@ config_version=5
 
 [application]
 
-config/name="PetVerse"
+config/name="PetVerse Image Lab"
 config/description="Một pet, một cuộc đời, phát triển không cố định."
 config/version="1.0.0-dev"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://tools/image_lab/image_lab.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
