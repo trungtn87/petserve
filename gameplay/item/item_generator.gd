@@ -264,13 +264,15 @@ func resource_definition_count(
 	rarity: String
 ) -> int:
 	var normalized_rarity := rarity.strip_edges().to_lower()
-	var catalog: Dictionary = (
-		FOOD_DEFINITIONS_BY_RARITY
-		if item_type == TYPE_FOOD
-		else GROWTH_DEFINITIONS_BY_RARITY
-		if item_type == TYPE_GROWTH
-		else {}
-	)
+	var catalog: Dictionary = {}
+
+	if item_type == TYPE_FOOD:
+		catalog = FOOD_DEFINITIONS_BY_RARITY
+	elif item_type == TYPE_GROWTH:
+		catalog = GROWTH_DEFINITIONS_BY_RARITY
+	else:
+		return 0
+
 	var value: Variant = catalog.get(
 		normalized_rarity,
 		[]
