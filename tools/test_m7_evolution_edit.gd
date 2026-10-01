@@ -124,36 +124,48 @@ func run() -> void:
 	if request != null:
 		check(
 			request.mode
-				== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT,
-			"image edit mode"
+				== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE,
+			"evolution uses new text-to-image render"
 		)
 		check(
-			request.source_image_path
-				== source.image_path,
-			"source image preserved"
+			request.source_image_path.is_empty(),
+			"evolution must not use previous stage image as reference"
 		)
 		check(
-			request.target_region
-				== &"eyes",
-			"target region"
+			String(
+				request.target_region
+			).is_empty(),
+			"full regeneration has no edit target region"
 		)
 		check(
 			request.output_key.ends_with(
-				"_pethome_v5_stage_2"
+				"_pethome_v12_stage_2"
 			),
 			"stage output key"
 		)
 		check(
 			request.positive_prompt.contains(
-				"evolution stage 2"
+				"Create one slightly older cat pet"
+			)
+			and request.positive_prompt.contains(
+				"Premium fantasy game character art"
+			)
+			and request.positive_prompt.contains(
+				"evolved chibi proportions"
+			)
+			and request.positive_prompt.contains(
+				"Make the pet clearly older and more developed than Stage 1"
+			)
+			and request.positive_prompt.contains(
+				"fuller layered fur"
+			)
+			and request.positive_prompt.contains(
+				"gentle elemental glow"
+			)
+			and request.positive_prompt.contains(
+				"Apply only these Gene changes selected by code:"
 			),
-			"target stage is explicit"
-		)
-		check(
-			request.positive_prompt.contains(
-				"PETHOME CONTINUITY"
-			),
-			"world continuity prompt"
+			"Stage 1 -> 2 must reuse the Stage 1 art direction and change only age plus selected Gene"
 		)
 
 		var serialized := (
@@ -178,6 +190,48 @@ func run() -> void:
 					== request.to_debug_dict(),
 				"retry request is stable"
 			)
+
+	var natural_plan := coordinator.build_natural_request(
+		identity,
+		previous,
+		source,
+		2
+	)
+	check(
+		bool(
+			natural_plan.get(
+				"ok",
+				false
+			)
+		),
+		"Stage 1 -> 2 natural continuity plan"
+	)
+	var natural_request := (
+		natural_plan.get("request")
+		as PetRenderRequest
+	)
+	check(
+		natural_request != null
+		and natural_request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and natural_request.source_image_path.is_empty()
+		and natural_request.positive_prompt.contains(
+			"Create one slightly older cat pet"
+		)
+		and natural_request.positive_prompt.contains(
+			"Premium fantasy game character art"
+		)
+		and natural_request.positive_prompt.contains(
+			"evolved chibi proportions"
+		)
+		and natural_request.positive_prompt.contains(
+			"Make the pet clearly older and more developed than Stage 1"
+		)
+		and natural_request.positive_prompt.contains(
+			"No special fantasy mutation is active"
+		),
+		"Natural Stage 1 -> 2 must create a new older image without reference-image editing"
+	)
 
 	var bad_stage := coordinator.build_request(
 		identity,

@@ -162,7 +162,7 @@ const MOTIFS := {
 
 func create_initial(
 	identity: PetIdentity
-):
+) -> PetSceneProfile:
 	if identity == null or not identity.is_valid():
 		return null
 

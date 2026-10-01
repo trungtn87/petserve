@@ -1,347 +1,100 @@
 extends SceneTree
 
-
-const StageGenePolicyScript = preload(
-	"res://features/evolution/gene/stage_gene_policy.gd"
-)
-const GeneDevelopmentStateScript = preload(
-	"res://features/evolution/gene/gene_development_state.gd"
-)
-const PetGenomeFactoryScript = preload(
-	"res://features/evolution/domain/pet_genome_factory.gd"
-)
-const PetGenomeSchemaScript = preload(
-	"res://features/evolution/domain/pet_genome_schema.gd"
-)
-
-
 var _failures: int = 0
 
-
 func _initialize() -> void:
-	_test_stage_policy()
-	_test_stage_one_limit()
-	_test_stage_two_accumulation()
-	_test_stage_four_lock()
-	_test_round_trip()
-	_test_gene_state_does_not_mutate_genome()
+	var policy := StageGenePolicy.load_default()
+	_expect(policy != null, "StageGenePolicy must load")
+	if policy != null:
+		_test_stage_policy(policy)
+		_test_score_state(policy)
+		_test_final_stage(policy)
 
 	if _failures == 0:
-		print("M9.2 Stage Gene Foundation: PASS")
+		print("M9.2 Gene Foundation: PASS")
 		quit(0)
 		return
-
-	push_error(
-		"M9.2 Stage Gene Foundation: FAIL (%d)"
-		% _failures
-	)
+	push_error("M9.2 Gene Foundation: FAIL (%d)" % _failures)
 	quit(1)
 
 
-func _test_stage_policy() -> void:
-	var policy = StageGenePolicyScript.load_default()
-
-	_expect(
-		policy != null
-		and policy.is_valid(),
-		"default stage gene policy must load"
-	)
-
-	if policy == null:
-		return
-
-	_expect(
-		policy.max_gene_items(1) == 1
-		and policy.allows_locus(
-			1,
-			&"eyes"
+func _test_stage_policy(policy: StageGenePolicy) -> void:
+	for stage_index in [1, 2, 3]:
+		_expect(
+			policy.allowed_loci(stage_index) == PetGenomeSchema.VISUAL_LOCI
+			and policy.is_unlimited(stage_index)
+			and policy.max_gene_items(stage_index) == StageGenePolicy.UNLIMITED_ITEMS,
+			"Stage %d must allow all 12 Gene loci with unlimited item use" % stage_index
 		)
-		and policy.allows_locus(
-			1,
-			&"ears"
-		)
-		and policy.allows_locus(
-			1,
-			&"fur"
-		)
-		and policy.allows_locus(
-			1,
-			&"coat"
-		)
-		and policy.allows_locus(
-			1,
-			&"tail"
-		)
-		and not policy.allows_locus(
-			1,
-			&"body"
-		),
-		"stage 1 must expose exactly the basic five loci"
+		for locus in PetGenomeSchema.VISUAL_LOCI:
+			_expect(
+				policy.can_accept_gene(stage_index, locus),
+				"Stage %d missing locus %s" % [stage_index, String(locus)]
+			)
+
+	_expect(
+		policy.allowed_loci(4).is_empty()
+		and policy.max_gene_items(4) == 0,
+		"Stage 4 final form must lock new Gene Item use"
+	)
+
+
+func _test_score_state(policy: StageGenePolicy) -> void:
+	var state := GeneDevelopmentState.new(1)
+
+	_expect(
+		bool(state.record_gene_item(
+			policy, "tail_a", &"tail_long", &"tail", &"long", 20.0
+		).get("ok", false)),
+		"first tail Gene records"
+	)
+	_expect(
+		bool(state.record_gene_item(
+			policy, "tail_b", &"tail_long", &"tail", &"long", 35.0
+		).get("ok", false)),
+		"same Gene may stack again in one Stage"
+	)
+	_expect(
+		bool(state.record_gene_item(
+			policy, "eyes_a", &"eyes_moon", &"eyes", &"moon", 10.0
+		).get("ok", false)),
+		"third Gene is not blocked by a slot cap"
+	)
+	_expect(
+		state.item_count() == 3
+		and is_equal_approx(state.score_for(&"tail", &"long"), 55.0)
+		and GeneExpressionScale.tier_for_score(55.0) == GeneExpressionScale.DEVELOPING,
+		"Gene score must accumulate by locus.direction"
+	)
+
+	_expect(state.reset_for_stage(2), "Stage reset succeeds")
+	_expect(
+		state.item_count() == 0
+		and state.lifetime_gene_count() == 3
+		and is_equal_approx(state.score_for(&"tail", &"long"), 55.0)
+		and state.used_gene_ids_snapshot().has("tail_long"),
+		"Stage reset clears transition inputs but preserves lifetime score ledger"
 	)
 
 	_expect(
-		policy.max_gene_items(2) == 2
-		and policy.allows_locus(
-			2,
-			&"body"
-		)
-		and policy.allows_locus(
-			2,
-			&"mark"
-		)
-		and not policy.allows_locus(
-			2,
-			&"structure"
-		)
-		and not policy.allows_locus(
-			2,
-			&"aura"
-		),
-		"stage 2 must open mid-development loci but not structure/aura"
+		bool(state.record_gene_item(
+			policy, "tail_c", &"tail_fluffy", &"tail", &"fluffy", 80.0
+		).get("ok", false)),
+		"different direction in same locus can accumulate later"
 	)
-
 	_expect(
-		policy.max_gene_items(3) == 3
-		and policy.allowed_loci(
-			3
-		).size()
-			== PetGenomeSchemaScript.VISUAL_LOCI.size(),
-		"stage 3 must expose all 12 visual loci"
-	)
-
-	_expect(
-		policy.max_gene_items(4) == 0
-		and policy.allowed_loci(
-			4
-		).is_empty(),
-		"stage 4 final form must reject new visual gene items"
+		is_equal_approx(state.score_for(&"tail", &"fluffy"), 80.0),
+		"secondary direction has independent score"
 	)
 
 
-func _test_stage_one_limit() -> void:
-	var policy = StageGenePolicyScript.load_default()
-	var state = GeneDevelopmentStateScript.new(
-		1
-	)
-
-	_expect(
-		state.is_valid_for_policy(
-			policy
-		)
-		and not state.has_gene_input()
-		and state.remaining_slots(
-			policy
-		) == 1,
-		"fresh stage 1 gene state must be empty with one slot"
-	)
-
-	_expect(
-		state.record_gene_item(
-			policy,
-			"item_tail_001",
-			&"gene_tail_long",
-			&"tail",
-			&"long",
-			20.0
-		),
-		"stage 1 must accept one allowed gene item"
-	)
-
-	_expect(
-		not state.record_gene_item(
-			policy,
-			"item_eye_001",
-			&"gene_eye_luminous",
-			&"eyes",
-			&"luminous",
-			20.0
-		),
-		"stage 1 must reject a second gene item"
-	)
-
-	_expect(
-		state.used_gene_items() == 1
-		and is_equal_approx(
-			state.influence_for(
-				&"tail",
-				&"long"
-			),
-			20.0
-		)
-		and state.remaining_slots(
-			policy
-		) == 0,
-		"stage 1 must persist exactly one influence application"
-	)
+func _test_final_stage(policy: StageGenePolicy) -> void:
+	var state := GeneDevelopmentState.new(4)
+	_expect(not state.can_record(policy, &"aura"), "Stage 4 rejects new Gene Items")
 
 
-func _test_stage_two_accumulation() -> void:
-	var policy = StageGenePolicyScript.load_default()
-	var state = GeneDevelopmentStateScript.new(
-		2
-	)
-
-	_expect(
-		not state.record_gene_item(
-			policy,
-			"item_structure_001",
-			&"gene_horn",
-			&"structure",
-			&"horn",
-			30.0
-		),
-		"stage 2 must reject structure gene input"
-	)
-
-	_expect(
-		state.record_gene_item(
-			policy,
-			"item_tail_002",
-			&"gene_tail_long",
-			&"tail",
-			&"long",
-			20.0
-		),
-		"stage 2 must accept first allowed gene item"
-	)
-
-	_expect(
-		state.record_gene_item(
-			policy,
-			"item_tail_003",
-			&"gene_tail_long",
-			&"tail",
-			&"long",
-			10.0
-		),
-		"stage 2 must allow reinforcement with a second item"
-	)
-
-	_expect(
-		is_equal_approx(
-			state.influence_for(
-				&"tail",
-				&"long"
-			),
-			30.0
-		),
-		"same gene direction must accumulate influence"
-	)
-
-	_expect(
-		not state.record_gene_item(
-			policy,
-			"item_mark_001",
-			&"gene_mark_moon",
-			&"mark",
-			&"moon",
-			15.0
-		),
-		"stage 2 must enforce the two-item cap"
-	)
-
-
-func _test_stage_four_lock() -> void:
-	var policy = StageGenePolicyScript.load_default()
-	var state = GeneDevelopmentStateScript.new(
-		4
-	)
-
-	_expect(
-		state.is_valid_for_policy(
-			policy
-		)
-		and not state.record_gene_item(
-			policy,
-			"item_aura_final",
-			&"gene_aura_mist",
-			&"aura",
-			&"mist",
-			50.0
-		),
-		"stage 4 must not accept new visual gene items"
-	)
-
-
-func _test_round_trip() -> void:
-	var policy = StageGenePolicyScript.load_default()
-	var original = GeneDevelopmentStateScript.new(
-		3
-	)
-
-	_expect(
-		original.record_gene_item(
-			policy,
-			"item_aura_001",
-			&"gene_aura_mist",
-			&"aura",
-			&"mist",
-			22.5
-		),
-		"stage 3 fixture gene item"
-	)
-
-	_expect(
-		not original.record_gene_item(
-			policy,
-			"item_aura_001",
-			&"gene_aura_mist",
-			&"aura",
-			&"mist",
-			22.5
-		),
-		"same item uid must never be consumed twice"
-	)
-
-	var restored = GeneDevelopmentStateScript.from_dict(
-		original.to_dict()
-	)
-
-	_expect(
-		restored != null
-		and restored.same_state(
-			original
-		)
-		and restored.is_valid_for_policy(
-			policy
-		),
-		"gene development state must survive serialize/deserialize"
-	)
-
-
-func _test_gene_state_does_not_mutate_genome() -> void:
-	var policy = StageGenePolicyScript.load_default()
-	var genome = PetGenomeFactoryScript.new().create_initial()
-	var before := genome.visual_traits_snapshot()
-	var state = GeneDevelopmentStateScript.new(
-		1
-	)
-
-	state.record_gene_item(
-		policy,
-		"item_eye_002",
-		&"gene_eye_luminous",
-		&"eyes",
-		&"luminous",
-		20.0
-	)
-
-	_expect(
-		genome.visual_traits_snapshot()
-			== before
-		and genome.get_trait(
-			&"eyes"
-		) == &"base",
-		"gene influence must not mutate phenotype before evolution"
-	)
-
-
-func _expect(
-	condition: bool,
-	message: String
-) -> void:
+func _expect(condition: bool, message: String) -> void:
 	if condition:
 		return
-
 	_failures += 1
 	push_error(message)

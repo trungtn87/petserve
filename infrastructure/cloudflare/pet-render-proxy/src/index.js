@@ -11,6 +11,8 @@ export default {
       return json({
         ok: true,
         service: "petverse-render-proxy",
+        contract_version: 2,
+        routes: ["/v1/render/initial", "/v1/render/evolution"],
         model: MODEL,
       });
     }
@@ -65,6 +67,9 @@ export default {
       input?.height,
       DEFAULT_HEIGHT
     );
+    const seed = normalizeSeed(
+      input?.seed
+    );
 
     let reference = null;
     if (url.pathname === "/v1/render/evolution") {
@@ -94,6 +99,7 @@ export default {
       form.append("prompt", prompt);
       form.append("width", String(width));
       form.append("height", String(height));
+      if (seed !== null) form.append("seed", String(seed));
 
       const formResponse = new Response(form);
       const formContentType =
@@ -121,6 +127,7 @@ export default {
         model: MODEL,
         width,
         height,
+        seed,
       });
     } catch (error) {
       return json(
@@ -136,6 +143,20 @@ export default {
     }
   },
 };
+
+function normalizeSeed(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 2147483646) {
+    return null;
+  }
+
+  return parsed;
+}
 
 function clampDimension(value, fallback) {
   const parsed = Number(value);
