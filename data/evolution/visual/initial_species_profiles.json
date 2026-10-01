@@ -1,10 +1,58 @@
 [
   {
     "species": "cat",
-    "infant_form": "A very young mythical elemental kitten in its first life stage: compact small body, slightly oversized rounded head, short soft legs, large glossy expressive eyes, small triangular ears, one simple fluffy tail, plush layered fur and a gentle curious expression. Anatomy is cute, coherent and stylized. The kitten may carry exactly one small lineage sigil on the forehead and one restrained elemental effect concentrated mainly around the tail, because those are stable element identity cues rather than mutations.",
-    "composition": "Keep the whole pet comfortably inside the frame and make the overall species silhouette easy to read, while allowing natural overlap or partial occlusion of limbs and tail. The AI may choose the camera-relative pose freely. Use a premium mobile-game PetHome environmental composition with strong foreground, midground and background depth; exact on-screen scale and bottom spacing are controlled by the UI-safe composition rule.",
-    "forbidden_advanced_features": "No advanced mutation marks beyond the single lineage sigil, no split tail, no glowing-paw mutation, no special iris-ring mutation, no guardian mane, no complex facial symbols, no heavy accessories, no wings, no armor and no multiple mutation effects.",
-    "species_anatomy": "Clearly recognizable mythical feline anatomy and silhouette, coherent with a cat. Keep the body biologically believable for the species without forcing a specific stance or forcing every limb to be visible.",
-    "freestyle_pose": "Choose any natural cat pose that fits the scene and life stage. Standing, sitting, crouching, walking, resting or a naturally lifted paw are all allowed. Natural perspective, overlap and occlusion are allowed. Do not force a showcase pose and do not invent or duplicate body parts to expose hidden anatomy."
+    "infant_form": "A very young mythical elemental kitten: compact small body, slightly oversized rounded head, short soft legs, large glossy expressive eyes, small triangular ears, one simple fluffy tail, plush layered fur and a gentle curious expression.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the feline silhouette easy to read. Allow natural overlap and free pose. Use a premium mobile-game PetHome environmental composition with clear depth.",
+    "forbidden_advanced_features": "No advanced mutation marks beyond one small lineage sigil, no split tail, no extra limbs, no wings, no horns, no armor and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical feline anatomy: four natural legs, two ears and one tail.",
+    "freestyle_pose": "Choose any natural cat pose suitable for a young pet: standing, sitting, crouching, walking or resting."
+  },
+  {
+    "species": "dog",
+    "infant_form": "A very young mythical elemental puppy: compact sturdy body, youthful rounded muzzle, soft expressive eyes, species-readable ears, one natural tail, plush layered coat and an eager gentle expression.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the canine silhouette easy to read. Allow natural overlap and free pose in a premium mobile-game PetHome environment.",
+    "forbidden_advanced_features": "No advanced mutation marks beyond one small lineage sigil, no extra head, no extra limbs, no wings, no horns, no armor and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical canine anatomy: four natural legs, two ears, one muzzle and one tail.",
+    "freestyle_pose": "Choose any natural puppy pose suitable for a young pet: standing, sitting, trotting, play-bow or resting."
+  },
+  {
+    "species": "fox",
+    "infant_form": "A very young mythical elemental fox kit: slender compact body, pointed youthful muzzle, large triangular ears, bright alert eyes, one large fluffy tail and soft layered fur.",
+    "composition": "Keep the whole pet comfortably inside the frame and emphasize the readable fox silhouette, especially ears and single tail, with natural free posing.",
+    "forbidden_advanced_features": "No multiple tails at Stage 1, no advanced mask mutation, no extra limbs, no wings, no horns, no armor and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical fox anatomy: four light legs, two large ears, narrow muzzle and exactly one tail.",
+    "freestyle_pose": "Choose any natural fox pose: alert standing, sitting, crouching, stepping or curled resting."
+  },
+  {
+    "species": "bear",
+    "infant_form": "A very young mythical elemental bear cub: compact heavy-set body, rounded head, short muzzle, small rounded ears, broad paws, short natural tail and dense plush fur.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the broad bear-cub silhouette easy to read, with grounded weight and natural overlap.",
+    "forbidden_advanced_features": "No giant claws, no shoulder armor, no horns, no wings, no extra limbs, no exaggerated adult bulk and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical bear anatomy: four sturdy legs, two rounded ears, broad paws and one short tail.",
+    "freestyle_pose": "Choose any natural bear cub pose: standing, sitting, lumbering step, curious lean or resting."
+  },
+  {
+    "species": "rabbit",
+    "infant_form": "A very young mythical elemental rabbit: compact soft body, rounded cheeks, large expressive eyes, two long ears, powerful but youthful hind legs, small forepaws and one fluffy tail.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the long-ear rabbit silhouette easy to read without forcing both ears upright.",
+    "forbidden_advanced_features": "No branched ears, no horns, no giant tail, no wings, no extra limbs and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical rabbit anatomy: four limbs, two long ears and one small fluffy tail.",
+    "freestyle_pose": "Choose any natural rabbit pose: sitting, standing, hopping preparation, sniffing or resting."
+  },
+  {
+    "species": "lizard",
+    "infant_form": "A very young mythical elemental lizard: low compact quadruped body, clear reptilian head, bright expressive fantasy eyes, four small legs, smooth juvenile scales and one long natural tail.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the reptilian silhouette easy to read, especially body line and single tail.",
+    "forbidden_advanced_features": "No large horns, no dorsal sail, no heavy crystal armor, no wings, no extra limbs, no split tail and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical lizard anatomy: four legs, scaled body and exactly one long tail.",
+    "freestyle_pose": "Choose any natural lizard pose: low standing, walking, perched, alert head raise or resting."
+  },
+  {
+    "species": "bird",
+    "infant_form": "A very young mythical elemental bird: small rounded juvenile body, two legs, one pair of compact wings, expressive eyes, short species-readable beak and a simple feather tail.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the bird silhouette easy to read, including exactly one pair of wings.",
+    "forbidden_advanced_features": "No extra wing pair, no giant crest, no eye-pattern wings, no halo feathers, no horns, no extra legs and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical bird anatomy: two legs, one beak, one pair of wings and one feather tail.",
+    "freestyle_pose": "Choose any natural juvenile bird pose: standing, perched, small hop, wings tucked or resting."
   }
 ]
