@@ -22,13 +22,24 @@ func save_initial(
 	genome: PetGenome,
 	visual: PetVisualRecord,
 	pet_name: String,
-	scene_profile = null
+	scene_profile = null,
+	mythic_destiny: Dictionary = {}
 ) -> bool:
 	if scene_profile == null and identity != null:
 		scene_profile = (
 			PetSceneProfileFactoryScript.new()
 			.create_initial(identity)
 		)
+
+	if (
+		not mythic_destiny.is_empty()
+		and not SpeciesMythicDestinyService.new()
+			.validate_for_identity(
+				mythic_destiny,
+				identity
+			)
+	):
+		return false
 
 	if (
 		identity == null
@@ -51,6 +62,13 @@ func save_initial(
 		"scene_profile": scene_profile.to_dict(),
 		"current_visual": visual.to_dict(),
 	}
+
+	if not mythic_destiny.is_empty():
+		data["mythic_destiny"] = (
+			mythic_destiny.duplicate(
+				true
+			)
+		)
 
 	return save_data(data)
 
