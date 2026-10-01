@@ -788,9 +788,9 @@ func _populate_pet_info_tab() -> void:
 	)
 	_add_info_row(
 		"Loài",
-		String(
+		ViDisplay.species_label(
 			identity.species()
-		).capitalize()
+		)
 	)
 	_add_info_row(
 		"Giai đoạn",
