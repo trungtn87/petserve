@@ -8,7 +8,7 @@ const DEFAULT_PATH: String = (
 
 const GENE_EXPR_PREFIX: String = "gene_expr_"
 const MIN_GENE_STAGE: int = 1
-const MAX_GENE_STAGE: int = 3
+const MAX_GENE_STAGE: int = 4
 
 
 func load_default() -> Array[MutationVisualDefinition]:
