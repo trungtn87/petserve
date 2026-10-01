@@ -60,6 +60,9 @@ jobs:
       - name: Stage 2 lifecycle
         run: godot --headless --path . res://tools/test_m8_stage_cycle.tscn
 
+      - name: 2048 rules, persistence, rewards and mobile UI
+        run: godot --headless --path . res://tools/test_energy_2048.tscn
+
       - name: Stage 2 reward contract
         run: godot --headless --path . res://tools/test_stage2_rewards.tscn
 

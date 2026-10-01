@@ -996,7 +996,7 @@ func _generate_growth(
 					* [1.10, 1.20, 1.35, 1.55][level - 1]
 				))
 			&"burst":
-				var burst_chance := [
+				var burst_chance: float = [
 					0.10, 0.20, 0.35, 0.50
 				][level - 1]
 				if rng.randf() <= burst_chance:
@@ -1030,7 +1030,7 @@ func _generate_growth(
 					5, 10, 20, 35
 				][level - 1] * 60
 			&"backfire":
-				var backfire_chance := [
+				var backfire_chance: float = [
 					0.15, 0.30, 0.55, 0.80
 				][level - 1]
 				if rng.randf() <= backfire_chance:

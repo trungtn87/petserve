@@ -1346,3 +1346,77 @@ func _restore(
 				)
 			)
 		)
+
+
+func energy_2048_snapshot() -> Dictionary:
+	var data: Dictionary = _meta.get("energy_2048", {})
+	if int(data.get("run_id", -1)) != _run_id:
+		return {}
+	var result := data.duplicate(true)
+	result["best_score"] = int(_meta.get("energy_2048_best", 0))
+	return result
+
+
+func open_energy_2048() -> Dictionary:
+	var session := Energy2048Session.new()
+	var current := energy_2048_snapshot()
+	if not current.is_empty() and session.restore(current):
+		return {"ok": true, "state": current}
+	session.start()
+	return _commit_energy_2048(session)
+
+
+func restart_energy_2048() -> Dictionary:
+	var current := energy_2048_snapshot()
+	if not current.is_empty() and not bool(current.get("settled", false)):
+		return {"ok": false, "message": "Hãy kết thúc và nhận thưởng ván hiện tại trước."}
+	var session := Energy2048Session.new()
+	session.start()
+	return _commit_energy_2048(session)
+
+
+func move_energy_2048(direction: Vector2i) -> Dictionary:
+	var session := Energy2048Session.new()
+	if not session.restore(energy_2048_snapshot()):
+		return {"ok": false, "message": "Không có ván đang chơi."}
+	var motion := session.move(direction)
+	if not bool(motion.get("changed", false)):
+		return {"ok": true, "state": energy_2048_snapshot(), "changed": false}
+	var result := _commit_energy_2048(session)
+	if bool(result.get("ok", false)):
+		result["motion"] = motion
+		result["changed"] = true
+	return result
+
+
+func finish_energy_2048() -> Dictionary:
+	var session := Energy2048Session.new()
+	if not session.restore(energy_2048_snapshot()):
+		return {"ok": false, "message": "Không có ván đang chơi."}
+	session.finish()
+	var before := _meta.duplicate(true)
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["energy_2048"] = stored
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var result := _entertainment.claim_energy_2048(_run_id, stage, session.match_id)
+	if not bool(result.get("ok", false)):
+		_restore(before)
+		return result
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được phần thưởng. Hãy thử lại."}
+	result["state"] = energy_2048_snapshot()
+	return result
+
+
+func _commit_energy_2048(session: Energy2048Session) -> Dictionary:
+	var before := _meta.duplicate(true)
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["energy_2048"] = stored
+	_meta["energy_2048_best"] = maxi(int(_meta.get("energy_2048_best", 0)), session.score)
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được ván 2048. Hãy thử lại."}
+	return {"ok": true, "state": energy_2048_snapshot()}

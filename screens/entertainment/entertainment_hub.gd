@@ -13,6 +13,7 @@ const SnakeHuntActivityScript = preload(
 )
 
 
+signal energy_2048_reward_received
 signal caro_win_reward_requested
 signal obstacle_reward_requested(score: int, match_id: String)
 signal snake_reward_requested(score: int, match_id: String)
@@ -20,6 +21,8 @@ signal match_finished(result: StringName)
 
 
 var palette: Dictionary = {}
+var energy_2048_api: InfantGameFacade
+var _energy_2048_activity: Energy2048ActivityUI
 
 var _is_open: bool = false
 var _stage_index: int = 1
@@ -90,6 +93,9 @@ func close_hub() -> void:
 
 	if _snake_activity != null:
 		_snake_activity.close_activity()
+
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
 
 	visible = false
 	_is_open = false
@@ -283,6 +289,7 @@ func _build_ui() -> void:
 	_build_snake_activity(
 		body
 	)
+	_build_energy_2048_activity(body)
 
 
 func _build_hub_screen(
@@ -392,11 +399,11 @@ func _build_hub_screen(
 
 	grid.add_child(
 		_activity_card(
-			"Sắp mở",
-			"Hoạt động mới",
-			false,
-			Callable(),
-			"＋"
+			"2048",
+			"Ghép ô • Nhận mảnh rương",
+			true,
+			_open_energy_2048,
+			"▦"
 		)
 	)
 
@@ -655,6 +662,9 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _energy_2048_activity != null:
+		_energy_2048_activity.close_activity()
+
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
@@ -847,3 +857,21 @@ func _style(
 			Color("a98af4")
 		)
 	)
+
+
+func _build_energy_2048_activity(parent: Control) -> void:
+	_energy_2048_activity = Energy2048ActivityUI.new()
+	_energy_2048_activity.palette = palette
+	parent.add_child(_energy_2048_activity)
+	_energy_2048_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_energy_2048_activity.visible = false
+	_energy_2048_activity.back_requested.connect(_show_hub_screen)
+	_energy_2048_activity.reward_received.connect(func() -> void: energy_2048_reward_received.emit())
+	_energy_2048_activity.match_finished.connect(_on_match_finished)
+
+
+func _open_energy_2048() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_energy_2048_activity.game_api = energy_2048_api
+	_energy_2048_activity.open_activity()
