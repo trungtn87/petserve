@@ -9,7 +9,7 @@ const FRAMES := [
 	[1.42, 1.06, 1.06, "balanced athletic frame"],
 ]
 const FACES := ["rounded forehead and short muzzle", "tapered cheeks and a small distinct muzzle", "broad cheek planes and a soft jaw", "narrow cheek planes and a rounded brow"]
-const FUR_LINES := ["rounded separate fur clumps", "smooth directional fur contours", "layered tapered fur contours", "soft flowing curved fur locks"]
+const SURFACE_LINES := ["rounded separate surface clumps", "smooth directional surface contours", "layered tapered surface contours", "soft flowing curved surface lines"]
 const POSES := ["curious forward step", "calm planted stance", "alert poised step", "proud elevated chest"]
 const EFFECTS := {
 	"body.sturdy": [0.10, 0.02, 0.34],
@@ -45,7 +45,7 @@ func profile(identity: PetIdentity) -> Dictionary:
 		"tail": rng.randf_range(0.80, 1.30),
 		"ears": rng.randf_range(0.85, 1.20),
 		"face": FACES[rng.randi_range(0, FACES.size() - 1)],
-		"fur_line": FUR_LINES[rng.randi_range(0, FUR_LINES.size() - 1)],
+		"surface_line": SURFACE_LINES[rng.randi_range(0, SURFACE_LINES.size() - 1)],
 		"pose": POSES[rng.randi_range(0, POSES.size() - 1)],
 		"side": "left" if rng.randi_range(0, 1) == 0 else "right",
 		"response": rng.randf_range(0.88, 1.12),
@@ -104,9 +104,9 @@ func build(identity: PetIdentity, stage: int, scores: Dictionary = {}) -> String
 			pose += ", three-quarter full-body view with head turned toward the viewer"
 	return (
 		"\n\n[INDIVIDUAL MORPHOLOGY V1]\n"
-		+ "Inherited frame: %s; face: %s; fur contour language: %s. These are stable ancestry cues, not a frozen infant body.\n"
+		+ "Inherited frame: %s; face: %s; surface contour language: %s. These are stable ancestry cues, not a frozen infant body.\n"
 		+ "Target Stage %d: %s\n"
-		+ "Use approximate design ratios, not text labels: torso length/head width %.2f; standing leg length/head height %.2f; chest width/head width %.2f; tail length/torso length %.2f; ear length relative to species baseline %.2f.\n"
-		+ "Gene emphasis: %s. Present from the %s: %s. Separate limbs, ears and authorized tail from the body outline; never hide the focal feature behind the torso.\n"
+		+ "Use approximate design ratios, not text labels: torso length/head width %.2f; limb length/head height %.2f; chest width/head width %.2f; tail length/torso length %.2f; signature appendage scale relative to this species baseline %.2f.\n"
+		+ "Gene emphasis: %s. Present from the %s: %s. Separate limbs and code-authorized species appendages from the body outline; never hide the focal feature behind the torso.\n"
 		+ "Preserve individual facial recognition and elemental palette, not exact previous proportions or pose. Natural maturation is authorized even without new Genes. Apply scored Genes to this inherited frame, rather than replacing it with a generic breed template. Structural traits must read in silhouette without glow. Keep pupils readable. Do not substitute bloom, recoloring or camera zoom for bodily development. Species and code-authorized mythical anatomy take precedence over baseline ratios."
-	) % [p.frame, p.face, p.fur_line, p.stage, STAGES[int(p.stage)], p.torso, p.legs, p.chest, p.tail, p.ears, focus, p.side, pose]
+	) % [p.frame, p.face, p.surface_line, p.stage, STAGES[int(p.stage)], p.torso, p.legs, p.chest, p.tail, p.ears, focus, p.side, pose]
