@@ -20,6 +20,7 @@ The Godot client never receives the Cloudflare API token or Account ID.
 
 - `GET /health`
 - `POST /v1/render/initial`
+- `POST /v1/render/evolution` — image edit dùng ảnh pet hiện tại làm reference
 
 Initial request:
 
@@ -52,6 +53,14 @@ This is only a lightweight development gate. A value shipped in an APK is not a 
 ## Deployment
 
 The Worker requires the Workers AI binding named `AI`. The included `wrangler.jsonc` defines that binding.
+
+From this directory, deploy the current contract with:
+
+```bash
+npx wrangler deploy
+```
+
+`GET /health` must report `contract_version: 2` and include `/v1/render/evolution` before testing evolution in Godot.
 
 After deployment, place the public Worker URL in:
 

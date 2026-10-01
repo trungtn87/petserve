@@ -2,6 +2,10 @@
 
 Godot Android portrait project.
 
+## Development runtime
+
+The project baseline is **Godot 4.6.1**. Keep `project.godot` on the 4.6 feature level so editor, headless tests and Android exports use the same minor-version contract. Do not resave the project as a newer Godot feature level unless the whole repository is migrated and re-tested together.
+
 ## Current visual direction
 
 Base art direction:

@@ -45,16 +45,27 @@ func build(
 		else next_genome.stage()
 	)
 
+	var phenotype_builder := PhenotypePromptBuilder.new()
 	var state_prompt := (
-		"Current form: evolution stage %d, body development %.0f%%. "
-		+ "Use the provided previous pet image as the visual source of truth."
+		"Source life stage: %d. Target life stage: %d. "
+		+ "Use the provided previous pet image as the visual source of truth. "
+		+ "Current phenotype (all 12 visual loci): %s. "
+		+ "Target phenotype after the code-selected change: %s."
 	) % [
+		previous_genome.stage(),
 		stage_for_prompt,
-		next_genome.body_growth() * 100.0,
+		phenotype_builder.describe(
+			previous_genome
+		),
+		phenotype_builder.describe(
+			next_genome
+		),
 	]
 
 	var change_prompt := (
-		"Modify only the %s region. %s"
+		"Advance the same individual naturally toward the target life stage, "
+		+ "but introduce ONLY the selected biological change in the %s region. %s "
+		+ "Do not invent any other gene trait."
 	) % [
 		String(visual.target_region()),
 		visual.instruction(),
@@ -64,12 +75,13 @@ func build(
 		style.preserve_rule()
 		+ " "
 		+ visual.preserve_hint()
-		+ " Preserve all non-target genome channels: "
-		+ _non_target_trait_list(
+		+ " Preserve these non-target phenotype values exactly: "
+		+ phenotype_builder.describe_except(
 			next_genome,
 			delta.target_trait()
 		)
-		+ "."
+		+ ". Natural age/proportion maturation is allowed, but it must not "
+		+ "change the identity of any non-target gene locus."
 	)
 
 	var spec := PetVisualSpec.new(
@@ -243,27 +255,3 @@ func _mutation_history_is_valid(
 	return next.back() == new_mutation
 
 
-func _non_target_trait_list(
-	genome: PetGenome,
-	target_trait: StringName
-) -> String:
-	var names: Array[String] = []
-
-	for key_value in (
-		genome.traits_snapshot().keys()
-	):
-		var key := StringName(
-			str(key_value)
-		)
-
-		if key == target_trait:
-			continue
-
-		names.append(String(key))
-
-	names.sort()
-
-	if names.is_empty():
-		return "all established features"
-
-	return ", ".join(names)
