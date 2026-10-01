@@ -5,6 +5,7 @@ var _failures: int = 0
 
 
 func _initialize() -> void:
+	_test_vietnamese_display_names()
 	_test_natural_stage_one_plan()
 	_test_gene_stage_one_plan()
 	_test_gene_details_cannot_be_silently_dropped()
@@ -28,6 +29,33 @@ func _initialize() -> void:
 		% _failures
 	)
 	quit(1)
+
+
+func _test_vietnamese_display_names() -> void:
+	_expect(
+		ViDisplay.trait_value(
+			&"guardian"
+		) == "Hộ vệ",
+		"Guardian internal trait must display as Hộ vệ"
+	)
+	_expect(
+		ViDisplay.trait_value(
+			&"guardian_mature"
+		) == "Hộ vệ trưởng thành",
+		"Developed trait IDs must stay Vietnamese"
+	)
+	_expect(
+		ViDisplay.gene_name(
+			"structure_guardian"
+		) == "Gen Cấu Trúc Hộ Vệ",
+		"Gene internal ID must resolve to Vietnamese display name"
+	)
+	_expect(
+		ViDisplay.rarity_label(
+			"legendary"
+		) == "Huyền thoại",
+		"Rarity IDs must display in Vietnamese"
+	)
 
 
 func _test_natural_stage_one_plan() -> void:
