@@ -400,8 +400,18 @@ func _prepare_resolved_stage(
 	)
 
 	if not gene_score_prompt.is_empty():
+		var gene_scope_rule := ""
+
+		if target_stage >= 3:
+			gene_scope_rule = (
+				"Use the reference image as the baseline. Only Gene loci listed below are authorized to differ from the source pet. "
+				+ "Total lifetime score controls expression strength; the highest-scored direction is dominant and other scored directions may blend. "
+				+ "Do not invent a new direction or redesign an unlisted locus.\n"
+			)
+
 		request.positive_prompt += (
 			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ gene_scope_rule
 			+ gene_score_prompt
 		)
 
