@@ -1,0 +1,164 @@
+# Stage 3 — Food & Growth Item Expansion
+
+Status: **FOUNDATION IMPLEMENTATION**
+
+This is the first Stage 3 content expansion on top of the `pethome` baseline.
+
+## Goal
+
+Food and Growth items now use the same five rarity tiers already used by Gene items:
+
+```text
+Common
+Uncommon
+Rare
+Epic
+Legendary
+```
+
+The change is deliberately limited to resource-item content and value scaling. It does **not** change Gene score logic, evolution resolution, hunger thresholds, stage durations, or the existing quality/property/defect system.
+
+## Catalog size
+
+Each rarity has four named base definitions.
+
+| Type | Common | Uncommon | Rare | Epic | Legendary | Total |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Food | 4 | 4 | 4 | 4 | 4 | 20 |
+| Growth | 4 | 4 | 4 | 4 | 4 | 20 |
+
+An item instance still receives:
+
+```text
+base definition
++ rarity
++ quality
++ properties
++ defects
++ stage scaling
+```
+
+So 40 base definitions can still produce many instance variants without multiplying gameplay code.
+
+## Food pool
+
+### Common
+
+- Cá nhỏ
+- Thịt mềm
+- Sữa ấm
+- Quả mọng
+
+### Uncommon
+
+- Cá bạc
+- Thịt giàu năng lượng
+- Củ mật
+- Sữa hạt tinh lực
+
+### Rare
+
+- Cá ánh trăng
+- Thịt Linh Thú
+- Quả sinh lực
+- Sữa pha lê
+
+### Epic
+
+- Cá Tinh Vân
+- Thịt Cổ Thú
+- Quả Tăng Trưởng
+- Mật Linh
+
+### Legendary
+
+- Cá Ngân Hà
+- Thịt Thiên Thú
+- Quả Sinh Mệnh
+- Mật Trường Sinh
+
+## Growth pool
+
+### Common
+
+- Gel vitamin
+- Dịch dinh dưỡng
+- Men chuyển hóa
+- Thuốc bổ tăng trưởng
+
+### Uncommon
+
+- Tinh chất tăng trưởng
+- Dung dịch tăng tốc
+- Xúc tác sinh học
+- Dịch hấp thu
+
+### Rare
+
+- Huyết thanh linh lực
+- Tinh chất pha lê
+- Enzyme thích nghi
+- Lõi sinh lực
+
+### Epic
+
+- Huyết thanh Tinh Vân
+- Xúc tác Cổ Đại
+- Tinh chất Tiến Hóa
+- Lõi Sao
+
+### Legendary
+
+- Lõi Sinh Mệnh
+- Tinh chất Thiên Thể
+- Huyết thanh Khởi Nguyên
+- Lõi Trường Sinh
+
+## Rarity value contract
+
+The numbers below are **base Stage 1 ranges before quality, property, defect, and stage multipliers**.
+
+| Rarity | Food fullness | Growth acceleration |
+| --- | ---: | ---: |
+| Common | 20–30 min | 6–12 min |
+| Uncommon | 30–45 min | 10–16 min |
+| Rare | 45–65 min | 15–25 min |
+| Epic | 60–90 min | 25–40 min |
+| Legendary | 90–120 min | 40–60 min |
+
+Stage scaling remains unchanged:
+
+```text
+Stage 1 ×1
+Stage 2 ×12
+Stage 3 ×18
+```
+
+Quality, properties and defects are applied after the rarity base value is selected, so a bad high-rarity roll can still be damaged by defects. This preserves the existing design where junk/bad items are intentional rather than silently normalized away.
+
+## Runtime contract
+
+Every Food/Growth item now exposes:
+
+- `definition_id` — stable base item identity;
+- `base_display_name` — clean base name;
+- `display_name` — instance name after quality/defect decoration;
+- `rarity` — one of the five shared rarity tiers;
+- the existing effect/property/defect/save fields.
+
+The generator also exposes deterministic helpers for tests and future guaranteed-rarity chest rewards:
+
+- `generate_resource_for_rarity()`
+- `resource_definition_count()`
+- `resource_base_range_for_rarity()`
+
+## Acceptance
+
+`tools/test_stage3_food_growth_items.tscn` verifies:
+
+- five rarity tiers exist for Food and Growth;
+- each tier contains four base definitions;
+- total catalog is 20 Food + 20 Growth;
+- forced-rarity generation preserves rarity and stable definition identity;
+- base effect ranges increase with rarity;
+- Stage scaling does not reroll definition or rarity.
