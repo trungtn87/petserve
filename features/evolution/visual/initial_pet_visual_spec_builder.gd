@@ -62,111 +62,149 @@ func build(
 		if genome.get_trait(key) != &"base":
 			return null
 
-	var stage_catalog := ElementStageVisualCatalog.new()
-	var element_profile := stage_catalog.find_by_element(
-		stage_catalog.load_default(),
-		identity.element()
-	)
-	var stage_one_face := stage_catalog.prompt_for_stage(
-		element_profile,
-		1
-	)
-
-	if stage_one_face.is_empty():
-		return null
-
 	var spec := InitialPetVisualSpec.new()
 
 	spec.pet_id = identity.pet_id()
 	spec.style_id = style.style_id()
 
 	spec.identity_section = (
-		"Create the first visual form of one unique pet individual. "
-		+ "Species: "
+		"Create one young "
 		+ String(identity.species())
-		+ ". Element family: "
+		+ " pet. Element: "
 		+ PetElementCatalog.prompt_name(
-			identity.element()
-		)
-		+ ". This Stage 1 image establishes the canonical face identity and elemental lineage "
-		+ "that later stages inherit. The pet and PetHome environment must be rendered together "
-		+ "as one coherent scene, not as separate assets."
-	)
-
-	spec.style_section = (
-		style.base_style()
-		+ " Element lineage appearance: "
-		+ style.accent_for(
 			identity.element()
 		)
 		+ "."
 	)
 
+	spec.style_section = (
+	"Premium fantasy pet illustration, premium fantasy game character art, "
+	+ "polished stylized 3D appearance, evolved chibi proportions, "
+	+ "cute youthful feline proportions, large expressive eyes, soft fluffy fur, "
+	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
+	+ "harmonious collectible game-pet design. "
+	+ "Elemental features must feel organically grown from or naturally integrated into the fur and body design, "
+	+ "not like random objects, stickers or loose decorations placed on the pet. "
+	+ "Keep the elemental palette rich but controlled. "
+	+ "Element traits: "
+	+ _simple_element_traits(
+		identity.element()
+	)
+)
+
 	spec.form_section = (
-		species_profile.infant_form
-		+ " Species anatomy: "
-		+ species_profile.species_anatomy
-		+ " Pose policy: "
-		+ species_profile.freestyle_pose
-		+ " Stage 1 elemental face identity: "
-		+ stage_one_face
-		+ " Keep the body clearly infant and compact. Element differences at this stage should "
-		+ "be strongest in face shape language, eye design, ear silhouette, cheek/forehead fur, "
-		+ "lineage sigil and restrained tail cues. The seven elements must not look like simple "
-		+ "recolors of one identical kitten; their faces should remain distinguishable in grayscale."
+		"Stage 1. Young juvenile fantasy cat, at the youngest end of the juvenile-to-adolescent range. "
+		+ "Keep the pet cute, compact and youthful. "
+		+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+		+ "Keep fantasy details subtle."
 	)
 
 	spec.scene_section = (
-		"PetHome environment: "
-		+ scene_profile.environment_theme
-		+ ". Shared palette: "
-		+ scene_profile.palette_description
-		+ ". Lighting: "
-		+ scene_profile.lighting_theme
-		+ ". Repeating world motif: "
-		+ scene_profile.motif_description
-		+ ". Scene identity seed: "
-		+ str(scene_profile.scene_seed)
-		+ ". Keep the environment supportive and atmospheric, but the pet remains the clear focal point."
+		"Simple natural fantasy background matching the same element. "
+		+ "Keep it uncluttered and atmospheric."
 	)
 
 	spec.composition_section = (
-		species_profile.composition
-		+ " Generate exactly one pet in exactly one continuous PetHome environment. "
-		+ "Do not create a split image, collage, character sheet or separate background panel."
+		"Exactly one pet. Full body visible."
 	)
 
 	spec.ui_safe_section = (
-		"Render a full-bleed vertical 9:16 mobile PetHome scene, designed to fill the entire game screen edge to edge. "
-		+ "Use an environmental establishing shot, never a close-up portrait, medium shot or character showcase. Keep the whole pet comfortably inside the frame and the overall species silhouette readable. Natural perspective and partial occlusion of limbs, wings, tail or other appendages are allowed. "
-		+ "LOCKED COMPOSITION: the pet's visible full-body height must be about 35 percent of the total image height. Measure from the highest visible point of the pet to the lowest visible pet point, or the ground-contact point for a grounded pose. "
-		+ "Place the lowest visible pet point, or ground-contact point for a grounded pose, at about 90 percent of the total image height, leaving about 10 percent of the image height below the pet. "
-		+ "Keep the pet horizontally near the center and vertically in the lower-middle of the scene. Do not change on-screen pet scale by life stage; later stages show maturity through anatomy, proportions, fur and elemental detail, not by occupying more of the frame. "
-		+ "Leave roughly the upper 24 to 28 percent of the image calm and low-detail for the compact PetHome status card. Keep the bottom 10 percent scenic and unobstructed. "
-		+ "The environment must remain the dominant visual context with clear foreground, midground and background depth around the pet. "
-		+ "Do not let the head, ears, paws or tail touch the image edges. "
-		+ "Extend the environment naturally to every edge of the image with no border, frame, vignette panel or empty margin. "
-		+ "Do not draw any UI, text, labels, icons, frames or interface elements into the artwork."
+		"Vertical 9:16 mobile scene. "
+		+ "Pet about 25 to 30 percent of image height in the lower third. "
+		+ "Background occupies most of the image. "
+		+ "Keep the upper area calm for UI. No text or UI."
 	)
 
 	spec.future_space_section = (
-		"This is the clean infant base form before any mutation. "
-		+ "Stage 1 may already have a distinctive elemental face and small lineage-specific fur cues, "
-		+ "but it must not use the mature Stage 2 body morphology or advanced Stage 3/4 detail language. "
-		+ "Keep enough visual simplicity for later evolution while making the element recognizable without color alone. "
-		+ "The PetHome world should remain recognizable in later stages so the same pet feels like it continues living in the same world. "
-		+ species_profile.forbidden_advanced_features
+		"Keep the design simple enough for later evolution."
 	)
 
 	spec.negative_prompt = (
-		style.negative_prompt()
-		+ ", adult body, mature proportions, Stage 2 body morphology, advanced evolution form, multiple mutation features, overly complex costume, excessive magical effects"
-		+ ", generic identical face across all elements, color-swap-only element design, same silhouette for every element"
-		+ ", plain studio background, neutral empty background, isolated character on blank background, scenery-free backdrop, split image, collage, character sheet, duplicated pet, multiple pets, text, labels, UI, buttons, interface panels"
-		+ ", close-up portrait, medium close shot, bust shot, oversized pet, undersized pet, pet substantially larger or smaller than 35 percent of image height, giant head filling the frame, zoomed-in camera, cropped ears, cropped paws, cropped tail, pet touching the image edges, paws touching the bottom edge, excessive empty floor below the paws"
+		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
+		+ "heavy accessories, fully adult cat, old cat, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
 		return null
 
 	return spec
+
+
+func _simple_element_traits(
+	element: StringName
+) -> String:
+	match element:
+		&"wood":
+			return (
+				"soft cream and warm light-brown fur with fresh green accents, "
+				+ "small living sprouts growing naturally from the head and ear fur, "
+				+ "leaf-like fur tufts, layered leafy chest fluff, "
+				+ "subtle vine-like markings blended into the coat, "
+				+ "and a soft bud-shaped leafy tail tip. "
+				+ "Plant features should look naturally grown as part of the pet, "
+				+ "not like loose leaves stuck onto the fur"
+			)
+
+		&"earth":
+			return (
+				"warm cream, beige and earthy brown fur with subtle mineral tones, "
+				+ "small smooth pebbles and polished natural crystals emerging gently from the fur, "
+				+ "especially around the forehead, chest and back, "
+				+ "soft stone-like markings blended into the coat and a grounded fluffy silhouette. "
+				+ "Mineral details should feel organically embedded in the body design, "
+				+ "not like rocks randomly thrown onto the pet"
+			)
+
+		&"fire":
+			return (
+				"soft cream, peach and warm orange fur with glowing ember accents, "
+				+ "small controlled flames naturally forming at the ear tips and tail tip, "
+				+ "subtle glowing flame-shaped markings on the forehead and cheeks, "
+				+ "and delicate warm ember lines flowing through the fur. "
+				+ "Fire should feel like magical living fur energy, "
+				+ "not like the pet is burning uncontrollably"
+			)
+
+		&"light":
+			return (
+				"soft ivory and warm pearl-white fur with pale golden accents, "
+				+ "a small luminous star-shaped forehead mark, "
+				+ "soft golden light woven naturally through the ear fur and tail, "
+				+ "a restrained elegant halo-like glow around the silhouette, "
+				+ "and tiny gentle light particles. "
+				+ "The light should feel soft, pure and magical, not overly bright or angelic"
+			)
+
+		&"metal":
+			return (
+				"silver-white and very pale cool-gray fur with clean icy-blue accents, "
+				+ "small polished metallic crystal facets growing naturally from the forehead and fur, "
+				+ "subtle silver leaf-like plates blended into the chest and leg fur, "
+				+ "fine metallic strands around the tail and a refined cool reflective sheen. "
+				+ "Metal details should feel elegant and organically integrated, "
+				+ "not like armor or mechanical equipment"
+			)
+
+		&"water":
+			return (
+				"pearl-white and soft aqua fur with clear turquoise accents, "
+				+ "small translucent water-drop crystals naturally forming on the forehead and fur, "
+				+ "soft wave-like fur tufts, flowing aqua gradients along the cheeks and tail, "
+				+ "and a few delicate suspended bubbles and droplets. "
+				+ "Water should feel naturally infused into the fur and body, "
+				+ "not like the pet is simply wet"
+			)
+
+		&"dark":
+			return (
+				"smoky blue-black, charcoal-indigo and muted violet fur with restrained cyan-violet highlights, "
+				+ "a subtle crescent or astral forehead mark, "
+				+ "soft shadow-like fur gradients, faint luminous eye accents, "
+				+ "restrained mist woven around the tail and silhouette, "
+				+ "and a few elegant dark magical markings blended into the coat. "
+				+ "Dark energy should feel mysterious and integrated into the pet, "
+				+ "not like galaxy texture or random purple effects covering the body"
+			)
+		_:
+			return "soft elemental accents."

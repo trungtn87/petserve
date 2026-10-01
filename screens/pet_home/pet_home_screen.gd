@@ -717,13 +717,17 @@ func _open_pet_info() -> void:
 	):
 		_add_info_row(
 			"Thiên phú",
-			"Bẻ cong thời gian [TEST]"
+			"Tiến hóa ngay [TEST]"
 		)
 	_add_info_row(
 		"Loài",
 		String(
 			identity.species()
 		).capitalize()
+	)
+	_add_mythic_name_row(
+		identity,
+		genome
 	)
 	_add_info_row(
 		"Thế hệ",
@@ -744,9 +748,64 @@ func _open_pet_info() -> void:
 	_add_current_trait_rows(
 		genome
 	)
+	_add_gene_choice_rows(
+		gameplay_state
+	)
 	_add_last_evolution_row()
 
 	_section_overlay.visible = true
+
+
+func _add_mythic_name_row(
+	identity: PetIdentity,
+	genome: PetGenome
+) -> void:
+	if (
+		identity == null
+		or genome == null
+	):
+		return
+
+	var destiny_value: Variant = _data.get(
+		"mythic_destiny",
+		{}
+	)
+	var name := ""
+
+	if typeof(destiny_value) == TYPE_DICTIONARY:
+		name = (
+			SpeciesMythicDestinyService.new()
+			.display_name_for(
+				destiny_value as Dictionary,
+				identity
+			)
+		)
+
+	if name.is_empty():
+		var catalog := SpeciesMythicMutationCatalog.new()
+		var definitions := catalog.load_default()
+
+		for mutation_id in genome.mutation_ids():
+			var definition := catalog.find_by_id(
+				definitions,
+				mutation_id
+			)
+
+			if (
+				definition != null
+				and definition.species()
+					== identity.species()
+			):
+				name = definition.display_name()
+				break
+
+	if name.is_empty():
+		return
+
+	_add_info_row(
+		"Biến dị fantasy",
+		name
+	)
 
 
 func _add_current_trait_rows(
@@ -768,7 +827,7 @@ func _add_current_trait_rows(
 
 		_add_info_row(
 			(
-				"Trait"
+				"Đang có"
 				if added == 0
 				else ""
 			),
@@ -786,7 +845,7 @@ func _add_current_trait_rows(
 
 	if added == 0:
 		_add_info_row(
-			"Trait",
+			"Đang có",
 			"Cơ bản"
 		)
 
@@ -806,6 +865,13 @@ func _add_gene_choice_rows(
 			0
 		)
 	)
+
+	if limit <= 0:
+		_add_info_row(
+			"Gene Item",
+			"Không dùng ở stage này"
+		)
+		return
 
 	_add_info_row(
 		"Gene Item",
@@ -868,7 +934,7 @@ func _add_gene_choice_rows(
 
 		_add_info_row(
 			(
-				"Định hướng"
+				"Đang định hướng"
 				if index == 0
 				else ""
 			),
@@ -884,6 +950,17 @@ func _add_gene_choice_rows(
 			]
 		)
 		index += 1
+
+	if index == 0:
+		_add_info_row(
+			"Đang định hướng",
+			"Chưa dùng Gene"
+		)
+	else:
+		_add_info_row(
+			"Kết quả",
+			"Chưa khóa • chốt khi tiến hóa"
+		)
 
 
 func _add_last_evolution_row() -> void:
@@ -914,81 +991,147 @@ func _add_last_evolution_row() -> void:
 			)
 		)
 	)
+	var deltas_value: Variant = plan.get(
+		"deltas",
+		[]
+	)
+	var deltas: Array[Dictionary] = []
 
-	if mode == StageEvolutionResolver.MODE_NATURAL:
+	if typeof(deltas_value) == TYPE_ARRAY:
+		for delta_value in deltas_value as Array:
+			if typeof(delta_value) == TYPE_DICTIONARY:
+				deltas.append(
+					(delta_value as Dictionary).duplicate(
+						true
+					)
+				)
+
+	if deltas.is_empty():
+		var legacy_delta_value: Variant = plan.get(
+			"delta",
+			{}
+		)
+
+		if (
+			typeof(legacy_delta_value) == TYPE_DICTIONARY
+			and not (
+				legacy_delta_value as Dictionary
+			).is_empty()
+		):
+			deltas.append(
+				(legacy_delta_value as Dictionary).duplicate(
+					true
+				)
+			)
+
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and deltas.is_empty()
+	):
 		_add_info_row(
 			"Tiến hóa gần nhất",
 			"Tự nhiên • giữ nguyên Gene trait"
 		)
-		return
+	else:
+		var index := 0
 
-	var delta_value: Variant = plan.get(
-		"delta",
+		for delta in deltas:
+			var locus := StringName(
+				str(
+					delta.get(
+						"target_trait",
+						""
+					)
+				)
+			)
+			var from_trait := StringName(
+				str(
+					delta.get(
+						"from_trait",
+						""
+					)
+				)
+			)
+			var to_trait := StringName(
+				str(
+					delta.get(
+						"to_trait",
+						""
+					)
+				)
+			)
+
+			if (
+				String(locus).is_empty()
+				or String(from_trait).is_empty()
+				or String(to_trait).is_empty()
+			):
+				continue
+
+			_add_info_row(
+				(
+					"Tiến hóa gần nhất"
+					if index == 0
+					else ""
+				),
+				"%s: %s → %s"
+				% [
+					_trait_label(
+						locus
+					),
+					_trait_value(
+						from_trait
+					),
+					_trait_value(
+						to_trait
+					),
+				]
+			)
+			index += 1
+
+	var mythic_value: Variant = plan.get(
+		"mythic_resolution",
 		{}
 	)
 
-	if typeof(delta_value) != TYPE_DICTIONARY:
+	if typeof(mythic_value) != TYPE_DICTIONARY:
 		return
 
-	var delta := delta_value as Dictionary
+	var mythic := mythic_value as Dictionary
+	var mythic_mode := StringName(
+		str(
+			mythic.get(
+				"mode",
+				"none"
+			)
+		)
+	)
+	var mythic_name := String(
+		mythic.get(
+			"display_name",
+			""
+		)
+	).strip_edges()
 
-	if delta.is_empty():
+	if (
+		mythic_name.is_empty()
+		or mythic_mode not in [
+				SpeciesMythicMutationResolver.MODE_AWAKEN,
+				SpeciesMythicMutationResolver.MODE_CONTINUE,
+			]
+	):
 		return
-
-	var locus := StringName(
-		str(
-			delta.get(
-				"target_trait",
-				""
-			)
-		)
-	)
-	var from_trait := StringName(
-		str(
-			delta.get(
-				"from_trait",
-				""
-			)
-		)
-	)
-	var to_trait := StringName(
-		str(
-			delta.get(
-				"to_trait",
-				""
-			)
-		)
-	)
-	var gene_resolution: Dictionary = plan.get(
-		"gene_resolution",
-		{}
-	)
-	var suffix := (
-		" • củng cố"
-		if bool(
-			gene_resolution.get(
-				"reinforced",
-				false
-			)
-		)
-		else ""
-	)
 
 	_add_info_row(
-		"Tiến hóa gần nhất",
-		"%s: %s → %s%s"
-		% [
-			_trait_label(
-				locus
-			),
-			_trait_value(
-				from_trait
-			),
-			_trait_value(
-				to_trait
-			),
-			suffix,
-		]
+		"Thần thoại",
+		(
+			"Thức tỉnh %s"
+			% mythic_name
+			if mythic_mode
+				== SpeciesMythicMutationResolver.MODE_AWAKEN
+			else "Tiếp tục %s"
+				% mythic_name
+		)
 	)
 
 
@@ -1093,6 +1236,9 @@ func _add_info_row(
 	value_text: String
 ) -> Label:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
 	row.add_theme_constant_override(
 		"separation",
 		10
@@ -1102,6 +1248,12 @@ func _add_info_row(
 	var label := Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = 92
+	label.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
+	)
 	label.add_theme_color_override(
 		"font_color",
 		_theme.get(
@@ -1116,8 +1268,17 @@ func _add_info_row(
 	value.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	value.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	value.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
 	value.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	value.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
 	)
 	value.add_theme_color_override(
 		"font_color",
@@ -1165,6 +1326,8 @@ func _setup_gameplay() -> void:
 	)
 	_hub.caro_win_reward_requested.connect(_reward)
 	_hub.obstacle_reward_requested.connect(_reward_obstacle)
+	_hub.energy_2048_api = _game
+	_hub.energy_2048_reward_received.connect(_refresh_gameplay)
 	_hub.snake_reward_requested.connect(_reward_snake)
 	_refresh_gameplay()
 
@@ -1364,18 +1527,6 @@ func _open_crystallization() -> void:
 		)
 	)
 
-	_add_info_row(
-		"I",
-		"1h • 70% vật phẩm No • 30% → II"
-	)
-	_add_info_row(
-		"II",
-		"3h • 70% vật phẩm Growth • 30% → III"
-	)
-	_add_info_row(
-		"III",
-		"8h • Kết tinh mang Gene"
-	)
 
 	var last_value: Variant = crystal.get(
 		"last_result",
@@ -1616,7 +1767,7 @@ func _open_games() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready
+		stage_index == 2
 	)
 
 
@@ -1717,16 +1868,13 @@ func _sync_entertainment_reward_state() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready,
+		stage_index == 2,
 		stage_index
 	)
 
 func _open_evolution() -> void:
 	_prepare_section("Tiến hóa")
 	var state := _game.snapshot()
-	_add_info_row("Giai đoạn", PetHomeTheme.stage_label(int(state.get("stage_index", 1))))
-	_add_info_row("Trưởng thành", "%d%%" % int(state.get("growth_percent", 0)))
-	_add_info_row("Thức ăn", "%d phút" % int(int(state.get("food_seconds", 0)) / 60))
 	var stage_index := int(
 		state.get(
 			"stage_index",
@@ -1745,6 +1893,81 @@ func _open_evolution() -> void:
 			naturally_ready
 		)
 	)
+	var age_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"age_remaining_seconds",
+				0
+			)
+		)
+	)
+	var growth_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"growth_remaining_seconds",
+				0
+			)
+		)
+	)
+
+	_add_info_row(
+		"Giai đoạn",
+		PetHomeTheme.stage_label(
+			stage_index
+		)
+	)
+	_add_info_row(
+		"Trưởng thành",
+		"%d%%"
+		% int(
+			state.get(
+				"growth_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Tuổi stage",
+		"%d%%"
+		% int(
+			state.get(
+				"age_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Deadline",
+		(
+			"Đã tới hạn"
+			if bool(
+				state.get(
+					"deadline_reached",
+					false
+				)
+			)
+			else "Còn " + _format_stage_time(
+				age_remaining
+			)
+		)
+	)
+	_add_info_row(
+		"Thức ăn",
+		_format_stage_time(
+			maxi(
+				0,
+				int(
+					state.get(
+						"food_seconds",
+						0
+					)
+				)
+			)
+		)
+	)
+
 	var genome := _data.get(
 		"_genome_object"
 	) as PetGenome
@@ -1753,6 +1976,7 @@ func _open_evolution() -> void:
 		_add_current_trait_rows(
 			genome
 		)
+
 	_add_gene_choice_rows(
 		state
 	)
@@ -1763,6 +1987,11 @@ func _open_evolution() -> void:
 			"Đã đạt hình thái cuối"
 		)
 	elif can_evolve:
+		_add_info_row(
+			"Trạng thái",
+			"SẴN SÀNG TIẾN HÓA"
+		)
+
 		if (
 			not naturally_ready
 			and bool(
@@ -1776,26 +2005,74 @@ func _open_evolution() -> void:
 				"Thiên phú TEST",
 				"Bỏ qua thời gian chờ"
 			)
+
 		_section_button(
-			"TIẾN HÓA",
+			"TIẾN HÓA → %s"
+			% PetHomeTheme.stage_label(
+				stage_index + 1
+			),
 			_evolve
 		)
 	else:
 		_add_info_row(
-			"Tiến độ còn",
-			"~%d phút tăng trưởng"
-			% int(
-				ceil(
-					float(
-						state.get(
-							"growth_remaining_seconds",
-							0
-						)
-					) / 60.0
-				)
+			"Thiếu Growth",
+			_format_stage_time(
+				growth_remaining
 			)
 		)
+
 	_section_overlay.visible = true
+
+
+func _format_stage_time(
+	seconds: int
+) -> String:
+	seconds = maxi(
+		0,
+		seconds
+	)
+
+	if seconds <= 0:
+		return "0 phút"
+
+	var total_minutes := int(
+		ceil(
+			float(seconds) / 60.0
+		)
+	)
+	var days := int(
+		total_minutes / 1440
+	)
+	var hours := int(
+		(
+			total_minutes % 1440
+		) / 60
+	)
+	var minutes := total_minutes % 60
+	var parts: Array[String] = []
+
+	if days > 0:
+		parts.append(
+			"%d ngày" % days
+		)
+
+	if hours > 0:
+		parts.append(
+			"%d giờ" % hours
+		)
+
+	if (
+		minutes > 0
+		and days == 0
+	):
+		parts.append(
+			"%d phút" % minutes
+		)
+
+	return " ".join(
+		parts
+	)
+
 
 func _evolve() -> void:
 	var state := _game.snapshot()

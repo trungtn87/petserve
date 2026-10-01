@@ -6,6 +6,14 @@ const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
 const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
+const GENE_GROWTH_BONUS_PERCENT: float = 5.0
+const GENE_RARITY_STATS := {
+	"common": {"score": 10.0, "growth": 2.0},
+	"uncommon": {"score": 20.0, "growth": 5.0},
+	"rare": {"score": 35.0, "growth": 7.0},
+	"epic": {"score": 55.0, "growth": 10.0},
+	"legendary": {"score": 80.0, "growth": 15.0},
+}
 
 const RARITY_WEIGHTS := {
 	"common": 55.0,
@@ -179,63 +187,74 @@ func generate_gene(
 	definition: GeneDefinition,
 	seed_value: int
 ) -> Dictionary:
-	if (
-		definition == null
-		or not definition.is_valid()
-	):
+	if definition == null or not definition.is_valid():
 		return {}
 
 	var rng := RandomNumberGenerator.new()
-	rng.seed = max(
-		1,
-		abs(
-			seed_value
+	rng.seed = max(1, abs(seed_value))
+	var rarity: String = _roll_weighted(
+		rng,
+		RARITY_WEIGHTS
+	)
+	var quality := "normal"
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity,
+		GENE_RARITY_STATS["uncommon"]
+	)
+	var gene_score := float(
+		stats.get(
+			"score",
+			definition.primary_influence()
+		)
+	)
+	var growth_bonus := float(
+		stats.get(
+			"growth",
+			GENE_GROWTH_BONUS_PERCENT
+		)
+	)
+	var source_tags := definition.influence_tags()
+	var scaled_tags: Dictionary = {}
+	var influence_scale := (
+		gene_score
+		/ maxf(
+			1.0,
+			definition.primary_influence()
 		)
 	)
 
-	var quality := "normal"
-	var rarity := definition.rarity()
+	for key_value in source_tags.keys():
+		scaled_tags[String(key_value)] = (
+			float(source_tags[key_value])
+			* influence_scale
+		)
 
 	return {
 		"uid": (
 			"gene_%s_%s"
 			% [
-				String(
-					definition.id()
-				),
-				str(
-					abs(
-						seed_value
-					)
-				),
+				String(definition.id()),
+				str(abs(seed_value)),
 			]
 		),
-		"definition_id": String(
-			definition.id()
-		),
-		"item_type": String(
-			TYPE_GENE
-		),
-		"display_name": (
-			definition.display_name()
-		),
+		"definition_id": String(definition.id()),
+		"item_type": String(TYPE_GENE),
+		"display_name": definition.display_name(),
 		"rarity": rarity,
 		"quality": quality,
-		"gene_id": String(
-			definition.id()
+		"gene_id": String(definition.id()),
+		"gene_locus": String(definition.locus()),
+		"gene_direction": String(definition.direction()),
+		"gene_element_lock": String(definition.element_lock()),
+		"gene_score": gene_score,
+		"gene_influence": gene_score,
+		"gene_expression_tier": String(
+			GeneExpressionScale.tier_for_score(
+				gene_score
+			)
 		),
-		"gene_locus": String(
-			definition.locus()
-		),
-		"gene_direction": String(
-			definition.direction()
-		),
-		"gene_influence": (
-			definition.primary_influence()
-		),
-		"influence_tags": (
-			definition.influence_tags()
-		),
+		"growth_bonus_percent": growth_bonus,
+		"influence_tags": scaled_tags,
 		"main_value_seconds": 0,
 		"growth_delta_seconds": 0,
 		"food_delta_seconds": 0,
@@ -250,6 +269,36 @@ func generate_gene(
 		"generated_seed": seed_value,
 		"usable_stage": "gene",
 	}
+
+
+func gene_score_for_rarity(
+	rarity: String
+) -> float:
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity.strip_edges().to_lower(),
+		{}
+	)
+	return float(
+		stats.get(
+			"score",
+			0.0
+		)
+	)
+
+
+func gene_growth_for_rarity(
+	rarity: String
+) -> float:
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity.strip_edges().to_lower(),
+		{}
+	)
+	return float(
+		stats.get(
+			"growth",
+			0.0
+		)
+	)
 
 
 func generate_basic_infant(
@@ -305,7 +354,7 @@ func describe(item: Dictionary) -> String:
 			return text
 
 		TYPE_GENE:
-			return (
+			var gene_text := (
 				"Gene "
 				+ String(
 					item.get(
@@ -320,20 +369,46 @@ func describe(item: Dictionary) -> String:
 						"?"
 					)
 				)
-				+ " • Influence +"
+				+ " • Điểm +"
 				+ str(
 					int(
 						round(
 							float(
 								item.get(
-									"gene_influence",
-									0.0
+									"gene_score",
+									item.get(
+										"gene_influence",
+										0.0
+									)
 								)
 							)
 						)
 					)
 				)
+				+ " • Growth +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"growth_bonus_percent",
+									GENE_GROWTH_BONUS_PERCENT
+								)
+							)
+						)
+					)
+				)
+				+ "%"
 			)
+			var element_lock := String(
+				item.get(
+					"gene_element_lock",
+					""
+				)
+			)
+			if not element_lock.is_empty():
+				gene_text += " • Hệ " + element_lock.capitalize()
+			return gene_text
 
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
