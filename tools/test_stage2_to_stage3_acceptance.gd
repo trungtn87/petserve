@@ -119,9 +119,12 @@ func _test_natural_zero_gene() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty(),
-		"natural Stage 2 -> 3 creates a new image without source reference"
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == _source_path
+		and request.positive_prompt.contains(
+			"[REFERENCE EVOLUTION RULE]"
+		),
+		"natural Stage 2 -> 3 uses the Stage 2 image as reference"
 	)
 
 	if request == null:
@@ -370,12 +373,15 @@ func _test_two_loci_and_retry_guards() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-		and request.source_image_path.is_empty()
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"Apply only these Gene changes selected by code:"
+			"Current transition Gene deltas:"
+		)
+		and request.positive_prompt.contains(
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		),
-		"two-locus evolution full-regenerates one image with both Gene changes"
+		"two-locus evolution edits the Stage 2 reference with both Gene changes"
 	)
 
 	if request == null:
@@ -565,8 +571,11 @@ func _test_locked_stage4_egg_mythic() -> void:
 	)
 	_expect(
 		request != null
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"Special fantasy mutation is ACTIVE"
+			"[CODE-LOCKED MYTHIC RESULT]"
 		)
 		and request.positive_prompt.contains(
 			String(
@@ -576,7 +585,7 @@ func _test_locked_stage4_egg_mythic() -> void:
 				)
 			)
 		),
-		"Mythic renderer receives locked beast name and branch"
+		"Mythic renderer receives the locked beast branch on the Stage 2 reference"
 	)
 
 	if request == null:
