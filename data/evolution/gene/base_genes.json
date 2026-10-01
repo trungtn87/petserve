@@ -1,7 +1,7 @@
 [
   {
     "id": "eyes_luminous",
-    "display_name": "Gene Mắt Phát Sáng",
+    "display_name": "Gen Mắt Phát Sáng",
     "locus": "eyes",
     "direction": "luminous",
     "primary_influence": 20,
@@ -20,7 +20,7 @@
   },
   {
     "id": "eyes_moon",
-    "display_name": "Gene Mắt Nguyệt",
+    "display_name": "Gen Mắt Nguyệt",
     "locus": "eyes",
     "direction": "moon",
     "primary_influence": 20,
@@ -40,7 +40,7 @@
   },
   {
     "id": "eyes_sharp",
-    "display_name": "Gene Mắt Sắc",
+    "display_name": "Gen Mắt Sắc",
     "locus": "eyes",
     "direction": "sharp",
     "primary_influence": 20,
@@ -59,7 +59,7 @@
   },
   {
     "id": "eyes_gentle",
-    "display_name": "Gene Mắt Hiền",
+    "display_name": "Gen Mắt Hiền",
     "locus": "eyes",
     "direction": "gentle",
     "primary_influence": 20,
@@ -78,7 +78,7 @@
   },
   {
     "id": "eyes_ringed",
-    "display_name": "Gene Mắt Viền Quang",
+    "display_name": "Gen Mắt Viền Quang",
     "locus": "eyes",
     "direction": "ringed",
     "primary_influence": 20,
@@ -97,7 +97,7 @@
   },
   {
     "id": "ears_long",
-    "display_name": "Gene Tai Dài",
+    "display_name": "Gen Tai Dài",
     "locus": "ears",
     "direction": "long",
     "primary_influence": 20,
@@ -116,7 +116,7 @@
   },
   {
     "id": "ears_tufted",
-    "display_name": "Gene Tai Tua",
+    "display_name": "Gen Tai Tua",
     "locus": "ears",
     "direction": "tufted",
     "primary_influence": 20,
@@ -135,7 +135,7 @@
   },
   {
     "id": "ears_sharp",
-    "display_name": "Gene Tai Nhọn",
+    "display_name": "Gen Tai Nhọn",
     "locus": "ears",
     "direction": "sharp",
     "primary_influence": 20,
@@ -154,7 +154,7 @@
   },
   {
     "id": "ears_rounded",
-    "display_name": "Gene Tai Tròn",
+    "display_name": "Gen Tai Tròn",
     "locus": "ears",
     "direction": "rounded",
     "primary_influence": 20,
@@ -173,7 +173,7 @@
   },
   {
     "id": "ears_softfan",
-    "display_name": "Gene Tai Mềm Xòe",
+    "display_name": "Gen Tai Mềm Xòe",
     "locus": "ears",
     "direction": "softfan",
     "primary_influence": 20,
@@ -192,7 +192,7 @@
   },
   {
     "id": "fur_fluffy",
-    "display_name": "Gene Lông Dày",
+    "display_name": "Gen Lông Dày",
     "locus": "fur",
     "direction": "fluffy",
     "primary_influence": 20,
@@ -211,7 +211,7 @@
   },
   {
     "id": "fur_sleek",
-    "display_name": "Gene Lông Mượt",
+    "display_name": "Gen Lông Mượt",
     "locus": "fur",
     "direction": "sleek",
     "primary_influence": 20,
@@ -230,7 +230,7 @@
   },
   {
     "id": "fur_plush",
-    "display_name": "Gene Lông Nhung",
+    "display_name": "Gen Lông Nhung",
     "locus": "fur",
     "direction": "plush",
     "primary_influence": 20,
@@ -249,7 +249,7 @@
   },
   {
     "id": "fur_layered",
-    "display_name": "Gene Lông Tầng",
+    "display_name": "Gen Lông Tầng",
     "locus": "fur",
     "direction": "layered",
     "primary_influence": 20,
@@ -268,7 +268,7 @@
   },
   {
     "id": "fur_silky",
-    "display_name": "Gene Lông Mịn",
+    "display_name": "Gen Lông Mịn",
     "locus": "fur",
     "direction": "silky",
     "primary_influence": 20,
@@ -287,7 +287,7 @@
   },
   {
     "id": "coat_shadow",
-    "display_name": "Gene Vân Bóng Tối",
+    "display_name": "Gen Vân Bóng Tối",
     "locus": "coat",
     "direction": "shadow",
     "primary_influence": 20,
@@ -306,7 +306,7 @@
   },
   {
     "id": "coat_nebula",
-    "display_name": "Gene Vân Tinh Vân",
+    "display_name": "Gen Vân Tinh Vân",
     "locus": "coat",
     "direction": "nebula",
     "primary_influence": 20,
@@ -326,7 +326,7 @@
   },
   {
     "id": "coat_striped",
-    "display_name": "Gene Vân Sọc",
+    "display_name": "Gen Vân Sọc",
     "locus": "coat",
     "direction": "striped",
     "primary_influence": 20,
@@ -345,7 +345,7 @@
   },
   {
     "id": "coat_spotted",
-    "display_name": "Gene Vân Đốm",
+    "display_name": "Gen Vân Đốm",
     "locus": "coat",
     "direction": "spotted",
     "primary_influence": 20,
@@ -364,7 +364,7 @@
   },
   {
     "id": "coat_marbled",
-    "display_name": "Gene Vân Cẩm Thạch",
+    "display_name": "Gen Vân Cẩm Thạch",
     "locus": "coat",
     "direction": "marbled",
     "primary_influence": 20,
@@ -383,7 +383,7 @@
   },
   {
     "id": "tail_long",
-    "display_name": "Gene Đuôi Dài",
+    "display_name": "Gen Đuôi Dài",
     "locus": "tail",
     "direction": "long",
     "primary_influence": 20,
@@ -402,7 +402,7 @@
   },
   {
     "id": "tail_fluffy",
-    "display_name": "Gene Đuôi Xù",
+    "display_name": "Gen Đuôi Xù",
     "locus": "tail",
     "direction": "fluffy",
     "primary_influence": 20,
@@ -421,7 +421,7 @@
   },
   {
     "id": "tail_curved",
-    "display_name": "Gene Đuôi Cong",
+    "display_name": "Gen Đuôi Cong",
     "locus": "tail",
     "direction": "curved",
     "primary_influence": 20,
@@ -440,7 +440,7 @@
   },
   {
     "id": "tail_tipped",
-    "display_name": "Gene Chóp Đuôi Nổi",
+    "display_name": "Gen Chóp Đuôi Nổi",
     "locus": "tail",
     "direction": "tipped",
     "primary_influence": 20,
@@ -459,7 +459,7 @@
   },
   {
     "id": "tail_streamlined",
-    "display_name": "Gene Đuôi Thanh",
+    "display_name": "Gen Đuôi Thanh",
     "locus": "tail",
     "direction": "streamlined",
     "primary_influence": 20,
@@ -478,7 +478,7 @@
   },
   {
     "id": "body_sturdy",
-    "display_name": "Gene Thân Thể Cường Tráng",
+    "display_name": "Gen Thân Thể Cường Tráng",
     "locus": "body",
     "direction": "sturdy",
     "primary_influence": 20,
@@ -497,7 +497,7 @@
   },
   {
     "id": "body_agile",
-    "display_name": "Gene Thân Nhanh Nhẹn",
+    "display_name": "Gen Thân Nhanh Nhẹn",
     "locus": "body",
     "direction": "agile",
     "primary_influence": 20,
@@ -516,7 +516,7 @@
   },
   {
     "id": "body_slender",
-    "display_name": "Gene Thân Thon",
+    "display_name": "Gen Thân Thon",
     "locus": "body",
     "direction": "slender",
     "primary_influence": 20,
@@ -535,7 +535,7 @@
   },
   {
     "id": "body_compact",
-    "display_name": "Gene Thân Gọn",
+    "display_name": "Gen Thân Gọn",
     "locus": "body",
     "direction": "compact",
     "primary_influence": 20,
@@ -554,7 +554,7 @@
   },
   {
     "id": "body_regal",
-    "display_name": "Gene Thân Oai",
+    "display_name": "Gen Thân Oai",
     "locus": "body",
     "direction": "regal",
     "primary_influence": 20,
@@ -574,7 +574,7 @@
   },
   {
     "id": "whiskers_starlight",
-    "display_name": "Gene Râu Ánh Sao",
+    "display_name": "Gen Râu Ánh Sao",
     "locus": "whiskers",
     "direction": "starlight",
     "primary_influence": 20,
@@ -593,7 +593,7 @@
   },
   {
     "id": "whiskers_long",
-    "display_name": "Gene Râu Dài",
+    "display_name": "Gen Râu Dài",
     "locus": "whiskers",
     "direction": "long",
     "primary_influence": 20,
@@ -612,7 +612,7 @@
   },
   {
     "id": "whiskers_fine",
-    "display_name": "Gene Râu Mảnh",
+    "display_name": "Gen Râu Mảnh",
     "locus": "whiskers",
     "direction": "fine",
     "primary_influence": 20,
@@ -631,7 +631,7 @@
   },
   {
     "id": "whiskers_fanned",
-    "display_name": "Gene Râu Xòe",
+    "display_name": "Gen Râu Xòe",
     "locus": "whiskers",
     "direction": "fanned",
     "primary_influence": 20,
@@ -650,7 +650,7 @@
   },
   {
     "id": "whiskers_curved",
-    "display_name": "Gene Râu Cong",
+    "display_name": "Gen Râu Cong",
     "locus": "whiskers",
     "direction": "curved",
     "primary_influence": 20,
@@ -669,7 +669,7 @@
   },
   {
     "id": "paws_luminous",
-    "display_name": "Gene Bàn Chân Phát Sáng",
+    "display_name": "Gen Bàn Chân Phát Sáng",
     "locus": "paws",
     "direction": "luminous",
     "primary_influence": 20,
@@ -689,7 +689,7 @@
   },
   {
     "id": "paws_sturdy",
-    "display_name": "Gene Bàn Chân Chắc",
+    "display_name": "Gen Bàn Chân Chắc",
     "locus": "paws",
     "direction": "sturdy",
     "primary_influence": 20,
@@ -708,7 +708,7 @@
   },
   {
     "id": "paws_swift",
-    "display_name": "Gene Bàn Chân Nhanh",
+    "display_name": "Gen Bàn Chân Nhanh",
     "locus": "paws",
     "direction": "swift",
     "primary_influence": 20,
@@ -727,7 +727,7 @@
   },
   {
     "id": "paws_fluffy",
-    "display_name": "Gene Bàn Chân Lông Xù",
+    "display_name": "Gen Bàn Chân Lông Xù",
     "locus": "paws",
     "direction": "fluffy",
     "primary_influence": 20,
@@ -746,7 +746,7 @@
   },
   {
     "id": "paws_runic",
-    "display_name": "Gene Bàn Chân Phù Văn",
+    "display_name": "Gen Bàn Chân Phù Văn",
     "locus": "paws",
     "direction": "runic",
     "primary_influence": 20,
@@ -765,7 +765,7 @@
   },
   {
     "id": "mane_astral",
-    "display_name": "Gene Bờm Tinh Linh",
+    "display_name": "Gen Bờm Tinh Linh",
     "locus": "mane",
     "direction": "astral",
     "primary_influence": 20,
@@ -785,7 +785,7 @@
   },
   {
     "id": "mane_full",
-    "display_name": "Gene Bờm Dày",
+    "display_name": "Gen Bờm Dày",
     "locus": "mane",
     "direction": "full",
     "primary_influence": 20,
@@ -804,7 +804,7 @@
   },
   {
     "id": "mane_layered",
-    "display_name": "Gene Bờm Tầng",
+    "display_name": "Gen Bờm Tầng",
     "locus": "mane",
     "direction": "layered",
     "primary_influence": 20,
@@ -823,7 +823,7 @@
   },
   {
     "id": "mane_silken",
-    "display_name": "Gene Bờm Mượt",
+    "display_name": "Gen Bờm Mượt",
     "locus": "mane",
     "direction": "silken",
     "primary_influence": 20,
@@ -843,7 +843,7 @@
   },
   {
     "id": "mane_regal",
-    "display_name": "Gene Bờm Oai",
+    "display_name": "Gen Bờm Oai",
     "locus": "mane",
     "direction": "regal",
     "primary_influence": 20,
@@ -863,7 +863,7 @@
   },
   {
     "id": "structure_spirit",
-    "display_name": "Gene Cấu Trúc Linh Thể",
+    "display_name": "Gen Cấu Trúc Linh Thể",
     "locus": "structure",
     "direction": "spirit",
     "primary_influence": 20,
@@ -883,7 +883,7 @@
   },
   {
     "id": "structure_guardian",
-    "display_name": "Gene Cấu Trúc Hộ Vệ",
+    "display_name": "Gen Cấu Trúc Hộ Vệ",
     "locus": "structure",
     "direction": "guardian",
     "primary_influence": 20,
@@ -902,7 +902,7 @@
   },
   {
     "id": "structure_elegant",
-    "display_name": "Gene Cấu Trúc Thanh Nhã",
+    "display_name": "Gen Cấu Trúc Thanh Nhã",
     "locus": "structure",
     "direction": "elegant",
     "primary_influence": 20,
@@ -921,7 +921,7 @@
   },
   {
     "id": "structure_feral",
-    "display_name": "Gene Cấu Trúc Hoang Dã",
+    "display_name": "Gen Cấu Trúc Hoang Dã",
     "locus": "structure",
     "direction": "feral",
     "primary_influence": 20,
@@ -941,7 +941,7 @@
   },
   {
     "id": "structure_ancient",
-    "display_name": "Gene Cấu Trúc Cổ Linh",
+    "display_name": "Gen Cấu Trúc Cổ Linh",
     "locus": "structure",
     "direction": "ancient",
     "primary_influence": 20,
@@ -960,7 +960,7 @@
   },
   {
     "id": "mark_wood",
-    "display_name": "Gene Ấn Mộc",
+    "display_name": "Gen Ấn Mộc",
     "locus": "mark",
     "direction": "wood",
     "primary_influence": 20,
@@ -980,7 +980,7 @@
   },
   {
     "id": "mark_earth",
-    "display_name": "Gene Ấn Thổ",
+    "display_name": "Gen Ấn Thổ",
     "locus": "mark",
     "direction": "earth",
     "primary_influence": 20,
@@ -1000,7 +1000,7 @@
   },
   {
     "id": "mark_fire",
-    "display_name": "Gene Ấn Hỏa",
+    "display_name": "Gen Ấn Hỏa",
     "locus": "mark",
     "direction": "fire",
     "primary_influence": 20,
@@ -1020,7 +1020,7 @@
   },
   {
     "id": "mark_water",
-    "display_name": "Gene Ấn Thủy",
+    "display_name": "Gen Ấn Thủy",
     "locus": "mark",
     "direction": "water",
     "primary_influence": 20,
@@ -1040,7 +1040,7 @@
   },
   {
     "id": "mark_metal",
-    "display_name": "Gene Ấn Kim",
+    "display_name": "Gen Ấn Kim",
     "locus": "mark",
     "direction": "metal",
     "primary_influence": 20,
@@ -1060,7 +1060,7 @@
   },
   {
     "id": "mark_light",
-    "display_name": "Gene Ấn Quang",
+    "display_name": "Gen Ấn Quang",
     "locus": "mark",
     "direction": "light",
     "primary_influence": 20,
@@ -1080,7 +1080,7 @@
   },
   {
     "id": "mark_dark",
-    "display_name": "Gene Ấn Ám",
+    "display_name": "Gen Ấn Ám",
     "locus": "mark",
     "direction": "dark",
     "primary_influence": 20,
@@ -1101,7 +1101,7 @@
   },
   {
     "id": "aura_wood",
-    "display_name": "Gene Aura Mộc",
+    "display_name": "Gen Hào Quang Mộc",
     "locus": "aura",
     "direction": "wood",
     "primary_influence": 20,
@@ -1121,7 +1121,7 @@
   },
   {
     "id": "aura_earth",
-    "display_name": "Gene Aura Thổ",
+    "display_name": "Gen Hào Quang Thổ",
     "locus": "aura",
     "direction": "earth",
     "primary_influence": 20,
@@ -1141,7 +1141,7 @@
   },
   {
     "id": "aura_fire",
-    "display_name": "Gene Aura Hỏa",
+    "display_name": "Gen Hào Quang Hỏa",
     "locus": "aura",
     "direction": "fire",
     "primary_influence": 20,
@@ -1161,7 +1161,7 @@
   },
   {
     "id": "aura_water",
-    "display_name": "Gene Aura Thủy",
+    "display_name": "Gen Hào Quang Thủy",
     "locus": "aura",
     "direction": "water",
     "primary_influence": 20,
@@ -1181,7 +1181,7 @@
   },
   {
     "id": "aura_metal",
-    "display_name": "Gene Aura Kim",
+    "display_name": "Gen Hào Quang Kim",
     "locus": "aura",
     "direction": "metal",
     "primary_influence": 20,
@@ -1201,7 +1201,7 @@
   },
   {
     "id": "aura_light",
-    "display_name": "Gene Aura Quang",
+    "display_name": "Gen Hào Quang Quang",
     "locus": "aura",
     "direction": "light",
     "primary_influence": 20,
@@ -1221,7 +1221,7 @@
   },
   {
     "id": "aura_dark",
-    "display_name": "Gene Aura Ám",
+    "display_name": "Gen Hào Quang Ám",
     "locus": "aura",
     "direction": "dark",
     "primary_influence": 20,
