@@ -162,3 +162,92 @@ The generator also exposes deterministic helpers for tests and future guaranteed
 - forced-rarity generation preserves rarity and stable definition identity;
 - base effect ranges increase with rarity;
 - Stage scaling does not reroll definition or rarity.
+
+
+## Graded secondary effects
+
+Food and Growth items can now carry both positive and negative secondary effects.
+
+Each rolled effect has one of four strength levels:
+
+| Level | UI | Meaning |
+| ---: | --- | --- |
+| I | Nhẹ | noticeable but small |
+| II | Vừa | meaningful |
+| III | Mạnh | large impact |
+| IV | Cực mạnh | run-shaping impact |
+
+Positive effect level is biased by **rarity**:
+
+- Common: level I only, when a positive property exists;
+- Uncommon: mostly I, sometimes II;
+- Rare: mainly II, with I/III possible;
+- Epic: II–IV, mainly III;
+- Legendary: III–IV only.
+
+Negative effect level is biased by **quality**:
+
+- Perfect: defects are very rare and level I;
+- Good: mostly I, occasionally II;
+- Normal: I–III;
+- Poor: II–IV;
+- Broken: III–IV.
+
+This separation is intentional: rarity describes the potential power of the item, while quality describes how damaged or dangerous that particular instance is. A Legendary item with Broken quality can therefore contain very strong positive properties and very strong defects at the same time.
+
+### Food positive effects
+
+- Tươi
+- Đậm đặc
+- Dinh dưỡng
+- Giàu tăng trưởng
+- Dễ tiêu
+- Bồi bổ
+
+### Food negative effects
+
+- Ôi
+- Cũ
+- Khó tiêu
+- Hỏng nặng
+- Đầy bụng
+- Nhiễm tạp
+
+### Growth positive effects
+
+- Cô đặc
+- Tác dụng nhanh
+- Tinh khiết
+- Bùng trưởng
+- Ổn định
+- Hấp thu cao
+
+### Growth negative effects
+
+- Pha loãng
+- Hết hạn
+- Hao thức ăn
+- Phản tác dụng
+- Bất ổn
+- Dư chất
+
+The generated item persists these effects in a `secondary_effects` array containing:
+
+```text
+id
+polarity = positive | negative
+level = 1..4
+label
+level_label
+```
+
+The current runtime remains simple: secondary effects are resolved into the existing Food/Growth delta fields at generation time, so StageLifecycle does not need a second effect engine and old save/use paths remain compatible.
+
+PetHome item detail renders effects such as:
+
+```text
++Bồi bổ III • Mạnh
+-Hao thức ăn II • Vừa
+```
+
+This makes mixed-quality items readable before the player decides whether to use or salvage them.
