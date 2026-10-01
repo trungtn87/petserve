@@ -720,10 +720,12 @@ func _item_tile(
 
 	var name := Label.new()
 	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	name.text = String(
-		item.get(
-			"display_name",
-			"Vật phẩm"
+	name.text = ViDisplay.item_name(
+		String(
+			item.get(
+				"display_name",
+				"Vật phẩm"
+			)
 		)
 	)
 	name.horizontal_alignment = (
@@ -1028,10 +1030,12 @@ func _show_item_detail(
 		)
 	)
 
-	_detail_title.text = String(
-		item.get(
-			"display_name",
-			"Vật phẩm"
+	_detail_title.text = ViDisplay.item_name(
+		String(
+			item.get(
+				"display_name",
+				"Vật phẩm"
+			)
 		)
 	)
 	_detail_meta.text = (
