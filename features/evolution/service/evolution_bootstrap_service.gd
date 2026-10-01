@@ -86,5 +86,5 @@ func build_from_hatch() -> Dictionary:
 		"scene_profile": scene_profile,
 		"pet_name": hatch_state.pet_name,
 		"mythic_destiny": mythic_destiny,
+		"egg_stage": egg_state.stage,
 	}
-

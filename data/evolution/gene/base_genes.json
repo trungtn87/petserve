@@ -8,7 +8,10 @@
     "influence_tags": {
       "mystic": 6
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "give the existing irises a controlled luminous quality with soft internal glow",
+    "preserve_hint": "Keep eye size, placement, pupil geometry and facial identity unchanged.",
     "expression_chain": [
       "luminous",
       "radiant",
@@ -25,11 +28,71 @@
       "lunar": 10,
       "mystic": 4
     },
-    "rarity": "rare",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a moonlit iris quality with a refined crescent-like reflection and cool depth",
+    "preserve_hint": "Keep the same eye anatomy and do not place moon symbols outside the iris.",
     "expression_chain": [
       "moon",
       "crescent",
       "eclipse"
+    ]
+  },
+  {
+    "id": "eyes_sharp",
+    "display_name": "Gene Mắt Sắc",
+    "locus": "eyes",
+    "direction": "sharp",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 5
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "make the existing eyes read sharper and more focused through iris shape language and restrained eyelid definition",
+    "preserve_hint": "Keep the same eye count, placement and recognizable face.",
+    "expression_chain": [
+      "sharp",
+      "sharp_developed",
+      "sharp_mature"
+    ]
+  },
+  {
+    "id": "eyes_gentle",
+    "display_name": "Gene Mắt Hiền",
+    "locus": "eyes",
+    "direction": "gentle",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "soften the eye expression into a calm gentle look without making the eyes oversized",
+    "preserve_hint": "Keep the same face, muzzle and natural species anatomy.",
+    "expression_chain": [
+      "gentle",
+      "gentle_developed",
+      "gentle_mature"
+    ]
+  },
+  {
+    "id": "eyes_ringed",
+    "display_name": "Gene Mắt Viền Quang",
+    "locus": "eyes",
+    "direction": "ringed",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "add a clean thin luminous ring inside each existing iris",
+    "preserve_hint": "Keep the ring inside the iris and preserve eye anatomy.",
+    "expression_chain": [
+      "ringed",
+      "ringed_developed",
+      "ringed_mature"
     ]
   },
   {
@@ -41,7 +104,10 @@
     "influence_tags": {
       "agile": 5
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "lengthen the same pair of ears in a natural balanced proportion",
+    "preserve_hint": "Do not add ears, horns or antennae; preserve ear roots and head identity.",
     "expression_chain": [
       "long",
       "elongated",
@@ -57,11 +123,71 @@
     "influence_tags": {
       "mystic": 4
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop integrated soft fur tufts at the existing ear tips",
+    "preserve_hint": "Keep ear count, length family and angle; tufts must not become horns.",
     "expression_chain": [
       "tufted",
       "plume_tufted",
       "spirit_tufted"
+    ]
+  },
+  {
+    "id": "ears_sharp",
+    "display_name": "Gene Tai Nhọn",
+    "locus": "ears",
+    "direction": "sharp",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 4
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the existing ears toward a cleaner sharper triangular silhouette",
+    "preserve_hint": "Preserve the same pair of ears and their attachment points.",
+    "expression_chain": [
+      "sharp",
+      "sharp_developed",
+      "sharp_mature"
+    ]
+  },
+  {
+    "id": "ears_rounded",
+    "display_name": "Gene Tai Tròn",
+    "locus": "ears",
+    "direction": "rounded",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "round and soften the outer ear silhouette while retaining natural feline anatomy",
+    "preserve_hint": "Do not shrink, duplicate or relocate the ears.",
+    "expression_chain": [
+      "rounded",
+      "rounded_developed",
+      "rounded_mature"
+    ]
+  },
+  {
+    "id": "ears_softfan",
+    "display_name": "Gene Tai Mềm Xòe",
+    "locus": "ears",
+    "direction": "softfan",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop slightly wider soft-furred ear edges with a gentle fan-like silhouette",
+    "preserve_hint": "Keep exactly two ears and avoid wing-like or horn-like structures.",
+    "expression_chain": [
+      "softfan",
+      "softfan_developed",
+      "softfan_mature"
     ]
   },
   {
@@ -73,7 +199,10 @@
     "influence_tags": {
       "physical": 4
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "increase coat volume into fuller fluffy layered fur",
+    "preserve_hint": "Preserve established colors, markings and body anatomy.",
     "expression_chain": [
       "fluffy",
       "plush",
@@ -89,11 +218,71 @@
     "influence_tags": {
       "agile": 4
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the coat into smooth sleek plush fur with cleaner directional flow",
+    "preserve_hint": "Do not make the pet hairless or change body shape.",
     "expression_chain": [
       "sleek",
       "satin",
       "ethereal_sleek"
+    ]
+  },
+  {
+    "id": "fur_plush",
+    "display_name": "Gene Lông Nhung",
+    "locus": "fur",
+    "direction": "plush",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a soft dense velvet-like plush coat with rounded tactile volume",
+    "preserve_hint": "Preserve coat colors, markings and species silhouette.",
+    "expression_chain": [
+      "plush",
+      "plush_developed",
+      "plush_mature"
+    ]
+  },
+  {
+    "id": "fur_layered",
+    "display_name": "Gene Lông Tầng",
+    "locus": "fur",
+    "direction": "layered",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop clearly layered fur planes around cheeks, chest, body and tail base",
+    "preserve_hint": "Keep the layers natural and integrated rather than armor-like.",
+    "expression_chain": [
+      "layered",
+      "layered_developed",
+      "layered_mature"
+    ]
+  },
+  {
+    "id": "fur_silky",
+    "display_name": "Gene Lông Mịn",
+    "locus": "fur",
+    "direction": "silky",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "give the fur a fine silky texture with soft flowing strands and restrained sheen",
+    "preserve_hint": "Preserve base coat pattern and avoid metallic or wet appearance.",
+    "expression_chain": [
+      "silky",
+      "silky_developed",
+      "silky_mature"
     ]
   },
   {
@@ -105,7 +294,10 @@
     "influence_tags": {
       "dark": 10
     },
-    "rarity": "rare",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "introduce restrained shadow-toned secondary markings that follow the existing fur naturally",
+    "preserve_hint": "Keep the base elemental palette dominant and do not cover the whole body in black.",
     "expression_chain": [
       "shadow",
       "deep_shadow",
@@ -122,11 +314,71 @@
       "mystic": 6,
       "mutation": 3
     },
-    "rarity": "rare",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "introduce sparse localized nebula-like color variation as a subtle coat pattern",
+    "preserve_hint": "Keep it localized and avoid full-body galaxy or starfield texture.",
     "expression_chain": [
       "nebula",
       "astral_nebula",
       "cosmic_nebula"
+    ]
+  },
+  {
+    "id": "coat_striped",
+    "display_name": "Gene Vân Sọc",
+    "locus": "coat",
+    "direction": "striped",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop clean organic stripe markings that follow muscle and fur flow",
+    "preserve_hint": "Keep stripes coherent with the existing elemental palette.",
+    "expression_chain": [
+      "striped",
+      "striped_developed",
+      "striped_mature"
+    ]
+  },
+  {
+    "id": "coat_spotted",
+    "display_name": "Gene Vân Đốm",
+    "locus": "coat",
+    "direction": "spotted",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a balanced field of organic coat spots with varied natural spacing",
+    "preserve_hint": "Do not obscure the face or replace the base coat identity.",
+    "expression_chain": [
+      "spotted",
+      "spotted_developed",
+      "spotted_mature"
+    ]
+  },
+  {
+    "id": "coat_marbled",
+    "display_name": "Gene Vân Cẩm Thạch",
+    "locus": "coat",
+    "direction": "marbled",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop flowing marbled coat swirls with soft natural transitions",
+    "preserve_hint": "Keep the pattern on fur surfaces and preserve anatomy.",
+    "expression_chain": [
+      "marbled",
+      "marbled_developed",
+      "marbled_mature"
     ]
   },
   {
@@ -138,7 +390,10 @@
     "influence_tags": {
       "agile": 6
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "lengthen the same single tail with a flowing elegant proportion",
+    "preserve_hint": "Keep one tail, preserve the root position, thickness family and elemental effect.",
     "expression_chain": [
       "long",
       "elongated",
@@ -154,11 +409,71 @@
     "influence_tags": {
       "physical": 4
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "increase the same tail's fur volume into a fuller plume",
+    "preserve_hint": "Do not split, duplicate or move the tail root.",
     "expression_chain": [
       "fluffy",
       "plume",
       "grand_plume"
+    ]
+  },
+  {
+    "id": "tail_curved",
+    "display_name": "Gene Đuôi Cong",
+    "locus": "tail",
+    "direction": "curved",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 4
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a graceful natural curve through the existing single tail",
+    "preserve_hint": "Preserve tail length family and attachment point.",
+    "expression_chain": [
+      "curved",
+      "curved_developed",
+      "curved_mature"
+    ]
+  },
+  {
+    "id": "tail_tipped",
+    "display_name": "Gene Chóp Đuôi Nổi",
+    "locus": "tail",
+    "direction": "tipped",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "make the far tail tip a distinct but integrated visual accent through fur shape and subtle contrast",
+    "preserve_hint": "Do not create a second tail or detached ornament.",
+    "expression_chain": [
+      "tipped",
+      "tipped_developed",
+      "tipped_mature"
+    ]
+  },
+  {
+    "id": "tail_streamlined",
+    "display_name": "Gene Đuôi Thanh",
+    "locus": "tail",
+    "direction": "streamlined",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 6
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the existing tail into a cleaner slimmer aerodynamic silhouette",
+    "preserve_hint": "Keep one tail and natural fur-covered anatomy.",
+    "expression_chain": [
+      "streamlined",
+      "streamlined_developed",
+      "streamlined_mature"
     ]
   },
   {
@@ -170,11 +485,91 @@
     "influence_tags": {
       "physical": 8
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a sturdier quadruped torso with stronger chest and shoulder presence",
+    "preserve_hint": "Keep natural feline proportions, leg count, stance and face identity.",
     "expression_chain": [
       "sturdy",
       "powerful",
       "guardian"
+    ]
+  },
+  {
+    "id": "body_agile",
+    "display_name": "Gene Thân Nhanh Nhẹn",
+    "locus": "body",
+    "direction": "agile",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 8
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a light athletic build with balanced limbs and a flexible torso",
+    "preserve_hint": "Keep believable quadruped anatomy and avoid extreme thinness.",
+    "expression_chain": [
+      "agile",
+      "agile_developed",
+      "agile_mature"
+    ]
+  },
+  {
+    "id": "body_slender",
+    "display_name": "Gene Thân Thon",
+    "locus": "body",
+    "direction": "slender",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 5
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a longer cleaner body proportion with an elegant slender torso",
+    "preserve_hint": "Preserve healthy anatomy, limb count and species identity.",
+    "expression_chain": [
+      "slender",
+      "slender_developed",
+      "slender_mature"
+    ]
+  },
+  {
+    "id": "body_compact",
+    "display_name": "Gene Thân Gọn",
+    "locus": "body",
+    "direction": "compact",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 6
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a compact dense body with short visual mass and stable proportions",
+    "preserve_hint": "Do not make the pet infant-like or shorten limbs unnaturally.",
+    "expression_chain": [
+      "compact",
+      "compact_developed",
+      "compact_mature"
+    ]
+  },
+  {
+    "id": "body_regal",
+    "display_name": "Gene Thân Oai",
+    "locus": "body",
+    "direction": "regal",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a poised well-balanced body silhouette with proud chest carriage and mature proportions",
+    "preserve_hint": "Keep the animal quadrupedal and non-humanoid.",
+    "expression_chain": [
+      "regal",
+      "regal_developed",
+      "regal_mature"
     ]
   },
   {
@@ -186,11 +581,90 @@
     "influence_tags": {
       "mystic": 6
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "give the existing whiskers a restrained starlight quality with tiny luminous tips",
+    "preserve_hint": "Keep muzzle, mouth, nose and whisker roots unchanged.",
     "expression_chain": [
       "starlight",
       "radiant",
       "astral"
+    ]
+  },
+  {
+    "id": "whiskers_long",
+    "display_name": "Gene Râu Dài",
+    "locus": "whiskers",
+    "direction": "long",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "lengthen the existing whiskers into elegant readable arcs",
+    "preserve_hint": "Keep natural whisker roots and avoid tentacle-like forms.",
+    "expression_chain": [
+      "long",
+      "long_developed",
+      "long_mature"
+    ]
+  },
+  {
+    "id": "whiskers_fine",
+    "display_name": "Gene Râu Mảnh",
+    "locus": "whiskers",
+    "direction": "fine",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the whiskers into finer cleaner strands with delicate visibility",
+    "preserve_hint": "Do not erase the whiskers or alter the muzzle.",
+    "expression_chain": [
+      "fine",
+      "fine_developed",
+      "fine_mature"
+    ]
+  },
+  {
+    "id": "whiskers_fanned",
+    "display_name": "Gene Râu Xòe",
+    "locus": "whiskers",
+    "direction": "fanned",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "spread the existing whiskers into a broader balanced fan around the muzzle",
+    "preserve_hint": "Preserve natural roots, symmetry and face identity.",
+    "expression_chain": [
+      "fanned",
+      "fanned_developed",
+      "fanned_mature"
+    ]
+  },
+  {
+    "id": "whiskers_curved",
+    "display_name": "Gene Râu Cong",
+    "locus": "whiskers",
+    "direction": "curved",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "give the existing whiskers a soft graceful curvature",
+    "preserve_hint": "Keep them thin, natural and attached to the same muzzle.",
+    "expression_chain": [
+      "curved",
+      "curved_developed",
+      "curved_mature"
     ]
   },
   {
@@ -203,11 +677,90 @@
       "mystic": 4,
       "agile": 3
     },
-    "rarity": "uncommon",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "give the four existing paws a soft contained elemental luminescence inside the fur",
+    "preserve_hint": "Keep paw count, leg length, stance and attachment unchanged.",
     "expression_chain": [
       "luminous",
       "radiant",
       "runic"
+    ]
+  },
+  {
+    "id": "paws_sturdy",
+    "display_name": "Gene Bàn Chân Chắc",
+    "locus": "paws",
+    "direction": "sturdy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 5
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop slightly broader stronger paws suited to stable footing",
+    "preserve_hint": "Keep four paws and natural feline leg anatomy.",
+    "expression_chain": [
+      "sturdy",
+      "sturdy_developed",
+      "sturdy_mature"
+    ]
+  },
+  {
+    "id": "paws_swift",
+    "display_name": "Gene Bàn Chân Nhanh",
+    "locus": "paws",
+    "direction": "swift",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 6
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the paws into a light nimble silhouette suggesting quick movement",
+    "preserve_hint": "Preserve paw count, joints and stance.",
+    "expression_chain": [
+      "swift",
+      "swift_developed",
+      "swift_mature"
+    ]
+  },
+  {
+    "id": "paws_fluffy",
+    "display_name": "Gene Bàn Chân Lông Xù",
+    "locus": "paws",
+    "direction": "fluffy",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop soft feathering and fuller fur around the existing paws",
+    "preserve_hint": "Do not hide or multiply the paws.",
+    "expression_chain": [
+      "fluffy",
+      "fluffy_developed",
+      "fluffy_mature"
+    ]
+  },
+  {
+    "id": "paws_runic",
+    "display_name": "Gene Bàn Chân Phù Văn",
+    "locus": "paws",
+    "direction": "runic",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 6
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop subtle integrated rune-like luminous traces on the paw fur",
+    "preserve_hint": "Keep symbols restrained and limited to the paws.",
+    "expression_chain": [
+      "runic",
+      "runic_developed",
+      "runic_mature"
     ]
   },
   {
@@ -220,7 +773,10 @@
       "mystic": 7,
       "physical": 2
     },
-    "rarity": "rare",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a restrained astral neck-and-chest mane integrated into the existing fur",
+    "preserve_hint": "Keep head, shoulders and species body plan unchanged.",
     "expression_chain": [
       "astral",
       "guardian",
@@ -228,20 +784,459 @@
     ]
   },
   {
-    "id": "mark_moon",
-    "display_name": "Gene Ấn Nguyệt",
-    "locus": "mark",
-    "direction": "moon",
+    "id": "mane_full",
+    "display_name": "Gene Bờm Dày",
+    "locus": "mane",
+    "direction": "full",
     "primary_influence": 20,
     "influence_tags": {
-      "lunar": 8,
+      "physical": 6
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a fuller neck-and-chest mane with dense natural fur volume",
+    "preserve_hint": "Keep it fur-based and avoid armor or separate appendages.",
+    "expression_chain": [
+      "full",
+      "full_developed",
+      "full_mature"
+    ]
+  },
+  {
+    "id": "mane_layered",
+    "display_name": "Gene Bờm Tầng",
+    "locus": "mane",
+    "direction": "layered",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 4
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop layered mane sections with readable fur flow around neck and chest",
+    "preserve_hint": "Preserve head and shoulder anatomy.",
+    "expression_chain": [
+      "layered",
+      "layered_developed",
+      "layered_mature"
+    ]
+  },
+  {
+    "id": "mane_silken",
+    "display_name": "Gene Bờm Mượt",
+    "locus": "mane",
+    "direction": "silken",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 3,
+      "mystic": 2
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a smooth flowing mane with elegant soft strands",
+    "preserve_hint": "Keep it integrated with the pet's existing coat.",
+    "expression_chain": [
+      "silken",
+      "silken_developed",
+      "silken_mature"
+    ]
+  },
+  {
+    "id": "mane_regal",
+    "display_name": "Gene Bờm Oai",
+    "locus": "mane",
+    "direction": "regal",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 5,
       "mystic": 3
     },
-    "rarity": "rare",
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a proud mature mane that strengthens the upper-body silhouette",
+    "preserve_hint": "Do not alter limb count, head size or species anatomy.",
     "expression_chain": [
-      "moon",
-      "eclipse",
-      "ascended_eclipse"
+      "regal",
+      "regal_developed",
+      "regal_mature"
+    ]
+  },
+  {
+    "id": "structure_spirit",
+    "display_name": "Gene Cấu Trúc Linh Thể",
+    "locus": "structure",
+    "direction": "spirit",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 8,
+      "mutation": 4
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the overall silhouette with subtle integrated spirit-form contours and supernatural body language",
+    "preserve_hint": "Do not create horns, wings, extra tails or new appendages.",
+    "expression_chain": [
+      "spirit",
+      "ascended_spirit",
+      "transcendent_spirit"
+    ]
+  },
+  {
+    "id": "structure_guardian",
+    "display_name": "Gene Cấu Trúc Hộ Vệ",
+    "locus": "structure",
+    "direction": "guardian",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 7
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a stable protective guardian silhouette through posture and balanced structural mass",
+    "preserve_hint": "Keep the same species anatomy and appendage count.",
+    "expression_chain": [
+      "guardian",
+      "guardian_developed",
+      "guardian_mature"
+    ]
+  },
+  {
+    "id": "structure_elegant",
+    "display_name": "Gene Cấu Trúc Thanh Nhã",
+    "locus": "structure",
+    "direction": "elegant",
+    "primary_influence": 20,
+    "influence_tags": {
+      "agile": 5
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "refine the whole silhouette into a clean graceful elegant form",
+    "preserve_hint": "Preserve recognizable anatomy and avoid humanoid proportions.",
+    "expression_chain": [
+      "elegant",
+      "elegant_developed",
+      "elegant_mature"
+    ]
+  },
+  {
+    "id": "structure_feral",
+    "display_name": "Gene Cấu Trúc Hoang Dã",
+    "locus": "structure",
+    "direction": "feral",
+    "primary_influence": 20,
+    "influence_tags": {
+      "physical": 5,
+      "agile": 3
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a wilder animal-forward silhouette with stronger natural predatory body language",
+    "preserve_hint": "Keep it recognizably the same species and non-monstrous.",
+    "expression_chain": [
+      "feral",
+      "feral_developed",
+      "feral_mature"
+    ]
+  },
+  {
+    "id": "structure_ancient",
+    "display_name": "Gene Cấu Trúc Cổ Linh",
+    "locus": "structure",
+    "direction": "ancient",
+    "primary_influence": 20,
+    "influence_tags": {
+      "mystic": 8
+    },
+    "rarity": "variable",
+    "element_lock": "",
+    "prompt_stem": "develop a mature ancient-spirit silhouette through restrained fur contours and mystical presence",
+    "preserve_hint": "Do not invent new appendages or mythical anatomy.",
+    "expression_chain": [
+      "ancient",
+      "ancient_developed",
+      "ancient_mature"
+    ]
+  },
+  {
+    "id": "mark_wood",
+    "display_name": "Gene Ấn Mộc",
+    "locus": "mark",
+    "direction": "wood",
+    "primary_influence": 20,
+    "influence_tags": {
+      "wood": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "wood",
+    "prompt_stem": "develop one refined Wood lineage sigil inspired by sprouts, leaves and living growth",
+    "preserve_hint": "Keep one integrated marking in the established mark region; do not add random symbols.",
+    "expression_chain": [
+      "wood",
+      "wood_developed",
+      "wood_mature"
+    ]
+  },
+  {
+    "id": "mark_earth",
+    "display_name": "Gene Ấn Thổ",
+    "locus": "mark",
+    "direction": "earth",
+    "primary_influence": 20,
+    "influence_tags": {
+      "earth": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "earth",
+    "prompt_stem": "develop one refined Earth lineage sigil inspired by stone facets and grounded geometry",
+    "preserve_hint": "Keep one integrated marking in the established mark region.",
+    "expression_chain": [
+      "earth",
+      "earth_developed",
+      "earth_mature"
+    ]
+  },
+  {
+    "id": "mark_fire",
+    "display_name": "Gene Ấn Hỏa",
+    "locus": "mark",
+    "direction": "fire",
+    "primary_influence": 20,
+    "influence_tags": {
+      "fire": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "fire",
+    "prompt_stem": "develop one refined Fire lineage sigil with controlled ember and flame-line geometry",
+    "preserve_hint": "Keep one integrated marking and avoid uncontrolled flames across the face.",
+    "expression_chain": [
+      "fire",
+      "fire_developed",
+      "fire_mature"
+    ]
+  },
+  {
+    "id": "mark_water",
+    "display_name": "Gene Ấn Thủy",
+    "locus": "mark",
+    "direction": "water",
+    "primary_influence": 20,
+    "influence_tags": {
+      "water": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "water",
+    "prompt_stem": "develop one refined Water lineage sigil with flowing wave and droplet geometry",
+    "preserve_hint": "Keep one integrated marking in the established region.",
+    "expression_chain": [
+      "water",
+      "water_developed",
+      "water_mature"
+    ]
+  },
+  {
+    "id": "mark_metal",
+    "display_name": "Gene Ấn Kim",
+    "locus": "mark",
+    "direction": "metal",
+    "primary_influence": 20,
+    "influence_tags": {
+      "metal": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "metal",
+    "prompt_stem": "develop one refined Metal lineage sigil with clean silver facet geometry",
+    "preserve_hint": "Keep one integrated marking; do not turn it into armor.",
+    "expression_chain": [
+      "metal",
+      "metal_developed",
+      "metal_mature"
+    ]
+  },
+  {
+    "id": "mark_light",
+    "display_name": "Gene Ấn Quang",
+    "locus": "mark",
+    "direction": "light",
+    "primary_influence": 20,
+    "influence_tags": {
+      "light": 8,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "light",
+    "prompt_stem": "develop one refined Light lineage sigil with soft golden star-like geometry",
+    "preserve_hint": "Keep one subtle integrated marking and avoid oversized halo symbols.",
+    "expression_chain": [
+      "light",
+      "light_developed",
+      "light_mature"
+    ]
+  },
+  {
+    "id": "mark_dark",
+    "display_name": "Gene Ấn Ám",
+    "locus": "mark",
+    "direction": "dark",
+    "primary_influence": 20,
+    "influence_tags": {
+      "dark": 8,
+      "lunar": 4,
+      "mystic": 3
+    },
+    "rarity": "variable",
+    "element_lock": "dark",
+    "prompt_stem": "develop one refined Dark lineage sigil with crescent-shadow geometry and restrained violet-cyan glow",
+    "preserve_hint": "Keep one integrated marking and preserve the face.",
+    "expression_chain": [
+      "dark",
+      "eclipsed_dark",
+      "ascended_dark"
+    ]
+  },
+  {
+    "id": "aura_wood",
+    "display_name": "Gene Aura Mộc",
+    "locus": "aura",
+    "direction": "wood",
+    "primary_influence": 20,
+    "influence_tags": {
+      "wood": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "wood",
+    "prompt_stem": "develop a controlled Wood aura of soft green life glow, tiny leaf motes and subtle living energy",
+    "preserve_hint": "Aura is energy only; do not alter physical anatomy.",
+    "expression_chain": [
+      "wood",
+      "wood_developed",
+      "wood_mature"
+    ]
+  },
+  {
+    "id": "aura_earth",
+    "display_name": "Gene Aura Thổ",
+    "locus": "aura",
+    "direction": "earth",
+    "primary_influence": 20,
+    "influence_tags": {
+      "earth": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "earth",
+    "prompt_stem": "develop a controlled Earth aura of warm mineral glow, fine dust and restrained crystal shimmer",
+    "preserve_hint": "Aura is energy only; do not add rock armor.",
+    "expression_chain": [
+      "earth",
+      "earth_developed",
+      "earth_mature"
+    ]
+  },
+  {
+    "id": "aura_fire",
+    "display_name": "Gene Aura Hỏa",
+    "locus": "aura",
+    "direction": "fire",
+    "primary_influence": 20,
+    "influence_tags": {
+      "fire": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "fire",
+    "prompt_stem": "develop a controlled Fire aura of ember glow, restrained magical flames and warm sparks",
+    "preserve_hint": "Keep flames controlled and do not make the pet look physically on fire.",
+    "expression_chain": [
+      "fire",
+      "fire_developed",
+      "fire_mature"
+    ]
+  },
+  {
+    "id": "aura_water",
+    "display_name": "Gene Aura Thủy",
+    "locus": "aura",
+    "direction": "water",
+    "primary_influence": 20,
+    "influence_tags": {
+      "water": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "water",
+    "prompt_stem": "develop a controlled Water aura of aqua mist, suspended droplets and flowing wave-like energy",
+    "preserve_hint": "Aura is energy only; do not make the pet simply wet.",
+    "expression_chain": [
+      "water",
+      "water_developed",
+      "water_mature"
+    ]
+  },
+  {
+    "id": "aura_metal",
+    "display_name": "Gene Aura Kim",
+    "locus": "aura",
+    "direction": "metal",
+    "primary_influence": 20,
+    "influence_tags": {
+      "metal": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "metal",
+    "prompt_stem": "develop a controlled Metal aura of cool silver sheen, fine reflective particles and restrained crystalline light",
+    "preserve_hint": "Do not create armor or mechanical parts.",
+    "expression_chain": [
+      "metal",
+      "metal_developed",
+      "metal_mature"
+    ]
+  },
+  {
+    "id": "aura_light",
+    "display_name": "Gene Aura Quang",
+    "locus": "aura",
+    "direction": "light",
+    "primary_influence": 20,
+    "influence_tags": {
+      "light": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "light",
+    "prompt_stem": "develop a controlled Light aura of soft gold-white radiance and tiny luminous particles",
+    "preserve_hint": "Keep the glow restrained and do not obscure the body.",
+    "expression_chain": [
+      "light",
+      "light_developed",
+      "light_mature"
+    ]
+  },
+  {
+    "id": "aura_dark",
+    "display_name": "Gene Aura Ám",
+    "locus": "aura",
+    "direction": "dark",
+    "primary_influence": 20,
+    "influence_tags": {
+      "dark": 10,
+      "mystic": 5
+    },
+    "rarity": "variable",
+    "element_lock": "dark",
+    "prompt_stem": "develop a controlled Dark aura of shadow mist, muted violet-cyan glow and elegant dark particles",
+    "preserve_hint": "Keep the aura restrained and preserve readable body silhouette.",
+    "expression_chain": [
+      "dark",
+      "dark_developed",
+      "dark_mature"
     ]
   }
 ]

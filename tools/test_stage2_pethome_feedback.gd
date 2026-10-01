@@ -5,8 +5,8 @@ var _failures: int = 0
 
 
 func _ready() -> void:
-	_test_gene_item_context_and_stage2_limit()
-	_test_ready_stage2_keeps_remaining_activity_rewards()
+	_test_gene_item_context_and_stage2_score()
+	_test_hibernating_stage2_keeps_remaining_activity_rewards()
 
 	SaveManager.delete_meta()
 
@@ -24,49 +24,60 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 
-func _test_gene_item_context_and_stage2_limit() -> void:
+func _test_gene_item_context_and_stage2_score() -> void:
 	SaveManager.delete_meta()
 
 	var catalog := GeneCatalog.new()
 	var definitions := catalog.load_default()
-	var eyes := catalog.find_by_id(
+	var body := catalog.find_by_id(
 		definitions,
-		&"eyes_moon"
+		&"body_sturdy"
 	)
-	var mark := catalog.find_by_id(
+	var tail := catalog.find_by_id(
 		definitions,
-		&"mark_moon"
+		&"tail_long"
 	)
 
 	_expect(
-		eyes != null
-		and mark != null,
+		body != null
+		and tail != null,
 		"Gene fixtures must exist"
 	)
 
-	if eyes == null or mark == null:
+	if body == null or tail == null:
 		return
 
 	var generator := ItemGenerator.new()
-	var eye_item := generator.generate_gene(
-		eyes,
+	var body_one := generator.generate_gene(
+		body,
 		91001
 	)
-	var mark_item := generator.generate_gene(
-		mark,
+	var body_two := generator.generate_gene(
+		body,
 		91002
+	)
+	var tail_item := generator.generate_gene(
+		tail,
+		91004
+	)
+	var food_item := generator.generate_for_stage(
+		ItemGenerator.TYPE_FOOD,
+		91003,
+		2
 	)
 
 	_expect(
 		SaveManager.save_meta({
 			"schema": InfantGameFacade.META_SCHEMA,
 			"inventory": [
-				eye_item,
-				mark_item,
+				food_item,
+				body_one,
+				body_two,
+				tail_item,
 			],
 			"chest_queue": [],
 		}),
-		"save Gene inventory fixture"
+		"save Gene score inventory fixture"
 	)
 
 	var game := InfantGameFacade.new()
@@ -74,17 +85,48 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 	_expect(
 		game.setup(
 			9100,
-			2
+			2,
+			&"dark"
 		),
 		"setup Stage 2 facade"
 	)
 
+	_expect(
+		bool(
+			game.use_item(
+				String(
+					food_item.get(
+						"uid",
+						""
+					)
+				)
+			).get(
+				"ok",
+				false
+			)
+		),
+		"Stage 2 Gene fixture must feed the pet before Gene use"
+	)
+
+	var before_gene_growth := int(
+		game.snapshot().get(
+			"growth_percent",
+			-1
+		)
+	)
+
 	var initial := game.gene_item_context(
-		eye_item
+		body_one
 	)
 	var stages_value: Variant = initial.get(
 		"allowed_stages",
 		[]
+	)
+	var first_score := float(
+		body_one.get(
+			"gene_score",
+			0.0
+		)
 	)
 
 	_expect(
@@ -94,42 +136,36 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 				0
 			)
 		) == 2
-		and int(
-			initial.get(
-				"used",
-				-1
-			)
-		) == 0
-		and int(
-			initial.get(
-				"limit",
-				0
-			)
-		) == 2
-		and int(
-			initial.get(
-				"remaining",
-				-1
-			)
-		) == 2
-		and not bool(
-			initial.get(
-				"exhausted",
-				true
-			)
+		and is_equal_approx(
+			float(
+				initial.get(
+					"current_score",
+					-1.0
+				)
+			),
+			0.0
+		)
+		and is_equal_approx(
+			float(
+				initial.get(
+					"projected_score",
+					-1.0
+				)
+			),
+			first_score
 		)
 		and typeof(stages_value) == TYPE_ARRAY
-		and (stages_value as Array).has(
-			2
-		),
-		"Gene detail must expose target validity and 0/2 Stage 2 usage"
+		and (stages_value as Array).has(1)
+		and (stages_value as Array).has(2)
+		and (stages_value as Array).has(3),
+		"Gene detail must expose score projection and unlimited growth-stage validity"
 	)
 
 	_expect(
 		bool(
 			game.use_item(
 				String(
-					eye_item.get(
+					body_one.get(
 						"uid",
 						""
 					)
@@ -142,37 +178,74 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 		"first Stage 2 Gene can be used"
 	)
 
-	var after_one := game.gene_item_context(
-		mark_item
+	var after_first_gene_growth := int(
+		game.snapshot().get(
+			"growth_percent",
+			-1
+		)
+	)
+	var first_growth_bonus := int(
+		round(
+			float(
+				body_one.get(
+					"growth_bonus_percent",
+					0.0
+				)
+			)
+		)
 	)
 
 	_expect(
-		int(
-			after_one.get(
-				"used",
-				-1
-			)
-		) == 1
-		and int(
-			after_one.get(
-				"remaining",
-				-1
-			)
-		) == 1
+		after_first_gene_growth == mini(
+			100,
+			before_gene_growth + first_growth_bonus
+		),
+		"Stage 2 Gene Item must add rarity-specific Growth bonus"
+	)
+
+	var after_one := game.gene_item_context(
+		body_two
+	)
+	var second_score := float(
+		body_two.get(
+			"gene_score",
+			0.0
+		)
+	)
+
+	_expect(
+		is_equal_approx(
+			float(
+				after_one.get(
+					"current_score",
+					-1.0
+				)
+			),
+			first_score
+		)
+		and is_equal_approx(
+			float(
+				after_one.get(
+					"projected_score",
+					-1.0
+				)
+			),
+			first_score + second_score
+		)
 		and bool(
 			after_one.get(
 				"usable_now",
 				false
 			)
 		),
-		"Gene detail must show one remaining Stage 2 use"
+		"same-direction Gene must preview cumulative score instead of remaining slots"
 	)
 
 	_expect(
 		bool(
 			game.use_item(
 				String(
-					mark_item.get(
+					body_two.get(
 						"uid",
 						""
 					)
@@ -182,45 +255,56 @@ func _test_gene_item_context_and_stage2_limit() -> void:
 				false
 			)
 		),
-		"second Stage 2 Gene can be used"
-	)
-
-	var exhausted := game.gene_item_context(
-		mark_item
+		"second same-direction Gene can stack"
 	)
 
 	_expect(
-		int(
-			exhausted.get(
-				"used",
-				-1
-			)
-		) == 2
-		and int(
-			exhausted.get(
-				"remaining",
-				-1
-			)
-		) == 0
+		game.can_use_item(
+			tail_item
+		)
 		and bool(
-			exhausted.get(
-				"exhausted",
+			game.use_item(
+				String(
+					tail_item.get(
+						"uid",
+						""
+					)
+				)
+			).get(
+				"ok",
 				false
 			)
-		)
-		and not bool(
-			exhausted.get(
-				"usable_now",
-				true
+		),
+		"third Stage 2 Gene remains usable because slot cap is removed"
+	)
+
+	var state := game.snapshot()
+	_expect(
+		int(
+			state.get(
+				"gene_items_used",
+				-1
+			)
+		) == 3
+		and int(
+			state.get(
+				"gene_slots_remaining",
+				0
+			)
+		) == -1
+		and bool(
+			state.get(
+				"gene_unlimited",
+				false
 			)
 		),
-		"Gene detail must explicitly report exhausted 2/2 usage"
+		"PetHome state must expose unlimited Stage 2 Gene use"
 	)
 
 	SaveManager.delete_meta()
 
 
-func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
+func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 	SaveManager.delete_meta()
 
 	var game := InfantGameFacade.new()
@@ -261,10 +345,10 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 	var ready := game.snapshot()
 
 	_expect(
-		bool(
+		not bool(
 			ready.get(
 				"ready_to_evolve",
-				false
+				true
 			)
 		)
 		and bool(
@@ -282,15 +366,21 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 		and int(
 			ready.get(
 				"growth_percent",
-				100
+				-1
 			)
-		) < 100,
-		"deadline can make Stage 2 READY independently of Growth"
+		) == 0
+		and bool(
+			ready.get(
+				"hibernating",
+				false
+			)
+		),
+		"deadline cannot bypass zero-food hibernation"
 	)
 
-	var reward := game.claim_maze_hunt_reward(
+	var reward := game.claim_obstacle_run_reward(
 		100,
-		"ready_stage2_maze"
+		"ready_stage2_obstacle"
 	)
 
 	_expect(
@@ -300,7 +390,7 @@ func _test_ready_stage2_keeps_remaining_activity_rewards() -> void:
 				false
 			)
 		),
-		"READY Stage 2 must still allow an unclaimed Maze/Snake reward"
+		"hibernating Stage 2 must still allow an unclaimed Vượt chướng ngại/Snake reward"
 	)
 
 	var after_reward := game.snapshot()

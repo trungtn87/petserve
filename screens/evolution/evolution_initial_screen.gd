@@ -185,7 +185,7 @@ func _start_generate(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_pethome_v7_text_to_image"
+	visual.source_mode = &"initial_pethome_v8_text_to_image"
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -267,7 +267,7 @@ func _try_load_existing_visual() -> bool:
 	if (
 		visual == null
 		or visual.source_mode
-			!= &"initial_pethome_v7_text_to_image"
+			!= &"initial_pethome_v8_text_to_image"
 	):
 		return false
 
