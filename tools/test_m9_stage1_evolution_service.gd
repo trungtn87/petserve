@@ -85,6 +85,33 @@ func _test_natural_stage_one_plan() -> void:
 			{}
 		)
 	)
+	var used_gene_items_value: Variant = pending.get(
+		"gene_items_used",
+		[]
+	)
+	var used_gene_items: Array = (
+		used_gene_items_value as Array
+		if typeof(used_gene_items_value) == TYPE_ARRAY
+		else []
+	)
+
+	_expect(
+		used_gene_items.size() == 1
+		and typeof(used_gene_items[0]) == TYPE_DICTIONARY
+		and String(
+			(used_gene_items[0] as Dictionary).get(
+				"gene_id",
+				""
+			)
+		) == "whiskers_starlight"
+		and int(
+			(used_gene_items[0] as Dictionary).get(
+				"stage_used",
+				0
+			)
+		) == 1,
+		"Gene plan must persist exact Gene items for post-evolution history UI"
+	)
 
 	_expect(
 		String(
