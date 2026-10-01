@@ -4,7 +4,7 @@ extends RefCounted
 
 const MODE_NATURAL: StringName = &"natural"
 const MODE_GENE: StringName = &"gene"
-const FINAL_STAGE: int = 4
+const FINAL_STAGE: int = 5
 const SEED_MODULUS: int = 2147483647
 
 
