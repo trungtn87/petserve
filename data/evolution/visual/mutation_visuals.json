@@ -537,5 +537,180 @@
     "instruction": "Add one elegant eye-like symbolic pattern to each wing using feather coloration only, symmetrical and restrained.",
     "preserve_hint": "Do not add literal eyes, extra wings or change wing anatomy.",
     "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "dragon_horn_crown",
+    "target_region": "horns",
+    "instruction": "Develop a coherent juvenile dragon horn crown from the brow: one balanced species-appropriate horn arrangement that strengthens the head silhouette without becoming oversized.",
+    "preserve_hint": "Preserve one dragon head, eye placement, neck, four legs, tail and every non-horn trait.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "dragon_scale_plates",
+    "target_region": "coat",
+    "instruction": "Develop selected dragon scales into layered protective plates concentrated along shoulders, spine and flanks. Keep clear gaps of normal juvenile scales so the body does not become a solid armor shell.",
+    "preserve_hint": "Preserve dragon body proportions, head, limbs, tail and all appendage counts.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "dragon_tail_blade",
+    "target_region": "tail",
+    "instruction": "Evolve the single dragon tail into a more powerful signature tail ending in one clean blade-like or fin-like fantasy structure appropriate to the element.",
+    "preserve_hint": "Keep exactly one tail. Preserve head, horns, legs, wings state and body proportions.",
+    "edit_strength": 0.21
+  },
+  {
+    "mutation_id": "dragon_wing_buds",
+    "target_region": "wings",
+    "instruction": "Awaken one small symmetrical pair of juvenile dragon wing buds from the upper back. They must be clearly attached, compact and not yet flight-capable.",
+    "preserve_hint": "Exactly one wing pair. Preserve four legs, one head, one tail and all non-wing anatomy.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "dragon_full_wings",
+    "target_region": "wings",
+    "instruction": "Develop the existing dragon wing buds into one mature but proportionate pair of functional fantasy wings, clearly larger than the prior stage while remaining integrated with the same individual body.",
+    "preserve_hint": "Exactly one wing pair. Do not add extra limbs, heads or tails; preserve all established lineage traits.",
+    "edit_strength": 0.25
+  },
+  {
+    "mutation_id": "phoenix_crown_crest",
+    "target_region": "structure",
+    "instruction": "Develop the phoenix head crest into a distinctive layered crown of sacred feathers, elegant and readable in silhouette without becoming a helmet.",
+    "preserve_hint": "Preserve one bird head, beak, eye placement, two legs, one wing pair and tail assembly.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "phoenix_tail_streamers",
+    "target_region": "tail",
+    "instruction": "Extend the phoenix tail into several organized decorative feather streamers that flow as one coherent tail assembly rather than separate tails.",
+    "preserve_hint": "Preserve one tail-feather assembly, one wing pair, two legs, head and body.",
+    "edit_strength": 0.21
+  },
+  {
+    "mutation_id": "phoenix_layered_wings",
+    "target_region": "wings",
+    "instruction": "Develop the existing phoenix wing pair into broader layered sacred wings with clearly organized primary and secondary feathers.",
+    "preserve_hint": "Exactly one pair of wings. Preserve two legs, one head, tail assembly and body proportions.",
+    "edit_strength": 0.23
+  },
+  {
+    "mutation_id": "phoenix_rebirth_plumage",
+    "target_region": "coat",
+    "instruction": "Evolve selected phoenix plumage into luminous rebirth feathers with controlled elemental gradients and delicate glowing edges, keeping the base species pattern dominant.",
+    "preserve_hint": "Preserve feather structure, wing count, body silhouette, head and tail arrangement.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "phoenix_rebirth_aura",
+    "target_region": "aura",
+    "instruction": "Form a restrained rebirth aura around the phoenix: a clean halo-like current of elemental energy and a few drifting ember-or-light motes, never obscuring the body.",
+    "preserve_hint": "Aura is energy only. Do not invent extra feathers, wings, limbs or heads.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "horse_flowing_mane",
+    "target_region": "mane",
+    "instruction": "Develop the foal's mane into a longer flowing equine mane with a clear directional sweep that changes the neck silhouette while remaining natural to a horse.",
+    "preserve_hint": "Preserve equine head, two ears, four legs, hooves, body and one tail.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "horse_swift_hooves",
+    "target_region": "hooves",
+    "instruction": "Refine all four horse hooves into lighter swift fantasy hooves with subtle elemental edge detail and a clean athletic lower-leg silhouette.",
+    "preserve_hint": "Keep four legs and four hooves. Preserve body, head, mane and tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "horse_ribbon_tail",
+    "target_region": "tail",
+    "instruction": "Lengthen the horse's single tail into an elegant ribbon-like flowing tail with organized strands and strong movement language.",
+    "preserve_hint": "Keep exactly one tail. Preserve equine anatomy, mane, legs and head.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "horse_noble_frame",
+    "target_region": "body",
+    "instruction": "Develop the horse body toward a noble athletic frame: longer readable neck, stronger chest, cleaner waist and confident long-legged stance without becoming adult-heavy.",
+    "preserve_hint": "Preserve one horse head, two ears, four legs, hooves, mane and tail.",
+    "edit_strength": 0.21
+  },
+  {
+    "mutation_id": "horse_wind_mark",
+    "target_region": "mark",
+    "instruction": "Add a restrained flowing wind-like lineage marking along shoulder or flank using the current elemental palette, shaped to emphasize movement.",
+    "preserve_hint": "Marking only. Do not add horns, wings, antlers, armor or alter anatomy.",
+    "edit_strength": 0.16
+  },
+  {
+    "mutation_id": "qilin_cloud_mane",
+    "target_region": "mane",
+    "instruction": "Develop the qilin mane into soft layered cloud-like masses flowing from neck and chest, sacred rather than fluffy horse hair.",
+    "preserve_hint": "Preserve qilin head, horn structure, four hoofed legs, scale patches and one tail.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "qilin_scale_patch",
+    "target_region": "coat",
+    "instruction": "Develop elegant localized sacred scale patches along the qilin shoulders, spine or flanks, clearly integrated with fur and never covering the entire body.",
+    "preserve_hint": "Preserve hoofed silhouette, mane, horn structure, head and tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "qilin_sacred_hooves",
+    "target_region": "hooves",
+    "instruction": "Refine all four qilin hooves into sacred fantasy hooves with subtle cloud or elemental energy at the edges, visually light and ceremonial.",
+    "preserve_hint": "Keep four legs and four hooves. Do not add claws or change the body family.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "qilin_horn_growth",
+    "target_region": "horns",
+    "instruction": "Develop the qilin's restrained juvenile horn structure into one elegant central spirit horn or a balanced species-approved paired horn form, following the existing lineage cue.",
+    "preserve_hint": "Do not mix single and paired horn anatomy at once. Preserve head, ears, mane, four legs and tail.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "qilin_ribbon_tail",
+    "target_region": "tail",
+    "instruction": "Develop the qilin's single tail into a longer sacred ribbon-tail with a clean tuft or flowing streamer structure, coherent with the cloud mane.",
+    "preserve_hint": "Keep exactly one tail. Preserve head, horn structure, hooves and body.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "deer_antler_buds",
+    "target_region": "antlers",
+    "instruction": "Grow a small symmetrical pair of juvenile deer antler buds from the proper skull positions, clearly cervid and still immature.",
+    "preserve_hint": "Preserve deer head size, two ears, four legs, short tail and all non-antler traits.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "deer_long_legs",
+    "target_region": "body",
+    "instruction": "Develop the deer toward a more graceful long-legged cervid frame with a slim chest, fine waist and light woodland posture, distinct from a horse.",
+    "preserve_hint": "Preserve small deer head, two ears, antler state and one short tail.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "deer_leaf_marks",
+    "target_region": "mark",
+    "instruction": "Add sparse woodland leaf or branch-like coat markings along the shoulders and flanks using the current elemental palette, natural and restrained.",
+    "preserve_hint": "Marking only. Preserve deer anatomy, antlers, ears and body silhouette.",
+    "edit_strength": 0.16
+  },
+  {
+    "mutation_id": "deer_forest_mane",
+    "target_region": "mane",
+    "instruction": "Develop a light forest ruff around the deer neck and upper chest, airy and natural, changing the silhouette without turning into a horse mane.",
+    "preserve_hint": "Preserve small cervid head, ears, antlers, fine legs and short tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "deer_moon_eyes",
+    "target_region": "eyes",
+    "instruction": "Evolve the deer eyes into calm moonlit fantasy eyes with a soft luminous iris gradient and clear pupils, conveying alert gentleness.",
+    "preserve_hint": "Preserve eye size, placement, head shape, ears, antlers and expression.",
+    "edit_strength": 0.16
   }
 ]
