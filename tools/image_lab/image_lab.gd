@@ -40,9 +40,10 @@ func _ready() -> void:
 	_label("Seed (giữ nguyên để so sánh Gene)", controls)
 	seed_input.min_value = 1
 	seed_input.max_value = 2147483646
-	seed_input.value = 12345
+	seed_input.value = int(Time.get_unix_time_from_system()) % 2147483646 + 1
 	controls.add_child(seed_input)
 	_button("Bắt đầu lượt test / đổi hệ và seed", _reset, controls)
+	_button("Đời mới: random dáng bẩm sinh", _new_lineage, controls)
 	_label("Ảnh muốn tạo", controls)
 	for stage in range(1, 6):
 		target.add_item("Stage %d" % stage if stage < 5 else "Final (sau Stage 4)")
@@ -91,6 +92,16 @@ func _image_box(rect: TextureRect) -> void:
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	controls.add_child(rect)
+
+func _new_lineage() -> void:
+	if busy:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var next_seed := rng.randi_range(1, 2147483646)
+	if next_seed == int(seed_input.value):
+		next_seed = next_seed % 2147483646 + 1
+	seed_input.value = next_seed
 
 func _reset() -> void:
 	if busy:

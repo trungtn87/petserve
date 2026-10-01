@@ -120,7 +120,7 @@ func build_from_scores(
 	return (
 		"Accumulated Gene Score phenotype for evolution Stage %d. "
 		+ "Scores persist across stages. Multiple directions in one locus may blend; "
-		+ "the highest score is dominant. Do not invent directions that are not listed.\n%s"
+		+ "the highest score establishes the primary direction. Secondary directions contribute complementary details rather than averaging the form into a generic body. Structure Genes coordinate existing body regions. Express every trait within the target stage maturity envelope. Do not invent unlisted directions.\n%s"
 	) % [
 		target_stage,
 		"\n".join(sections),
@@ -134,9 +134,9 @@ func _tier_instruction(
 		GeneExpressionScale.TRACE:
 			return "Express only a faint early trace of this direction:"
 		GeneExpressionScale.DEVELOPING:
-			return "Make this direction noticeable but still restrained:"
+			return "Make this direction visibly distinguishable in shape or pattern at full-body scale:"
 		GeneExpressionScale.EXPRESSED:
-			return "Express this direction clearly and coherently:"
+			return "Make this a clear signature feature: structural Genes must change the silhouette, while energy Genes stay localized:"
 		GeneExpressionScale.DOMINANT:
 			return "Make this a strong defining feature of this locus:"
 		GeneExpressionScale.ASCENDED:

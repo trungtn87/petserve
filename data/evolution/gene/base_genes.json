@@ -10,12 +10,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "give the existing irises a controlled luminous quality with soft internal glow",
-    "preserve_hint": "Keep eye size, placement, pupil geometry and facial identity unchanged.",
+    "prompt_stem": "Illuminate the iris internally while keeping a dark readable pupil, colored iris rim and expressive gaze; never replace the whole eye with white light",
+    "preserve_hint": "Preserve eye placement, recognizable face and readable pupils.",
     "expression_chain": [
       "luminous",
       "radiant",
-      "transcendent_luminous"
+      "transcendent_luminous",
+      "luminous_lineage_final"
     ]
   },
   {
@@ -30,12 +31,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a moonlit iris quality with a refined crescent-like reflection and cool depth",
-    "preserve_hint": "Keep the same eye anatomy and do not place moon symbols outside the iris.",
+    "prompt_stem": "Shape a distinct crescent of iris color around a readable pupil",
+    "preserve_hint": "Preserve eye placement, recognizable face and readable pupils.",
     "expression_chain": [
       "moon",
       "crescent",
-      "eclipse"
+      "eclipse",
+      "moon_lineage_final"
     ]
   },
   {
@@ -49,12 +51,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "make the existing eyes read sharper and more focused through iris shape language and restrained eyelid definition",
-    "preserve_hint": "Keep the same eye count, placement and recognizable face.",
+    "prompt_stem": "Develop tapered alert eye contours and a focused gaze",
+    "preserve_hint": "Preserve eye placement, recognizable face and readable pupils.",
     "expression_chain": [
       "sharp",
       "sharp_developed",
-      "sharp_mature"
+      "sharp_mature",
+      "sharp_lineage_final"
     ]
   },
   {
@@ -68,12 +71,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "soften the eye expression into a calm gentle look without making the eyes oversized",
-    "preserve_hint": "Keep the same face, muzzle and natural species anatomy.",
+    "prompt_stem": "Develop soft open eye contours and a calm readable gaze",
+    "preserve_hint": "Preserve eye placement, recognizable face and readable pupils.",
     "expression_chain": [
       "gentle",
       "gentle_developed",
-      "gentle_mature"
+      "gentle_mature",
+      "gentle_lineage_final"
     ]
   },
   {
@@ -87,12 +91,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "add a clean thin luminous ring inside each existing iris",
-    "preserve_hint": "Keep the ring inside the iris and preserve eye anatomy.",
+    "prompt_stem": "Develop clean concentric iris rings with a dark visible pupil",
+    "preserve_hint": "Preserve eye placement, recognizable face and readable pupils.",
     "expression_chain": [
       "ringed",
       "ringed_developed",
-      "ringed_mature"
+      "ringed_mature",
+      "ringed_lineage_final"
     ]
   },
   {
@@ -106,12 +111,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "lengthen the same pair of ears in a natural balanced proportion",
-    "preserve_hint": "Do not add ears, horns or antennae; preserve ear roots and head identity.",
+    "prompt_stem": "Lengthen both existing ears into clear upright tapered silhouettes",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "long",
       "elongated",
-      "regal_long"
+      "regal_long",
+      "long_lineage_final"
     ]
   },
   {
@@ -125,12 +131,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop integrated soft fur tufts at the existing ear tips",
-    "preserve_hint": "Keep ear count, length family and angle; tufts must not become horns.",
+    "prompt_stem": "Grow a visible swept tuft from each existing ear tip",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "tufted",
       "plume_tufted",
-      "spirit_tufted"
+      "spirit_tufted",
+      "tufted_lineage_final"
     ]
   },
   {
@@ -144,12 +151,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the existing ears toward a cleaner sharper triangular silhouette",
-    "preserve_hint": "Preserve the same pair of ears and their attachment points.",
+    "prompt_stem": "Develop sharply tapered ear tips and a clear angled outer edge",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "sharp",
       "sharp_developed",
-      "sharp_mature"
+      "sharp_mature",
+      "sharp_lineage_final"
     ]
   },
   {
@@ -163,12 +171,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "round and soften the outer ear silhouette while retaining natural feline anatomy",
-    "preserve_hint": "Do not shrink, duplicate or relocate the ears.",
+    "prompt_stem": "Develop broad softly rounded ears with substantial curved edges",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "rounded",
       "rounded_developed",
-      "rounded_mature"
+      "rounded_mature",
+      "rounded_lineage_final"
     ]
   },
   {
@@ -182,12 +191,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop slightly wider soft-furred ear edges with a gentle fan-like silhouette",
-    "preserve_hint": "Keep exactly two ears and avoid wing-like or horn-like structures.",
+    "prompt_stem": "Broaden existing ear fur into fan-shaped edges with visible separated tufts",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "softfan",
       "softfan_developed",
-      "softfan_mature"
+      "softfan_mature",
+      "softfan_lineage_final"
     ]
   },
   {
@@ -201,12 +211,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "increase coat volume into fuller fluffy layered fur",
-    "preserve_hint": "Preserve established colors, markings and body anatomy.",
+    "prompt_stem": "Build a cloudlike fur envelope with large readable clumps and a distinct outline",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fluffy",
       "plush",
-      "guardian_ruff"
+      "guardian_ruff",
+      "fluffy_lineage_final"
     ]
   },
   {
@@ -220,12 +231,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the coat into smooth sleek plush fur with cleaner directional flow",
-    "preserve_hint": "Do not make the pet hairless or change body shape.",
+    "prompt_stem": "Flatten fur along the body so shoulder, flank and waist contours are clearly readable",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "sleek",
       "satin",
-      "ethereal_sleek"
+      "ethereal_sleek",
+      "sleek_lineage_final"
     ]
   },
   {
@@ -239,12 +251,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a soft dense velvet-like plush coat with rounded tactile volume",
-    "preserve_hint": "Preserve coat colors, markings and species silhouette.",
+    "prompt_stem": "Build short dense velvet-like volume around the body without long strands",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "plush",
       "plush_developed",
-      "plush_mature"
+      "plush_mature",
+      "plush_lineage_final"
     ]
   },
   {
@@ -258,12 +271,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop clearly layered fur planes around cheeks, chest, body and tail base",
-    "preserve_hint": "Keep the layers natural and integrated rather than armor-like.",
+    "prompt_stem": "Separate fur into overlapping directional tiers visible along chest, flank and rump",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "layered",
       "layered_developed",
-      "layered_mature"
+      "layered_mature",
+      "layered_lineage_final"
     ]
   },
   {
@@ -277,12 +291,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "give the fur a fine silky texture with soft flowing strands and restrained sheen",
-    "preserve_hint": "Preserve base coat pattern and avoid metallic or wet appearance.",
+    "prompt_stem": "Lengthen selected fur into smooth flowing locks following the body",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "silky",
       "silky_developed",
-      "silky_mature"
+      "silky_mature",
+      "silky_lineage_final"
     ]
   },
   {
@@ -296,12 +311,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "introduce restrained shadow-toned secondary markings that follow the existing fur naturally",
-    "preserve_hint": "Keep the base elemental palette dominant and do not cover the whole body in black.",
+    "prompt_stem": "Develop broad dark tonal zones following the body's volumes",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "shadow",
       "deep_shadow",
-      "living_shadow"
+      "living_shadow",
+      "shadow_lineage_final"
     ]
   },
   {
@@ -316,12 +332,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "introduce sparse localized nebula-like color variation as a subtle coat pattern",
-    "preserve_hint": "Keep it localized and avoid full-body galaxy or starfield texture.",
+    "prompt_stem": "Develop a few large soft blended color islands within the elemental palette, not a noisy galaxy texture",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "nebula",
       "astral_nebula",
-      "cosmic_nebula"
+      "cosmic_nebula",
+      "nebula_lineage_final"
     ]
   },
   {
@@ -335,12 +352,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop clean organic stripe markings that follow muscle and fur flow",
-    "preserve_hint": "Keep stripes coherent with the existing elemental palette.",
+    "prompt_stem": "Develop broad organized stripes that follow shoulder, flank and tail contours",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "striped",
       "striped_developed",
-      "striped_mature"
+      "striped_mature",
+      "striped_lineage_final"
     ]
   },
   {
@@ -354,12 +372,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a balanced field of organic coat spots with varied natural spacing",
-    "preserve_hint": "Do not obscure the face or replace the base coat identity.",
+    "prompt_stem": "Develop clearly spaced organic spots of varied size following body volumes",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "spotted",
       "spotted_developed",
-      "spotted_mature"
+      "spotted_mature",
+      "spotted_lineage_final"
     ]
   },
   {
@@ -373,12 +392,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop flowing marbled coat swirls with soft natural transitions",
-    "preserve_hint": "Keep the pattern on fur surfaces and preserve anatomy.",
+    "prompt_stem": "Develop broad interconnected marble bands with clean negative spaces",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "marbled",
       "marbled_developed",
-      "marbled_mature"
+      "marbled_mature",
+      "marbled_lineage_final"
     ]
   },
   {
@@ -392,12 +412,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "lengthen the same single tail with a flowing elegant proportion",
-    "preserve_hint": "Keep one tail, preserve the root position, thickness family and elemental effect.",
+    "prompt_stem": "Lengthen the single existing tail into a distinct sweeping line fully separate from the torso",
+    "preserve_hint": "Keep the authorized tail count and attachment; present the entire tail away from the body.",
     "expression_chain": [
       "long",
       "elongated",
-      "regal_long"
+      "regal_long",
+      "long_lineage_final"
     ]
   },
   {
@@ -411,12 +432,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "increase the same tail's fur volume into a fuller plume",
-    "preserve_hint": "Do not split, duplicate or move the tail root.",
+    "prompt_stem": "Broaden the single tail into a large tapered plume with a clearly visible outer contour",
+    "preserve_hint": "Keep the authorized tail count and attachment; present the entire tail away from the body.",
     "expression_chain": [
       "fluffy",
       "plume",
-      "grand_plume"
+      "grand_plume",
+      "fluffy_lineage_final"
     ]
   },
   {
@@ -430,12 +452,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a graceful natural curve through the existing single tail",
-    "preserve_hint": "Preserve tail length family and attachment point.",
+    "prompt_stem": "Develop a pronounced continuous S-curve along the single tail",
+    "preserve_hint": "Keep the authorized tail count and attachment; present the entire tail away from the body.",
     "expression_chain": [
       "curved",
       "curved_developed",
-      "curved_mature"
+      "curved_mature",
+      "curved_lineage_final"
     ]
   },
   {
@@ -449,12 +472,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "make the far tail tip a distinct but integrated visual accent through fur shape and subtle contrast",
-    "preserve_hint": "Do not create a second tail or detached ornament.",
+    "prompt_stem": "Shape the far quarter of the single tail into a distinct tapered brush with a clearly contrasting terminal color block",
+    "preserve_hint": "Keep the authorized tail count and attachment; present the entire tail away from the body.",
     "expression_chain": [
       "tipped",
       "tipped_developed",
-      "tipped_mature"
+      "tipped_mature",
+      "tipped_lineage_final"
     ]
   },
   {
@@ -468,12 +492,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the existing tail into a cleaner slimmer aerodynamic silhouette",
-    "preserve_hint": "Keep one tail and natural fur-covered anatomy.",
+    "prompt_stem": "Develop a long clean tapered tail with close fur and an aerodynamic continuous curve",
+    "preserve_hint": "Keep the authorized tail count and attachment; present the entire tail away from the body.",
     "expression_chain": [
       "streamlined",
       "streamlined_developed",
-      "streamlined_mature"
+      "streamlined_mature",
+      "streamlined_lineage_final"
     ]
   },
   {
@@ -487,12 +512,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a sturdier quadruped torso with stronger chest and shoulder presence",
-    "preserve_hint": "Keep natural feline proportions, leg count, stance and face identity.",
+    "prompt_stem": "Deepen the ribcage, broaden the shoulder mass and strengthen the torso; retain a visible waist and the individual's inherited long or compact frame",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "sturdy",
       "powerful",
-      "guardian"
+      "guardian",
+      "sturdy_lineage_final"
     ]
   },
   {
@@ -506,12 +532,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a light athletic build with balanced limbs and a flexible torso",
-    "preserve_hint": "Keep believable quadruped anatomy and avoid extreme thinness.",
+    "prompt_stem": "Develop a lean athletic torso, flexible waist and powerful hindquarter contour suited to a springing quadruped",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "agile",
       "agile_developed",
-      "agile_mature"
+      "agile_mature",
+      "agile_lineage_final"
     ]
   },
   {
@@ -525,12 +552,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a longer cleaner body proportion with an elegant slender torso",
-    "preserve_hint": "Preserve healthy anatomy, limb count and species identity.",
+    "prompt_stem": "Elongate the torso, narrow the waist and develop light elegant proportions without emaciation",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "slender",
       "slender_developed",
-      "slender_mature"
+      "slender_mature",
+      "slender_lineage_final"
     ]
   },
   {
@@ -544,12 +572,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a compact dense body with short visual mass and stable proportions",
-    "preserve_hint": "Do not make the pet infant-like or shorten limbs unnaturally.",
+    "prompt_stem": "Develop a short deep torso, low center of mass and compact balanced proportions",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "compact",
       "compact_developed",
-      "compact_mature"
+      "compact_mature",
+      "compact_lineage_final"
     ]
   },
   {
@@ -564,12 +593,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a poised well-balanced body silhouette with proud chest carriage and mature proportions",
-    "preserve_hint": "Keep the animal quadrupedal and non-humanoid.",
+    "prompt_stem": "Develop an elevated chest, elongated neck carriage and balanced commanding body proportions",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "regal",
       "regal_developed",
-      "regal_mature"
+      "regal_mature",
+      "regal_lineage_final"
     ]
   },
   {
@@ -583,12 +613,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "give the existing whiskers a restrained starlight quality with tiny luminous tips",
-    "preserve_hint": "Keep muzzle, mouth, nose and whisker roots unchanged.",
+    "prompt_stem": "Develop clearly separated curved whiskers with bright pinpoints at their tips, readable against the background",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "starlight",
       "radiant",
-      "astral"
+      "astral",
+      "starlight_lineage_final"
     ]
   },
   {
@@ -602,12 +633,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "lengthen the existing whiskers into elegant readable arcs",
-    "preserve_hint": "Keep natural whisker roots and avoid tentacle-like forms.",
+    "prompt_stem": "Extend the existing whiskers beyond the cheek contour in clean separated arcs",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "long",
       "long_developed",
-      "long_mature"
+      "long_mature",
+      "long_lineage_final"
     ]
   },
   {
@@ -621,12 +653,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the whiskers into finer cleaner strands with delicate visibility",
-    "preserve_hint": "Do not erase the whiskers or alter the muzzle.",
+    "prompt_stem": "Develop sparse finely tapered whiskers with delicate but readable edges",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fine",
       "fine_developed",
-      "fine_mature"
+      "fine_mature",
+      "fine_lineage_final"
     ]
   },
   {
@@ -640,12 +673,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "spread the existing whiskers into a broader balanced fan around the muzzle",
-    "preserve_hint": "Preserve natural roots, symmetry and face identity.",
+    "prompt_stem": "Spread the existing whiskers into a broad ordered fan on each cheek",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fanned",
       "fanned_developed",
-      "fanned_mature"
+      "fanned_mature",
+      "fanned_lineage_final"
     ]
   },
   {
@@ -659,12 +693,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "give the existing whiskers a soft graceful curvature",
-    "preserve_hint": "Keep them thin, natural and attached to the same muzzle.",
+    "prompt_stem": "Develop long graceful upward whisker arcs with clean natural roots",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "curved",
       "curved_developed",
-      "curved_mature"
+      "curved_mature",
+      "curved_lineage_final"
     ]
   },
   {
@@ -679,12 +714,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "give the four existing paws a soft contained elemental luminescence inside the fur",
-    "preserve_hint": "Keep paw count, leg length, stance and attachment unchanged.",
+    "prompt_stem": "Develop localized luminous contours around each existing paw with visible toes",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "luminous",
       "radiant",
-      "runic"
+      "runic",
+      "luminous_lineage_final"
     ]
   },
   {
@@ -698,12 +734,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop slightly broader stronger paws suited to stable footing",
-    "preserve_hint": "Keep four paws and natural feline leg anatomy.",
+    "prompt_stem": "Broaden existing paws into substantial weight-bearing pads and a firm ground contact",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "sturdy",
       "sturdy_developed",
-      "sturdy_mature"
+      "sturdy_mature",
+      "sturdy_lineage_final"
     ]
   },
   {
@@ -717,12 +754,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the paws into a light nimble silhouette suggesting quick movement",
-    "preserve_hint": "Preserve paw count, joints and stance.",
+    "prompt_stem": "Develop compact tapered paws with light athletic lower-leg contours",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "swift",
       "swift_developed",
-      "swift_mature"
+      "swift_mature",
+      "swift_lineage_final"
     ]
   },
   {
@@ -736,12 +774,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop soft feathering and fuller fur around the existing paws",
-    "preserve_hint": "Do not hide or multiply the paws.",
+    "prompt_stem": "Grow distinct fur cuffs around existing paws, keeping toe and ground contact readable",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fluffy",
       "fluffy_developed",
-      "fluffy_mature"
+      "fluffy_mature",
+      "fluffy_lineage_final"
     ]
   },
   {
@@ -755,12 +794,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop subtle integrated rune-like luminous traces on the paw fur",
-    "preserve_hint": "Keep symbols restrained and limited to the paws.",
+    "prompt_stem": "Develop crisp integrated rune bands on the existing paw fur, visible at full-body scale",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "runic",
       "runic_developed",
-      "runic_mature"
+      "runic_mature",
+      "runic_lineage_final"
     ]
   },
   {
@@ -775,12 +815,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a restrained astral neck-and-chest mane integrated into the existing fur",
-    "preserve_hint": "Keep head, shoulders and species body plan unchanged.",
+    "prompt_stem": "Grow a clearly shaped layered chest ruff with separated pointed locks and luminous edges",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "astral",
       "guardian",
-      "celestial"
+      "celestial",
+      "astral_lineage_final"
     ]
   },
   {
@@ -794,12 +835,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a fuller neck-and-chest mane with dense natural fur volume",
-    "preserve_hint": "Keep it fur-based and avoid armor or separate appendages.",
+    "prompt_stem": "Grow a broad dense chest and neck ruff with a distinct outer silhouette",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "full",
       "full_developed",
-      "full_mature"
+      "full_mature",
+      "full_lineage_final"
     ]
   },
   {
@@ -813,12 +855,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop layered mane sections with readable fur flow around neck and chest",
-    "preserve_hint": "Preserve head and shoulder anatomy.",
+    "prompt_stem": "Build a chest ruff with three overlapping tiers and readable spacing",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "layered",
       "layered_developed",
-      "layered_mature"
+      "layered_mature",
+      "layered_lineage_final"
     ]
   },
   {
@@ -833,12 +876,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a smooth flowing mane with elegant soft strands",
-    "preserve_hint": "Keep it integrated with the pet's existing coat.",
+    "prompt_stem": "Develop long smooth chest locks flowing downward with a narrow elegant silhouette",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "silken",
       "silken_developed",
-      "silken_mature"
+      "silken_mature",
+      "silken_lineage_final"
     ]
   },
   {
@@ -853,12 +897,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a proud mature mane that strengthens the upper-body silhouette",
-    "preserve_hint": "Do not alter limb count, head size or species anatomy.",
+    "prompt_stem": "Develop a high shoulder collar and broad tapered chest ruff that frames the face",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "regal",
       "regal_developed",
-      "regal_mature"
+      "regal_mature",
+      "regal_lineage_final"
     ]
   },
   {
@@ -873,12 +918,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the overall silhouette with subtle integrated spirit-form contours and supernatural body language",
-    "preserve_hint": "Do not create horns, wings, extra tails or new appendages.",
+    "prompt_stem": "Coordinate the existing body and fur into a light flowing silhouette: lifted carriage, elongated curves and tapered fur transitions",
+    "preserve_hint": "Coordinate existing body proportions and fur contours; preserve species, personal face identity, elemental palette and authorized appendage count. Do not add mythical anatomy.",
     "expression_chain": [
       "spirit",
       "ascended_spirit",
-      "transcendent_spirit"
+      "transcendent_spirit",
+      "spirit_lineage_final"
     ]
   },
   {
@@ -892,12 +938,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a stable protective guardian silhouette through posture and balanced structural mass",
-    "preserve_hint": "Keep the same species anatomy and appendage count.",
+    "prompt_stem": "Coordinate chest, shoulder, paws and stance into a grounded guardian silhouette with a broad front and stable support",
+    "preserve_hint": "Coordinate existing body proportions and fur contours; preserve species, personal face identity, elemental palette and authorized appendage count. Do not add mythical anatomy.",
     "expression_chain": [
       "guardian",
       "guardian_developed",
-      "guardian_mature"
+      "guardian_mature",
+      "guardian_lineage_final"
     ]
   },
   {
@@ -911,12 +958,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "refine the whole silhouette into a clean graceful elegant form",
-    "preserve_hint": "Preserve recognizable anatomy and avoid humanoid proportions.",
+    "prompt_stem": "Coordinate neck, torso, legs and tail into long continuous curves and light balanced proportions",
+    "preserve_hint": "Coordinate existing body proportions and fur contours; preserve species, personal face identity, elemental palette and authorized appendage count. Do not add mythical anatomy.",
     "expression_chain": [
       "elegant",
       "elegant_developed",
-      "elegant_mature"
+      "elegant_mature",
+      "elegant_lineage_final"
     ]
   },
   {
@@ -931,12 +979,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a wilder animal-forward silhouette with stronger natural predatory body language",
-    "preserve_hint": "Keep it recognizably the same species and non-monstrous.",
+    "prompt_stem": "Coordinate a forward-leaning torso, athletic hindquarters and angular fur contours into an alert prowling silhouette",
+    "preserve_hint": "Coordinate existing body proportions and fur contours; preserve species, personal face identity, elemental palette and authorized appendage count. Do not add mythical anatomy.",
     "expression_chain": [
       "feral",
       "feral_developed",
-      "feral_mature"
+      "feral_mature",
+      "feral_lineage_final"
     ]
   },
   {
@@ -950,12 +999,13 @@
     },
     "rarity": "variable",
     "element_lock": "",
-    "prompt_stem": "develop a mature ancient-spirit silhouette through restrained fur contours and mystical presence",
-    "preserve_hint": "Do not invent new appendages or mythical anatomy.",
+    "prompt_stem": "Coordinate a deep chest, deliberate upright carriage and long tiered cheek and chest fur into a dignified ancient-spirit silhouette",
+    "preserve_hint": "Coordinate existing body proportions and fur contours; preserve species, personal face identity, elemental palette and authorized appendage count. Do not add mythical anatomy.",
     "expression_chain": [
       "ancient",
       "ancient_developed",
-      "ancient_mature"
+      "ancient_mature",
+      "ancient_lineage_final"
     ]
   },
   {
@@ -970,12 +1020,13 @@
     },
     "rarity": "variable",
     "element_lock": "wood",
-    "prompt_stem": "develop one refined Wood lineage sigil inspired by sprouts, leaves and living growth",
-    "preserve_hint": "Keep one integrated marking in the established mark region; do not add random symbols.",
+    "prompt_stem": "Develop a few broad coherent wood elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "wood",
       "wood_developed",
-      "wood_mature"
+      "wood_mature",
+      "wood_lineage_final"
     ]
   },
   {
@@ -990,12 +1041,13 @@
     },
     "rarity": "variable",
     "element_lock": "earth",
-    "prompt_stem": "develop one refined Earth lineage sigil inspired by stone facets and grounded geometry",
-    "preserve_hint": "Keep one integrated marking in the established mark region.",
+    "prompt_stem": "Develop a few broad coherent earth elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "earth",
       "earth_developed",
-      "earth_mature"
+      "earth_mature",
+      "earth_lineage_final"
     ]
   },
   {
@@ -1010,12 +1062,13 @@
     },
     "rarity": "variable",
     "element_lock": "fire",
-    "prompt_stem": "develop one refined Fire lineage sigil with controlled ember and flame-line geometry",
-    "preserve_hint": "Keep one integrated marking and avoid uncontrolled flames across the face.",
+    "prompt_stem": "Develop a few broad coherent fire elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fire",
       "fire_developed",
-      "fire_mature"
+      "fire_mature",
+      "fire_lineage_final"
     ]
   },
   {
@@ -1030,12 +1083,13 @@
     },
     "rarity": "variable",
     "element_lock": "water",
-    "prompt_stem": "develop one refined Water lineage sigil with flowing wave and droplet geometry",
-    "preserve_hint": "Keep one integrated marking in the established region.",
+    "prompt_stem": "Develop a few broad coherent water elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "water",
       "water_developed",
-      "water_mature"
+      "water_mature",
+      "water_lineage_final"
     ]
   },
   {
@@ -1050,12 +1104,13 @@
     },
     "rarity": "variable",
     "element_lock": "metal",
-    "prompt_stem": "develop one refined Metal lineage sigil with clean silver facet geometry",
-    "preserve_hint": "Keep one integrated marking; do not turn it into armor.",
+    "prompt_stem": "Develop a few broad coherent metal elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "metal",
       "metal_developed",
-      "metal_mature"
+      "metal_mature",
+      "metal_lineage_final"
     ]
   },
   {
@@ -1070,12 +1125,13 @@
     },
     "rarity": "variable",
     "element_lock": "light",
-    "prompt_stem": "develop one refined Light lineage sigil with soft golden star-like geometry",
-    "preserve_hint": "Keep one subtle integrated marking and avoid oversized halo symbols.",
+    "prompt_stem": "Develop a few broad coherent light elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "light",
       "light_developed",
-      "light_mature"
+      "light_mature",
+      "light_lineage_final"
     ]
   },
   {
@@ -1091,12 +1147,13 @@
     },
     "rarity": "variable",
     "element_lock": "dark",
-    "prompt_stem": "develop one refined Dark lineage sigil with crescent-shadow geometry and restrained violet-cyan glow",
-    "preserve_hint": "Keep one integrated marking and preserve the face.",
+    "prompt_stem": "Develop a few broad coherent dark elemental markings integrated into body contours, readable without bloom",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "dark",
       "eclipsed_dark",
-      "ascended_dark"
+      "ascended_dark",
+      "dark_lineage_final"
     ]
   },
   {
@@ -1111,12 +1168,13 @@
     },
     "rarity": "variable",
     "element_lock": "wood",
-    "prompt_stem": "develop a controlled Wood aura of soft green life glow, tiny leaf motes and subtle living energy",
-    "preserve_hint": "Aura is energy only; do not alter physical anatomy.",
+    "prompt_stem": "Develop a distinct wood elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "wood",
       "wood_developed",
-      "wood_mature"
+      "wood_mature",
+      "wood_lineage_final"
     ]
   },
   {
@@ -1131,12 +1189,13 @@
     },
     "rarity": "variable",
     "element_lock": "earth",
-    "prompt_stem": "develop a controlled Earth aura of warm mineral glow, fine dust and restrained crystal shimmer",
-    "preserve_hint": "Aura is energy only; do not add rock armor.",
+    "prompt_stem": "Develop a distinct earth elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "earth",
       "earth_developed",
-      "earth_mature"
+      "earth_mature",
+      "earth_lineage_final"
     ]
   },
   {
@@ -1151,12 +1210,13 @@
     },
     "rarity": "variable",
     "element_lock": "fire",
-    "prompt_stem": "develop a controlled Fire aura of ember glow, restrained magical flames and warm sparks",
-    "preserve_hint": "Keep flames controlled and do not make the pet look physically on fire.",
+    "prompt_stem": "Develop a distinct fire elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "fire",
       "fire_developed",
-      "fire_mature"
+      "fire_mature",
+      "fire_lineage_final"
     ]
   },
   {
@@ -1171,12 +1231,13 @@
     },
     "rarity": "variable",
     "element_lock": "water",
-    "prompt_stem": "develop a controlled Water aura of aqua mist, suspended droplets and flowing wave-like energy",
-    "preserve_hint": "Aura is energy only; do not make the pet simply wet.",
+    "prompt_stem": "Develop a distinct water elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "water",
       "water_developed",
-      "water_mature"
+      "water_mature",
+      "water_lineage_final"
     ]
   },
   {
@@ -1191,12 +1252,13 @@
     },
     "rarity": "variable",
     "element_lock": "metal",
-    "prompt_stem": "develop a controlled Metal aura of cool silver sheen, fine reflective particles and restrained crystalline light",
-    "preserve_hint": "Do not create armor or mechanical parts.",
+    "prompt_stem": "Develop a distinct metal elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "metal",
       "metal_developed",
-      "metal_mature"
+      "metal_mature",
+      "metal_lineage_final"
     ]
   },
   {
@@ -1211,12 +1273,13 @@
     },
     "rarity": "variable",
     "element_lock": "light",
-    "prompt_stem": "develop a controlled Light aura of soft gold-white radiance and tiny luminous particles",
-    "preserve_hint": "Keep the glow restrained and do not obscure the body.",
+    "prompt_stem": "Develop a distinct light elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "light",
       "light_developed",
-      "light_mature"
+      "light_mature",
+      "light_lineage_final"
     ]
   },
   {
@@ -1231,12 +1294,13 @@
     },
     "rarity": "variable",
     "element_lock": "dark",
-    "prompt_stem": "develop a controlled Dark aura of shadow mist, muted violet-cyan glow and elegant dark particles",
-    "preserve_hint": "Keep the aura restrained and preserve readable body silhouette.",
+    "prompt_stem": "Develop a distinct dark elemental energy flow around the body, leaving face, limbs and tail silhouette unobscured",
+    "preserve_hint": "Preserve species, face identity, elemental palette and authorized appendage count; permit age-appropriate maturation and a new readable pose.",
     "expression_chain": [
       "dark",
       "dark_developed",
-      "dark_mature"
+      "dark_mature",
+      "dark_lineage_final"
     ]
   }
 ]

@@ -201,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v12_stage_%d"
+		+ "_pethome_v13_stage_%d"
 		% target_stage
 	)
 
@@ -913,8 +913,8 @@ func build_stage_regenerate_request(
 			+ "fuller layered fur around the chest, cheeks and tail, and a face that is less baby-like while still cute and youthful. "
 			+ "Use evolved chibi proportions: keep the head expressive, but reduce the tiny-kitten body proportions from Stage 1. "
 			+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
-			+ "Keep fantasy details subtle but richer than Stage 1: gentle elemental glow, refined magical fur accents, "
-			+ "faint luminous markings and a few restrained elemental sparkles."
+			+ "Prioritize distinct body proportions and readable selected Gene features before elemental glow. Use "
+			+ "localized markings and separated elemental accents that do not obscure anatomy."
 		)
 	else:
 		positive_prompt = (
@@ -1081,7 +1081,7 @@ func build_stage_regenerate_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v12_stage_%d"
+		+ "_pethome_v13_stage_%d"
 		% target_stage
 	)
 
@@ -1132,15 +1132,15 @@ func _build_reference_stage_request(
 	var positive_prompt := (
 		"[REFERENCE EVOLUTION RULE]\n"
 		+ "Use the supplied previous-stage image as the canonical reference for this exact pet. "
-		+ "This is the same individual, not a redesign and not a new character. Preserve face identity, species, body plan, existing anatomy, coat identity and already-visible Gene traits unless a code-authorized Gene change below explicitly modifies that locus. "
-		+ "Stage progression itself does not authorize random anatomy, markings, accessories or silhouette changes."
+		+ "Evolve the same individual into the next life stage. Preserve recognizable face, species, elemental palette and authorized appendage count. Rebuild proportions and contour according to the target morphology and accumulated Genes. "
+		+ "Stage progression authorizes natural maturation and a new readable pose, but not unearned mythical anatomy."
 	)
 
 	positive_prompt += (
 		"\n\n[GENE-ONLY PET CHANGE]\n"
-		+ "The pet may visibly change only at Gene loci authorized by game code. "
+		+ "Natural maturation develops the inherited frame; scored Genes direct its individual form. "
 		+ "The structural Gene deltas below plus the [ACCUMULATED GENE SCORE PHENOTYPE] section appended to this request are the complete Gene authority. "
-		+ "Use the reference image as the baseline. Keep any unlisted locus visually consistent with the source. "
+		+ "Use the reference for identity, not as a pose or proportion stencil. Unlisted traits mature naturally without adding new Gene directions. Structure Genes coordinate body proportions, stance and fur contours. "
 		+ "For listed loci, total Gene score controls expression strength: preserve existing expression, strengthen it when the score tier requires it, and blend secondary scored directions without inventing a direction that is absent. "
 		+ "Target phenotype bookkeeping: "
 		+ phenotype
@@ -1154,7 +1154,7 @@ func _build_reference_stage_request(
 	if deltas.is_empty():
 		positive_prompt += (
 			"\nNo new structural Gene delta is selected for this transition. "
-			+ "Do not redesign the pet; only maintain or refine already-authorized accumulated Gene expression."
+			+ "Develop the inherited frame to the target age and mature accumulated Gene features; do not invent new Gene directions."
 		)
 	else:
 		positive_prompt += "\nCurrent transition Gene deltas:"
@@ -1851,7 +1851,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v12_stage_%d"
+		+ "_pethome_v13_stage_%d"
 		% target_stage
 	)
 
