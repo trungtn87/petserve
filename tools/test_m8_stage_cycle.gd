@@ -26,6 +26,7 @@ func check(
 func run() -> void:
 	_test_stage_lifecycle()
 	_test_hunger_thresholds()
+	_test_low_food_hibernation_allows_direct_growth()
 	_test_stage_item_contract()
 	_test_stage_resource_scaling()
 	_test_evolution_two_and_three()
@@ -786,6 +787,130 @@ func _test_hunger_thresholds() -> void:
 			frozen_growth
 		),
 		"hibernation freezes Growth until food returns"
+	)
+
+
+func _test_low_food_hibernation_allows_direct_growth() -> void:
+	var meta: Dictionary = {
+		"pet_skill_state": {
+			"schema": PetSkillService.SCHEMA,
+			"run_id": 559,
+			"egg_stage": 1,
+			"slots": [
+				{
+					"slot": 1,
+					"skill_id": "hibernation",
+					"source": "stage1",
+				},
+			],
+			"roll_counters": {},
+			"survival_used_stages": [],
+			"rebound_queue": [],
+			"first_meal_day": "",
+			"food_preference": "",
+		},
+	}
+	var skills := PetSkillService.new()
+	skills.setup(
+		meta,
+		559,
+		1
+	)
+
+	var life := StageLifecycle.new()
+	life.setup(
+		meta,
+		559,
+		2,
+		skills
+	)
+	var capacity := int(
+		life.snapshot().get(
+			"food_capacity_seconds",
+			0
+		)
+	)
+	check(
+		capacity > 0,
+		"low-food hibernation fixture has food capacity"
+	)
+
+	check(
+		bool(
+			life.apply_item({
+				"item_type": "food",
+				"display_name": "Food Setup",
+				"main_value_seconds": capacity,
+				"growth_delta_seconds": 0,
+			}).get(
+				"ok",
+				false
+			)
+		),
+		"low-food hibernation fixture can be fed"
+	)
+
+	check(
+		bool(
+			life.apply_item({
+				"item_type": "growth",
+				"display_name": "Reduce Food To Eight Percent",
+				"main_value_seconds": 1,
+				"food_delta_seconds": -int(
+					round(
+						float(capacity) * 0.92
+					)
+				),
+			}).get(
+				"ok",
+				false
+			)
+		),
+		"fixture can enter low-food range"
+	)
+
+	var low := life.snapshot()
+	check(
+		int(
+			low.get(
+				"food_percent",
+				-1
+			)
+		) == 8
+		and bool(
+			low.get(
+				"hibernating",
+				false
+			)
+		),
+		"Ngủ Đông skill is active around 8 percent fullness"
+	)
+
+	check(
+		bool(
+			life.apply_growth_bonus_percent(
+				2.0
+			).get(
+				"ok",
+				false
+			)
+		),
+		"skill hibernation above zero fullness must not block Gene Growth bonus"
+	)
+
+	check(
+		bool(
+			life.apply_item({
+				"item_type": "growth",
+				"display_name": "Low Food Growth",
+				"main_value_seconds": 60,
+				"food_delta_seconds": 0,
+			}).get(
+				"ok",
+				false
+			)
+		),
+		"skill hibernation above zero fullness must not block Growth item"
 	)
 
 
