@@ -7,7 +7,7 @@ const ElementCrystallizationServiceScript = preload(
 )
 
 
-const META_SCHEMA: int = 4
+const META_SCHEMA: int = 5
 const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 
 
@@ -20,6 +20,7 @@ var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
 var _crystallization = ElementCrystallizationServiceScript.new()
 var _evolution_save: EvolutionSaveService = EvolutionSaveService.new()
 var _legacy: LegacyInheritanceService = LegacyInheritanceService.new()
+var _skills: PetSkillService = PetSkillService.new()
 var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
 var _gene_definitions: Array[GeneDefinition] = []
@@ -33,7 +34,8 @@ var _element_id: StringName = &"neutral"
 func setup(
 	run_id: int,
 	stage_index: int = 1,
-	element_id: StringName = &"neutral"
+	element_id: StringName = &"neutral",
+	egg_stage: int = 1
 ) -> bool:
 	_run_id = run_id
 	_stage_index = maxi(
@@ -87,10 +89,19 @@ func setup(
 		_chests.ensure_daily_chest(
 			_stage_index
 		)
+	_skills.setup(
+		_meta,
+		run_id,
+		egg_stage
+	)
+	_skills.ensure_for_stage(
+		_stage_index
+	)
 	_lifecycle.setup(
 		_meta,
 		run_id,
-		_stage_index
+		_stage_index,
+		_skills
 	)
 
 	if (
@@ -236,6 +247,48 @@ func snapshot() -> Dictionary:
 		)
 		if typeof(legacy_item_value) == TYPE_DICTIONARY
 		else {}
+	)
+
+	var skill_state := _skills.snapshot()
+	state["skills"] = skill_state.get(
+		"skills",
+		[]
+	)
+	state["skill_slots_unlocked"] = int(
+		skill_state.get(
+			"unlocked_slots",
+			0
+		)
+	)
+	state["skill_slots_max"] = int(
+		skill_state.get(
+			"max_slots",
+			PetSkillCatalog.MAX_SLOTS
+		)
+	)
+	state["skill_egg_stage4_bonus"] = bool(
+		skill_state.get(
+			"egg_stage4_bonus",
+			false
+		)
+	)
+	state["skill_food_preference"] = String(
+		skill_state.get(
+			"food_preference",
+			""
+		)
+	)
+	state["skill_night_window_start_hour"] = int(
+		skill_state.get(
+			"night_window_start_hour",
+			0
+		)
+	)
+	state["legacy_inherited_skill_id"] = String(
+		_meta.get(
+			"legacy_inherited_skill_id",
+			""
+		)
 	)
 
 	if (
@@ -931,10 +984,23 @@ func use_item(
 			false
 		)
 	):
+		_restore(
+			before
+		)
 		return result
 
-	if not _inventory.remove_item(
-		uid
+	var preserve_item := (
+		item_type == ItemGenerator.TYPE_FOOD
+		and _skills.should_preserve_food_item(
+			uid
+		)
+	)
+
+	if (
+		not preserve_item
+		and not _inventory.remove_item(
+			uid
+		)
 	):
 		_restore(
 			before
@@ -943,6 +1009,18 @@ func use_item(
 			"ok": false,
 			"message": "Đã áp dụng hiệu ứng nhưng không thể cập nhật kho đồ.",
 		}
+
+	if preserve_item:
+		result["item_preserved"] = true
+		result["message"] = (
+			String(
+				result.get(
+					"message",
+					"Đã sử dụng vật phẩm."
+				)
+			)
+			+ " • Chuyển Hóa Hoàn Hảo: Food không bị tiêu hao"
+		)
 
 	_meta["growth_items_used"] = int(
 		_meta.get(
@@ -1100,6 +1178,9 @@ func advance_to_stage(
 	_lifecycle.advance_to_stage(
 		stage_index
 	)
+	_skills.ensure_for_stage(
+		stage_index
+	)
 
 	if stage_index == previous_stage + 1:
 		_chests.ensure_evolution_chest(
@@ -1181,6 +1262,8 @@ func _use_gene_item(
 			)
 		)
 	)
+	gene_score *= _skills.item_influence_multiplier()
+
 	var result := _gene_state.record_gene_item(
 		_gene_policy,
 		String(
@@ -1549,6 +1632,7 @@ func _restore(
 	_inventory.setup(
 		_meta
 	)
+	_skills.reload()
 	_lifecycle.restore_state()
 
 	if _gene_policy != null:
