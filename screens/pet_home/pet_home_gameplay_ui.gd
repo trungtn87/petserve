@@ -421,7 +421,7 @@ func _refresh_notice(s: Dictionary) -> void:
 			)
 	elif food_ratio <= StageLifecycle.LOW_SPEED_FOOD_RATIO:
 		message = (
-			"Độ no còn %d%% • dưới 25%% nên tốc độ trưởng thành còn %d%%."
+			"Độ no còn %d%% • từ 25%% trở xuống nên tốc độ trưởng thành còn %d%%."
 			% [
 				food_percent,
 				growth_speed_percent,
@@ -429,7 +429,7 @@ func _refresh_notice(s: Dictionary) -> void:
 		)
 	elif food_ratio <= StageLifecycle.FULL_SPEED_FOOD_RATIO:
 		message = (
-			"Độ no còn %d%% • dưới 50%% nên tốc độ trưởng thành còn %d%%."
+			"Độ no còn %d%% • từ 50%% trở xuống nên tốc độ trưởng thành còn %d%%."
 			% [
 				food_percent,
 				growth_speed_percent,
