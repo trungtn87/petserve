@@ -19,7 +19,7 @@ func _initialize() -> void:
 
 
 func _test_stage_policy(policy: StageGenePolicy) -> void:
-	for stage_index in [1, 2, 3]:
+	for stage_index in [1, 2, 3, 4]:
 		_expect(
 			policy.allowed_loci(stage_index) == PetGenomeSchema.VISUAL_LOCI
 			and policy.is_unlimited(stage_index)
@@ -33,9 +33,9 @@ func _test_stage_policy(policy: StageGenePolicy) -> void:
 			)
 
 	_expect(
-		policy.allowed_loci(4).is_empty()
-		and policy.max_gene_items(4) == 0,
-		"Stage 4 final form must lock new Gene Item use"
+		policy.allowed_loci(StageLifecycle.FINAL_STAGE).is_empty()
+		and policy.max_gene_items(StageLifecycle.FINAL_STAGE) == 0,
+		"Final Form must lock new Gene Item use"
 	)
 
 
@@ -89,8 +89,16 @@ func _test_score_state(policy: StageGenePolicy) -> void:
 
 
 func _test_final_stage(policy: StageGenePolicy) -> void:
-	var state := GeneDevelopmentState.new(4)
-	_expect(not state.can_record(policy, &"aura"), "Stage 4 rejects new Gene Items")
+	var state := GeneDevelopmentState.new(
+		StageLifecycle.FINAL_STAGE
+	)
+	_expect(
+		not state.can_record(
+			policy,
+			&"aura"
+		),
+		"Final Form rejects new Gene Items"
+	)
 
 
 func _expect(condition: bool, message: String) -> void:
