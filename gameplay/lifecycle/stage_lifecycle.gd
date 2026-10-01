@@ -159,11 +159,11 @@ func apply_item(
 
 	if (
 		item_type == ItemGenerator.TYPE_GROWTH
-		and _is_hibernating()
+		and _has_no_food()
 	):
 		return {
 			"ok": false,
-			"message": "Pet đang ngủ đông. Hãy cho ăn trước khi dùng vật phẩm tăng trưởng.",
+			"message": "Độ no đã hết. Hãy cho ăn trước khi dùng vật phẩm tăng trưởng.",
 		}
 
 	var notes: Array[String] = []
@@ -325,10 +325,10 @@ func apply_growth_bonus_percent(
 			"message": "Pet đã sẵn sàng tiến hóa.",
 		}
 
-	if _is_hibernating():
+	if _has_no_food():
 		return {
 			"ok": false,
-			"message": "Pet đang ngủ đông. Hãy cho ăn trước.",
+			"message": "Độ no đã hết. Hãy cho ăn trước.",
 		}
 
 	var normalized_percent := maxf(
@@ -1273,6 +1273,15 @@ func _clamp_food_to_capacity() -> void:
 		0.0,
 		buffer_capacity
 	)
+
+func _has_no_food() -> bool:
+	return float(
+		_state.get(
+			"food_seconds",
+			0.0
+		)
+	) <= 0.0
+
 
 func _is_hibernating() -> bool:
 	if not _can_progress():
