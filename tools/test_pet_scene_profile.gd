@@ -52,7 +52,7 @@ func _test_all_elements() -> void:
 			7281,
 			element
 		)
-		var profile := scene_factory.create_initial(
+		var profile = scene_factory.create_initial(
 			identity
 		)
 
@@ -72,8 +72,8 @@ func _test_deterministic_profile() -> void:
 	)
 	var factory := PetSceneProfileFactoryScript.new()
 
-	var a := factory.create_initial(identity)
-	var b := factory.create_initial(identity)
+	var a = factory.create_initial(identity)
+	var b = factory.create_initial(identity)
 
 	_expect(
 		a != null
@@ -87,13 +87,13 @@ func _test_different_seed_changes_scene_seed() -> void:
 	var identity_factory := PetIdentityFactoryScript.new()
 	var scene_factory := PetSceneProfileFactoryScript.new()
 
-	var a := scene_factory.create_initial(
+	var a = scene_factory.create_initial(
 		identity_factory.create_initial(
 			7281,
 			&"dark"
 		)
 	)
-	var b := scene_factory.create_initial(
+	var b = scene_factory.create_initial(
 		identity_factory.create_initial(
 			7282,
 			&"dark"
@@ -113,7 +113,7 @@ func _test_round_trip() -> void:
 		PetIdentityFactoryScript.new()
 		.create_initial(7281, &"dark")
 	)
-	var original := (
+	var original = (
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
