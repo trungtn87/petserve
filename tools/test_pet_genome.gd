@@ -17,6 +17,8 @@ func _initialize() -> void:
 	_test_initial_genome()
 	_test_round_trip()
 	_test_extensible_trait()
+	_test_visual_schema()
+	_test_sparse_snapshot_visual_completion()
 	_test_custom_snapshot()
 	_test_copy_safety()
 	_test_invalid_input()
@@ -55,13 +57,7 @@ func _test_initial_genome() -> void:
 		"initial body_growth must be 0"
 	)
 
-	for trait_id in [
-		&"fur",
-		&"eyes",
-		&"ears",
-		&"tail",
-		&"mark",
-	]:
+	for trait_id in PetGenomeSchema.VISUAL_LOCI:
 		_expect(
 			genome.get_trait(trait_id) == &"base",
 			"initial trait must be base: %s"
@@ -111,6 +107,62 @@ func _test_extensible_trait() -> void:
 			&"none"
 		) == &"tiny_crescent",
 		"new trait channel must not require PetGenome core edits"
+	)
+
+
+func _test_visual_schema() -> void:
+	var factory = PetGenomeFactoryScript.new()
+	var genome = factory.create_initial()
+
+	_expect(
+		PetGenomeSchema.render_field_count() == 16,
+		"Genome V1 render contract must contain 16 fields"
+	)
+
+	_expect(
+		PetGenomeSchema.VISUAL_LOCI.size() == 12,
+		"Genome V1 must contain exactly 12 mutable visual loci"
+	)
+
+	var visual := genome.visual_traits_snapshot()
+
+	_expect(
+		visual.size() == 12,
+		"initial visual phenotype must expose all 12 loci"
+	)
+
+	for locus in PetGenomeSchema.VISUAL_LOCI:
+		_expect(
+			visual.get(locus, &"") == &"base",
+			"initial visual locus must be base: %s"
+			% String(locus)
+		)
+
+
+func _test_sparse_snapshot_visual_completion() -> void:
+	var genome = PetGenomeScript.new(
+		2,
+		0.4,
+		{
+			"eyes": "lunar_glow",
+			"tail": "long",
+		},
+		[]
+	)
+
+	var visual := genome.visual_traits_snapshot()
+
+	_expect(
+		visual.size() == 12,
+		"legacy sparse genome must expand to the full visual contract"
+	)
+
+	_expect(
+		visual.get(&"eyes", &"") == &"lunar_glow"
+		and visual.get(&"tail", &"") == &"long"
+		and visual.get(&"body", &"") == &"base"
+		and visual.get(&"aura", &"") == &"base",
+		"visual completion must preserve known traits and fill missing loci with base"
 	)
 
 

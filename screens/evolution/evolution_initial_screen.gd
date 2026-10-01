@@ -63,7 +63,9 @@ func _bootstrap() -> void:
 		"%s • %s • INFANT"
 		% [
 			String(_identity.species()).to_upper(),
-			String(_identity.element()).to_upper(),
+			PetElementCatalog.display_name_upper(
+			_identity.element()
+		),
 		]
 	)
 
@@ -151,7 +153,9 @@ func _start_generate(
 	_generate_button.disabled = true
 	_status_label.text = (
 		"Đang tạo PetHome %s từ một prompt..."
-		% String(_identity.element()).to_upper()
+		% PetElementCatalog.display_name_upper(
+			_identity.element()
+		)
 	)
 
 	var result: PetRenderResult = await (
@@ -181,7 +185,7 @@ func _start_generate(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_pethome_v2_text_to_image"
+	visual.source_mode = &"initial_pethome_v8_text_to_image"
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -263,7 +267,7 @@ func _try_load_existing_visual() -> bool:
 	if (
 		visual == null
 		or visual.source_mode
-			!= &"initial_pethome_v2_text_to_image"
+			!= &"initial_pethome_v8_text_to_image"
 	):
 		return false
 
