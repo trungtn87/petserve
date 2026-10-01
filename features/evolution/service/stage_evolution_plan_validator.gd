@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 14
+const PLAN_SCHEMA: int = 15
 const FINAL_STAGE: int = 5
 
 
@@ -28,7 +28,7 @@ func validate(
 			)
 		) != PLAN_SCHEMA
 	):
-		return "Pending evolution cũ phải được rebuild theo composite Gene/Mythic policy."
+		return "Pending evolution cũ phải được rebuild theo Gene/Normal Mutation/Mythic policy."
 
 	var identity := PetIdentity.from_dict(
 		data.get(
