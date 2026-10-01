@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const PLAN_SCHEMA: int = 12
-const FINAL_STAGE: int = 4
+const FINAL_STAGE: int = 5
 
 
 func validate(
@@ -145,7 +145,7 @@ func validate(
 		or request.source_image_path
 			!= source_visual.image_path
 	):
-		return "Stage 3/4 phải dùng ảnh stage trước làm reference image-edit."
+		return "Stage 3 trở đi phải dùng ảnh stage trước làm reference image-edit."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(

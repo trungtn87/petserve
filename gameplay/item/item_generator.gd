@@ -249,6 +249,7 @@ const STAGE_VALUE_MULTIPLIERS := {
 	1: 1.0,
 	2: 12.0,
 	3: 12.0,
+	4: 12.0,
 }
 
 

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const MIN_STAGE: int = 2
-const FINAL_STAGE: int = 4
+const FINAL_STAGE: int = 5
 const MAX_BASIS_POINTS: int = 10000
 
 

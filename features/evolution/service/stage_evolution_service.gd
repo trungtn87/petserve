@@ -2,7 +2,7 @@ class_name StageEvolutionService
 extends RefCounted
 
 
-const FINAL_STAGE: int = 4
+const FINAL_STAGE: int = 5
 const PENDING_SCHEMA: int = 12
 
 

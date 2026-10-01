@@ -184,15 +184,19 @@ func _build_main_hud() -> void:
 		"_genome_object"
 	)
 
-	var growth_percent := clampi(
-		int(
-			round(
-				genome.body_growth()
-				* 100.0
-			)
-		),
-		0,
+	var growth_percent := (
 		100
+		if genome.stage() >= StageLifecycle.FINAL_STAGE
+		else clampi(
+			int(
+				round(
+					genome.body_growth()
+						* 100.0
+				)
+			),
+			0,
+			100
+		)
 	)
 	var fullness_percent := _current_fullness_percent()
 
@@ -402,6 +406,7 @@ func _add_meter(
 
 	var bar := ProgressBar.new()
 	bar.set_meta("value_label", value)
+	bar.set_meta("title_label", label)
 	bar.min_value = 0.0
 	bar.max_value = 100.0
 	bar.value = percent
@@ -865,22 +870,33 @@ func _add_gene_choice_rows(
 			0
 		)
 	)
+	var unlimited := bool(
+		state.get(
+			"gene_unlimited",
+			false
+		)
+	)
 
-	if limit <= 0:
+	if unlimited:
 		_add_info_row(
 			"Gene Item",
-			"Không dùng ở stage này"
+			"Đã dùng %d • Không giới hạn" % used
+		)
+	elif limit <= 0:
+		_add_info_row(
+			"Gene Item",
+			"Không dùng ở giai đoạn này"
 		)
 		return
-
-	_add_info_row(
-		"Gene Item",
-		"%d / %d"
-		% [
-			used,
-			limit,
-		]
-	)
+	else:
+		_add_info_row(
+			"Gene Item",
+			"%d / %d"
+			% [
+				used,
+				limit,
+			]
+		)
 
 	var development_value: Variant = state.get(
 		"gene_development",
@@ -1346,7 +1362,31 @@ func _process(delta: float) -> void:
 func _refresh_gameplay() -> void:
 	var state := _game.snapshot()
 	_hud.refresh_status(state)
-	_growth_bar.value = int(state.get("growth_percent", 0))
+	var final_form := bool(
+		state.get(
+			"final_form",
+			false
+		)
+	)
+	_growth_bar.value = (
+		100
+		if final_form
+		else int(
+			state.get(
+				"growth_percent",
+				0
+			)
+		)
+	)
+	var growth_title: Label = _growth_bar.get_meta(
+		"title_label"
+	)
+	if growth_title != null:
+		growth_title.text = (
+			"Hình thái cuối"
+			if final_form
+			else "Trưởng thành"
+		)
 	var duration_seconds := maxi(
 		1,
 		int(
@@ -1382,12 +1422,16 @@ func _refresh_gameplay() -> void:
 		)
 	)
 	_growth_bar.tooltip_text = (
-		"Sẵn sàng tiến hóa"
-		if naturally_ready
+		"Hình thái cuối • chuyển sang kế thừa"
+		if final_form
 		else (
-			"Có thể tiến hóa ngay nhờ thiên phú TEST"
-			if can_evolve
-			else "Trưởng thành theo thời gian và vật phẩm"
+			"Sẵn sàng tiến hóa"
+			if naturally_ready
+			else (
+				"Có thể tiến hóa ngay nhờ thiên phú TEST"
+				if can_evolve
+				else "Trưởng thành theo thời gian và vật phẩm"
+			)
 		)
 	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
@@ -1911,6 +1955,24 @@ func _open_evolution() -> void:
 			)
 		)
 	)
+
+	if stage_index >= StageLifecycle.FINAL_STAGE:
+		_add_info_row(
+			"Giai đoạn",
+			PetHomeTheme.stage_label(
+				stage_index
+			)
+		)
+		_add_info_row(
+			"Trạng thái",
+			"Đã đạt hình thái cuối"
+		)
+		_add_info_row(
+			"Tiếp theo",
+			"Kế thừa → đời sau"
+		)
+		_section_overlay.visible = true
+		return
 
 	_add_info_row(
 		"Giai đoạn",

@@ -19,5 +19,12 @@
     "starting_food_seconds": 0,
     "food_capacity_seconds": 64800,
     "tutorial_protected": true
+  },
+  {
+    "stage": 4,
+    "duration_seconds": 172800,
+    "starting_food_seconds": 0,
+    "food_capacity_seconds": 64800,
+    "tutorial_protected": true
   }
 ]

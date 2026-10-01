@@ -90,13 +90,13 @@ func _test_inventory_stage_gate() -> void:
 	var inventory := InventoryService.new()
 	inventory.setup({"inventory": [item]})
 
-	for stage_index in [1, 2, 3]:
+	for stage_index in [1, 2, 3, 4]:
 		_expect(
 			inventory.can_use_in_stage(item, stage_index, policy),
 			"shared Gene must be usable in growth Stage %d" % stage_index
 		)
 	_expect(
-		not inventory.can_use_in_stage(item, 4, policy),
+		not inventory.can_use_in_stage(item, StageLifecycle.FINAL_STAGE, policy),
 		"Final Form must block new Gene use"
 	)
 

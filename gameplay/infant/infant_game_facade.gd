@@ -77,9 +77,10 @@ func setup(
 	_chests.ensure_hatch_chest(
 		run_id
 	)
-	_chests.ensure_daily_chest(
-		_stage_index
-	)
+	if _stage_index < StageLifecycle.FINAL_STAGE:
+		_chests.ensure_daily_chest(
+			_stage_index
+		)
 	_lifecycle.setup(
 		_meta,
 		run_id,
@@ -89,6 +90,7 @@ func setup(
 	if (
 		previous_stage >= 1
 		and _stage_index == previous_stage + 1
+		and _stage_index < StageLifecycle.FINAL_STAGE
 	):
 		_chests.ensure_evolution_chest(
 			run_id,
