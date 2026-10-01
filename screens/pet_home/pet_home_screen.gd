@@ -987,17 +987,17 @@ func _add_gene_choice_rows(
 
 	if unlimited:
 		_add_info_row(
-			"Gene Item hiện tại",
+			"Vật phẩm gen hiện tại",
 			"Đã dùng %d • Không giới hạn" % used
 		)
 	elif limit <= 0:
 		_add_info_row(
-			"Gene Item hiện tại",
+			"Vật phẩm gen hiện tại",
 			"Không dùng ở giai đoạn này"
 		)
 	else:
 		_add_info_row(
-			"Gene Item hiện tại",
+			"Vật phẩm gen hiện tại",
 			"%d / %d"
 			% [
 				used,
@@ -1007,8 +1007,8 @@ func _add_gene_choice_rows(
 
 	if lifetime_used > 0:
 		_add_info_row(
-			"Gene đã dùng toàn đời",
-			"%d item" % lifetime_used
+			"Gen đã dùng toàn đời",
+			"%d vật phẩm" % lifetime_used
 		)
 
 	_add_lifetime_gene_score_rows(
@@ -1090,7 +1090,7 @@ func _add_gene_choice_rows(
 	if index == 0:
 		_add_info_row(
 			"Định hướng hiện tại",
-			"Chưa dùng Gene ở giai đoạn này"
+			"Chưa dùng gen ở giai đoạn này"
 		)
 	else:
 		_add_info_row(
@@ -1145,7 +1145,7 @@ func _add_lifetime_gene_score_rows(
 
 		_add_info_row(
 			(
-				"Điểm Gene tích lũy"
+				"Điểm gen tích lũy"
 				if index == 0
 				else ""
 			),
@@ -1169,7 +1169,7 @@ func _gene_display_name(
 	var normalized := gene_id.strip_edges()
 
 	if normalized.is_empty():
-		return "Gene"
+		return "Gen"
 
 	var catalog := GeneCatalog.new()
 	var definition := catalog.find_by_id(
@@ -1235,7 +1235,7 @@ func _add_last_evolution_gene_rows(
 
 			_add_info_row(
 				(
-					"Gene đã dùng"
+					"Gen đã dùng"
 					if used_count == 0
 					else ""
 				),
@@ -1313,7 +1313,7 @@ func _add_last_evolution_gene_rows(
 
 		_add_info_row(
 			(
-				"Gene biểu hiện"
+				"Gen biểu hiện"
 				if expression_index == 0
 				else ""
 			),
@@ -1406,7 +1406,7 @@ func _add_last_evolution_row() -> void:
 	):
 		_add_info_row(
 			"Tiến hóa gần nhất",
-			"Tự nhiên • giữ nguyên Gene trait"
+			"Tự nhiên • giữ nguyên đặc tính gen"
 		)
 	else:
 		var index := 0
@@ -1514,52 +1514,17 @@ func _add_last_evolution_row() -> void:
 func _trait_label(
 	locus: StringName
 ) -> String:
-	match locus:
-		&"body":
-			return "Cơ thể"
-		&"eyes":
-			return "Mắt"
-		&"ears":
-			return "Tai"
-		&"whiskers":
-			return "Râu"
-		&"fur":
-			return "Lông"
-		&"coat":
-			return "Vân lông"
-		&"tail":
-			return "Đuôi"
-		&"paws":
-			return "Bàn chân"
-		&"mane":
-			return "Bờm"
-		&"mark":
-			return "Dấu"
-		&"structure":
-			return "Cấu trúc"
-		&"aura":
-			return "Hào quang"
-		_:
-			return String(
-				locus
-			).replace(
-				"_",
-				" "
-			).capitalize()
+	return ViDisplay.locus_label(
+		locus
+	)
 
 
 func _trait_value(
 	trait_id: StringName
 ) -> String:
-	if trait_id == PetGenomeSchema.BASE_TRAIT:
-		return "Cơ bản"
-
-	return String(
+	return ViDisplay.trait_value(
 		trait_id
-	).replace(
-		"_",
-		" "
-	).capitalize()
+	)
 
 
 func _open_placeholder(
@@ -2371,7 +2336,7 @@ func _populate_pet_evolution_tab() -> void:
 		)
 	)
 	_add_info_row(
-		"Deadline",
+		"Thời hạn",
 		(
 			"Đã tới hạn"
 			if bool(
@@ -2400,7 +2365,7 @@ func _populate_pet_evolution_tab() -> void:
 		)
 	else:
 		_add_info_row(
-			"Thiếu Growth",
+			"Thiếu trưởng thành",
 			_format_stage_time(
 				growth_remaining
 			)
@@ -2413,7 +2378,7 @@ func _open_legacy_inheritance() -> void:
 	)
 	_add_info_row(
 		"Quy tắc",
-		"Chọn đúng 1 kỹ năng đang có để giữ cho đời sau. Item là tùy chọn."
+		"Chọn đúng 1 kỹ năng đang có để giữ cho đời sau. Vật phẩm là tùy chọn."
 	)
 
 	var state := _game.snapshot()
@@ -2466,7 +2431,7 @@ func _open_legacy_inheritance() -> void:
 	if selectable == 0:
 		_add_info_row(
 			"Kỹ năng",
-			"Pet hiện tại không có kỹ năng hợp lệ để kế thừa."
+			"Thú cưng hiện tại không có kỹ năng hợp lệ để kế thừa."
 		)
 
 	_section_overlay.visible = true
@@ -2492,11 +2457,11 @@ func _open_legacy_item_selection(
 		)
 	)
 	_add_info_row(
-		"Item",
-		"Không bắt buộc. Chỉ được mang tối đa 1 item."
+		"Vật phẩm",
+		"Không bắt buộc. Chỉ được mang tối đa 1 vật phẩm."
 	)
 	_section_button(
-		"KHÔNG KẾ THỪA ITEM",
+		"KHÔNG KẾ THỪA VẬT PHẨM",
 		Callable(
 			self,
 			"_open_legacy_confirmation"
@@ -2578,13 +2543,13 @@ func _open_legacy_confirmation(
 		)
 	)
 	_add_info_row(
-		"Item",
+		"Vật phẩm",
 		(
 			_legacy_item_label(
 				item
 			)
 			if not item.is_empty()
-			else "Không kế thừa item"
+			else "Không kế thừa vật phẩm"
 		)
 	)
 	_add_info_row(
@@ -2593,7 +2558,7 @@ func _open_legacy_confirmation(
 	)
 	_add_info_row(
 		"Đời mới",
-		"Kỹ năng đã chọn chiếm Slot 1; các Slot còn lại tiếp tục random theo stage."
+		"Kỹ năng đã chọn chiếm Ô 1; các ô còn lại tiếp tục ngẫu nhiên theo giai đoạn."
 	)
 	_section_button(
 		"XÁC NHẬN & BẮT ĐẦU ĐỜI SAU",
@@ -2629,7 +2594,7 @@ func _start_next_generation(
 		)
 	):
 		_hud.show_message(
-			"Pet chưa đạt hình thái cuối."
+			"Thú cưng chưa đạt hình thái cuối."
 		)
 		return
 
@@ -2660,7 +2625,7 @@ func _start_next_generation(
 		and item.is_empty()
 	):
 		_hud.show_message(
-			"Item kế thừa không còn trong kho."
+			"Vật phẩm kế thừa không còn trong kho."
 		)
 		return
 
@@ -2802,7 +2767,7 @@ func _add_skill_rows(
 		if source == "legacy":
 			suffix = " • Kế thừa"
 		elif source == "egg_stage4":
-			suffix = " • Trứng Stage 4"
+			suffix = " • Trứng giai đoạn 4"
 
 		var detail := name + suffix
 
@@ -2921,7 +2886,7 @@ func _legacy_item_label(
 			"display_name",
 			item.get(
 				"base_display_name",
-				"Item"
+				"Vật phẩm"
 			)
 		)
 	).strip_edges()
@@ -2933,14 +2898,16 @@ func _legacy_item_label(
 	).strip_edges()
 
 	if display_name.is_empty():
-		display_name = "Item"
+		display_name = "Vật phẩm"
 
 	if rarity.is_empty():
 		return display_name
 
 	return "%s • %s" % [
 		display_name,
-		rarity.capitalize(),
+		ViDisplay.rarity_label(
+			rarity
+		),
 	]
 
 
@@ -3100,7 +3067,7 @@ func _open_final_record_by_id(
 
 	if record.is_empty():
 		_hud.show_message(
-			"Không tìm thấy Final Record."
+			"Không tìm thấy thành tích cuối đời."
 		)
 		return
 
@@ -3120,11 +3087,11 @@ func _show_final_record(
 	)
 
 	_add_info_row(
-		"Pet",
+		"Thú cưng",
 		String(
 			record.get(
 				"display_name",
-				"Pet"
+				"Thú cưng"
 			)
 		)
 	)
@@ -3252,7 +3219,7 @@ func _save_final_record(
 
 	if record.is_empty():
 		_hud.show_message(
-			"Không tìm thấy Final Record."
+			"Không tìm thấy thành tích cuối đời."
 		)
 		return
 
@@ -3291,7 +3258,7 @@ func _save_final_record(
 		(
 			"Đã lưu vào Pictures/PetVerse."
 			if not gallery_path.is_empty()
-			else "Đã lưu Final Record trong dữ liệu PetVerse."
+			else "Đã lưu thành tích cuối đời trong dữ liệu PetVerse."
 		)
 	)
 
@@ -3439,7 +3406,7 @@ func _add_achievement_tile(
 	name_label.text = String(
 		entry.get(
 			"display_name",
-			"Pet"
+			"Thú cưng"
 		)
 	)
 	name_label.autowrap_mode = (
