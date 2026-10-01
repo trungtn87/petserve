@@ -978,27 +978,45 @@ func _add_gene_choice_rows(
 			false
 		)
 	)
+	var lifetime_used := int(
+		state.get(
+			"gene_items_used_lifetime",
+			used
+		)
+	)
 
 	if unlimited:
 		_add_info_row(
-			"Gene Item",
+			"Gene Item hiện tại",
 			"Đã dùng %d • Không giới hạn" % used
 		)
 	elif limit <= 0:
 		_add_info_row(
-			"Gene Item",
+			"Gene Item hiện tại",
 			"Không dùng ở giai đoạn này"
 		)
-		return
 	else:
 		_add_info_row(
-			"Gene Item",
+			"Gene Item hiện tại",
 			"%d / %d"
 			% [
 				used,
 				limit,
 			]
 		)
+
+	if lifetime_used > 0:
+		_add_info_row(
+			"Gene đã dùng toàn đời",
+			"%d item" % lifetime_used
+		)
+
+	_add_lifetime_gene_score_rows(
+		state
+	)
+
+	if limit <= 0:
+		return
 
 	var development_value: Variant = state.get(
 		"gene_development",
@@ -1052,7 +1070,7 @@ func _add_gene_choice_rows(
 
 		_add_info_row(
 			(
-				"Đang định hướng"
+				"Định hướng hiện tại"
 				if index == 0
 				else ""
 			),
@@ -1071,14 +1089,249 @@ func _add_gene_choice_rows(
 
 	if index == 0:
 		_add_info_row(
-			"Đang định hướng",
-			"Chưa dùng Gene"
+			"Định hướng hiện tại",
+			"Chưa dùng Gene ở giai đoạn này"
 		)
 	else:
 		_add_info_row(
 			"Kết quả",
 			"Chưa khóa • chốt khi tiến hóa"
 		)
+
+
+func _add_lifetime_gene_score_rows(
+	state: Dictionary
+) -> void:
+	var scores_value: Variant = state.get(
+		"gene_scores",
+		{}
+	)
+
+	if typeof(scores_value) != TYPE_DICTIONARY:
+		return
+
+	var scores := scores_value as Dictionary
+	var keys: Array = scores.keys()
+	keys.sort()
+	var index := 0
+
+	for raw_key in keys:
+		var key := String(raw_key)
+		var score := float(
+			scores.get(
+				raw_key,
+				0.0
+			)
+		)
+
+		if score <= 0.0:
+			continue
+
+		var parts := key.split(
+			".",
+			false,
+			1
+		)
+
+		if parts.size() != 2:
+			continue
+
+		var locus := StringName(
+			parts[0]
+		)
+		var direction := StringName(
+			parts[1]
+		)
+
+		_add_info_row(
+			(
+				"Điểm Gene tích lũy"
+				if index == 0
+				else ""
+			),
+			"%s → %s: +%.0f"
+			% [
+				_trait_label(
+					locus
+				),
+				_trait_value(
+					direction
+				),
+				score,
+			]
+		)
+		index += 1
+
+
+func _gene_display_name(
+	gene_id: String
+) -> String:
+	var normalized := gene_id.strip_edges()
+
+	if normalized.is_empty():
+		return "Gene"
+
+	var catalog := GeneCatalog.new()
+	var definition := catalog.find_by_id(
+		catalog.load_default(),
+		StringName(normalized)
+	)
+
+	if definition != null:
+		return definition.display_name()
+
+	return normalized.replace(
+		"_",
+		" "
+	).capitalize()
+
+
+func _add_last_evolution_gene_rows(
+	plan: Dictionary
+) -> void:
+	var items_value: Variant = plan.get(
+		"gene_items_used",
+		[]
+	)
+	var used_count := 0
+
+	if typeof(items_value) == TYPE_ARRAY:
+		for raw_item in items_value as Array:
+			if typeof(raw_item) != TYPE_DICTIONARY:
+				continue
+
+			var item := raw_item as Dictionary
+			var gene_id := String(
+				item.get(
+					"gene_id",
+					""
+				)
+			)
+			var locus := StringName(
+				String(
+					item.get(
+						"locus",
+						""
+					)
+				)
+			)
+			var direction := StringName(
+				String(
+					item.get(
+						"direction",
+						""
+					)
+				)
+			)
+			var score := float(
+				item.get(
+					"score",
+					item.get(
+						"influence",
+						0.0
+					)
+				)
+			)
+
+			_add_info_row(
+				(
+					"Gene đã dùng"
+					if used_count == 0
+					else ""
+				),
+				"%s • %s → %s (+%.0f)"
+				% [
+					_gene_display_name(
+						gene_id
+					),
+					_trait_label(
+						locus
+					),
+					_trait_value(
+						direction
+					),
+					score,
+				]
+			)
+			used_count += 1
+
+	var resolution_value: Variant = plan.get(
+		"gene_resolution",
+		{}
+	)
+
+	if typeof(resolution_value) != TYPE_DICTIONARY:
+		return
+
+	var resolution := resolution_value as Dictionary
+	var changes_value: Variant = resolution.get(
+		"selected_changes",
+		[]
+	)
+
+	if typeof(changes_value) != TYPE_ARRAY:
+		return
+
+	var expression_index := 0
+
+	for raw_change in changes_value as Array:
+		if typeof(raw_change) != TYPE_DICTIONARY:
+			continue
+
+		var change := raw_change as Dictionary
+		var gene_id := String(
+			change.get(
+				"gene_id",
+				""
+			)
+		)
+		var locus := StringName(
+			String(
+				change.get(
+					"locus",
+					""
+				)
+			)
+		)
+		var resolved_trait := StringName(
+			String(
+				change.get(
+					"resolved_trait",
+					change.get(
+						"direction",
+						""
+					)
+				)
+			)
+		)
+		var influence := float(
+			change.get(
+				"influence",
+				0.0
+			)
+		)
+
+		_add_info_row(
+			(
+				"Gene biểu hiện"
+				if expression_index == 0
+				else ""
+			),
+			"%s • %s → %s (+%.0f)"
+			% [
+				_gene_display_name(
+					gene_id
+				),
+				_trait_label(
+					locus
+				),
+				_trait_value(
+					resolved_trait
+				),
+				influence,
+			]
+		)
+		expression_index += 1
 
 
 func _add_last_evolution_row() -> void:
@@ -1101,6 +1354,11 @@ func _add_last_evolution_row() -> void:
 		return
 
 	var plan := raw_value as Dictionary
+
+	_add_last_evolution_gene_rows(
+		plan
+	)
+
 	var mode := StringName(
 		str(
 			plan.get(
@@ -2555,7 +2813,7 @@ func _add_skill_rows(
 			var start_hour := clampi(
 				int(
 					state.get(
-						"night_window_start_hour",
+						"skill_night_window_start_hour",
 						0
 					)
 				),
@@ -2576,7 +2834,7 @@ func _add_skill_rows(
 		elif skill_id == "picky_eater":
 			var preference := String(
 				state.get(
-					"food_preference",
+					"skill_food_preference",
 					""
 				)
 			)
