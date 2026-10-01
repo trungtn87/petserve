@@ -1217,9 +1217,9 @@ func _roll_properties(
 
 	match rarity:
 		"common":
-			count = 0
+			count = 1 if rng.randf() <= 0.20 else 0
 		"uncommon":
-			count = 1 if rng.randf() <= 0.45 else 0
+			count = 1 if rng.randf() <= 0.55 else 0
 		"rare":
 			count = 1
 		"epic":
@@ -1252,7 +1252,17 @@ func _roll_defects(
 	var first := pool[rng.randi_range(0, pool.size() - 1)]
 	result.append(String(first))
 
-	if quality == "broken" and rng.randf() <= 0.35:
+	var second_defect_chance := 0.0
+
+	if quality == "broken":
+		second_defect_chance = 0.45
+	elif quality == "poor":
+		second_defect_chance = 0.20
+
+	if (
+		second_defect_chance > 0.0
+		and rng.randf() <= second_defect_chance
+	):
 		var available: Array[StringName] = pool.duplicate()
 		available.erase(first)
 
