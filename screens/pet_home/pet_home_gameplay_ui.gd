@@ -128,6 +128,7 @@ func refresh_status(s: Dictionary) -> void:
 			0
 		)
 	)
+	_fullness_bar.value = food_percent
 	var growth_speed_percent := int(
 		s.get(
 			"growth_speed_percent",
