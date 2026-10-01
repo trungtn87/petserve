@@ -865,22 +865,33 @@ func _add_gene_choice_rows(
 			0
 		)
 	)
+	var unlimited := bool(
+		state.get(
+			"gene_unlimited",
+			false
+		)
+	)
 
-	if limit <= 0:
+	if unlimited:
 		_add_info_row(
 			"Gene Item",
-			"Không dùng ở stage này"
+			"Đã dùng %d • Không giới hạn" % used
+		)
+	elif limit <= 0:
+		_add_info_row(
+			"Gene Item",
+			"Không dùng ở giai đoạn này"
 		)
 		return
-
-	_add_info_row(
-		"Gene Item",
-		"%d / %d"
-		% [
-			used,
-			limit,
-		]
-	)
+	else:
+		_add_info_row(
+			"Gene Item",
+			"%d / %d"
+			% [
+				used,
+				limit,
+			]
+		)
 
 	var development_value: Variant = state.get(
 		"gene_development",
