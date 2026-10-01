@@ -4,7 +4,16 @@ extends RefCounted
 
 const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
+const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
+const GENE_GROWTH_BONUS_PERCENT: float = 5.0
+const GENE_RARITY_STATS := {
+	"common": {"score": 10.0, "growth": 2.0},
+	"uncommon": {"score": 20.0, "growth": 5.0},
+	"rare": {"score": 35.0, "growth": 7.0},
+	"epic": {"score": 55.0, "growth": 10.0},
+	"legendary": {"score": 80.0, "growth": 15.0},
+}
 
 const RARITY_WEIGHTS := {
 	"common": 55.0,
@@ -20,6 +29,12 @@ const QUALITY_WEIGHTS := {
 	"normal": 35.0,
 	"good": 20.0,
 	"perfect": 5.0,
+}
+
+const BASIC_INFANT_QUALITY_WEIGHTS := {
+	"poor": 20.0,
+	"normal": 65.0,
+	"good": 15.0,
 }
 
 const QUALITY_MULTIPLIER := {
@@ -72,6 +87,12 @@ const FUTURE_FAMILIES: Array[StringName] = [
 	&"mutation_fragment",
 ]
 
+const STAGE_VALUE_MULTIPLIERS := {
+	1: 1.0,
+	2: 12.0,
+	3: 18.0,
+}
+
 
 func generate(
 	item_type: StringName,
@@ -92,6 +113,217 @@ func generate(
 			return _generate_future_fragment(rng, rarity, quality, seed_value)
 		_:
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
+			return {}
+
+
+func generate_for_stage(
+	item_type: StringName,
+	seed_value: int,
+	stage_index: int
+) -> Dictionary:
+	var item := generate(
+		item_type,
+		seed_value
+	)
+
+	if item.is_empty():
+		return {}
+
+	return scale_for_stage(
+		item,
+		stage_index
+	)
+
+
+func scale_for_stage(
+	item: Dictionary,
+	stage_index: int
+) -> Dictionary:
+	var result := item.duplicate(
+		true
+	)
+	var item_type := StringName(
+		result.get(
+			"item_type",
+			""
+		)
+	)
+
+	if (
+		item_type != TYPE_FOOD
+		and item_type != TYPE_GROWTH
+	):
+		return result
+
+	var multiplier := float(
+		STAGE_VALUE_MULTIPLIERS.get(
+			stage_index,
+			1.0
+		)
+	)
+
+	for field in [
+		"main_value_seconds",
+		"growth_delta_seconds",
+		"food_delta_seconds",
+	]:
+		if result.has(
+			field
+		):
+			result[field] = int(
+				round(
+					float(
+						result[field]
+					) * multiplier
+				)
+			)
+
+	result["generated_for_stage"] = stage_index
+	result["stage_value_multiplier"] = multiplier
+	return result
+
+
+func generate_gene(
+	definition: GeneDefinition,
+	seed_value: int
+) -> Dictionary:
+	if definition == null or not definition.is_valid():
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(1, abs(seed_value))
+	var rarity: String = _roll_weighted(
+		rng,
+		RARITY_WEIGHTS
+	)
+	var quality := "normal"
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity,
+		GENE_RARITY_STATS["uncommon"]
+	)
+	var gene_score := float(
+		stats.get(
+			"score",
+			definition.primary_influence()
+		)
+	)
+	var growth_bonus := float(
+		stats.get(
+			"growth",
+			GENE_GROWTH_BONUS_PERCENT
+		)
+	)
+	var source_tags := definition.influence_tags()
+	var scaled_tags: Dictionary = {}
+	var influence_scale := (
+		gene_score
+		/ maxf(
+			1.0,
+			definition.primary_influence()
+		)
+	)
+
+	for key_value in source_tags.keys():
+		scaled_tags[String(key_value)] = (
+			float(source_tags[key_value])
+			* influence_scale
+		)
+
+	return {
+		"uid": (
+			"gene_%s_%s"
+			% [
+				String(definition.id()),
+				str(abs(seed_value)),
+			]
+		),
+		"definition_id": String(definition.id()),
+		"item_type": String(TYPE_GENE),
+		"display_name": definition.display_name(),
+		"rarity": rarity,
+		"quality": quality,
+		"gene_id": String(definition.id()),
+		"gene_locus": String(definition.locus()),
+		"gene_direction": String(definition.direction()),
+		"gene_element_lock": String(definition.element_lock()),
+		"gene_score": gene_score,
+		"gene_influence": gene_score,
+		"gene_expression_tier": String(
+			GeneExpressionScale.tier_for_score(
+				gene_score
+			)
+		),
+		"growth_bonus_percent": growth_bonus,
+		"influence_tags": scaled_tags,
+		"main_value_seconds": 0,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"salvage_type": "gene_dust",
+		"salvage_value": _salvage_value(
+			rarity,
+			quality,
+			rng
+		),
+		"generated_seed": seed_value,
+		"usable_stage": "gene",
+	}
+
+
+func gene_score_for_rarity(
+	rarity: String
+) -> float:
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity.strip_edges().to_lower(),
+		{}
+	)
+	return float(
+		stats.get(
+			"score",
+			0.0
+		)
+	)
+
+
+func gene_growth_for_rarity(
+	rarity: String
+) -> float:
+	var stats: Dictionary = GENE_RARITY_STATS.get(
+		rarity.strip_edges().to_lower(),
+		{}
+	)
+	return float(
+		stats.get(
+			"growth",
+			0.0
+		)
+	)
+
+
+func generate_basic_infant(
+	item_type: StringName,
+	seed_value: int
+) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(1, abs(seed_value))
+
+	var rarity := "common"
+	var quality: String = _roll_weighted(
+		rng,
+		BASIC_INFANT_QUALITY_WEIGHTS
+	)
+
+	match item_type:
+		TYPE_FOOD:
+			return _generate_food(rng, rarity, quality, seed_value)
+		TYPE_GROWTH:
+			return _generate_growth(rng, rarity, quality, seed_value)
+		_:
+			push_error(
+				"ItemGenerator: unsupported basic infant type: "
+				+ String(item_type)
+			)
 			return {}
 
 
@@ -120,6 +352,63 @@ func describe(item: Dictionary) -> String:
 			if food_delta < 0:
 				text += " • Mất " + _format_minutes(abs(food_delta)) + " thức ăn"
 			return text
+
+		TYPE_GENE:
+			var gene_text := (
+				"Gene "
+				+ String(
+					item.get(
+						"gene_locus",
+						"?"
+					)
+				)
+				+ " → "
+				+ String(
+					item.get(
+						"gene_direction",
+						"?"
+					)
+				)
+				+ " • Điểm +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"gene_score",
+									item.get(
+										"gene_influence",
+										0.0
+									)
+								)
+							)
+						)
+					)
+				)
+				+ " • Growth +"
+				+ str(
+					int(
+						round(
+							float(
+								item.get(
+									"growth_bonus_percent",
+									GENE_GROWTH_BONUS_PERCENT
+								)
+							)
+						)
+					)
+				)
+				+ "%"
+			)
+			var element_lock := String(
+				item.get(
+					"gene_element_lock",
+					""
+				)
+			)
+			if not element_lock.is_empty():
+				gene_text += " • Hệ " + element_lock.capitalize()
+			return gene_text
 
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
@@ -268,7 +557,7 @@ func _generate_food(
 		"salvage_type": "food_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
-		"usable_stage": "infant",
+		"usable_stage": "growth",
 	}
 
 
@@ -338,7 +627,7 @@ func _generate_growth(
 		"salvage_type": "growth_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
-		"usable_stage": "infant",
+		"usable_stage": "growth",
 	}
 
 
@@ -453,7 +742,7 @@ func _salvage_value(
 	quality: String,
 	rng: RandomNumberGenerator
 ) -> int:
-	var rarity_base := {
+	var rarity_base: int = {
 		"common": 2,
 		"uncommon": 4,
 		"rare": 8,
@@ -461,7 +750,7 @@ func _salvage_value(
 		"legendary": 36,
 	}.get(rarity, 1)
 
-	var quality_bonus := {
+	var quality_bonus: int = {
 		"broken": 0,
 		"poor": 1,
 		"normal": 2,

@@ -1,98 +1,241 @@
 # PetVerse — Project Architecture
 
-Status: Foundation
+Status: M0 clean baseline
 
 ## Principle
-PetVerse is organized by responsibility. The main application layer coordinates modules; it must not absorb gameplay logic.
 
-The project has three architecture goals: **extensible, reusable, diverse**.
+The application layer coordinates modules. Gameplay logic belongs to the feature/domain that owns it.
 
-### Core rule: adding content must not require editing Core
-Content of an existing kind should be added through definitions/configuration/assets rather than conditionals in shared systems.
+## M0 baseline
 
-```text
-FRAMEWORK / CORE
-       ↓
-CAPABILITY + REGISTRY
-       ↓
-DEFINITION / CONFIG
-       ↓
-ASSET / CONTENT
-       ↓
-INSTANCE
-```
-
-Examples:
-- new pet -> new PetDefinition + assets; no Pet Core edit
-- new element/attribute -> new definition/data; no pet-specific `if element == ...` chain
-- new home -> new HomeDefinition/environment assets; no new home controller
-- new expression/state content -> definition/capability data where the existing framework supports it
-
-A genuinely new gameplay capability may extend the framework/API. Existing content types must not require Core edits merely to add another entry.
-
-## Existing baseline
-The v1.1 repository already separates application, core services, data, egg/hatch features, scenes, UI and tools. The pet system extends this structure instead of replacing the working egg system.
-
-## Target module boundaries
+The retired pet presentation stack has been removed. The active runtime contains:
 
 ```text
 res://
-├── app/                 # app startup and cross-module routing
+├── app/                 # startup and cross-feature routing
 ├── core/                # reusable infrastructure/services
-├── data/                # definitions/configuration/content data
-├── egg/                 # existing egg module
-├── pet/                 # generic pet framework
-│   ├── domain/          # pet state/profile/capabilities
-│   ├── brain/           # state/behavior decisions
-│   ├── interaction/     # player -> pet interaction resolution
-│   └── presentation/    # state -> visual/audio representation
-├── home/                # reusable home/environment framework
-├── features/            # independent gameplay features
-├── scenes/              # Godot scene composition
-├── screens/             # screen-level presentation/controller code
-├── UI/                  # reusable UI components
-└── docs/                # architecture/design/decisions
+├── data/                # egg/task configuration
+├── egg/                 # egg view
+├── features/
+│   ├── egg/             # incubation domain + engines
+│   └── hatch/           # hatch + naming
+├── UI/                  # main screen/components/theme
+├── scenes/
+│   ├── main.tscn
+│   └── evolution_initial.tscn
+└── tools/               # generic project tooling only
 ```
 
-## Dependency direction
+## Removed legacy areas
+
+M0 intentionally removes the old 3D, 2D/2.5D, Pet Home, pet expression, pet motion and direct pet-interaction implementations.
+
+These implementations remain recoverable from Git history and the existing side branches. They are not dependencies of the new Evolution Core.
+
+## Next architecture boundary
+
+M1 may introduce a new evolution domain, but it must not depend on the retired presentation framework.
+
+The intended dependency direction is:
 
 ```text
 App / Screen
     ↓
-Facade / Framework API
+Evolution service/facade
     ↓
-Domain + capabilities + behavior
+Identity + genome + evolution rules
     ↓
-Presentation
-    ↓
-Definitions + assets
+Visual specification / renderer adapter
 ```
 
-Screens must not calculate pet needs, personality or expression rules. Pet visuals must not decide gameplay state.
+Presentation/rendering must not decide evolution rules.
 
-## Reference Pet rule
-The Dark Pet is the first reference implementation. Pet Core must never depend on Dark Pet specifically. A future pet should be addable primarily through assets/configuration and optional capabilities/presentation overrides.
+## Main-file rule
 
-## Reusable Home Framework
-PetHome is a host, not a specific room.
+Main/root scripts coordinate lifecycle and routing only. Domain rules must not be appended to MainScreen or GameApp.
+
+## Stable baseline rule
+
+Egg v1.1 and Hatch remain working baseline modules while Evolution Core is developed in isolated milestones.
+
+
+## M1 domain
+
+```text
+features/evolution/
+└── domain/
+    ├── pet_identity.gd
+    └── pet_identity_factory.gd
+```
+
+PetIdentity is the root of future Evolution Core data. Future Genome, EvolutionRule and VisualSpec layers may depend on identity, but identity must not depend on them.
+
+
+## M2 genome domain
+
+```text
+features/evolution/
+└── domain/
+    ├── pet_identity.gd
+    ├── pet_identity_factory.gd
+    ├── pet_genome.gd
+    └── pet_genome_factory.gd
+```
+
+Dependency boundary:
+
+```text
+PetIdentity   PetGenome
+     \         /
+      future Evolution Rules
+             ↓
+      future Visual Spec
+```
+
+PetGenome does not depend on renderer, UI, Pet Home, AI models, item systems or mutation probability logic.
+
+
+## M3 evolution-rule layer
+
+```text
+features/evolution/
+├── domain/
+│   └── evolution_delta.gd
+└── rules/
+    ├── mutation_definition.gd
+    ├── mutation_catalog.gd
+    ├── evolution_rule_engine.gd
+    └── genome_delta_applier.gd
+```
+
+Dependency direction:
+
+```text
+PetIdentity + PetGenome
+          ↓
+MutationDefinition data
+          ↓
+EvolutionRuleEngine
+          ↓
+EvolutionDelta
+          ↓
+GenomeDeltaApplier
+          ↓
+new PetGenome
+```
+
+The rule layer has no dependency on AI/image rendering, UI, Pet Home, chest/inventory or entertainment modules.
+
+
+## M4 visual-spec layer
+
+```text
+features/evolution/visual/
+├── pet_visual_spec.gd
+├── mythic_style_profile.gd
+├── mutation_visual_definition.gd
+├── mutation_visual_catalog.gd
+├── pet_visual_spec_builder.gd
+└── pet_prompt_builder.gd
+```
+
+Dependency direction:
+
+```text
+Identity + Genome + EvolutionDelta
+              ↓
+      Visual definition data
+              ↓
+      PetVisualSpecBuilder
+              ↓
+        PetVisualSpec
+              ↓
+        PetPromptBuilder
+              ↓
+future renderer adapter
+```
+
+The visual layer may read evolution results but must never choose mutation probability, eligibility or gameplay outcomes. The active base style profile is Mythic Elemental Chibi; element lineage cues remain visual data.
+
+
+## M5/M6 render boundary
+
+```text
+features/evolution/
+├── render/
+│   ├── pet_render_request.gd
+│   ├── pet_render_result.gd
+│   ├── pet_renderer.gd
+│   ├── pet_render_config.gd
+│   ├── pet_render_service.gd
+│   ├── mock_pet_renderer.gd
+│   └── openai_image_renderer.gd
+├── persistence/
+│   └── evolution_save_service.gd
+├── service/
+│   ├── evolution_bootstrap_service.gd
+│   └── initial_pet_render_coordinator.gd
+└── visual/
+    ├── initial_pet_visual_spec.gd
+    ├── initial_species_profile.gd
+    ├── initial_species_catalog.gd
+    ├── initial_pet_visual_spec_builder.gd
+    └── initial_pet_prompt_builder.gd
+```
+
+Runtime flow:
+
+```text
+Egg/Hatch save
+      ↓
+EvolutionBootstrapService
+      ↓
+PetIdentity + initial PetGenome
+      ↓
+InitialPetVisualSpec
+      ↓
+INITIAL_TEXT_TO_IMAGE PetRenderRequest
+      ↓
+PetRenderer adapter
+      ↓
+PNG saved under user://pet_renders
+      ↓
+PetVisualRecord + evolution_pet_v1.json
+      ↓
+EvolutionInitialScreen
+```
+
+The initial request intentionally has no source image. Future evolution editing will reuse the same renderer contract with EVOLUTION_IMAGE_EDIT and the previous PetVisualRecord as source.
+
+
+## M8 stage lifecycle
 
 ```text
 PetHome
-├── EnvironmentSlot
-├── DecorationLayer
-├── ActorLayer
-│   └── PetAnchor
-├── EffectLayer
-└── UILayer
+   ↓
+InfantGameFacade (compatibility name)
+   ↓
+StageLifecycle
+   ↓
+StageLifecyclePolicy
+   ↓
+data/gameplay/lifecycle/stages.json
 ```
 
-A HomeDefinition describes replaceable content such as environment, background/foreground, pet anchor, decorations, ambient FX/audio and lighting. Environment, actor and UI remain independent.
+Evolution dependency:
 
-## Diversity rule
-Reuse must not reduce every pet/home to a reskin. Shared capabilities provide common behavior; definitions and optional components/overrides provide diversity. Avoid identity condition chains such as `if dark`, `elif fire`, `elif water` in generic Core code.
+```text
+lifecycle ready + current PetGenome
+              ↓
+      StageEvolutionService
+              ↓
+ deterministic M3 EvolutionDelta
+              ↓
+     EvolutionEditCoordinator
+              ↓
+       EVOLUTION_IMAGE_EDIT
+              ↓
+ valid PNG → atomic evolution commit
+```
 
-## Main-file rule
-Main/root scripts coordinate lifecycle and routing only. New pet behavior, state logic, animation logic or feature logic must live in its owning module rather than being appended to the main screen.
-
-## Migration rule
-The working v1.1 egg/hatch flow is baseline behavior. Pet development is additive until an explicit Egg -> PetHome transition is introduced and tested.
+Stage 1–3 share this path. Stage 4 is terminal for M8.
