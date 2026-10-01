@@ -12,6 +12,7 @@ var dialogs_only: bool = false
 
 signal chest_open_requested
 signal item_use_requested(uid: String)
+signal item_salvage_requested(uid: String)
 signal entertainment_requested
 signal evolution_requested
 
@@ -38,6 +39,7 @@ var _detail_meta: Label
 var _detail_effect: Label
 var _detail_mods: Label
 var _detail_use_button: Button
+var _detail_salvage_button: Button
 var _detail_item: Dictionary = {}
 var _detail_allow_use: bool = false
 var _evolve_button: Button
@@ -120,16 +122,37 @@ func refresh_status(s: Dictionary) -> void:
 		)
 	)
 	_growth_bar.value = percent
-	_food_label.text = (
-		"Thức ăn  "
-		+ _duration(
-			int(
-				s.get(
-					"food_seconds",
-					0
-				)
-			)
+	var food_percent := int(
+		s.get(
+			"food_percent",
+			0
 		)
+	)
+	var growth_speed_percent := int(
+		s.get(
+			"growth_speed_percent",
+			0
+		)
+	)
+	var hibernating := bool(
+		s.get(
+			"hibernating",
+			false
+		)
+	)
+	_food_label.text = (
+		"Độ no %d%% • %s"
+		% [
+			food_percent,
+			_duration(
+				int(
+					s.get(
+						"food_seconds",
+						0
+					)
+				)
+			),
+		]
 	)
 
 	if final_form:
@@ -141,20 +164,17 @@ func refresh_status(s: Dictionary) -> void:
 			% percent
 		)
 		_state_label.text = (
-			"Sẵn sàng tiến hóa"
-			if ready
+			"Ngủ đông • cần cho ăn"
+			if hibernating
 			else (
-				"Có thể tiến hóa ngay [TEST]"
-				if can_evolve
+				"Sẵn sàng tiến hóa"
+				if ready
 				else (
-					"Deadline "
-					+ _duration(
-						int(
-							s.get(
-								"age_remaining_seconds",
-								0
-							)
-						)
+					"Có thể tiến hóa ngay [TEST]"
+					if can_evolve
+					else (
+						"Tăng trưởng %d%%"
+						% growth_speed_percent
 					)
 				)
 			)
@@ -826,6 +846,17 @@ func _build_item_detail() -> void:
 		_detail_use_button
 	)
 
+	_detail_salvage_button = Button.new()
+	_detail_salvage_button.text = "PHÂN GIẢI • +1 MẢNH RƯƠNG"
+	_detail_salvage_button.custom_minimum_size.y = 42
+	_detail_salvage_button.focus_mode = Control.FOCUS_NONE
+	_detail_salvage_button.pressed.connect(
+		_on_detail_salvage
+	)
+	root.add_child(
+		_detail_salvage_button
+	)
+
 
 func _show_item_detail(
 	item: Dictionary,
@@ -946,6 +977,8 @@ func _show_item_detail(
 		if usable
 		else "CHƯA THỂ DÙNG"
 	)
+	_detail_salvage_button.visible = allow_use
+	_detail_salvage_button.disabled = not allow_use
 
 	_layout_overlay()
 	_detail_overlay.visible = true
@@ -981,6 +1014,29 @@ func _on_detail_use() -> void:
 		uid
 	)
 
+func _on_detail_salvage() -> void:
+	if (
+		_detail_item.is_empty()
+		or not _detail_allow_use
+	):
+		return
+
+	var uid := String(
+		_detail_item.get(
+			"uid",
+			""
+		)
+	)
+
+	if uid.is_empty():
+		return
+
+	_hide_item_detail()
+	item_salvage_requested.emit(
+		uid
+	)
+
+
 func _gene_context_text(
 	item: Dictionary
 ) -> String:
@@ -1008,57 +1064,56 @@ func _gene_context_text(
 				)
 			)
 
-	var current_stage := int(
+	var current_score := float(
 		context.get(
-			"current_stage",
-			1
+			"current_score",
+			0.0
 		)
 	)
-	var used := int(
+	var item_score := float(
 		context.get(
-			"used",
-			0
+			"item_score",
+			0.0
 		)
 	)
-	var limit := int(
+	var projected_score := float(
 		context.get(
-			"limit",
-			0
+			"projected_score",
+			current_score + item_score
 		)
 	)
-	var remaining := int(
+	var current_tier_label := String(
 		context.get(
-			"remaining",
-			0
+			"current_tier_label",
+			"Chưa biểu hiện"
 		)
 	)
-	var slot_text := (
-		"ĐÃ HẾT LƯỢT"
-		if bool(
-			context.get(
-				"exhausted",
-				false
-			)
-		)
-		else "còn %d" % remaining
-	)
-
-	if bool(
+	var projected_tier_label := String(
 		context.get(
-			"evolution_plan_pending",
-			false
+			"projected_tier_label",
+			current_tier_label
 		)
-	):
-		slot_text = "đã khóa plan tiến hóa"
-
-	return (
-		"Bộ phận: %s\n"
-		+ "Hướng: %s\n"
-		+ "Stage hợp lệ: %s\n"
-		+ "Lượt Gene %s: %d/%d • %s\n"
-		+ "Kết quả: chỉ định hướng; hình thái được chốt khi tiến hóa."
-	) % [
-		_gene_locus_label(
+	)
+	var next_threshold := float(
+		context.get(
+			"next_threshold",
+			0.0
+		)
+	)
+	var element_lock := String(
+		context.get(
+			"element_lock",
+			""
+		)
+	)
+	var element_compatible := bool(
+		context.get(
+			"element_compatible",
+			true
+		)
+	)
+	var lines: Array[String] = [
+		"Bộ phận: %s" % _gene_locus_label(
 			StringName(
 				context.get(
 					"locus",
@@ -1066,7 +1121,7 @@ func _gene_context_text(
 				)
 			)
 		),
-		_gene_value_label(
+		"Hướng: %s" % _gene_value_label(
 			StringName(
 				context.get(
 					"direction",
@@ -1074,20 +1129,70 @@ func _gene_context_text(
 				)
 			)
 		),
-		(
+		"Stage dùng được: %s" % (
 			" • ".join(
 				stage_labels
 			)
 			if not stage_labels.is_empty()
 			else "Không có"
 		),
-		PetHomeTheme.stage_label(
-			current_stage
-		),
-		used,
-		limit,
-		slot_text,
+		"Điểm hiện tại: %d • Item +%d → %d"
+		% [
+			int(round(current_score)),
+			int(round(item_score)),
+			int(round(projected_score)),
+		],
+		"Biểu hiện: %s → %s"
+		% [
+			current_tier_label,
+			projected_tier_label,
+		],
 	]
+
+	if next_threshold > 0.0:
+		lines.append(
+			"Mốc tiếp theo: %d điểm"
+			% int(
+				round(
+					next_threshold
+				)
+			)
+		)
+	else:
+		lines.append(
+			"Biểu hiện đã đạt cấp Cực đại."
+		)
+
+	if not element_lock.is_empty():
+		lines.append(
+			"Hệ yêu cầu: %s • %s"
+			% [
+				element_lock.capitalize(),
+				(
+					"phù hợp pet hiện tại"
+					if element_compatible
+					else "giữ lại cho pet/kế thừa phù hợp"
+				),
+			]
+		)
+
+	if bool(
+		context.get(
+			"evolution_plan_pending",
+			false
+		)
+	):
+		lines.append(
+			"Plan tiến hóa đã khóa: item được giữ lại."
+		)
+
+	lines.append(
+		"Điểm Gene cộng dồn qua các Stage; prompt tiến hóa đọc cấp biểu hiện từ tổng điểm."
+	)
+
+	return "\n".join(
+		lines
+	)
 
 
 func _gene_locus_label(

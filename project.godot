@@ -3,7 +3,7 @@
 ; since the parameters that go here are not all obvious.
 ;
 ; Format:
-;   [section] ; section between brackets
+;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
 
 config_version=5
@@ -14,7 +14,7 @@ config/name="PetVerse"
 config/description="Một pet, một cuộc đời, phát triển không cố định."
 config/version="1.0.0-dev"
 run/main_scene="res://scenes/main.tscn"
-config/features=PackedStringArray("4.6")
+config/features=PackedStringArray("4.7")
 
 [autoload]
 
