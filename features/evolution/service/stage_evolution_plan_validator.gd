@@ -429,6 +429,20 @@ func validate(
 	) as PetRenderRequest
 
 	if expected_request != null:
+		var resolved_prompt := preload(
+			"res://features/evolution/visual/resolved_form_prompt.gd"
+		).new().build(
+			identity,
+			to_stage,
+			gene_scores,
+			mythic
+		)
+
+		if resolved_prompt.is_empty():
+			return "Không rebuild được resolved-form prompt."
+
+		expected_request.positive_prompt = resolved_prompt
+
 		if not expected_gene_prompt.is_empty():
 			var gene_scope_rule := ""
 
@@ -444,8 +458,6 @@ func validate(
 				+ gene_scope_rule
 				+ expected_gene_prompt
 			)
-
-		expected_request.positive_prompt += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, to_stage, gene_scores)
 
 	if (
 		not bool(
