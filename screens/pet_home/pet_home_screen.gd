@@ -1347,7 +1347,13 @@ func _setup_gameplay() -> void:
 	_game.setup(
 		identity.lineage_seed(),
 		genome.stage(),
-		identity.element()
+		identity.element(),
+		int(
+			_data.get(
+				"egg_stage",
+				1
+			)
+		)
 	)
 	theme = PetHomeGameplayTheme.build(_theme)
 	_hud = PetHomeGameplayUI.new()
@@ -1475,7 +1481,13 @@ func _notification(what: int) -> void:
 		_game.setup(
 			identity.lineage_seed(),
 			genome.stage(),
-			identity.element()
+			identity.element(),
+			int(
+				_data.get(
+					"egg_stage",
+					1
+				)
+			)
 		)
 		_paused = false
 		_skip_tick = true
@@ -1985,6 +1997,10 @@ func _open_evolution() -> void:
 		)
 	)
 
+	_add_skill_rows(
+		state
+	)
+
 	if stage_index >= StageLifecycle.FINAL_STAGE:
 		_add_info_row(
 			"Giai đoạn",
@@ -1998,10 +2014,10 @@ func _open_evolution() -> void:
 		)
 		_add_info_row(
 			"Tiếp theo",
-			"Kế thừa 1 item → đời sau"
+			"Giữ 1 kỹ năng + tối đa 1 item → đời sau"
 		)
 		_section_button(
-			"CHỌN ITEM KẾ THỪA",
+			"CHỌN DI SẢN",
 			_open_legacy_inheritance
 		)
 		_section_overlay.visible = true
@@ -2125,13 +2141,100 @@ func _open_legacy_inheritance() -> void:
 	)
 	_add_info_row(
 		"Quy tắc",
-		"Chọn tối đa 1 item. Các dữ liệu khác của đời cũ không được chuyển sang đời mới."
+		"Chọn đúng 1 kỹ năng đang có để giữ cho đời sau. Item là tùy chọn."
 	)
 
-	var items := _game.inventory()
+	var state := _game.snapshot()
+	var skills_value: Variant = state.get(
+		"skills",
+		[]
+	)
 	var selectable := 0
 
-	for item in items:
+	if typeof(skills_value) == TYPE_ARRAY:
+		for raw in skills_value as Array:
+			if typeof(raw) != TYPE_DICTIONARY:
+				continue
+
+			var skill := raw as Dictionary
+			var skill_id := String(
+				skill.get(
+					"skill_id",
+					""
+				)
+			)
+			var display_name := String(
+				skill.get(
+					"display_name",
+					PetSkillCatalog.display_name(
+						StringName(skill_id)
+					)
+				)
+			)
+
+			if (
+				skill_id.is_empty()
+				or not PetSkillCatalog.is_valid(
+					StringName(skill_id)
+				)
+			):
+				continue
+
+			selectable += 1
+			_section_button(
+				"GIỮ • " + display_name,
+				Callable(
+					self,
+					"_open_legacy_item_selection"
+				).bind(
+					skill_id
+				)
+			)
+
+	if selectable == 0:
+		_add_info_row(
+			"Kỹ năng",
+			"Pet hiện tại không có kỹ năng hợp lệ để kế thừa."
+		)
+
+	_section_overlay.visible = true
+
+func _open_legacy_item_selection(
+	skill_id: String
+) -> void:
+	if not _owns_skill(
+		skill_id
+	):
+		_hud.show_message(
+			"Kỹ năng kế thừa không hợp lệ."
+		)
+		return
+
+	_prepare_section(
+		"Chọn item kế thừa"
+	)
+	_add_info_row(
+		"Kỹ năng giữ lại",
+		PetSkillCatalog.display_name(
+			StringName(skill_id)
+		)
+	)
+	_add_info_row(
+		"Item",
+		"Không bắt buộc. Chỉ được mang tối đa 1 item."
+	)
+	_section_button(
+		"KHÔNG KẾ THỪA ITEM",
+		Callable(
+			self,
+			"_open_legacy_confirmation"
+		).bind(
+			"",
+			skill_id
+		)
+	)
+
+	for item in _game.inventory():
 		var uid := String(
 			item.get(
 				"uid",
@@ -2148,40 +2251,38 @@ func _open_legacy_inheritance() -> void:
 		if uid.is_empty() or item_type.is_empty():
 			continue
 
-		selectable += 1
 		_section_button(
-			"KẾ THỪA • " + _legacy_item_label(
+			"KÈM • " + _legacy_item_label(
 				item
 			),
 			Callable(
 				self,
 				"_open_legacy_confirmation"
 			).bind(
-				uid
+				uid,
+				skill_id
 			)
 		)
 
-	if selectable == 0:
-		_add_info_row(
-			"Kho",
-			"Không có item hợp lệ để kế thừa"
-		)
-		_section_button(
-			"BẮT ĐẦU ĐỜI SAU KHÔNG ITEM",
-			Callable(
-				self,
-				"_open_legacy_confirmation"
-			).bind(
-				""
-			)
-		)
-
+	_section_button(
+		"CHỌN LẠI KỸ NĂNG",
+		_open_legacy_inheritance
+	)
 	_section_overlay.visible = true
 
 
 func _open_legacy_confirmation(
-	uid: String
+	uid: String,
+	skill_id: String
 ) -> void:
+	if not _owns_skill(
+		skill_id
+	):
+		_hud.show_message(
+			"Kỹ năng kế thừa không còn hợp lệ."
+		)
+		return
+
 	var item := _legacy_inventory_item(
 		uid
 	)
@@ -2199,6 +2300,12 @@ func _open_legacy_confirmation(
 		"Xác nhận kế thừa"
 	)
 	_add_info_row(
+		"Kỹ năng",
+		PetSkillCatalog.display_name(
+			StringName(skill_id)
+		)
+	)
+	_add_info_row(
 		"Item",
 		(
 			_legacy_item_label(
@@ -2214,11 +2321,7 @@ func _open_legacy_confirmation(
 	)
 	_add_info_row(
 		"Đời mới",
-		(
-			"Item này sẽ xuất hiện trong Hòm Item sau khi pet mới nở"
-			if not item.is_empty()
-			else "Bắt đầu đời mới không mang item"
-		)
+		"Kỹ năng đã chọn chiếm Slot 1; các Slot còn lại tiếp tục random theo stage."
 	)
 	_section_button(
 		"XÁC NHẬN & BẮT ĐẦU ĐỜI SAU",
@@ -2226,18 +2329,24 @@ func _open_legacy_confirmation(
 			self,
 			"_start_next_generation"
 		).bind(
-			uid
+			uid,
+			skill_id
 		)
 	)
 	_section_button(
 		"QUAY LẠI",
-		_open_legacy_inheritance
+		Callable(
+			self,
+			"_open_legacy_item_selection"
+		).bind(
+			skill_id
+		)
 	)
 	_section_overlay.visible = true
 
-
 func _start_next_generation(
-	uid: String
+	uid: String,
+	skill_id: String
 ) -> void:
 	var state := _game.snapshot()
 
@@ -2249,6 +2358,14 @@ func _start_next_generation(
 	):
 		_hud.show_message(
 			"Pet chưa đạt hình thái cuối."
+		)
+		return
+
+	if not _owns_skill(
+		skill_id
+	):
+		_hud.show_message(
+			"Kỹ năng kế thừa không còn hợp lệ."
 		)
 		return
 
@@ -2283,7 +2400,8 @@ func _start_next_generation(
 
 	var prepared := LegacyInheritanceService.new().prepare(
 		identity,
-		item
+		item,
+		StringName(skill_id)
 	)
 
 	if not bool(
@@ -2336,6 +2454,81 @@ func _start_next_generation(
 		_hud.show_message(
 			"Không mở được đời mới."
 		)
+
+func _add_skill_rows(
+	state: Dictionary
+) -> void:
+	var skills_value: Variant = state.get(
+		"skills",
+		[]
+	)
+
+	if typeof(skills_value) != TYPE_ARRAY:
+		return
+
+	for raw in skills_value as Array:
+		if typeof(raw) != TYPE_DICTIONARY:
+			continue
+
+		var skill := raw as Dictionary
+		var slot := int(
+			skill.get(
+				"slot",
+				0
+			)
+		)
+		var name := String(
+			skill.get(
+				"display_name",
+				""
+			)
+		)
+		var source := String(
+			skill.get(
+				"source",
+				""
+			)
+		)
+		var suffix := ""
+
+		if source == "legacy":
+			suffix = " • Kế thừa"
+		elif source == "egg_stage4":
+			suffix = " • Trứng Stage 4"
+
+		_add_info_row(
+			"Kỹ năng %d" % slot,
+			name + suffix
+		)
+
+
+func _owns_skill(
+	skill_id: String
+) -> bool:
+	if skill_id.is_empty():
+		return false
+
+	var skills_value: Variant = _game.snapshot().get(
+		"skills",
+		[]
+	)
+
+	if typeof(skills_value) != TYPE_ARRAY:
+		return false
+
+	for raw in skills_value as Array:
+		if (
+			typeof(raw) == TYPE_DICTIONARY
+			and String(
+				(raw as Dictionary).get(
+					"skill_id",
+					""
+				)
+			) == skill_id
+		):
+			return true
+
+	return false
 
 
 func _legacy_inventory_item(
