@@ -242,6 +242,17 @@ func snapshot() -> Dictionary:
 			""
 		)
 	)
+	var legacy_items_value: Variant = _meta.get(
+		"legacy_inherited_items",
+		[]
+	)
+	state["legacy_inherited_items"] = (
+		(legacy_items_value as Array).duplicate(
+			true
+		)
+		if typeof(legacy_items_value) == TYPE_ARRAY
+		else []
+	)
 	var legacy_item_value: Variant = _meta.get(
 		"legacy_inherited_item",
 		{}
