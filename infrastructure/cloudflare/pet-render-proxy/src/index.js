@@ -11,13 +11,15 @@ export default {
       return json({
         ok: true,
         service: "petverse-render-proxy",
+        contract_version: 2,
+        routes: ["/v1/render/initial", "/v1/render/evolution"],
         model: MODEL,
       });
     }
 
     if (
       request.method !== "POST" ||
-      url.pathname !== "/v1/render/initial"
+      !["/v1/render/initial", "/v1/render/evolution"].includes(url.pathname)
     ) {
       return json({ ok: false, error: "Not found" }, 404);
     }
@@ -65,12 +67,39 @@ export default {
       input?.height,
       DEFAULT_HEIGHT
     );
+    const seed = normalizeSeed(
+      input?.seed
+    );
+
+    let reference = null;
+    if (url.pathname === "/v1/render/evolution") {
+      const encoded = input?.source_image;
+      if (typeof encoded !== "string" || !encoded || encoded.length > 4_000_000) {
+        return json({ ok: false, error: "Invalid source image" }, 400);
+      }
+      try {
+        const binary = atob(encoded);
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        if (bytes.length < 24 || bytes[0] !== 137 || bytes[1] !== 80 || bytes[2] !== 78 || bytes[3] !== 71) {
+          throw new Error("Expected PNG");
+        }
+        const view = new DataView(bytes.buffer);
+        if (view.getUint32(16) >= 512 || view.getUint32(20) >= 512) {
+          throw new Error("Reference must be smaller than 512 pixels");
+        }
+        reference = new Blob([bytes], { type: "image/png" });
+      } catch {
+        return json({ ok: false, error: "Invalid reference PNG" }, 400);
+      }
+    }
 
     try {
       const form = new FormData();
+      if (reference) form.append("input_image_0", reference, "previous-pet.png");
       form.append("prompt", prompt);
       form.append("width", String(width));
       form.append("height", String(height));
+      if (seed !== null) form.append("seed", String(seed));
 
       const formResponse = new Response(form);
       const formContentType =
@@ -98,6 +127,7 @@ export default {
         model: MODEL,
         width,
         height,
+        seed,
       });
     } catch (error) {
       return json(
@@ -113,6 +143,20 @@ export default {
     }
   },
 };
+
+function normalizeSeed(value) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 2147483646) {
+    return null;
+  }
+
+  return parsed;
+}
 
 function clampDimension(value, fallback) {
   const parsed = Number(value);
