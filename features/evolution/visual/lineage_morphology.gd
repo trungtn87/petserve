@@ -1,7 +1,7 @@
 extends RefCounted
 
 # Versioned deterministic visual genome. Never uses global random state.
-const VERSION := 2
+const VERSION := 1
 const FRAMES := [
 	[1.15, 0.88, 1.10, "compact deep frame"],
 	[1.35, 1.15, 0.90, "tall light frame"],
@@ -73,14 +73,6 @@ func resolve(identity: PetIdentity, stage: int, scores: Dictionary) -> Dictionar
 	result["chest"] = clampf(float(result.chest), 0.70, 2.2)
 	result["tail"] = clampf(float(result.tail) + minf(1.0, float(scores.get("tail.long", 0.0)) / 160.0) * float(allowance), 0.7, 2.3)
 	result["ears"] = clampf(float(result.ears) + minf(0.7, float(scores.get("ears.long", 0.0)) / 200.0) * float(allowance), 0.7, 1.9)
-	result["tail_width"] = 0.18 + minf(1.0, float(scores.get("tail.fluffy", 0.0)) / 160.0) * allowance * 0.65
-	result["ear_roundness"] = minf(1.0, float(scores.get("ears.rounded", 0.0)) / 80.0) * minf(1.0, allowance)
-	result["ear_fan_width"] = 1.0 + minf(1.0, float(scores.get("ears.softfan", 0.0)) / 100.0) * allowance * 0.70
-	var mane_score := 0.0
-	for key in keys:
-		if String(key).begins_with("mane."):
-			mane_score = maxf(mane_score, float(scores[key]))
-	result["mane_width"] = 1.0 + minf(1.3, mane_score / 100.0) * allowance * 0.70
 	result["stage"] = clampi(stage, 1, 5)
 	return result
 
