@@ -22,6 +22,7 @@ var _hub: EntertainmentHubUI
 var _game_tick: float = 0.0
 var _paused: bool = false
 var _skip_tick: bool = false
+var _suppress_exit_save: bool = false
 var _theme: Dictionary = {}
 var _data: Dictionary = {}
 
@@ -707,10 +708,19 @@ func _open_pet_info() -> void:
 	var gameplay_state := _game.snapshot()
 	_add_info_row(
 		"Trưởng thành",
-		"%d%%" % int(
-			gameplay_state.get(
-				"growth_percent",
-				0
+		"%d%%" % (
+			100
+			if bool(
+				gameplay_state.get(
+					"final_form",
+					false
+				)
+			)
+			else int(
+				gameplay_state.get(
+					"growth_percent",
+					0
+				)
 			)
 		)
 	)
@@ -741,6 +751,22 @@ func _open_pet_info() -> void:
 			+ 1
 		)
 	)
+	var inherited_value: Variant = gameplay_state.get(
+		"legacy_inherited_item",
+		{}
+	)
+	if (
+		typeof(inherited_value) == TYPE_DICTIONARY
+		and not (
+			inherited_value as Dictionary
+		).is_empty()
+	):
+		_add_info_row(
+			"Kế thừa",
+			_legacy_item_label(
+				inherited_value as Dictionary
+			)
+		)
 	_add_info_row(
 		"Phong cách",
 		String(
@@ -1455,7 +1481,10 @@ func _notification(what: int) -> void:
 		_skip_tick = true
 
 func _exit_tree() -> void:
-	if _hud != null:
+	if (
+		_hud != null
+		and not _suppress_exit_save
+	):
 		_game.save()
 
 func _section_button(text: String, callback: Callable) -> Button:
@@ -1969,7 +1998,11 @@ func _open_evolution() -> void:
 		)
 		_add_info_row(
 			"Tiếp theo",
-			"Kế thừa → đời sau"
+			"Kế thừa 1 item → đời sau"
+		)
+		_section_button(
+			"CHỌN ITEM KẾ THỪA",
+			_open_legacy_inheritance
 		)
 		_section_overlay.visible = true
 		return
@@ -2084,6 +2117,279 @@ func _open_evolution() -> void:
 		)
 
 	_section_overlay.visible = true
+
+
+func _open_legacy_inheritance() -> void:
+	_prepare_section(
+		"Kế thừa đời sau"
+	)
+	_add_info_row(
+		"Quy tắc",
+		"Chọn tối đa 1 item. Các dữ liệu khác của đời cũ không được chuyển sang đời mới."
+	)
+
+	var items := _game.inventory()
+	var selectable := 0
+
+	for item in items:
+		var uid := String(
+			item.get(
+				"uid",
+				""
+			)
+		).strip_edges()
+		var item_type := String(
+			item.get(
+				"item_type",
+				""
+			)
+		).strip_edges()
+
+		if uid.is_empty() or item_type.is_empty():
+			continue
+
+		selectable += 1
+		_section_button(
+			"KẾ THỪA • " + _legacy_item_label(
+				item
+			),
+			Callable(
+				self,
+				"_open_legacy_confirmation"
+			).bind(
+				uid
+			)
+		)
+
+	if selectable == 0:
+		_add_info_row(
+			"Kho",
+			"Không có item hợp lệ để kế thừa"
+		)
+		_section_button(
+			"BẮT ĐẦU ĐỜI SAU KHÔNG ITEM",
+			Callable(
+				self,
+				"_open_legacy_confirmation"
+			).bind(
+				""
+			)
+		)
+
+	_section_overlay.visible = true
+
+
+func _open_legacy_confirmation(
+	uid: String
+) -> void:
+	var item := _legacy_inventory_item(
+		uid
+	)
+
+	if (
+		not uid.is_empty()
+		and item.is_empty()
+	):
+		_hud.show_message(
+			"Không tìm thấy item đã chọn."
+		)
+		return
+
+	_prepare_section(
+		"Xác nhận kế thừa"
+	)
+	_add_info_row(
+		"Item",
+		(
+			_legacy_item_label(
+				item
+			)
+			if not item.is_empty()
+			else "Không kế thừa item"
+		)
+	)
+	_add_info_row(
+		"Đời cũ",
+		"Sẽ kết thúc sau khi xác nhận"
+	)
+	_add_info_row(
+		"Đời mới",
+		(
+			"Item này sẽ xuất hiện trong Hòm Item sau khi pet mới nở"
+			if not item.is_empty()
+			else "Bắt đầu đời mới không mang item"
+		)
+	)
+	_section_button(
+		"XÁC NHẬN & BẮT ĐẦU ĐỜI SAU",
+		Callable(
+			self,
+			"_start_next_generation"
+		).bind(
+			uid
+		)
+	)
+	_section_button(
+		"QUAY LẠI",
+		_open_legacy_inheritance
+	)
+	_section_overlay.visible = true
+
+
+func _start_next_generation(
+	uid: String
+) -> void:
+	var state := _game.snapshot()
+
+	if not bool(
+		state.get(
+			"final_form",
+			false
+		)
+	):
+		_hud.show_message(
+			"Pet chưa đạt hình thái cuối."
+		)
+		return
+
+	var identity := _data.get(
+		"_identity_object"
+	) as PetIdentity
+
+	if identity == null:
+		_hud.show_message(
+			"Không đọc được pet hiện tại."
+		)
+		return
+
+	var item := _legacy_inventory_item(
+		uid
+	)
+
+	if (
+		not uid.is_empty()
+		and item.is_empty()
+	):
+		_hud.show_message(
+			"Item kế thừa không còn trong kho."
+		)
+		return
+
+	if not _game.save():
+		_hud.show_message(
+			"Không lưu được đời hiện tại."
+		)
+		return
+
+	var prepared := LegacyInheritanceService.new().prepare(
+		identity,
+		item
+	)
+
+	if not bool(
+		prepared.get(
+			"ok",
+			false
+		)
+	):
+		_hud.show_message(
+			String(
+				prepared.get(
+					"error",
+					"Không chuẩn bị được kế thừa."
+				)
+			)
+		)
+		return
+
+	_suppress_exit_save = true
+
+	var egg_deleted := SaveService.new().delete_save()
+	var hatch_deleted := HatchSaveService.new().delete_save()
+
+	SaveManager.delete_meta()
+	var meta_deleted := not SaveManager.has_meta_save()
+
+	var evolution_deleted := (
+		EvolutionSaveService.new().delete_data()
+	)
+
+	if (
+		not egg_deleted
+		or not hatch_deleted
+		or not meta_deleted
+		or not evolution_deleted
+	):
+		_suppress_exit_save = false
+		_game.save()
+		_hud.show_message(
+			"Chưa reset được đời cũ. Hãy thử lại."
+		)
+		return
+
+	var error := get_tree().change_scene_to_file(
+		"res://scenes/main.tscn"
+	)
+
+	if error != OK:
+		_suppress_exit_save = false
+		_hud.show_message(
+			"Không mở được đời mới."
+		)
+
+
+func _legacy_inventory_item(
+	uid: String
+) -> Dictionary:
+	if uid.is_empty():
+		return {}
+
+	for item in _game.inventory():
+		if String(
+			item.get(
+				"uid",
+				""
+			)
+		) == uid:
+			return item.duplicate(
+				true
+			)
+
+	return {}
+
+
+func _legacy_item_label(
+	item: Dictionary
+) -> String:
+	if item.is_empty():
+		return "Không item"
+
+	var display_name := String(
+		item.get(
+			"display_name",
+			item.get(
+				"base_display_name",
+				"Item"
+			)
+		)
+	).strip_edges()
+	var rarity := String(
+		item.get(
+			"rarity",
+			""
+		)
+	).strip_edges()
+
+	if display_name.is_empty():
+		display_name = "Item"
+
+	if rarity.is_empty():
+		return display_name
+
+	return "%s • %s" % [
+		display_name,
+		rarity.capitalize(),
+	]
 
 
 func _format_stage_time(
