@@ -155,11 +155,36 @@ const DEFECT_CHANCE := {
 	"perfect": 0.02,
 }
 
+const SECONDARY_EFFECT_LEVEL_LABELS := {
+	1: "I • Nhẹ",
+	2: "II • Vừa",
+	3: "III • Mạnh",
+	4: "IV • Cực mạnh",
+}
+
+const POSITIVE_LEVEL_WEIGHTS_BY_RARITY := {
+	"common": {1: 100.0},
+	"uncommon": {1: 70.0, 2: 30.0},
+	"rare": {1: 15.0, 2: 65.0, 3: 20.0},
+	"epic": {2: 25.0, 3: 60.0, 4: 15.0},
+	"legendary": {3: 45.0, 4: 55.0},
+}
+
+const NEGATIVE_LEVEL_WEIGHTS_BY_QUALITY := {
+	"perfect": {1: 100.0},
+	"good": {1: 85.0, 2: 15.0},
+	"normal": {1: 50.0, 2: 40.0, 3: 10.0},
+	"poor": {2: 40.0, 3: 45.0, 4: 15.0},
+	"broken": {3: 35.0, 4: 65.0},
+}
+
 const FOOD_PROPERTIES: Array[StringName] = [
 	&"fresh",
 	&"dense",
 	&"nutritious",
 	&"growth_rich",
+	&"easy_digest",
+	&"vitality",
 ]
 
 const FOOD_DEFECTS: Array[StringName] = [
@@ -167,6 +192,8 @@ const FOOD_DEFECTS: Array[StringName] = [
 	&"stale",
 	&"heavy",
 	&"rotten",
+	&"bloated",
+	&"contaminated",
 ]
 
 const GROWTH_PROPERTIES: Array[StringName] = [
@@ -174,6 +201,8 @@ const GROWTH_PROPERTIES: Array[StringName] = [
 	&"rapid",
 	&"pure",
 	&"burst",
+	&"stable",
+	&"efficient",
 ]
 
 const GROWTH_DEFECTS: Array[StringName] = [
@@ -181,6 +210,8 @@ const GROWTH_DEFECTS: Array[StringName] = [
 	&"expired",
 	&"appetite_drain",
 	&"backfire",
+	&"unstable",
+	&"residue",
 ]
 
 const FUTURE_FAMILIES: Array[StringName] = [
@@ -496,6 +527,17 @@ func gene_growth_for_rarity(
 	)
 
 
+func secondary_effect_level_label(
+	level: int
+) -> String:
+	return String(
+		SECONDARY_EFFECT_LEVEL_LABELS.get(
+			clampi(level, 1, 4),
+			"I • Nhẹ"
+		)
+	)
+
+
 func generate_basic_infant(
 	item_type: StringName,
 	seed_value: int
@@ -653,6 +695,10 @@ func property_label(value: StringName) -> String:
 			return "Dinh dưỡng"
 		&"growth_rich":
 			return "Giàu tăng trưởng"
+		&"easy_digest":
+			return "Dễ tiêu"
+		&"vitality":
+			return "Bồi bổ"
 		&"concentrated":
 			return "Cô đặc"
 		&"rapid":
@@ -661,6 +707,10 @@ func property_label(value: StringName) -> String:
 			return "Tinh khiết"
 		&"burst":
 			return "Bùng trưởng"
+		&"stable":
+			return "Ổn định"
+		&"efficient":
+			return "Hấp thu cao"
 		_:
 			return String(value)
 
@@ -683,6 +733,14 @@ func defect_label(value: StringName) -> String:
 			return "Hao thức ăn"
 		&"backfire":
 			return "Phản tác dụng"
+		&"bloated":
+			return "Đầy bụng"
+		&"contaminated":
+			return "Nhiễm tạp"
+		&"unstable":
+			return "Bất ổn"
+		&"residue":
+			return "Dư chất"
 		_:
 			return String(value)
 
@@ -722,30 +780,99 @@ func _generate_food(
 		quality,
 		FOOD_DEFECTS
 	)
+	var secondary_effects := _build_secondary_effects(
+		rng,
+		properties,
+		defects,
+		rarity,
+		quality
+	)
 
-	for property_id in properties:
-		match StringName(property_id):
+	for effect in secondary_effects:
+		var effect_id := StringName(
+			effect.get(
+				"id",
+				""
+			)
+		)
+		var level := clampi(
+			int(
+				effect.get(
+					"level",
+					1
+				)
+			),
+			1,
+			4
+		)
+
+		match effect_id:
 			&"fresh":
-				main_seconds = int(round(main_seconds * 1.25))
+				main_seconds = int(round(
+					float(main_seconds)
+					* (1.0 + 0.12 * level)
+				))
 			&"dense":
-				main_seconds += rng.randi_range(15 * 60, 30 * 60)
+				main_seconds += [
+					10, 20, 35, 55
+				][level - 1] * 60
 			&"nutritious":
-				growth_delta += rng.randi_range(3 * 60, 8 * 60)
+				growth_delta += [
+					2, 5, 10, 18
+				][level - 1] * 60
 			&"growth_rich":
-				main_seconds = int(round(main_seconds * 0.8))
-				growth_delta += rng.randi_range(5 * 60, 12 * 60)
-
-	for defect_id in defects:
-		match StringName(defect_id):
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.95, 0.90, 0.85, 0.80][level - 1]
+				))
+				growth_delta += [
+					5, 10, 18, 30
+				][level - 1] * 60
+			&"easy_digest":
+				growth_delta += [
+					1, 3, 6, 10
+				][level - 1] * 60
+			&"vitality":
+				main_seconds += [
+					5, 10, 20, 35
+				][level - 1] * 60
+				growth_delta += [
+					1, 3, 5, 8
+				][level - 1] * 60
 			&"spoiled":
-				main_seconds = int(round(main_seconds * 0.5))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.85, 0.70, 0.55, 0.40][level - 1]
+				))
 			&"stale":
-				main_seconds = int(round(main_seconds * 0.75))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.90, 0.80, 0.70, 0.60][level - 1]
+				))
 			&"heavy":
-				growth_delta -= rng.randi_range(2 * 60, 5 * 60)
+				growth_delta -= [
+					2, 5, 10, 18
+				][level - 1] * 60
 			&"rotten":
-				main_seconds = int(round(main_seconds * 0.25))
-				growth_delta -= rng.randi_range(2 * 60, 6 * 60)
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.75, 0.50, 0.30, 0.15][level - 1]
+				))
+				growth_delta -= [
+					2, 6, 12, 20
+				][level - 1] * 60
+			&"bloated":
+				growth_delta -= [
+					1, 4, 8, 15
+				][level - 1] * 60
+			&"contaminated":
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.92, 0.82, 0.68, 0.50][level - 1]
+				))
+				growth_delta -= [
+					3, 7, 14, 25
+				][level - 1] * 60
 
 	main_seconds = max(60, main_seconds)
 
@@ -782,6 +909,7 @@ func _generate_food(
 		"food_delta_seconds": 0,
 		"properties": properties,
 		"defects": defects,
+		"secondary_effects": secondary_effects,
 		"salvage_type": "food_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
@@ -824,30 +952,101 @@ func _generate_growth(
 		quality,
 		GROWTH_DEFECTS
 	)
+	var secondary_effects := _build_secondary_effects(
+		rng,
+		properties,
+		defects,
+		rarity,
+		quality
+	)
 
-	for property_id in properties:
-		match StringName(property_id):
+	for effect in secondary_effects:
+		var effect_id := StringName(
+			effect.get(
+				"id",
+				""
+			)
+		)
+		var level := clampi(
+			int(
+				effect.get(
+					"level",
+					1
+				)
+			),
+			1,
+			4
+		)
+
+		match effect_id:
 			&"concentrated":
-				main_seconds = int(round(main_seconds * 1.55))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [1.15, 1.30, 1.50, 1.80][level - 1]
+				))
 			&"rapid":
-				main_seconds += rng.randi_range(3 * 60, 8 * 60)
+				main_seconds += [
+					3, 7, 12, 20
+				][level - 1] * 60
 			&"pure":
-				main_seconds = int(round(main_seconds * 1.25))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [1.10, 1.20, 1.35, 1.55][level - 1]
+				))
 			&"burst":
-				if rng.randf() <= 0.25:
-					main_seconds *= 2
-
-	for defect_id in defects:
-		match StringName(defect_id):
+				var burst_chance := [
+					0.10, 0.20, 0.35, 0.50
+				][level - 1]
+				if rng.randf() <= burst_chance:
+					main_seconds = int(round(
+						float(main_seconds)
+						* [1.25, 1.50, 1.75, 2.00][level - 1]
+					))
+			&"stable":
+				food_delta += [
+					3, 6, 12, 20
+				][level - 1] * 60
+			&"efficient":
+				main_seconds += [
+					2, 5, 9, 15
+				][level - 1] * 60
+				food_delta += [
+					2, 5, 10, 15
+				][level - 1] * 60
 			&"diluted":
-				main_seconds = int(round(main_seconds * 0.5))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.85, 0.70, 0.50, 0.35][level - 1]
+				))
 			&"expired":
-				main_seconds = int(round(main_seconds * 0.3))
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.75, 0.55, 0.35, 0.20][level - 1]
+				))
 			&"appetite_drain":
-				food_delta -= rng.randi_range(5 * 60, 15 * 60)
+				food_delta -= [
+					5, 10, 20, 35
+				][level - 1] * 60
 			&"backfire":
-				if rng.randf() <= 0.5:
-					main_seconds = -rng.randi_range(2 * 60, 10 * 60)
+				var backfire_chance := [
+					0.15, 0.30, 0.55, 0.80
+				][level - 1]
+				if rng.randf() <= backfire_chance:
+					main_seconds = -[
+						2, 5, 12, 25
+					][level - 1] * 60
+			&"unstable":
+				main_seconds = int(round(
+					float(main_seconds)
+					* [0.92, 0.82, 0.68, 0.50][level - 1]
+				))
+			&"residue":
+				main_seconds -= [
+					1, 3, 6, 10
+				][level - 1] * 60
+				food_delta -= [
+					3, 8, 15, 25
+				][level - 1] * 60
 
 	if main_seconds == 0:
 		main_seconds = 60
@@ -885,6 +1084,7 @@ func _generate_growth(
 		"food_delta_seconds": food_delta,
 		"properties": properties,
 		"defects": defects,
+		"secondary_effects": secondary_effects,
 		"salvage_type": "growth_dust",
 		"salvage_value": _salvage_value(rarity, quality, rng),
 		"generated_seed": seed_value,
@@ -919,6 +1119,91 @@ func _generate_future_fragment(
 		"generated_seed": seed_value,
 		"usable_stage": "post_infant",
 	}
+
+
+func _build_secondary_effects(
+	rng: RandomNumberGenerator,
+	properties: Array[String],
+	defects: Array[String],
+	rarity: String,
+	quality: String
+) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+
+	for property_id in properties:
+		var positive_level := _roll_effect_level(
+			rng,
+			POSITIVE_LEVEL_WEIGHTS_BY_RARITY.get(
+				rarity,
+				{1: 100.0}
+			)
+		)
+		result.append({
+			"id": property_id,
+			"polarity": "positive",
+			"level": positive_level,
+			"level_label": secondary_effect_level_label(
+				positive_level
+			),
+			"label": property_label(
+				StringName(property_id)
+			),
+		})
+
+	for defect_id in defects:
+		var negative_level := _roll_effect_level(
+			rng,
+			NEGATIVE_LEVEL_WEIGHTS_BY_QUALITY.get(
+				quality,
+				{1: 100.0}
+			)
+		)
+		result.append({
+			"id": defect_id,
+			"polarity": "negative",
+			"level": negative_level,
+			"level_label": secondary_effect_level_label(
+				negative_level
+			),
+			"label": defect_label(
+				StringName(defect_id)
+			),
+		})
+
+	return result
+
+
+func _roll_effect_level(
+	rng: RandomNumberGenerator,
+	weights: Dictionary
+) -> int:
+	var total := 0.0
+
+	for value in weights.values():
+		total += float(value)
+
+	if total <= 0.0:
+		return 1
+
+	var roll := rng.randf_range(
+		0.0,
+		total
+	)
+	var cursor := 0.0
+
+	for key_value in weights.keys():
+		cursor += float(
+			weights[key_value]
+		)
+
+		if roll <= cursor:
+			return clampi(
+				int(key_value),
+				1,
+				4
+			)
+
+	return 1
 
 
 func _roll_properties(
