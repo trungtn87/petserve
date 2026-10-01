@@ -3,11 +3,18 @@ extends RefCounted
 
 
 const DEFAULT_TRAITS: Dictionary = {
-	"fur": "base",
+	"body": "base",
 	"eyes": "base",
 	"ears": "base",
+	"whiskers": "base",
+	"fur": "base",
+	"coat": "base",
 	"tail": "base",
+	"paws": "base",
+	"mane": "base",
 	"mark": "base",
+	"structure": "base",
+	"aura": "base",
 }
 
 
