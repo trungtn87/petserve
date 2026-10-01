@@ -926,19 +926,19 @@ func _test_stage_item_contract() -> void:
 		"stage 2 facade setup"
 	)
 
-	var dev_state := game.snapshot()
+	var natural_state := game.snapshot()
 	check(
-		bool(
-			dev_state.get(
+		not bool(
+			natural_state.get(
 				"can_evolve",
-				false
+				true
 			)
-		) == OS.is_debug_build(),
-		"debug build exposes the reopened instant evolution talent"
+		),
+		"fresh Stage 2 cannot evolve before real lifecycle requirements are met"
 	)
 	check(
 		not bool(
-			dev_state.get(
+			natural_state.get(
 				"ready_to_evolve",
 				true
 			)
@@ -946,50 +946,11 @@ func _test_stage_item_contract() -> void:
 		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		bool(
-			dev_state.get(
-				"instant_evolution_talent",
-				false
-			)
-		) == OS.is_debug_build(),
-		"instant evolution talent is auto-granted only in debug builds"
+		not natural_state.has(
+			"instant_evolution_talent"
+		),
+		"instant evolution test talent is removed from gameplay state"
 	)
-
-	if OS.is_debug_build():
-		check(
-			game.set_dev_instant_evolution_enabled(
-				true
-			),
-			"debug build can explicitly enable instant evolution"
-		)
-		var override_state := game.snapshot()
-		check(
-			bool(
-				override_state.get(
-					"can_evolve",
-					false
-				)
-			)
-			and not bool(
-				override_state.get(
-					"ready_to_evolve",
-					true
-				)
-			)
-			and bool(
-				override_state.get(
-					"instant_evolution_talent",
-					false
-				)
-			),
-			"debug override bypasses only can_evolve, not natural READY"
-		)
-		check(
-			game.set_dev_instant_evolution_enabled(
-				false
-			),
-			"debug instant evolution can be disabled again"
-		)
 
 	var rewards := game.open_next_chest()
 	var growth_item: Dictionary = {}
