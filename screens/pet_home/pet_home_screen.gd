@@ -2511,12 +2511,28 @@ func _add_skill_rows(
 				0
 			)
 		)
-		var name := String(
+		var skill_id := String(
 			skill.get(
-				"display_name",
+				"skill_id",
 				""
 			)
 		)
+		var name := String(
+			skill.get(
+				"display_name",
+				PetSkillCatalog.display_name(
+					StringName(skill_id)
+				)
+			)
+		)
+		var description := String(
+			skill.get(
+				"description",
+				PetSkillCatalog.description(
+					StringName(skill_id)
+				)
+			)
+		).strip_edges()
 		var source := String(
 			skill.get(
 				"source",
@@ -2530,9 +2546,60 @@ func _add_skill_rows(
 		elif source == "egg_stage4":
 			suffix = " • Trứng Stage 4"
 
+		var detail := name + suffix
+
+		if not description.is_empty():
+			detail += "\n" + description
+
+		if skill_id == "night_eater":
+			var start_hour := clampi(
+				int(
+					state.get(
+						"night_window_start_hour",
+						0
+					)
+				),
+				0,
+				23
+			)
+			var end_hour := posmod(
+				start_hour + 6,
+				24
+			)
+			detail += (
+				"\nKhung giờ của pet: %02d:00–%02d:00."
+				% [
+					start_hour,
+					end_hour,
+				]
+			)
+		elif skill_id == "picky_eater":
+			var preference := String(
+				state.get(
+					"food_preference",
+					""
+				)
+			)
+			var food_names := {
+				"fish": "Cá",
+				"meat": "Thịt",
+				"fruit": "Trái cây",
+				"milk_nectar": "Sữa / mật",
+			}
+			if not preference.is_empty():
+				detail += (
+					"\nNhóm thức ăn ưa thích: %s."
+					% String(
+						food_names.get(
+							preference,
+							preference
+						)
+					)
+				)
+
 		_add_info_row(
 			"Kỹ năng %d" % slot,
-			name + suffix
+			detail
 		)
 
 
