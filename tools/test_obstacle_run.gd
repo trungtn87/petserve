@@ -25,22 +25,35 @@ func _force_hit(game: ObstacleRunGame) -> void:
 	game.tick(1.0 / 30.0)
 
 func _safe_target(game: ObstacleRunGame) -> float:
-	var candidates := ObstacleRunGame.LANE_CENTERS
-	var best_x := float(candidates[0])
-	var best_clearance := -1.0
-	for candidate_value in candidates:
+	var player_center := game.player_rect().get_center().x
+	var danger: Array[Rect2] = []
+	for obstacle in game.obstacles():
+		var rect := game.obstacle_rect(obstacle)
+		if rect.position.y >= 235.0 and rect.position.y <= 410.0:
+			danger.append(rect)
+
+	var current_safe := true
+	for rect in danger:
+		if absf(rect.get_center().x - player_center) < 34.0:
+			current_safe = false
+			break
+	if current_safe:
+		return player_center
+
+	var best_x := player_center
+	var best_cost := INF
+	for candidate_value in ObstacleRunGame.LANE_CENTERS:
 		var candidate := float(candidate_value)
-		var clearance := 999.0
-		for obstacle in game.obstacles():
-			var rect := game.obstacle_rect(obstacle)
-			if rect.position.y < 190.0:
-				continue
-			clearance = minf(
-				clearance,
-				absf(rect.get_center().x - candidate)
-			)
-		if clearance > best_clearance:
-			best_clearance = clearance
+		var blocked := false
+		for rect in danger:
+			if absf(rect.get_center().x - candidate) < 34.0:
+				blocked = true
+				break
+		if blocked:
+			continue
+		var cost := absf(candidate - player_center)
+		if cost < best_cost:
+			best_cost = cost
 			best_x = candidate
 	return best_x
 
