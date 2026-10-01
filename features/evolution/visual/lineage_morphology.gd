@@ -1,7 +1,7 @@
 extends RefCounted
 
 # Versioned deterministic visual genome. Never uses global random state.
-const VERSION := 1
+const VERSION := 2
 const FRAMES := [
 	[1.15, 0.88, 1.10, "compact deep frame"],
 	[1.35, 1.15, 0.90, "tall light frame"],
@@ -11,6 +11,28 @@ const FRAMES := [
 const FACES := ["rounded forehead and short muzzle", "tapered cheeks and a small distinct muzzle", "broad cheek planes and a soft jaw", "narrow cheek planes and a rounded brow"]
 const SURFACE_LINES := ["rounded separate surface clumps", "smooth directional surface contours", "layered tapered surface contours", "soft flowing curved surface lines"]
 const POSES := ["curious forward step", "calm planted stance", "alert poised step", "proud elevated chest"]
+const SPECIES_BIASES := {
+	"cat": {"torso": 0.95, "legs": 0.88, "chest": 0.95, "tail": 1.08, "ears": 1.00},
+	"dog": {"torso": 1.00, "legs": 0.95, "chest": 1.08, "tail": 0.95, "ears": 1.00},
+	"fox": {"torso": 1.12, "legs": 1.06, "chest": 0.88, "tail": 1.28, "ears": 1.12},
+	"bear": {"torso": 0.92, "legs": 0.78, "chest": 1.24, "tail": 0.72, "ears": 0.88},
+	"rabbit": {"torso": 0.88, "legs": 1.10, "chest": 0.82, "tail": 0.72, "ears": 1.38},
+	"lizard": {"torso": 1.30, "legs": 0.68, "chest": 0.82, "tail": 1.35, "ears": 0.72},
+	"bird": {"torso": 0.82, "legs": 0.88, "chest": 0.78, "tail": 0.78, "ears": 0.78},
+	"dragon": {"torso": 1.30, "legs": 0.92, "chest": 1.02, "tail": 1.38, "ears": 0.86},
+	"phoenix": {"torso": 0.90, "legs": 0.92, "chest": 0.78, "tail": 1.42, "ears": 0.92},
+	"horse": {"torso": 1.24, "legs": 1.40, "chest": 1.00, "tail": 1.16, "ears": 0.96},
+	"qilin": {"torso": 1.16, "legs": 1.28, "chest": 0.92, "tail": 1.22, "ears": 1.00},
+	"deer": {"torso": 1.10, "legs": 1.45, "chest": 0.78, "tail": 0.68, "ears": 1.12},
+}
+
+const SPECIES_POSES := {
+	"dragon": ["alert hatchling stance", "low stalking dragon step", "proud juvenile long-neck stance", "curled dragon rest"],
+	"phoenix": ["elegant juvenile perch", "small divine-bird hop", "upright phoenix chick stance", "wings-tucked ceremonial pose"],
+	"horse": ["light foal step", "playful trot preparation", "calm long-legged stance", "gentle head-turn pose"],
+	"qilin": ["poised sacred-beast stance", "light lifted-forehoof step", "serene ceremonial posture", "calm forward glide"],
+	"deer": ["delicate fawn stance", "cautious woodland step", "listening posture", "gentle neck-turn pose"],
+}
 const EFFECTS := {
 	"body.sturdy": [0.10, 0.02, 0.34],
 	"body.agile": [0.22, 0.15, 0.04],
@@ -36,17 +58,26 @@ func profile(identity: PetIdentity) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = identity.lineage_seed() + identity.generation() * 104729
 	var frame: Array = FRAMES[rng.randi_range(0, FRAMES.size() - 1)]
+	var species_key := String(identity.species())
+	var bias: Dictionary = SPECIES_BIASES.get(
+		species_key,
+		{"torso": 1.0, "legs": 1.0, "chest": 1.0, "tail": 1.0, "ears": 1.0}
+	)
+	var pose_pool: Array = SPECIES_POSES.get(
+		species_key,
+		POSES
+	)
 	return {
 		"version": VERSION,
 		"frame": frame[3],
-		"torso": float(frame[0]) + rng.randf_range(-0.07, 0.07),
-		"legs": float(frame[1]) + rng.randf_range(-0.06, 0.06),
-		"chest": float(frame[2]) + rng.randf_range(-0.06, 0.06),
-		"tail": rng.randf_range(0.80, 1.30),
-		"ears": rng.randf_range(0.85, 1.20),
+		"torso": (float(frame[0]) + rng.randf_range(-0.07, 0.07)) * float(bias.get("torso", 1.0)),
+		"legs": (float(frame[1]) + rng.randf_range(-0.06, 0.06)) * float(bias.get("legs", 1.0)),
+		"chest": (float(frame[2]) + rng.randf_range(-0.06, 0.06)) * float(bias.get("chest", 1.0)),
+		"tail": rng.randf_range(0.80, 1.30) * float(bias.get("tail", 1.0)),
+		"ears": rng.randf_range(0.85, 1.20) * float(bias.get("ears", 1.0)),
 		"face": FACES[rng.randi_range(0, FACES.size() - 1)],
 		"surface_line": SURFACE_LINES[rng.randi_range(0, SURFACE_LINES.size() - 1)],
-		"pose": POSES[rng.randi_range(0, POSES.size() - 1)],
+		"pose": pose_pool[rng.randi_range(0, pose_pool.size() - 1)],
 		"side": "left" if rng.randi_range(0, 1) == 0 else "right",
 		"response": rng.randf_range(0.88, 1.12),
 	}
