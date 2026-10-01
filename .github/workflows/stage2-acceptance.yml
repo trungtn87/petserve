@@ -65,6 +65,9 @@ jobs:
       - name: Pet skill slots, inheritance and lifecycle effects
         run: godot --headless --path . res://tools/test_pet_skill_system.tscn
 
+      - name: Final Record + achievement collection
+        run: godot --headless --path . res://tools/test_final_record_achievement.tscn
+
       - name: Gene evolution render contract
         run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
 
