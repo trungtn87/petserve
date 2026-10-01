@@ -1100,14 +1100,18 @@ func build_request(
 func commit(
 	result: PetRenderResult
 ) -> bool:
-	if (
-		result == null
-		or not result.success
-		or Image.load_from_file(
-			result.image_path
-		) == null
-	):
-		return false
+	if result == null:
+		return _commit_reject("render result bị rỗng.")
+
+	if not result.success:
+		return _commit_reject("render result báo thất bại.")
+
+	if Image.load_from_file(
+		result.image_path
+	) == null:
+		return _commit_reject(
+			"không đọc được ảnh render: " + result.image_path
+		)
 
 	var data := _save.load_data()
 	var pending: Dictionary = data.get(
@@ -1116,19 +1120,22 @@ func commit(
 	)
 
 	if pending.is_empty():
-		return false
+		return _commit_reject("không có pending evolution.")
 
-	if not _plan_validator.validate(
+	var commit_plan_error := _plan_validator.validate(
 		data
-	).is_empty():
-		return false
+	)
+	if not commit_plan_error.is_empty():
+		return _commit_reject(
+			"plan invalid: " + commit_plan_error
+		)
 
 	var expected_request := build_request(
 		data
 	)
 
 	if expected_request == null:
-		return false
+		return _commit_reject("không rebuild được render request.")
 
 	if (
 		result.metadata.has(
@@ -1141,7 +1148,7 @@ func commit(
 			)
 		) != expected_request.seed
 	):
-		return false
+		return _commit_reject("seed render không khớp pending request.")
 
 	var identity := PetIdentity.from_dict(
 		data.get(
@@ -1184,7 +1191,7 @@ func commit(
 		or current.stage() != from_stage
 		or next.stage() != to_stage
 	):
-		return false
+		return _commit_reject("Identity/Genome/stage transition không hợp lệ khi commit.")
 
 	var previous_visual := PetVisualRecord.from_dict(
 		pending.get(
@@ -1198,7 +1205,7 @@ func commit(
 		or previous_visual.pet_id
 			!= identity.pet_id()
 	):
-		return false
+		return _commit_reject("source visual không khớp pet identity.")
 
 	var visual := PetVisualRecord.new()
 	visual.pet_id = identity.pet_id()
@@ -1292,9 +1299,22 @@ func commit(
 		"pending_evolution"
 	)
 
-	return _save.save_data(
+	if not _save.save_data(
 		data
+	):
+		return _commit_reject("không ghi được evolution save sau commit.")
+
+	return true
+
+
+func _commit_reject(
+	reason: String
+) -> bool:
+	push_error(
+		"StageEvolutionService.commit rejected: "
+		+ reason
 	)
+	return false
 
 
 func _migrate_illegal_birth_talent(
