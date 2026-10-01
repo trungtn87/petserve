@@ -6,6 +6,8 @@ const TYPE_FOOD: StringName = &"food"
 const TYPE_GROWTH: StringName = &"growth"
 const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
+const TYPE_GENE_FRAGMENT: StringName = &"gene_fragment"
+const TYPE_MYTHIC_COMPONENT: StringName = &"mythic_component"
 const GENE_GROWTH_BONUS_PERCENT: float = 5.0
 const GENE_RARITY_STATS := {
 	"common": {"score": 10.0, "growth": 2.0},
@@ -14,6 +16,29 @@ const GENE_RARITY_STATS := {
 	"epic": {"score": 55.0, "growth": 10.0},
 	"legendary": {"score": 80.0, "growth": 15.0},
 }
+
+const DUPLICATE_GENE_FRAGMENT_AMOUNT := {
+	"common": 1,
+	"uncommon": 1,
+	"rare": 2,
+	"epic": 4,
+	"legendary": 7,
+}
+
+const MYTHIC_COMPONENT_DEFINITIONS := [
+	{
+		"id": "moon_beast_core_fragment",
+		"display_name": "Mảnh Lõi Nguyệt Thú",
+	},
+	{
+		"id": "ancient_shadow_gene_fragment",
+		"display_name": "Mảnh Gene Bóng Tối Cổ",
+	},
+	{
+		"id": "astral_catalyst_fragment",
+		"display_name": "Mảnh Xúc Tác Tinh Giới",
+	},
+]
 
 # Food/Growth now follow the same five rarity tiers as Gene items.
 # Rarity determines the base value range; quality/properties/defects still
@@ -497,6 +522,191 @@ func generate_gene(
 	}
 
 
+func generate_gene_for_rarity(
+	definition: GeneDefinition,
+	seed_value: int,
+	rarity: String
+) -> Dictionary:
+	var normalized_rarity := rarity.strip_edges().to_lower()
+
+	if not GENE_RARITY_STATS.has(
+		normalized_rarity
+	):
+		return {}
+
+	var item := generate_gene(
+		definition,
+		seed_value
+	)
+
+	if item.is_empty():
+		return {}
+
+	var stats: Dictionary = GENE_RARITY_STATS[
+		normalized_rarity
+	]
+	var gene_score := float(
+		stats.get(
+			"score",
+			definition.primary_influence()
+		)
+	)
+	var growth_bonus := float(
+		stats.get(
+			"growth",
+			GENE_GROWTH_BONUS_PERCENT
+		)
+	)
+	var source_tags := definition.influence_tags()
+	var scaled_tags: Dictionary = {}
+	var influence_scale := (
+		gene_score
+		/ maxf(
+			1.0,
+			definition.primary_influence()
+		)
+	)
+
+	for key_value in source_tags.keys():
+		scaled_tags[String(key_value)] = (
+			float(source_tags[key_value])
+			* influence_scale
+		)
+
+	item["rarity"] = normalized_rarity
+	item["gene_score"] = gene_score
+	item["gene_influence"] = gene_score
+	item["growth_bonus_percent"] = growth_bonus
+	item["gene_expression_tier"] = String(
+		GeneExpressionScale.tier_for_score(
+			gene_score
+		)
+	)
+	item["influence_tags"] = scaled_tags
+	return item
+
+
+func duplicate_gene_fragment_amount(
+	rarity: String
+) -> int:
+	return maxi(
+		1,
+		int(
+			DUPLICATE_GENE_FRAGMENT_AMOUNT.get(
+				rarity.strip_edges().to_lower(),
+				1
+			)
+		)
+	)
+
+
+func generate_gene_fragment(
+	gene_item: Dictionary,
+	seed_value: int,
+	quantity: int = 1
+) -> Dictionary:
+	var gene_id := String(
+		gene_item.get(
+			"gene_id",
+			gene_item.get(
+				"definition_id",
+				"unknown"
+			)
+		)
+	)
+	var display_name := String(
+		gene_item.get(
+			"display_name",
+			"Gene"
+		)
+	)
+
+	return {
+		"uid": "gene_fragment_%s_%s" % [
+			gene_id,
+			str(absi(seed_value)),
+		],
+		"definition_id": "gene_fragment_%s" % gene_id,
+		"item_type": String(TYPE_GENE_FRAGMENT),
+		"display_name": "Mảnh " + display_name,
+		"rarity": String(
+			gene_item.get(
+				"rarity",
+				"common"
+			)
+		),
+		"quality": "normal",
+		"target_gene_id": gene_id,
+		"fragment_quantity": maxi(
+			1,
+			quantity
+		),
+		"main_value_seconds": 0,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"salvage_type": "gene_fragment",
+		"salvage_value": 0,
+		"generated_seed": seed_value,
+		"usable_stage": "account_vault",
+	}
+
+
+func generate_mythic_component(
+	seed_value: int
+) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(
+		1,
+		absi(seed_value)
+	)
+	var definition: Dictionary = MYTHIC_COMPONENT_DEFINITIONS[
+		rng.randi_range(
+			0,
+			MYTHIC_COMPONENT_DEFINITIONS.size() - 1
+		)
+	]
+
+	return {
+		"uid": "mythic_component_%s_%s" % [
+			String(
+				definition.get(
+					"id",
+					"mythic"
+				)
+			),
+			str(absi(seed_value)),
+		],
+		"definition_id": String(
+			definition.get(
+				"id",
+				"mythic"
+			)
+		),
+		"item_type": String(TYPE_MYTHIC_COMPONENT),
+		"display_name": String(
+			definition.get(
+				"display_name",
+				"Mảnh Mythic"
+			)
+		),
+		"rarity": "mythic",
+		"quality": "normal",
+		"mythic_component": true,
+		"fragment_quantity": 1,
+		"main_value_seconds": 0,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"salvage_type": "mythic_component",
+		"salvage_value": 0,
+		"generated_seed": seed_value,
+		"usable_stage": "account_vault",
+	}
+
+
 func gene_score_for_rarity(
 	rarity: String
 ) -> float:
@@ -649,6 +859,28 @@ func describe(item: Dictionary) -> String:
 				gene_text += " • Hệ " + element_lock.capitalize()
 			return gene_text
 
+		TYPE_GENE_FRAGMENT:
+			return (
+				"Mảnh Gene %s • số lượng %d"
+				% [
+					String(
+						item.get(
+							"target_gene_id",
+							"?"
+						)
+					),
+					int(
+						item.get(
+							"fragment_quantity",
+							1
+						)
+					),
+				]
+			)
+
+		TYPE_MYTHIC_COMPONENT:
+			return "Thành phần Mythic • dùng làm điều kiện cho công thức tiến hóa hiếm"
+
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
 
@@ -667,6 +899,8 @@ func rarity_label(value: String) -> String:
 			return "EPIC"
 		"legendary":
 			return "LEGENDARY"
+		"mythic":
+			return "MYTHIC"
 		_:
 			return value.to_upper()
 
