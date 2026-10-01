@@ -44,7 +44,7 @@ jobs:
       - name: Stage 1 prompt contract
         run: godot --headless --path . --script res://tools/test_initial_render_contract.gd
 
-      - name: Seven species + species mutation + Mythic contract
+      - name: Twelve species + anatomy mutation + Mythic contract
         run: godot --headless --path . --script res://tools/test_species_expansion.gd
 
       - name: Gene score foundation
