@@ -54,5 +54,45 @@
     "forbidden_advanced_features": "No extra wing pair, no giant crest, no eye-pattern wings, no halo feathers, no horns, no extra legs and no multiple mutation effects.",
     "species_anatomy": "Clearly recognizable mythical bird anatomy: two legs, one beak, one pair of wings and one feather tail.",
     "freestyle_pose": "Choose any natural juvenile bird pose: standing, perched, small hop, wings tucked or resting."
+  },
+  {
+    "species": "dragon",
+    "infant_form": "A very young mythical elemental dragon hatchling: compact four-legged long-beast body, slightly elongated neck, unmistakable dragon head, bright expressive eyes, one long tail, small horn buds or smooth brow ridges and juvenile scales. Wings are optional and must not appear unless specifically authorized by destiny or Gene.",
+    "composition": "Keep the entire hatchling comfortably inside the frame. Make the dragon silhouette readable through head, neck, four legs and long single tail. Use a premium mobile-game PetHome environment with strong depth and enough negative space for UI.",
+    "forbidden_advanced_features": "No full adult wings unless explicitly authorized, no extra wing pair, no extra head, no extra limbs, no giant horns, no tangled anatomy and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical dragon anatomy: one dragon head, four natural legs, one long tail and no mandatory wings at Stage 1.",
+    "freestyle_pose": "Choose a natural young-dragon pose: alert standing, low stalking step, curled rest or proud juvenile stance."
+  },
+  {
+    "species": "phoenix",
+    "infant_form": "A very young mythical elemental phoenix chick: elegant rounded juvenile bird body, two legs, one pair of compact wings, bright expressive eyes, a short noble beak, a small crown crest and a naturally longer decorative feather tail than an ordinary bird.",
+    "composition": "Keep the full phoenix chick inside the frame. Make the one-pair wing silhouette, crest and young decorative tail easy to read without making it look adult. Use a premium PetHome fantasy environment with clear depth.",
+    "forbidden_advanced_features": "No second wing pair, no giant adult tail fan, no oversized halo, no extra legs, no extra head and no stacked mutation effects.",
+    "species_anatomy": "Clearly recognizable juvenile phoenix anatomy: one bird head, two legs, exactly one pair of wings and one decorative tail-feather assembly.",
+    "freestyle_pose": "Choose a natural divine-bird juvenile pose: standing, perched, small hop, wings tucked or slightly opened."
+  },
+  {
+    "species": "horse",
+    "infant_form": "A very young mythical elemental foal: clear equine body, long youthful legs, readable neck, small horse head, two ears, simple mane, four hooves and one natural flowing tail. Keep the foal graceful and youthful rather than miniature-adult.",
+    "composition": "Keep the whole foal inside the frame and make the equine neck, long legs, mane and single tail immediately readable. Use a premium mobile-game PetHome environment with natural depth.",
+    "forbidden_advanced_features": "No horn by default, no antlers, no wings, no scales, no extra legs, no split tail and no saddle or equipment.",
+    "species_anatomy": "Clearly recognizable equine anatomy: one horse head, two ears, four long legs with hooves and exactly one tail.",
+    "freestyle_pose": "Choose a natural foal pose: standing, light step, playful trot preparation, head turn or resting."
+  },
+  {
+    "species": "qilin",
+    "infant_form": "A very young mythical elemental qilin: elegant sacred hoofed beast with four slender legs, refined divine-beast head, two ears, a small central horn or restrained paired horn buds, soft cloud-like mane, one flowing tail and a few subtle natural scale patches.",
+    "composition": "Keep the full qilin inside the frame. The silhouette must read as a sacred hoofed beast rather than a horse with a random horn. Show horn, mane, legs and tail cleanly while preserving UI-safe space.",
+    "forbidden_advanced_features": "No giant antlers, no multiple horns beyond the defined pair or single central horn, no wings, no dragon body takeover, no armor and no extra limbs.",
+    "species_anatomy": "Clearly recognizable qilin anatomy: one divine-beast head, four hoofed legs, two ears, one tail and a restrained sacred horn structure.",
+    "freestyle_pose": "Choose a calm sacred-beast pose: poised standing, light forward step, lifted forehoof or serene rest."
+  },
+  {
+    "species": "deer",
+    "infant_form": "A very young mythical elemental deer fawn: slim four-legged body, fine youthful legs, small refined head, two soft ears, one short natural tail and either no antlers or only tiny juvenile antler buds. Keep the silhouette light and woodland-like.",
+    "composition": "Keep the entire fawn inside the frame and make the slim deer legs, small head, ears and short tail easy to distinguish from a horse. Use a premium PetHome fantasy environment with open natural depth.",
+    "forbidden_advanced_features": "No large mature antlers at Stage 1, no horse mane, no wings, no scales, no extra limbs, no split tail and no heavy armor.",
+    "species_anatomy": "Clearly recognizable deer anatomy: one small cervid head, two ears, four fine legs and one short tail.",
+    "freestyle_pose": "Choose a natural fawn pose: delicate standing, cautious step, listening posture, gentle head turn or resting."
   }
 ]
