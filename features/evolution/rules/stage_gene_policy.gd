@@ -29,7 +29,7 @@ func is_unlimited(stage_index: int) -> bool:
 
 func can_accept_gene(stage_index: int, locus: StringName) -> bool:
 	var normalized_locus := _normalize_name(locus)
-	if not PetGenomeSchema.is_visual_locus(normalized_locus):
+	if not PetGenomeSchema.is_gene_locus(normalized_locus):
 		return false
 	if max_gene_items(stage_index) == 0:
 		return false
@@ -72,7 +72,7 @@ static func load_from_path(path: String) -> StageGenePolicy:
 		var seen: Dictionary = {}
 		for locus_value in loci_value as Array:
 			var locus := _normalize_name(StringName(str(locus_value)))
-			if String(locus).is_empty() or not PetGenomeSchema.is_visual_locus(locus) or seen.has(locus):
+			if String(locus).is_empty() or not PetGenomeSchema.is_gene_locus(locus) or seen.has(locus):
 				return null
 			seen[locus] = true
 			loci.append(locus)
