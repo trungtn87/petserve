@@ -60,17 +60,18 @@ func _test_normal_egg_has_no_mythic_destiny() -> void:
 	var identity := PetIdentityFactory.new().create_initial(7209, &"dark", &"cat")
 	var service := SpeciesMythicDestinyService.new()
 	_expect(
-		service.from_stage4_egg(identity, 1).is_empty()
-		and service.from_stage4_egg(identity, 2).is_empty()
-		and service.from_stage4_egg(identity, 3).is_empty(),
-		"normal Egg Stage 1-3 must never grant a fantasy mutation"
+		service.from_stage4_egg(identity, 1, false).is_empty()
+		and service.from_stage4_egg(identity, 2, false).is_empty()
+		and service.from_stage4_egg(identity, 3, false).is_empty()
+		and service.from_stage4_egg(identity, 4, false).is_empty(),
+		"non-mutated Egg must never grant a fantasy mutation, including Stage 4"
 	)
 
 
 func _test_stage4_egg_locks_mythic_destiny() -> void:
 	var identity := PetIdentityFactory.new().create_initial(7210, &"dark", &"cat")
 	var service := SpeciesMythicDestinyService.new()
-	var destiny := service.from_stage4_egg(identity, 4)
+	var destiny := service.from_stage4_egg(identity, 4, true)
 	_expect(
 		not destiny.is_empty()
 		and StringName(destiny.get("source", "")) == SpeciesMythicDestinyService.SOURCE_EGG_STAGE4,
