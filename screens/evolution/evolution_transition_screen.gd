@@ -739,21 +739,21 @@ func _run_initial_birth() -> void:
 		)
 		return
 
+	var existing_path := _get_existing_visual_path()
+
+	if not existing_path.is_empty():
+		# Visual đã tồn tại = lần sinh đã hoàn tất trước đó.
+		# Resume game phải vào thẳng PetHome, tuyệt đối không phát lại
+		# rung trứng / flash nở.
+		_completed = true
+		_hatch_waiting = false
+		_enter_pet_home()
+		return
+
 	_prepare_initial_hatch_visual(
 		_identity.element(),
 		_egg_stage
 	)
-
-	var existing_path := _get_existing_visual_path()
-
-	if not existing_path.is_empty():
-		_status_label.text = "Trứng đang rung..."
-
-		await _wait_for_initial_hatch_duration()
-		await _finish_initial_hatch(
-			existing_path
-		)
-		return
 
 	var request_data := _coordinator.build_request(
 		_identity,
