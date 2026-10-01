@@ -1016,7 +1016,7 @@ func build_stage_regenerate_request(
 		)
 	else:
 		positive_prompt += (
-			" No special Mythic branch is active. "
+			" No special fantasy mutation is active as a Mythic branch. "
 			+ "Do not add anatomy that is absent from the species profile, target phenotype and code-selected normal mutations."
 		)
 
