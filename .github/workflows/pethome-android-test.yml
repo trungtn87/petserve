@@ -96,6 +96,12 @@ jobs:
           export XDG_DATA_HOME=/tmp/petverse-test-m8
           godot --headless --path . tools/test_m8_stage_cycle.tscn
 
+      - name: Test Legacy item inheritance
+        shell: bash
+        run: |
+          export XDG_DATA_HOME=/tmp/petverse-test-legacy
+          godot --headless --path . tools/test_legacy_item_inheritance.tscn
+
       - name: Export Android debug APK
         shell: bash
         env:
