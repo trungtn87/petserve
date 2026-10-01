@@ -58,6 +58,12 @@ func _ready() -> void:
 	if dialogs_only:
 		for child in get_children():
 			child.hide()
+
+		# PetHome dùng HUD chính riêng nhưng vẫn cần thanh cảnh báo
+		# trạng thái gameplay ở đáy màn hình.
+		if _notice_bar != null:
+			_notice_bar.show()
+
 	_build_overlay()
 	_build_toast()
 
@@ -343,53 +349,36 @@ func _build_notice_bar() -> void:
 	_notice_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_notice_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_notice_label.add_theme_font_size_override("font_size", 12)
-	_notice_label.text = "Thú cưng đang phát triển bình thường."
+	_notice_label.text = ""
 	margin.add_child(_notice_label)
+	_notice_bar.visible = false
 
 
 func _refresh_notice(s: Dictionary) -> void:
-	if _notice_label == null:
+	if (
+		_notice_bar == null
+		or _notice_label == null
+	):
 		return
 
-	var crystallization_value: Variant = s.get(
-		"crystallization_notice",
-		{}
-	)
-	if (
-		typeof(crystallization_value) == TYPE_DICTIONARY
-		and not (crystallization_value as Dictionary).is_empty()
-	):
-		var crystallization_notice := crystallization_value as Dictionary
-		var crystallization_message := String(
-			crystallization_notice.get(
-				"message",
-				""
-			)
-		)
-		if not crystallization_message.is_empty():
-			_notice_label.text = crystallization_message
-			return
-
-	var ready := bool(
-		s.get(
-			"ready_to_evolve",
-			false
-		)
-	)
 	var final_form := bool(
 		s.get(
 			"final_form",
 			false
 		)
 	)
-	if ready and not final_form:
-		_notice_label.text = "Đã đủ điều kiện tiến hóa."
-		return
-
-	if final_form:
-		_notice_label.text = "Thú cưng đã đạt hình thái cuối."
-		return
-
+	var ready := bool(
+		s.get(
+			"ready_to_evolve",
+			false
+		)
+	)
+	var hibernating := bool(
+		s.get(
+			"hibernating",
+			false
+		)
+	)
 	var food_percent := int(
 		s.get(
 			"food_percent",
@@ -402,26 +391,60 @@ func _refresh_notice(s: Dictionary) -> void:
 			0.0
 		)
 	)
-	var growth_speed_percent := int(
-		s.get(
-			"growth_speed_percent",
-			0
+	var growth_speed_percent := maxi(
+		0,
+		int(
+			s.get(
+				"growth_speed_percent",
+				0
+			)
 		)
 	)
 
-	if food_ratio <= 0.0:
-		_notice_label.text = "Độ no đã hết • trưởng thành đang tạm dừng."
-	elif food_ratio <= 0.50:
-		_notice_label.text = (
-			"Độ no %d%% đang làm chậm trưởng thành • tốc độ hiện tại %d%%."
+	var message := ""
+
+	# Ưu tiên trạng thái ảnh hưởng trực tiếp đến tiến trình.
+	if ready and not final_form:
+		message = "Đã đủ điều kiện tiến hóa."
+	elif hibernating:
+		if food_ratio <= 0.0:
+			message = (
+				"Độ no đã hết • thú cưng đang ngủ đông • trưởng thành tạm dừng."
+			)
+		else:
+			message = (
+				"Thú cưng đang ngủ đông • độ no %d%% • tốc độ trưởng thành còn %d%%."
+				% [
+					food_percent,
+					growth_speed_percent,
+				]
+			)
+	elif food_ratio <= StageLifecycle.LOW_SPEED_FOOD_RATIO:
+		message = (
+			"Độ no còn %d%% • dưới 25%% nên tốc độ trưởng thành còn %d%%."
 			% [
 				food_percent,
 				growth_speed_percent,
 			]
 		)
-	else:
-		_notice_label.text = "Thú cưng đang phát triển bình thường."
+	elif food_ratio <= StageLifecycle.FULL_SPEED_FOOD_RATIO:
+		message = (
+			"Độ no còn %d%% • dưới 50%% nên tốc độ trưởng thành còn %d%%."
+			% [
+				food_percent,
+				growth_speed_percent,
+			]
+		)
+	elif final_form:
+		message = "Thú cưng đã đạt hình thái cuối."
 
+	if message.is_empty():
+		_notice_label.text = ""
+		_notice_bar.visible = false
+		return
+
+	_notice_label.text = message
+	_notice_bar.visible = true
 
 func _build_overlay() -> void:
 	_overlay = Control.new()
