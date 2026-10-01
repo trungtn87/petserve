@@ -67,6 +67,12 @@ func profile(identity: PetIdentity) -> Dictionary:
 		species_key,
 		POSES
 	)
+	var surface_line := SURFACE_LINES[
+		rng.randi_range(
+			0,
+			SURFACE_LINES.size() - 1
+		)
+	]
 	return {
 		"version": VERSION,
 		"frame": frame[3],
@@ -76,7 +82,12 @@ func profile(identity: PetIdentity) -> Dictionary:
 		"tail": rng.randf_range(0.80, 1.30) * float(bias.get("tail", 1.0)),
 		"ears": rng.randf_range(0.85, 1.20) * float(bias.get("ears", 1.0)),
 		"face": FACES[rng.randi_range(0, FACES.size() - 1)],
-		"surface_line": SURFACE_LINES[rng.randi_range(0, SURFACE_LINES.size() - 1)],
+		"surface_line": surface_line,
+		"fur_line": surface_line,
+		"ear_fan_width": rng.randf_range(0.88, 1.12),
+		"ear_roundness": rng.randf_range(0.28, 0.72),
+		"tail_width": rng.randf_range(0.20, 0.36),
+		"mane_width": rng.randf_range(0.82, 1.12),
 		"pose": pose_pool[rng.randi_range(0, pose_pool.size() - 1)],
 		"side": "left" if rng.randi_range(0, 1) == 0 else "right",
 		"response": rng.randf_range(0.88, 1.12),
@@ -104,6 +115,30 @@ func resolve(identity: PetIdentity, stage: int, scores: Dictionary) -> Dictionar
 	result["chest"] = clampf(float(result.chest), 0.70, 2.2)
 	result["tail"] = clampf(float(result.tail) + minf(1.0, float(scores.get("tail.long", 0.0)) / 160.0) * float(allowance), 0.7, 2.3)
 	result["ears"] = clampf(float(result.ears) + minf(0.7, float(scores.get("ears.long", 0.0)) / 200.0) * float(allowance), 0.7, 1.9)
+	result["ear_fan_width"] = clampf(
+		float(result.ear_fan_width)
+		+ minf(0.9, float(scores.get("ears.softfan", 0.0)) / 140.0) * float(allowance),
+		0.75,
+		2.0
+	)
+	result["ear_roundness"] = clampf(
+		float(result.ear_roundness)
+		+ minf(0.45, float(scores.get("ears.rounded", 0.0)) / 220.0) * float(allowance),
+		0.0,
+		1.0
+	)
+	result["tail_width"] = clampf(
+		float(result.tail_width)
+		+ minf(0.65, float(scores.get("tail.fluffy", 0.0)) / 220.0) * float(allowance),
+		0.12,
+		1.0
+	)
+	result["mane_width"] = clampf(
+		float(result.mane_width)
+		+ minf(0.75, _max_score_for_locus(scores, "mane") / 180.0) * float(allowance),
+		0.70,
+		2.0
+	)
 	result["stage"] = clampi(stage, 1, 5)
 	return result
 
@@ -141,3 +176,19 @@ func build(identity: PetIdentity, stage: int, scores: Dictionary = {}) -> String
 		+ "Gene emphasis: %s. Present from the %s: %s. Separate limbs and code-authorized species appendages from the body outline; never hide the focal feature behind the torso.\n"
 		+ "Preserve individual facial recognition and elemental palette, not exact previous proportions or pose. Natural maturation is authorized even without new Genes. Apply scored Genes to this inherited frame, rather than replacing it with a generic breed template. Structural traits must read in silhouette without glow. Keep pupils readable. Do not substitute bloom, recoloring or camera zoom for bodily development. Species and code-authorized mythical anatomy take precedence over baseline ratios."
 	) % [p.frame, p.face, p.surface_line, p.stage, STAGES[int(p.stage)], p.torso, p.legs, p.chest, p.tail, p.ears, focus, p.side, pose]
+
+
+func _max_score_for_locus(
+	scores: Dictionary,
+	locus: String
+) -> float:
+	var best := 0.0
+	var prefix := locus + "."
+	for key in scores.keys():
+		var token := String(key)
+		if token.begins_with(prefix):
+			best = maxf(
+				best,
+				float(scores[key])
+			)
+	return best
