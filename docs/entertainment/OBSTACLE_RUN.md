@@ -11,9 +11,9 @@ Thay gameplay chạy ngang cũ trong cùng slot `ObstacleRun` của PetHome. Tê
 - Ván bắt đầu ở lần điều khiển đầu tiên.
 - Sống sót 40 giây với 3 mạng.
 - Đá, thùng và quả cầu rơi từ trên xuống.
-- Tốc độ rơi tăng dần từ 138 lên 228.
-- Tần suất sinh tăng dần từ khoảng 0,88 giây xuống 0,48 giây.
-- Nửa sau trận có thể xuất hiện 2 vật cùng hàng; cuối trận có thể có 3, nhưng hệ 5 lane luôn còn đường né.
+- Tốc độ rơi tăng dần từ 130 lên 205.
+- Tần suất sinh tăng dần từ khoảng 1,00 giây xuống 0,62 giây.
+- Nửa sau trận có thể xuất hiện 2 vật cùng hàng; hệ 5 lane luôn còn nhiều đường né.
 - Va chạm mất 1 mạng và có 1,15 giây bảo vệ.
 - Né một vật qua khỏi pet được cộng vào bộ đếm và điểm.
 
