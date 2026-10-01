@@ -32,7 +32,7 @@ const MYTHIC_COMPONENT_DEFINITIONS := [
 	},
 	{
 		"id": "ancient_shadow_gene_fragment",
-		"display_name": "Mảnh Gene Bóng Tối Cổ",
+		"display_name": "Mảnh Gen Bóng Tối Cổ",
 	},
 	{
 		"id": "astral_catalyst_fragment",
@@ -618,7 +618,7 @@ func generate_gene_fragment(
 	var display_name := String(
 		gene_item.get(
 			"display_name",
-			"Gene"
+			"Gen"
 		)
 	)
 
@@ -689,7 +689,7 @@ func generate_mythic_component(
 		"display_name": String(
 			definition.get(
 				"display_name",
-				"Mảnh Mythic"
+				"Mảnh Thần Thoại"
 			)
 		),
 		"rarity": "mythic",
@@ -804,20 +804,26 @@ func describe(item: Dictionary) -> String:
 			return text
 
 		TYPE_GENE:
+			var locus := StringName(
+				item.get(
+					"gene_locus",
+					""
+				)
+			)
+			var direction := StringName(
+				item.get(
+					"gene_direction",
+					""
+				)
+			)
 			var gene_text := (
-				"Gene "
-				+ String(
-					item.get(
-						"gene_locus",
-						"?"
-					)
+				"Gen "
+				+ ViDisplay.locus_label(
+					locus
 				)
 				+ " → "
-				+ String(
-					item.get(
-						"gene_direction",
-						"?"
-					)
+				+ ViDisplay.trait_value(
+					direction
 				)
 				+ " • Điểm +"
 				+ str(
@@ -835,7 +841,7 @@ func describe(item: Dictionary) -> String:
 						)
 					)
 				)
-				+ " • Growth +"
+				+ " • Trưởng thành +"
 				+ str(
 					int(
 						round(
@@ -857,12 +863,17 @@ func describe(item: Dictionary) -> String:
 				)
 			)
 			if not element_lock.is_empty():
-				gene_text += " • Hệ " + element_lock.capitalize()
+				gene_text += (
+					" • Hệ "
+					+ ViDisplay.element_label(
+						StringName(element_lock)
+					)
+				)
 			return gene_text
 
 		TYPE_GENE_FRAGMENT:
 			return (
-				"Mảnh Gene %s • số lượng %d"
+				"Mảnh gen %s • số lượng %d"
 				% [
 					String(
 						item.get(
@@ -880,7 +891,7 @@ func describe(item: Dictionary) -> String:
 			)
 
 		TYPE_MYTHIC_COMPONENT:
-			return "Thành phần Mythic • dùng làm điều kiện cho công thức tiến hóa hiếm"
+			return "Thành phần thần thoại • dùng làm điều kiện cho công thức tiến hóa hiếm"
 
 		TYPE_FUTURE_FRAGMENT:
 			return "Mảnh dành cho giai đoạn sau • chưa thể dùng"
@@ -891,19 +902,21 @@ func describe(item: Dictionary) -> String:
 func rarity_label(value: String) -> String:
 	match value:
 		"common":
-			return "COMMON"
+			return "THƯỜNG"
 		"uncommon":
-			return "UNCOMMON"
+			return "KHÁ HIẾM"
 		"rare":
-			return "RARE"
+			return "HIẾM"
 		"epic":
-			return "EPIC"
+			return "SỬ THI"
 		"legendary":
-			return "LEGENDARY"
+			return "HUYỀN THOẠI"
 		"mythic":
-			return "MYTHIC"
+			return "THẦN THOẠI"
 		_:
-			return value.to_upper()
+			return ViDisplay.rarity_label(
+				value
+			)
 
 
 func quality_label(value: String) -> String:
@@ -1646,7 +1659,7 @@ func _pick_resource_definition(
 func _future_fragment_name(family: StringName) -> String:
 	match family:
 		&"gene_fragment":
-			return "Mảnh Gene chưa xác định"
+			return "Mảnh gen chưa xác định"
 		&"element_fragment":
 			return "Mảnh Nguyên Tố chưa xác định"
 		&"mutation_fragment":
