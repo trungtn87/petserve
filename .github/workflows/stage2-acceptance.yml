@@ -51,6 +51,9 @@ jobs:
       - name: Stage 3 Food + Growth rarity catalog
         run: godot --headless --path . res://tools/test_stage3_food_growth_items.tscn
 
+      - name: Stage 3 Tier III chest contract
+        run: godot --headless --path . res://tools/test_stage3_tier3_chest.tscn
+
       - name: Gene evolution render contract
         run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
 
