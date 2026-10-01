@@ -47,7 +47,13 @@ func build(identity: PetIdentity, stage: int, scores: Dictionary, mythic: Dictio
 	if mythic_active:
 		lines.append("AUTHORIZED MYTHIC ANATOMY: " + String(mythic.get("prompt", "")) + " " + String(mythic.get("preserve_hint", "")))
 	else:
-		lines.append("Anatomy: four legs, two ears, one tail; no horns or wings. Facial recognition and element remain stable while age, proportions and authorized Gene shapes develop.")
+		lines.append(
+			"Anatomy: "
+			+ _species_anatomy(
+				identity.species()
+			)
+			+ " Facial recognition and element remain stable while age, proportions and authorized Gene shapes develop."
+		)
 	lines.append("STYLE: polished stylized 3D fantasy pet illustration, clean shading and readable fur masses. Palette: %s. Use sparse organic elemental cues; do not pre-build a large decorative collar or replace Gene anatomy with leaves, armor or glow. Keep pupils visible." % PALETTES.get(String(identity.element()), "coherent elemental colors"))
 	lines.append("SCENE: uncluttered natural %s-element environment, vertical 9:16, full body and tail within frame, calm upper area for UI. Separate the important contours from the background. No text or watermark. Differences must read in body shape, not camera zoom or bloom." % identity.element())
 	return "\n\n".join(lines)
@@ -116,3 +122,25 @@ func resolve_traits(identity: PetIdentity, stage: int, scores: Dictionary) -> Ar
 			return STRUCTURAL.has(a.locus)
 		return float(a.score) > float(b.score) if not is_equal_approx(float(a.score), float(b.score)) else String(a.locus) < String(b.locus))
 	return result
+
+
+func _species_anatomy(
+	species: StringName
+) -> String:
+	match species:
+		&"bird":
+			return "one bird head, two legs, exactly one pair of wings and one tail-feather assembly; no horns or extra wings."
+		&"phoenix":
+			return "one phoenix head, two legs, exactly one pair of wings and one decorative tail-feather assembly."
+		&"lizard":
+			return "one reptilian head, four legs and exactly one tail; no wings unless explicitly authorized."
+		&"dragon":
+			return "one dragon head, four legs and exactly one tail; one wing pair is allowed only when already established by code-selected anatomy."
+		&"horse":
+			return "one horse head, two ears, four hoofed legs and exactly one tail; no horns, antlers or wings unless explicitly authorized."
+		&"qilin":
+			return "one qilin head, two ears, four hoofed legs, one tail and one coherent sacred horn plan."
+		&"deer":
+			return "one deer head, two ears, four fine legs, one short tail and at most one symmetrical antler pair."
+		_:
+			return "one head, four natural legs, species-appropriate ears and exactly one tail; no unrelated anatomy."
