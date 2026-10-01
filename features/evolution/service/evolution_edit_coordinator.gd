@@ -901,18 +901,21 @@ func build_stage_regenerate_request(
 			)
 			+ ". "
 			+ "Premium fantasy game character art, painterly fantasy game art, evolved chibi proportions, "
-			+ "juvenile-to-adolescent fantasy character design language, slight chibi, natural feline anatomy, "
+			+ "juvenile-to-adolescent fantasy character design language, slight chibi, species-appropriate anatomy, "
 			+ "soft fur and a simple readable design. "
 			+ "Element traits: "
 			+ _simple_element_traits(
 				identity.element()
 			)
-			+ " Stage 2. Juvenile-to-adolescent fantasy cat. "
+			+ " Stage 2. Juvenile-to-adolescent fantasy "
+			+ String(identity.species())
+			+ ". "
 			+ "Make the pet clearly older and more developed than Stage 1 while keeping the same art direction: "
 			+ "noticeably larger overall body, taller body, longer legs, a more developed chest and torso, "
 			+ "fuller layered fur around the chest, cheeks and tail, and a face that is less baby-like while still cute and youthful. "
 			+ "Use evolved chibi proportions: keep the head expressive, but reduce the tiny-kitten body proportions from Stage 1. "
-			+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
+			+ species_profile.species_anatomy
+			+ " "
 			+ "Prioritize distinct body proportions and readable selected Gene features before elemental glow. Use "
 			+ "localized markings and separated elemental accents that do not obscure anatomy."
 		)
@@ -922,7 +925,7 @@ func build_stage_regenerate_request(
 			+ "Do not copy, trace or image-edit the previous stage. "
 			+ "This must visibly look older and more developed than Stage %d. "
 			+ "Preserve the same pet lineage: species, elemental color family, face language, "
-			+ "forehead lineage sigil, fur motif language and exactly one normal tail unless a locked mutation says otherwise. "
+			+ "forehead lineage sigil, surface motif language and the code-authorized appendage layout. "
 			+ "Use the same deterministic lineage seed so the new image still reads as the same individual design family. "
 		) % [
 			target_stage,
@@ -1013,8 +1016,8 @@ func build_stage_regenerate_request(
 		)
 	else:
 		positive_prompt += (
-			" No special fantasy mutation is active. "
-			+ "Do not add horns, wings, extra tails or other mythical mutation anatomy."
+			" No special Mythic branch is active. "
+			+ "Do not add anatomy that is absent from the species profile, target phenotype and code-selected normal mutations."
 		)
 
 	if target_stage == 2:
@@ -1052,8 +1055,8 @@ func build_stage_regenerate_request(
 
 	if target_stage == 2:
 		negative_prompt += (
-			", fully adult cat, old cat, tiny kitten proportions, baby body, very short legs, "
-			+ "round infant torso, drastic redesign, different species, different element"
+			", fully adult form, old animal, tiny infant proportions, baby body, "
+			+ "drastic redesign, different species, different element"
 		)
 	else:
 		negative_prompt += (
@@ -1062,7 +1065,7 @@ func build_stage_regenerate_request(
 
 	if not mythic_active:
 		negative_prompt += (
-			", horns, wings, mythical mutation anatomy"
+			", unauthorized mythical branch anatomy, unearned appendage"
 		)
 
 	var request := PetRenderRequest.new()
@@ -1239,7 +1242,7 @@ func _build_reference_stage_request(
 	)
 
 	if not mythic_active:
-		negative_prompt += ", horns, wings, extra tails, mythical mutation anatomy"
+		negative_prompt += ", unauthorized mythical branch anatomy, unearned appendage"
 
 	var request := PetRenderRequest.new()
 	request.mode = PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
