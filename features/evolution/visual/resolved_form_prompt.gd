@@ -142,5 +142,7 @@ func _species_anatomy(
 			return "one qilin head, two ears, four hoofed legs, one tail and one coherent sacred horn plan."
 		&"deer":
 			return "one deer head, two ears, four fine legs, one short tail and at most one symmetrical antler pair."
+		&"cat", &"dog", &"fox", &"bear", &"rabbit":
+			return "one head, four natural legs, two species-appropriate ears and exactly one tail; no horns or wings."
 		_:
-			return "one head, four natural legs, species-appropriate ears and exactly one tail; no unrelated anatomy."
+			return "one head, species-appropriate limbs and authorized appendages only; no unrelated anatomy."
