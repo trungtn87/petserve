@@ -27,7 +27,7 @@ const SKILLS: Array[Dictionary] = [
 	{"id": "picky_eater", "name": "Kén Ăn", "description": "Ngẫu nhiên một nhóm thức ăn ưa thích: +30%; nhóm khác -30% nếu không có Phàm Ăn."},
 	{"id": "first_meal_genius", "name": "Một Bữa Thành Tài", "description": "Bữa thức ăn đầu tiên mỗi ngày nhận x2 trưởng thành từ thức ăn."},
 	{"id": "bottomless_stomach", "name": "Dạ Dày Không Đáy", "description": "Phần độ no tràn được giữ trong phần dự trữ tối đa 50% sức chứa gốc."},
-	{"id": "rumination", "name": "Phản Sô", "description": "20% khi ăn tạo một lần hồi 25% lượng No sau 2 giờ."},
+	{"id": "rumination", "name": "Phản Sô", "description": "20% khi ăn tạo một lần hồi 25% độ no sau 2 giờ."},
 	{"id": "survival_instinct", "name": "Bản Năng Sinh Tồn", "description": "Mỗi giai đoạn, lần đầu độ no chạm 0 tự hồi 25% sức chứa."},
 	{"id": "growth_window", "name": "Kỳ Tăng Trưởng", "description": "Mỗi giai đoạn có một khoảng tăng trưởng ngẫu nhiên dài 12% tiến độ, trưởng thành x2."},
 	{"id": "mutant_metabolism", "name": "Đột Biến Chuyển Hóa", "description": "12% khi ăn: 6% đổi toàn bộ thành trưởng thành x3, 6% đổi toàn bộ thành độ no x3."},
