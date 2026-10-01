@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 5
-const PENDING_SCHEMA: int = 14
+const PENDING_SCHEMA: int = 15
 
 
 var _save := EvolutionSaveService.new()
@@ -263,6 +263,36 @@ func _prepare_resolved_stage(
 			delta
 		)
 
+	var normal_mutation_resolution := SpeciesNormalMutationResolver.new().resolve(
+		identity,
+		resolved_genome,
+		target_stage
+	)
+
+	if not bool(
+		normal_mutation_resolution.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			String(
+				normal_mutation_resolution.get(
+					"error",
+					"Không resolve được Normal Mutation."
+				)
+			)
+		)
+
+	var normal_genome := normal_mutation_resolution.get(
+		"genome"
+	) as PetGenome
+
+	if normal_genome == null:
+		return _error(
+			"Normal Mutation resolver không trả về PetGenome hợp lệ."
+		)
+
 	var accumulated_gene_ids := _accumulated_gene_ids(
 		data,
 		gene_state
@@ -299,7 +329,7 @@ func _prepare_resolved_stage(
 
 	var mythic_resolution := SpeciesMythicMutationResolver.new().resolve(
 		identity,
-		resolved_genome,
+		normal_genome,
 		gene_state,
 		target_stage,
 		[],
@@ -436,6 +466,12 @@ func _prepare_resolved_stage(
 			+ gene_score_prompt
 		)
 
+	var normal_prompt := _normal_mutation_prompt(
+		normal_mutation_resolution
+	)
+	if not normal_prompt.is_empty():
+		request.positive_prompt += normal_prompt
+
 	var next := PetGenome.new(
 		target_stage,
 		0.0,
@@ -467,6 +503,11 @@ func _prepare_resolved_stage(
 		"gene_resolution": (
 			_serializable_gene_resolution(
 				resolution
+			)
+		),
+		"normal_mutation_resolution": (
+			_serializable_normal_mutation_resolution(
+				normal_mutation_resolution
 			)
 		),
 		"mythic_resolution": (
@@ -700,6 +741,96 @@ func _serialize_deltas(
 			)
 
 	return result
+
+
+func _serializable_normal_mutation_resolution(
+	resolution: Dictionary
+) -> Dictionary:
+	var delta := resolution.get(
+		"delta"
+	) as EvolutionDelta
+
+	return {
+		"mode": String(
+			resolution.get(
+				"mode",
+				"none"
+			)
+		),
+		"target_stage": int(
+			resolution.get(
+				"target_stage",
+				0
+			)
+		),
+		"mutation_id": String(
+			resolution.get(
+				"mutation_id",
+				""
+			)
+		),
+		"probability_basis_points": int(
+			resolution.get(
+				"probability_basis_points",
+				0
+			)
+		),
+		"roll_basis_points": int(
+			resolution.get(
+				"roll_basis_points",
+				-1
+			)
+		),
+		"candidate_ids": (
+			resolution.get(
+				"candidate_ids",
+				[]
+			) as Array
+		).duplicate(
+			true
+		),
+		"delta": (
+			delta.to_dict()
+			if delta != null
+			else {}
+		),
+	}
+
+
+func _normal_mutation_prompt(
+	resolution: Dictionary
+) -> String:
+	if StringName(
+		resolution.get(
+			"mode",
+			"none"
+		)
+	) != SpeciesNormalMutationResolver.MODE_MUTATE:
+		return ""
+
+	var mutation_id := StringName(
+		resolution.get(
+			"mutation_id",
+			""
+		)
+	)
+	var catalog := MutationVisualCatalog.new()
+	var visual := catalog.find_by_id(
+		catalog.load_default(),
+		mutation_id
+	)
+
+	if visual == null:
+		return ""
+
+	return (
+		"\n\n[CODE-SELECTED NORMAL MUTATION]\n"
+		+ "This individual naturally developed one species-compatible mutation during this life-stage transition. "
+		+ visual.instruction()
+		+ " "
+		+ visual.preserve_hint()
+		+ " Do not add a second unselected mutation."
+	)
 
 
 func _serializable_mythic_resolution(
