@@ -1,0 +1,17 @@
+{
+  "style_id": "mythic_elemental_chibi_v2",
+  "identity_lock": "Keep this as the same canonical pet lineage: preserve species, recognizable facial identity cues, established eye family, lineage sigil, base palette family, tail root and previously established Gene features. Stage progression may change age-appropriate body morphology only when the stage prompt explicitly allows it. For image-edit stages, treat the provided reference image as the visual source of truth for anatomy and existing details.",
+  "base_style": "Premium soft Mythic Elemental Chibi game character art with refined semi-3D painterly rendering, glossy expressive eyes, layered tactile fur, clean readable silhouette, cinematic but gentle lighting, subtle magical atmosphere and polished mobile-game quality. Use stage-appropriate proportions rather than forcing infant proportions at every age. Element identity should affect shape language, fur direction, facial design, silhouette and surface motifs as well as color. Magical effects should support the anatomy instead of covering it.",
+  "preserve_rule": "Keep every established feature that is not explicitly changed by the current stage or CHANGE ONLY instruction. Preserve species identity, canonical face cues, elemental lineage, established Gene features and mutation history. Do not invent unrelated anatomy or erase prior evolution details.",
+  "negative_prompt": "different character, identity drift, unrelated species redesign, photorealistic animal, horror, grotesque, deformed anatomy, extra limbs, extra ears, duplicate tail, giant wings, heavy armor, busy accessories, excessive particles, galaxy texture covering the body, starfield fur, noisy pattern, muddy colors, text, logo, watermark",
+  "element_accents": {
+    "metal": "cool silver-gray and soft blue fur accents, pale cyan highlights, controlled crystalline glints, geometric lineage marks and a precise mineral sheen integrated into existing fur",
+    "wood": "warm cream and light tan fur with moss-green and fresh leaf accents, organic leaf motifs, soft green spirit glow and natural growth patterns integrated into fur",
+    "water": "pearl-white and pale aqua fur with clear cyan-blue accents, fluid highlights, restrained droplets and ripple motifs that follow the existing silhouette",
+    "fire": "warm cream fur with orange-red flame accents, amber-red luminous eyes, directional flame-like fur highlights and controlled ember effects",
+    "earth": "warm sand, tan and soft umber fur with muted olive accents, mineral texture, grounded geometric markings and subtle crystal highlights",
+    "dark": "smoky blue-black, charcoal-indigo and muted violet fur, violet-to-cyan luminous eyes, soft shadow gradients, crescent motifs and restrained mist",
+    "light": "warm ivory and pearl-white fur with champagne-gold and faint lilac highlights, luminous eyes, radiant arc motifs and a soft controlled aura",
+    "default": "soft mystical elemental accents integrated into facial design, silhouette, markings and restrained aura"
+  }
+}

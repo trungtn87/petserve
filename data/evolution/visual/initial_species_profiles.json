@@ -1,0 +1,10 @@
+[
+  {
+    "species": "cat",
+    "infant_form": "A very young mythical elemental kitten in its first life stage: compact small body, slightly oversized rounded head, short soft legs, large glossy expressive eyes, small triangular ears, one simple fluffy tail, plush layered fur and a gentle curious expression. Anatomy is cute, coherent and stylized. The kitten may carry exactly one small lineage sigil on the forehead and one restrained elemental effect concentrated mainly around the tail, because those are stable element identity cues rather than mutations.",
+    "composition": "Keep the whole pet comfortably inside the frame and make the overall species silhouette easy to read, while allowing natural overlap or partial occlusion of limbs and tail. The AI may choose the camera-relative pose freely. Use a premium mobile-game PetHome environmental composition with strong foreground, midground and background depth; exact on-screen scale and bottom spacing are controlled by the UI-safe composition rule.",
+    "forbidden_advanced_features": "No advanced mutation marks beyond the single lineage sigil, no split tail, no glowing-paw mutation, no special iris-ring mutation, no guardian mane, no complex facial symbols, no heavy accessories, no wings, no armor and no multiple mutation effects.",
+    "species_anatomy": "Clearly recognizable mythical feline anatomy and silhouette, coherent with a cat. Keep the body biologically believable for the species without forcing a specific stance or forcing every limb to be visible.",
+    "freestyle_pose": "Choose any natural cat pose that fits the scene and life stage. Standing, sitting, crouching, walking, resting or a naturally lifted paw are all allowed. Natural perspective, overlap and occlusion are allowed. Do not force a showcase pose and do not invent or duplicate body parts to expose hidden anatomy."
+  }
+]

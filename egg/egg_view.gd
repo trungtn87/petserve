@@ -598,6 +598,6 @@ func _play_hatch_glow() -> void:
 
 
 	# Giữ whiteout ở alpha 1 cho tới khi hatch_effect_finished
-	# làm GameApp chuyển sang PetHome. Không fade trở lại scene Egg,
+	# làm GameApp chuyển sang phase gameplay kế tiếp. Không fade trở lại scene Egg,
 	# nếu không texture trứng sẽ ló lại một frame/đoạn ngắn.
 	egg_texture.visible = false
