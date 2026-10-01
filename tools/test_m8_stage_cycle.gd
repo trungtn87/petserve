@@ -483,10 +483,10 @@ func _test_stage_lifecycle() -> void:
 	life.advance_to_stage(
 		4
 	)
-	var final_state := life.snapshot()
+	var stage_four := life.snapshot()
 	check(
 		int(
-			final_state.get(
+			stage_four.get(
 				"stage_index",
 				0
 			)
@@ -494,13 +494,83 @@ func _test_stage_lifecycle() -> void:
 		"stage 4 starts"
 	)
 	check(
+		not bool(
+			stage_four.get(
+				"final_form",
+				true
+			)
+		)
+		and int(
+			stage_four.get(
+				"growth_percent",
+				-1
+			)
+		) == 0,
+		"stage 4 is a growth stage, not Final Form"
+	)
+
+	var duration_four := int(
+		stage_four.get(
+			"duration_seconds",
+			0
+		)
+	)
+	check(
+		duration_four == 172800,
+		"stage 4 uses the 48 hour baseline"
+	)
+	check(
+		life.apply_item({
+			"item_type": "food",
+			"display_name": "Stage 4 Food",
+			"main_value_seconds": duration_four,
+			"growth_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"stage 4 accepts food"
+	)
+	check(
+		life.apply_item({
+			"item_type": "growth",
+			"display_name": "Stage 4 Growth Finish",
+			"main_value_seconds": duration_four,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"fed Stage 4 accepts Growth item"
+	)
+	check(
 		bool(
+			life.snapshot().get(
+				"ready_to_evolve",
+				false
+			)
+		),
+		"stage 4 becomes ready for Final Evolution at 100 percent Growth"
+	)
+
+	life.advance_to_stage(
+		StageLifecycle.FINAL_STAGE
+	)
+	var final_state := life.snapshot()
+	check(
+		int(
+			final_state.get(
+				"stage_index",
+				0
+			)
+		) == StageLifecycle.FINAL_STAGE
+		and bool(
 			final_state.get(
 				"final_form",
 				false
 			)
 		),
-		"stage 4 is final form"
+		"Final Form starts only after Stage 4"
 	)
 	check(
 		not bool(
@@ -509,13 +579,13 @@ func _test_stage_lifecycle() -> void:
 				true
 			)
 		),
-		"final form does not request evolution"
+		"Final Form does not request another evolution"
 	)
 	check(
 		not life.tick(
 			3600.0
 		),
-		"final form has no M8 growth timer"
+		"Final Form has no Growth timer"
 	)
 
 
@@ -1202,6 +1272,130 @@ func _test_evolution_two_and_three() -> void:
 		"commit Evolution III"
 	)
 
+	var stage_four_data := (
+		EvolutionSaveService.new()
+		.load_data()
+	)
+	check(
+		int(
+			stage_four_data.get(
+				"genome",
+				{}
+			).get(
+				"stage",
+				0
+			)
+		) == 4,
+		"Evolution III commits Stage 4, not Final Form"
+	)
+	check(
+		int(
+			stage_four_data.get(
+				"current_visual",
+				{}
+			).get(
+				"visual_index",
+				-1
+			)
+		) == 2,
+		"visual history advances twice before Stage 4"
+	)
+	check(
+		(
+			stage_four_data.get(
+				"evolution_history",
+				[]
+			) as Array
+		).size() == 2,
+		"two evolution history entries before Final Evolution"
+	)
+
+	var final_evolution := (
+		StageEvolutionService.new()
+		.prepare({
+			"stage_index": 4,
+			"ready_to_evolve": true,
+		})
+	)
+	check(
+		bool(
+			final_evolution.get(
+				"ok",
+				false
+			)
+		),
+		"prepare Final Evolution from Stage 4"
+	)
+
+	if not bool(
+		final_evolution.get(
+			"ok",
+			false
+		)
+	):
+		return
+
+	var final_pending: Dictionary = (
+		final_evolution.get(
+			"data",
+			{}
+		).get(
+			"pending_evolution",
+			{}
+		)
+	)
+	check(
+		int(
+			final_pending.get(
+				"from_stage",
+				0
+			)
+		) == 4
+		and int(
+			final_pending.get(
+				"to_stage",
+				0
+			)
+		) == StageLifecycle.FINAL_STAGE,
+		"Final Evolution targets Final Form"
+	)
+
+	var final_request := (
+		StageEvolutionService.new()
+		.build_request(
+			final_evolution.get(
+				"data",
+				{}
+			)
+		)
+	)
+	check(
+		final_request != null
+		and final_request.output_key.ends_with(
+			"_pethome_v12_stage_5"
+		)
+		and final_request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+		and final_request.source_image_path == "user://m8_pet.png"
+		and final_request.positive_prompt.contains(
+			"[REFERENCE EVOLUTION RULE]"
+		),
+		"Final Evolution edits the Stage 4 visual into Final Form"
+	)
+
+	check(
+		StageEvolutionService.new()
+		.commit(
+			PetRenderResult.ok(
+				"user://m8_pet.png",
+				&"test",
+				&"test",
+				{}
+			)
+		),
+		"commit Final Evolution"
+	)
+
 	var final_data := (
 		EvolutionSaveService.new()
 		.load_data()
@@ -1215,8 +1409,8 @@ func _test_evolution_two_and_three() -> void:
 				"stage",
 				0
 			)
-		) == 4,
-		"Evolution III commits final form"
+		) == StageLifecycle.FINAL_STAGE,
+		"Final Evolution commits Final Form"
 	)
 	check(
 		int(
@@ -1227,8 +1421,8 @@ func _test_evolution_two_and_three() -> void:
 				"visual_index",
 				-1
 			)
-		) == 2,
-		"visual history advances twice"
+		) == 3,
+		"Final Form is the third evolution visual"
 	)
 	check(
 		(
@@ -1236,14 +1430,14 @@ func _test_evolution_two_and_three() -> void:
 				"evolution_history",
 				[]
 			) as Array
-		).size() == 2,
-		"two evolution history entries"
+		).size() == 3,
+		"Final Form records three evolution history entries"
 	)
 
 	var blocked := (
 		StageEvolutionService.new()
 		.prepare({
-			"stage_index": 4,
+			"stage_index": StageLifecycle.FINAL_STAGE,
 			"ready_to_evolve": true,
 		})
 	)
@@ -1254,5 +1448,5 @@ func _test_evolution_two_and_three() -> void:
 				false
 			)
 		),
-		"final form cannot evolve again in M8"
+		"Final Form cannot evolve again"
 	)
