@@ -234,10 +234,6 @@ func _build() -> void:
 		"Giải trí"
 	)
 	_add_action(
-		&"evolution",
-		"Tiến hóa"
-	)
-	_add_action(
 		&"achievement",
 		"Thành tích"
 	)
