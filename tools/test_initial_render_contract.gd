@@ -49,9 +49,7 @@ func _initialize() -> void:
 		PetSceneProfileFactoryScript.new()
 		.create_initial(identity)
 	)
-	var style = (
-		MythicStyleProfileScript.load_default()
-	)
+	var style = MythicStyleProfileScript.load_default()
 	var catalog = InitialSpeciesCatalogScript.new()
 	var species = catalog.find_by_species(
 		catalog.load_default(),
@@ -79,7 +77,6 @@ func _initialize() -> void:
 		return
 
 	var prompts = InitialPetPromptBuilderScript.new()
-
 	var request = PetRenderRequestScript.new()
 	request.mode = (
 		PetRenderRequestScript
@@ -96,81 +93,75 @@ func _initialize() -> void:
 	request.output_key = "test_initial"
 
 	_expect(
-		request.is_valid(),
-		"text-only initial request must be valid without source image"
-	)
-
-	_expect(
-		request.source_image_path.is_empty(),
-		"initial request must not require source image"
+		request.is_valid()
+		and request.source_image_path.is_empty(),
+		"Stage 1 must be a valid text-to-image request"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"first visual form"
+			"Create one young cat pet"
 		)
 		and request.positive_prompt.contains(
-			"Mythic Elemental Chibi"
+			"premium fantasy game character art"
 		)
 		and request.positive_prompt.contains(
-			"single lineage sigil"
+			"evolved chibi proportions"
 		)
-		and request.positive_prompt.to_lower().contains(
-			"dark"
+		and request.positive_prompt.contains(
+			"juvenile-to-adolescent"
+		)
+		and request.positive_prompt.contains(
+			"polished stylized 3D appearance"
+		)
+		and request.positive_prompt.contains(
+			"organically grown from or naturally integrated"
+		)
+		and request.positive_prompt.contains(
+			"smoky blue-black, charcoal-indigo and muted violet"
 		),
-		"initial prompt must encode infant + mythic element identity"
+		"Stage 1 must use the approved premium fantasy / evolved-chibi direction"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"[PETHOME WORLD]"
+			"exactly one tail total"
+		)
+		and request.negative_prompt.contains(
+			"duplicate tail"
+		)
+		and request.negative_prompt.contains(
+			"extra limb"
+		),
+		"Stage 1 must explicitly protect basic cat anatomy"
+	)
+
+	_expect(
+		request.positive_prompt.contains(
+			"25 to 30 percent"
 		)
 		and request.positive_prompt.contains(
-			"[UI SAFE LAYOUT]"
+			"lower third"
 		)
-		and request.positive_prompt.to_lower().contains(
-			"pethome environment"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"one coherent scene"
+		and request.positive_prompt.contains(
+			"Background occupies most of the image"
 		),
-		"initial prompt must render pet + PetHome background in one image"
+		"Stage 1 must keep the pet small inside PetHome"
 	)
 
 	_expect(
-		request.negative_prompt.to_lower().contains(
-			"neutral empty background"
+		request.positive_prompt.contains(
+			"Simple natural fantasy background"
 		)
-		and request.negative_prompt.to_lower().contains(
-			"split image"
+		and request.positive_prompt.contains(
+			"No text or UI"
 		),
-		"initial negative prompt must reject pet-only and split outputs"
+		"Stage 1 background must stay simple and UI-safe"
 	)
 
 	_expect(
-		request.positive_prompt.to_lower().contains(
-			"full-bleed vertical 9:16"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"fill the entire game screen edge to edge"
-		),
-		"PetHome render must target a full-screen 9:16 mobile composition"
-	)
-
-	_expect(
-		request.positive_prompt.to_lower().contains(
-			"35 percent"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"10 percent"
-		)
-		and request.positive_prompt.to_lower().contains(
-			"90 percent"
-		)
-		and request.negative_prompt.to_lower().contains(
-			"close-up portrait"
-		),
-		"PetHome render must lock pet height to 35% with feet 10% above the bottom edge"
+		request.positive_prompt.length() < 2400,
+		"Stage 1 prompt must stay bounded even with element-specific integrated traits"
 	)
 
 	var renderer = MockPetRendererScript.new()
@@ -182,7 +173,6 @@ func _initialize() -> void:
 	)
 
 	renderer.queue_free()
-
 	_finish()
 
 

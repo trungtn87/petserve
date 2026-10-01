@@ -2,7 +2,12 @@ class_name InfantGameFacade
 extends RefCounted
 
 
-const META_SCHEMA: int = 3
+const ElementCrystallizationServiceScript = preload(
+	"res://gameplay/crystallization/element_crystallization_service.gd"
+)
+
+
+const META_SCHEMA: int = 4
 const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 
 
@@ -12,6 +17,7 @@ var _inventory: InventoryService = InventoryService.new()
 var _chests: ChestService = ChestService.new()
 var _lifecycle: StageLifecycle = StageLifecycle.new()
 var _entertainment: MiniGameRewardService = MiniGameRewardService.new()
+var _crystallization = ElementCrystallizationServiceScript.new()
 var _evolution_save: EvolutionSaveService = EvolutionSaveService.new()
 var _gene_policy: StageGenePolicy
 var _gene_catalog: GeneCatalog = GeneCatalog.new()
@@ -20,17 +26,20 @@ var _gene_state: GeneDevelopmentState
 var _evolution_plan_pending: bool = false
 var _run_id: int = 0
 var _stage_index: int = 1
+var _element_id: StringName = &"neutral"
 
 
 func setup(
 	run_id: int,
-	stage_index: int = 1
+	stage_index: int = 1,
+	element_id: StringName = &"neutral"
 ) -> bool:
 	_run_id = run_id
 	_stage_index = maxi(
 		1,
 		stage_index
 	)
+	_element_id = element_id
 	_meta = SaveManager.load_meta()
 	_evolution_plan_pending = _load_pending_evolution_state()
 
@@ -94,6 +103,18 @@ func setup(
 			)
 		)
 	)
+	_crystallization.setup(
+		_meta,
+		_generator,
+		_gene_definitions,
+		_gene_policy,
+		_run_id,
+		_stage_index,
+		_element_id
+	)
+	_apply_crystallization_update(
+		_crystallization.process()
+	)
 	_entertainment.setup(
 		_meta,
 		_chests,
@@ -109,8 +130,13 @@ func tick(
 	var should_save := _lifecycle.tick(
 		delta
 	)
+	var crystallization_changed := (
+		_apply_crystallization_update(
+			_crystallization.process()
+		)
+	)
 
-	if should_save:
+	if should_save or crystallization_changed:
 		save()
 
 
@@ -153,50 +179,55 @@ func snapshot() -> Dictionary:
 	state["inventory_count"] = (
 		_inventory.count()
 	)
+	state["chest_fragments"] = (
+		_chests.fragment_count()
+	)
+	state["chest_fragments_required"] = (
+		ChestService.FRAGMENTS_PER_RECYCLED_CHEST
+	)
 	state["evolution_plan_pending"] = (
 		_evolution_plan_pending
+	)
+	state["crystallization"] = (
+		_crystallization.snapshot()
 	)
 
 	if (
 		_gene_policy != null
 		and _gene_state != null
 	):
-		var gene_limit := (
-			_gene_policy.max_gene_items(
-				int(
-					state.get(
-						"stage_index",
-						_stage_index
-					)
-				)
+		var current_stage := int(
+			state.get(
+				"stage_index",
+				_stage_index
 			)
 		)
-		state["gene_items_used"] = (
-			_gene_state.item_count()
+		state["gene_items_used"] = _gene_state.item_count()
+		state["gene_items_used_lifetime"] = _gene_state.lifetime_gene_count()
+		state["gene_item_limit"] = _gene_policy.max_gene_items(
+			current_stage
 		)
-		state["gene_item_limit"] = (
-			gene_limit
+		state["gene_unlimited"] = _gene_policy.is_unlimited(
+			current_stage
 		)
-		state["gene_slots_remaining"] = max(
-			0,
-			gene_limit
-			- _gene_state.item_count()
+		state["gene_slots_remaining"] = -1
+		state["gene_influences"] = _gene_state.influences_snapshot()
+		state["gene_tag_influences"] = _gene_state.tag_influences_snapshot()
+		state["gene_scores"] = _gene_state.gene_scores_snapshot()
+		state["gene_lifetime_tag_influences"] = (
+			_gene_state.lifetime_tag_influences_snapshot()
 		)
-		state["gene_influences"] = (
-			_gene_state.influences_snapshot()
-		)
-		state["gene_tag_influences"] = (
-			_gene_state.tag_influences_snapshot()
-		)
-		state["gene_development"] = (
-			_gene_state.to_dict()
-		)
+		state["gene_development"] = _gene_state.to_dict()
 	else:
 		state["gene_items_used"] = 0
+		state["gene_items_used_lifetime"] = 0
 		state["gene_item_limit"] = 0
+		state["gene_unlimited"] = false
 		state["gene_slots_remaining"] = 0
 		state["gene_influences"] = {}
 		state["gene_tag_influences"] = {}
+		state["gene_scores"] = {}
+		state["gene_lifetime_tag_influences"] = {}
 		state["gene_development"] = {}
 
 	var entertainment_state := (
@@ -266,7 +297,7 @@ func claim_caro_win_reward() -> Dictionary:
 	return result
 
 
-func claim_maze_hunt_reward(
+func claim_obstacle_run_reward(
 	score: int,
 	match_id: String
 ) -> Dictionary:
@@ -284,14 +315,14 @@ func claim_maze_hunt_reward(
 		return {
 			"ok": false,
 			"rewarded": false,
-			"message": "Rương Maze Hunt chỉ nhận được trong Stage 2.",
+			"message": "Rương Vượt chướng ngại chỉ nhận được trong Stage 2.",
 		}
 
 	var before := _meta.duplicate(
 		true
 	)
 	var result := (
-		_entertainment.claim_maze_hunt(
+		_entertainment.claim_obstacle_run(
 			_run_id,
 			maxi(
 				0,
@@ -382,6 +413,50 @@ func inventory(
 	)
 
 
+func start_crystallization() -> Dictionary:
+	var before := _meta.duplicate(true)
+	var result := _crystallization.start()
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return result
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được lượt kết tinh. Hãy thử lại.",
+		}
+
+	return result
+
+
+func cancel_crystallization() -> Dictionary:
+	var before := _meta.duplicate(true)
+	var result := _crystallization.cancel()
+
+	if not bool(
+		result.get(
+			"ok",
+			false
+		)
+	):
+		return result
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được thay đổi. Lượt kết tinh vẫn được giữ.",
+		}
+
+	return result
+
+
 func open_next_chest() -> Array[Dictionary]:
 	var before := _meta.duplicate(
 		true
@@ -454,20 +529,19 @@ func can_use_item(
 		return false
 
 	if item_type == ItemGenerator.TYPE_GENE:
+		var definition := _gene_definition_for_item(
+			item
+		)
 		return (
 			_gene_state != null
+			and definition != null
+			and definition.is_element_compatible(
+				_element_id
+			)
 			and _gene_state.can_record(
 				_gene_policy,
-				StringName(
-					item.get(
-						"gene_locus",
-						""
-					)
-				)
+				definition.locus()
 			)
-			and _gene_definition_for_item(
-				item
-			) != null
 		)
 
 	return true
@@ -478,6 +552,7 @@ func gene_item_context(
 ) -> Dictionary:
 	if (
 		_gene_policy == null
+		or _gene_state == null
 		or StringName(
 			item.get(
 				"item_type",
@@ -487,18 +562,14 @@ func gene_item_context(
 	):
 		return {}
 
-	var locus := StringName(
-		item.get(
-			"gene_locus",
-			""
-		)
+	var definition := _gene_definition_for_item(
+		item
 	)
-	var direction := StringName(
-		item.get(
-			"gene_direction",
-			""
-		)
-	)
+	if definition == null:
+		return {}
+
+	var locus := definition.locus()
+	var direction := definition.direction()
 	var allowed_stages: Array[int] = []
 
 	for stage_index in range(
@@ -520,38 +591,54 @@ func gene_item_context(
 			_stage_index
 		)
 	)
-	var limit := _gene_policy.max_gene_items(
-		current_stage
+	var current_score := _gene_state.score_for(
+		locus,
+		direction
 	)
-	var used := (
-		_gene_state.item_count()
-		if _gene_state != null
-		else 0
+	var item_score := float(
+		item.get(
+			"gene_score",
+			item.get(
+				"gene_influence",
+				definition.primary_influence()
+			)
+		)
 	)
-	var remaining := maxi(
-		0,
-		limit - used
+	var projected_score := current_score + item_score
+	var current_tier := GeneExpressionScale.tier_for_score(
+		current_score
+	)
+	var projected_tier := GeneExpressionScale.tier_for_score(
+		projected_score
+	)
+	var element_lock := definition.element_lock()
+	var element_compatible := definition.is_element_compatible(
+		_element_id
 	)
 
 	return {
-		"locus": String(
-			locus
-		),
-		"direction": String(
-			direction
-		),
+		"locus": String(locus),
+		"direction": String(direction),
 		"allowed_stages": allowed_stages,
 		"current_stage": current_stage,
-		"used": used,
-		"limit": limit,
-		"remaining": remaining,
-		"exhausted": (
-			limit <= 0
-			or remaining <= 0
+		"item_score": item_score,
+		"current_score": current_score,
+		"projected_score": projected_score,
+		"current_tier": String(current_tier),
+		"projected_tier": String(projected_tier),
+		"current_tier_label": GeneExpressionScale.tier_label_vi(
+			current_tier
 		),
-		"evolution_plan_pending": (
-			_evolution_plan_pending
+		"projected_tier_label": GeneExpressionScale.tier_label_vi(
+			projected_tier
 		),
+		"next_threshold": GeneExpressionScale.next_threshold(
+			projected_score
+		),
+		"lifetime_gene_items_used": _gene_state.lifetime_gene_count(),
+		"element_lock": String(element_lock),
+		"element_compatible": element_compatible,
+		"evolution_plan_pending": _evolution_plan_pending,
 		"ready_to_evolve": bool(
 			lifecycle_state.get(
 				"ready_to_evolve",
@@ -670,6 +757,75 @@ func use_item(
 	return result
 
 
+func salvage_item(
+	uid: String
+) -> Dictionary:
+	var item := _inventory.get_item(
+		uid
+	)
+
+	if item.is_empty():
+		return {
+			"ok": false,
+			"message": "Không tìm thấy vật phẩm để phân giải.",
+		}
+
+	var before := _meta.duplicate(
+		true
+	)
+
+	if not _inventory.remove_item(
+		uid
+	):
+		return {
+			"ok": false,
+			"message": "Không thể lấy vật phẩm khỏi Hòm Item.",
+		}
+
+	var stage_index := int(
+		_lifecycle.snapshot().get(
+			"stage_index",
+			_stage_index
+		)
+	)
+	var crafted := _chests.add_salvage_fragments(
+		1,
+		_run_id,
+		stage_index
+	)
+
+	if not save():
+		_restore(
+			before
+		)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được. Vật phẩm vẫn còn trong Hòm Item.",
+		}
+
+	var fragments := _chests.fragment_count()
+	var message := (
+		"Đã phân giải thành 1 mảnh rương • %d/%d"
+		% [
+			fragments,
+			ChestService.FRAGMENTS_PER_RECYCLED_CHEST,
+		]
+	)
+
+	if crafted > 0:
+		message = (
+			"Đủ 10 mảnh • đã ghép %d Rương Tái Chế"
+			% crafted
+		)
+
+	return {
+		"ok": true,
+		"fragments": fragments,
+		"crafted_chests": crafted,
+		"message": message,
+	}
+
+
 func describe_item(
 	item: Dictionary
 ) -> String:
@@ -747,6 +903,10 @@ func advance_to_stage(
 			stage_index
 		)
 
+	_crystallization.update_context(
+		stage_index,
+		_element_id
+	)
 	_sync_gene_meta()
 	return save()
 
@@ -774,6 +934,39 @@ func _use_gene_item(
 			"message": "Gene Item không có định nghĩa hợp lệ.",
 		}
 
+	if not definition.is_element_compatible(
+		_element_id
+	):
+		return {
+			"ok": false,
+			"message": (
+				"Gene hiệu ứng thuộc hệ %s. Item được giữ lại để dùng hoặc kế thừa cho pet phù hợp."
+				% PetElementCatalog.prompt_name(
+					definition.element_lock()
+				)
+			),
+		}
+
+	var influence_tags := definition.influence_tags()
+	var item_tags_value: Variant = item.get(
+		"influence_tags",
+		{}
+	)
+
+	if typeof(item_tags_value) == TYPE_DICTIONARY:
+		influence_tags = (
+			item_tags_value as Dictionary
+		).duplicate(true)
+
+	var gene_score := float(
+		item.get(
+			"gene_score",
+			item.get(
+				"gene_influence",
+				definition.primary_influence()
+			)
+		)
+	)
 	var result := _gene_state.record_gene_item(
 		_gene_policy,
 		String(
@@ -785,8 +978,15 @@ func _use_gene_item(
 		definition.id(),
 		definition.locus(),
 		definition.direction(),
-		definition.primary_influence(),
-		definition.influence_tags()
+		gene_score,
+		influence_tags,
+		String(
+			item.get(
+				"rarity",
+				""
+			)
+		),
+		definition.element_lock()
 	)
 
 	if not bool(
@@ -871,15 +1071,42 @@ func _use_gene_item(
 		)
 	)
 	result["message"] = (
-		"Đã sử dụng "
-		+ String(
-			item.get(
-				"display_name",
-				"Gene Item"
-			)
-		)
-		+ " • Growth +"
-		+ str(
+		"Đã sử dụng %s • Điểm Gene +%d → %d • %s • Growth +%d%%"
+		% [
+			String(
+				item.get(
+					"display_name",
+					"Gene Item"
+				)
+			),
+			int(
+				round(
+					float(
+						result.get(
+							"score_added",
+							gene_score
+						)
+					)
+				)
+			),
+			int(
+				round(
+					float(
+						result.get(
+							"total_score",
+							gene_score
+						)
+					)
+				)
+			),
+			GeneExpressionScale.tier_label_vi(
+				StringName(
+					result.get(
+						"expression_tier",
+						"none"
+					)
+				)
+			),
 			int(
 				round(
 					float(
@@ -889,11 +1116,43 @@ func _use_gene_item(
 						)
 					)
 				)
-			)
-		)
-		+ "%"
+			),
+		]
 	)
 	return result
+
+
+func _apply_crystallization_update(
+	update: Dictionary
+) -> bool:
+	var changed := bool(
+		update.get(
+			"changed",
+			false
+		)
+	)
+	var rewards_value: Variant = update.get(
+		"rewards",
+		[]
+	)
+
+	if typeof(rewards_value) != TYPE_ARRAY:
+		return changed
+
+	var rewards: Array[Dictionary] = []
+
+	for raw_value in rewards_value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
+		rewards.append(
+			(raw_value as Dictionary).duplicate(true)
+		)
+
+	if not rewards.is_empty():
+		_inventory.add_items(rewards)
+		changed = true
+
+	return changed
 
 
 func _gene_definition_for_item(
@@ -938,12 +1197,12 @@ func _setup_gene_state(
 			)
 		)
 
-	if (
-		restored == null
-		or restored.stage_index()
-			!= stage_index
-	):
+	if restored == null:
 		restored = GeneDevelopmentState.new(
+			stage_index
+		)
+	elif restored.stage_index() != stage_index:
+		restored.reset_for_stage(
 			stage_index
 		)
 
@@ -955,9 +1214,10 @@ func _sync_gene_meta() -> void:
 	if _gene_state == null:
 		return
 
-	_meta["gene_development"] = (
-		_gene_state.to_dict()
-	)
+	_meta["gene_development"] = _gene_state.to_dict()
+	_meta["gene_scores"] = _gene_state.gene_scores_snapshot()
+	_meta["gene_items_used"] = _gene_state.item_count()
+	_meta["gene_items_used_lifetime"] = _gene_state.lifetime_gene_count()
 
 
 func set_dev_instant_evolution_enabled(
@@ -976,15 +1236,8 @@ func _sanitize_dev_test_talent() -> void:
 	var talent_id := String(
 		DEV_INSTANT_EVOLUTION_TALENT
 	)
-	var enabled := (
-		OS.is_debug_build()
-		and bool(
-			_meta.get(
-				"dev_instant_evolution_enabled",
-				false
-			)
-		)
-	)
+	var enabled := OS.is_debug_build()
+	_meta["dev_instant_evolution_enabled"] = enabled
 
 	if enabled:
 		if not talents.has(
@@ -1093,3 +1346,77 @@ func _restore(
 				)
 			)
 		)
+
+
+func energy_2048_snapshot() -> Dictionary:
+	var data: Dictionary = _meta.get("energy_2048", {})
+	if int(data.get("run_id", -1)) != _run_id:
+		return {}
+	var result := data.duplicate(true)
+	result["best_score"] = int(_meta.get("energy_2048_best", 0))
+	return result
+
+
+func open_energy_2048() -> Dictionary:
+	var session := Energy2048Session.new()
+	var current := energy_2048_snapshot()
+	if not current.is_empty() and session.restore(current):
+		return {"ok": true, "state": current}
+	session.start()
+	return _commit_energy_2048(session)
+
+
+func restart_energy_2048() -> Dictionary:
+	var current := energy_2048_snapshot()
+	if not current.is_empty() and not bool(current.get("settled", false)):
+		return {"ok": false, "message": "Hãy kết thúc và nhận thưởng ván hiện tại trước."}
+	var session := Energy2048Session.new()
+	session.start()
+	return _commit_energy_2048(session)
+
+
+func move_energy_2048(direction: Vector2i) -> Dictionary:
+	var session := Energy2048Session.new()
+	if not session.restore(energy_2048_snapshot()):
+		return {"ok": false, "message": "Không có ván đang chơi."}
+	var motion := session.move(direction)
+	if not bool(motion.get("changed", false)):
+		return {"ok": true, "state": energy_2048_snapshot(), "changed": false}
+	var result := _commit_energy_2048(session)
+	if bool(result.get("ok", false)):
+		result["motion"] = motion
+		result["changed"] = true
+	return result
+
+
+func finish_energy_2048() -> Dictionary:
+	var session := Energy2048Session.new()
+	if not session.restore(energy_2048_snapshot()):
+		return {"ok": false, "message": "Không có ván đang chơi."}
+	session.finish()
+	var before := _meta.duplicate(true)
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["energy_2048"] = stored
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var result := _entertainment.claim_energy_2048(_run_id, stage, session.match_id)
+	if not bool(result.get("ok", false)):
+		_restore(before)
+		return result
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được phần thưởng. Hãy thử lại."}
+	result["state"] = energy_2048_snapshot()
+	return result
+
+
+func _commit_energy_2048(session: Energy2048Session) -> Dictionary:
+	var before := _meta.duplicate(true)
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["energy_2048"] = stored
+	_meta["energy_2048_best"] = maxi(int(_meta.get("energy_2048_best", 0)), session.score)
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được ván 2048. Hãy thử lại."}
+	return {"ok": true, "state": energy_2048_snapshot()}

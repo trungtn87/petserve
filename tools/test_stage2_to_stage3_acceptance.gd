@@ -119,10 +119,9 @@ func _test_natural_zero_gene() -> void:
 	_expect(
 		request != null
 		and request.mode
-			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
-		and request.source_image_path
-			== _source_path,
-		"natural Stage 2 -> 3 uses source-image edit"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty(),
+		"natural Stage 2 -> 3 creates a new image without source reference"
 	)
 
 	if request == null:
@@ -245,10 +244,10 @@ func _test_two_loci_and_retry_guards() -> void:
 	var fixture := _save_stage_two_fixture(
 		8102,
 		{
-			"tail": "long",
+			"eyes": "luminous",
 		},
 		[
-			&"gene_expr_tail_long_s1",
+			&"gene_expr_eyes_luminous_s1",
 		],
 		{}
 	)
@@ -269,10 +268,10 @@ func _test_two_loci_and_retry_guards() -> void:
 		bool(
 			gene_state.record_gene_item(
 				policy,
-				"accept_eyes",
-				&"eyes_moon",
-				&"eyes",
-				&"moon",
+				"accept_body",
+				&"body_sturdy",
+				&"body",
+				&"sturdy",
 				20.0,
 				{}
 			).get(
@@ -280,16 +279,16 @@ func _test_two_loci_and_retry_guards() -> void:
 				false
 			)
 		),
-		"record eyes Gene"
+		"record body Gene"
 	)
 	_expect(
 		bool(
 			gene_state.record_gene_item(
 				policy,
-				"accept_mark",
-				&"mark_moon",
-				&"mark",
-				&"moon",
+				"accept_tail",
+				&"tail_long",
+				&"tail",
+				&"long",
 				20.0,
 				{}
 			).get(
@@ -297,7 +296,7 @@ func _test_two_loci_and_retry_guards() -> void:
 				false
 			)
 		),
-		"record mark Gene"
+		"record tail Gene"
 	)
 
 	var state := {
@@ -359,23 +358,24 @@ func _test_two_loci_and_retry_guards() -> void:
 		and (deltas_value as Array).size() == 2
 		and next != null
 		and next.get_trait(
-			&"eyes",
+			&"body",
 			&"base"
-		) == &"moon"
+		) == &"sturdy"
 		and next.get_trait(
-			&"mark",
+			&"tail",
 			&"base"
-		) == &"moon",
+		) == &"long",
 		"two Stage 2 loci both survive into target Genome"
 	)
 	_expect(
 		request != null
-		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_GENE_TARGET_REGION
+		and request.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED GENE CHANGES]"
+			"Apply only these Gene changes selected by code:"
 		),
-		"two-locus evolution uses composite render request"
+		"two-locus evolution full-regenerates one image with both Gene changes"
 	)
 
 	if request == null:
@@ -437,13 +437,13 @@ func _test_two_loci_and_retry_guards() -> void:
 		committed_genome != null
 		and committed_genome.stage() == 3
 		and committed_genome.get_trait(
-			&"eyes",
+			&"body",
 			&"base"
-		) == &"moon"
+		) == &"sturdy"
 		and committed_genome.get_trait(
-			&"mark",
+			&"tail",
 			&"base"
-		) == &"moon",
+		) == &"long",
 		"two-locus commit preserves both selected Gene expressions"
 	)
 
@@ -565,10 +565,8 @@ func _test_locked_stage4_egg_mythic() -> void:
 	)
 	_expect(
 		request != null
-		and request.target_region
-			== EvolutionEditCoordinator.COMPOSITE_MYTHIC_TARGET_REGION
 		and request.positive_prompt.contains(
-			"[CODE-LOCKED MYTHIC DESTINY]"
+			"Special fantasy mutation is ACTIVE"
 		)
 		and request.positive_prompt.contains(
 			String(

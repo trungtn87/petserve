@@ -733,13 +733,13 @@ func _test_stage_item_contract() -> void:
 
 	var dev_state := game.snapshot()
 	check(
-		not bool(
+		bool(
 			dev_state.get(
 				"can_evolve",
-				true
+				false
 			)
-		),
-		"Stage 2 timer is enforced by default"
+		) == OS.is_debug_build(),
+		"debug build exposes the reopened instant evolution talent"
 	)
 	check(
 		not bool(
@@ -751,13 +751,13 @@ func _test_stage_item_contract() -> void:
 		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		not bool(
+		bool(
 			dev_state.get(
 				"instant_evolution_talent",
-				true
+				false
 			)
-		),
-		"TEST evolution bypass is not auto-granted"
+		) == OS.is_debug_build(),
+		"instant evolution talent is auto-granted only in debug builds"
 	)
 
 	if OS.is_debug_build():
@@ -1057,16 +1057,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v8_stage_3"
+			"_pethome_v12_stage_3"
+		)
+		and request_two.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_two.source_image_path.is_empty()
+		and request_two.positive_prompt.contains(
+			"Create a NEW image for evolution Stage 3"
 		)
 		and request_two.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"28 to 32 percent"
 		)
 		and request_two.positive_prompt.contains(
-			"35 percent"
-		)
-		and request_two.positive_prompt.contains(
-			"10 percent"
+			"Background occupies most of the image"
 		),
 		"Evolution II request"
 	)
@@ -1163,16 +1166,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v8_stage_4"
+			"_pethome_v12_stage_4"
+		)
+		and request_three.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_three.source_image_path.is_empty()
+		and request_three.positive_prompt.contains(
+			"Create a NEW image for evolution Stage 4"
 		)
 		and request_three.positive_prompt.contains(
-			"[PETHOME SCALE LOCK]"
+			"28 to 32 percent"
 		)
 		and request_three.positive_prompt.contains(
-			"35 percent"
-		)
-		and request_three.positive_prompt.contains(
-			"10 percent"
+			"Background occupies most of the image"
 		),
 		"Evolution III request"
 	)
