@@ -1,5 +1,114 @@
 [
   {
+    "id": "bear_mountain_guardian",
+    "display_name": "Sơn Thần Hùng",
+    "species": "bear",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "body",
+      "mane",
+      "paws"
+    ],
+    "target_regions": [
+      "body",
+      "mane",
+      "paws"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken a mountain-guardian bear branch with heavier shoulders, a natural mantle-like mane and reinforced elemental paws.",
+      "4": "Develop the mountain guardian with monumental but quadrupedal mass, layered mantle fur and grounded elemental plates integrated into the paws.",
+      "5": "Complete the mountain guardian bear with ancient powerful bulk, a ceremonial fur mantle and immense grounded paws while remaining a natural bear."
+    },
+    "preserve_hint": "Keep the same bear face, four-legged posture, two rounded ears and one short tail. No humanoid stance, wings or extra limbs."
+  },
+  {
+    "id": "bear_runic_ancestor",
+    "display_name": "Cổ Ấn Hùng",
+    "species": "bear",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "mark",
+      "coat",
+      "aura"
+    ],
+    "target_regions": [
+      "mark",
+      "coat",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken ancestral runes as sparse markings embedded through the bear coat with a faint old-spirit aura.",
+      "4": "Develop the ancestral bear branch with larger connected rune paths, deeper coat contrast and a steady guardian aura.",
+      "5": "Complete the runic ancestor form with refined ancient markings and a dense controlled spirit aura, preserving the bear silhouette."
+    },
+    "preserve_hint": "Keep bear anatomy unchanged: four legs, one head, two ears and one short tail. Runes are markings, not armor."
+  },
+  {
+    "id": "bird_phoenix",
+    "display_name": "Kim Sí Điểu",
+    "species": "bird",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "tail",
+      "coat",
+      "aura"
+    ],
+    "target_regions": [
+      "wings",
+      "tail",
+      "coat",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken a golden-wing divine-bird branch with stronger layered wing feathers, a longer ceremonial tail and a clean sacred aura. It must remain an evolved Bird, not become the Phoenix species.",
+      "4": "Develop the golden-wing form with broader sacred wings, refined tail feathers and stronger elemental radiance while preserving the original bird lineage.",
+      "5": "Complete the golden-wing divine bird with majestic but readable wings, a ceremonial tail and disciplined sacred aura. Keep its identity distinct from a Phoenix."
+    },
+    "preserve_hint": "Keep the same Bird individual: one head, two legs, exactly one pair of wings and one tail-feather assembly. Do not transform into Phoenix anatomy."
+  },
+  {
+    "id": "bird_thunder_roc",
+    "display_name": "Lôi Bằng",
+    "species": "bird",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "structure",
+      "body",
+      "mark"
+    ],
+    "target_regions": [
+      "structure",
+      "body",
+      "mark"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken a thunder-roc branch with a stronger wing-root silhouette, sharper crown feathers and subtle storm-like markings.",
+      "4": "Develop the roc with broader powerful wings, stronger chest and clearer elemental storm markings while remaining a single bird.",
+      "5": "Complete the thunder-roc form with commanding wing span, mature crest and refined storm sigils, keeping the body readable and chibi-fantasy rather than gigantic."
+    },
+    "preserve_hint": "Keep exactly one pair of wings, two legs, one head and one tail. No extra limbs or second wing pair."
+  },
+  {
     "id": "cat_horned_spirit",
     "display_name": "Giác Linh Miêu",
     "species": "cat",
@@ -54,31 +163,59 @@
     "preserve_hint": "Keep the same species, four natural legs, two ears and exactly one tail. Do not add horns, extra wings or unrelated anatomy."
   },
   {
-    "id": "dog_cerberus_guardian",
-    "display_name": "Tam Thủ Khuyển Ảnh",
-    "species": "dog",
+    "id": "deer_moonveil",
+    "display_name": "Nguyệt Vụ Lộc",
+    "species": "deer",
     "first_expression_stage": 3,
     "final_expression_stage": 5,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_loci": [
-      "body",
-      "mane",
-      "mark"
+      "eyes",
+      "aura",
+      "structure"
     ],
     "target_regions": [
-      "structure",
-      "body",
+      "antlers",
+      "eyes",
       "aura"
     ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Awaken subtle spectral guardian echoes beside the single real canine head, with a stronger chest and omen-like mark. Do not create full extra heads yet.",
-      "4": "Develop the Cerberus guardian branch with two clearer spectral head echoes flanking the single physical head and a stronger guardian body.",
-      "5": "Complete the Cerberus guardian form: one physical canine head with two controlled spectral guardian head manifestations, powerful shoulders and a disciplined elemental aura."
+      "3": "Awaken the Moonveil Deer branch with pale antler growth, calm moonlit eyes and a thin silver mist around the legs.",
+      "4": "Develop the Moonveil Deer with more elegant luminous antlers, clearer lunar eyes and a soft veil-like elemental aura around the silhouette.",
+      "5": "Complete the Moonveil Deer with refined moon antlers, lucid gentle eyes and a controlled nocturnal mist aura, preserving the graceful deer frame."
     },
-    "preserve_hint": "Keep the same canine individual, four legs, one physical head, two ears and exactly one tail. Spectral echoes are energy manifestations, not extra neck anatomy."
+    "preserve_hint": "Keep one deer head, two ears, four fine legs and one short tail. Exactly one antler pair; no horse mane, wings or extra limbs."
+  },
+  {
+    "id": "deer_worldtree_stag",
+    "display_name": "Thế Giới Thụ Lộc",
+    "species": "deer",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "structure",
+      "coat",
+      "mark"
+    ],
+    "target_regions": [
+      "antlers",
+      "coat",
+      "mark",
+      "mane"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken the Worldtree Stag branch with growing branch-like antlers, subtle bark-and-leaf coat markings and a light forest ruff.",
+      "4": "Develop the Worldtree Stag with larger organized antler branches, richer woodland markings and small natural moss-or-leaf accents integrated into the coat.",
+      "5": "Complete the Worldtree Stag with majestic tree-like antlers, ancient forest markings and a restrained living-wood aura while keeping the deer body light."
+    },
+    "preserve_hint": "Keep one deer head, two ears, four fine legs and one short tail. Antlers must grow from the correct skull positions and remain one symmetrical pair."
   },
   {
     "id": "dog_black_hound",
@@ -106,6 +243,89 @@
       "5": "Complete the black-hound mythic form with an elegant ominous coat, piercing elemental eyes and a clean spectral wake while remaining unmistakably canine."
     },
     "preserve_hint": "Keep one canine head, four legs, two ears and exactly one physical tail. No horns, wings or extra heads."
+  },
+  {
+    "id": "dog_cerberus_guardian",
+    "display_name": "Tam Thủ Khuyển Ảnh",
+    "species": "dog",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "body",
+      "mane",
+      "mark"
+    ],
+    "target_regions": [
+      "structure",
+      "body",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken subtle spectral guardian echoes beside the single real canine head, with a stronger chest and omen-like mark. Do not create full extra heads yet.",
+      "4": "Develop the Cerberus guardian branch with two clearer spectral head echoes flanking the single physical head and a stronger guardian body.",
+      "5": "Complete the Cerberus guardian form: one physical canine head with two controlled spectral guardian head manifestations, powerful shoulders and a disciplined elemental aura."
+    },
+    "preserve_hint": "Keep the same canine individual, four legs, one physical head, two ears and exactly one tail. Spectral echoes are energy manifestations, not extra neck anatomy."
+  },
+  {
+    "id": "dragon_abyss",
+    "display_name": "Uyên Long",
+    "species": "dragon",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "coat",
+      "body",
+      "tail"
+    ],
+    "target_regions": [
+      "coat",
+      "horns",
+      "tail",
+      "wings"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken an Abyss Dragon branch with deeper layered scales, heavier horn lines and a denser tail silhouette. Keep the form controlled and elegant rather than grotesque.",
+      "4": "Develop the Abyss Dragon with stronger armored scale zones, darker elemental horn structure and a more dominant tail. Wings, if already authorized, become heavier but remain one pair.",
+      "5": "Complete the Abyss Dragon with mature abyssal scales, formidable horns, one signature tail weapon and disciplined dark elemental presence without losing the original dragon anatomy."
+    },
+    "preserve_hint": "Keep one dragon head, four legs, exactly one tail and at most one wing pair. No extra mouths, heads, limb clusters or body horror."
+  },
+  {
+    "id": "dragon_celestial",
+    "display_name": "Thiên Long",
+    "species": "dragon",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "structure",
+      "mane",
+      "aura"
+    ],
+    "target_regions": [
+      "horns",
+      "mane",
+      "wings",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken a Celestial Dragon branch with a refined horn crown, the first flowing cloud-mane structures and a light sky-borne aura. If wings already exist, keep exactly that one pair and make them slightly more elegant.",
+      "4": "Develop the Celestial Dragon with longer sacred horns, a clear cloud mane, graceful wing structure when present and controlled elemental sky currents around the body.",
+      "5": "Complete the Celestial Dragon with mature ceremonial horns, flowing divine mane, majestic authorized wings and a clean heavenly aura while preserving the same dragon lineage."
+    },
+    "preserve_hint": "Keep one dragon head, four legs, exactly one tail and at most one authorized wing pair. Do not duplicate horns randomly or add unrelated anatomy."
   },
   {
     "id": "fox_kitsune",
@@ -162,139 +382,59 @@
     "preserve_hint": "Keep the same fox body, four legs and tail count already established by normal evolution. No wings, antlers or unrelated anatomy."
   },
   {
-    "id": "bear_mountain_guardian",
-    "display_name": "Sơn Thần Hùng",
-    "species": "bear",
+    "id": "horse_celestial_steed",
+    "display_name": "Thiên Mã",
+    "species": "horse",
     "first_expression_stage": 3,
     "final_expression_stage": 5,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_loci": [
-      "body",
       "mane",
-      "paws"
+      "paws",
+      "aura"
     ],
     "target_regions": [
-      "body",
       "mane",
-      "paws"
-    ],
-    "required_traits": {},
-    "gene_tag_affinity": {},
-    "stage_prompts": {
-      "3": "Awaken a mountain-guardian bear branch with heavier shoulders, a natural mantle-like mane and reinforced elemental paws.",
-      "4": "Develop the mountain guardian with monumental but quadrupedal mass, layered mantle fur and grounded elemental plates integrated into the paws.",
-      "5": "Complete the mountain guardian bear with ancient powerful bulk, a ceremonial fur mantle and immense grounded paws while remaining a natural bear."
-    },
-    "preserve_hint": "Keep the same bear face, four-legged posture, two rounded ears and one short tail. No humanoid stance, wings or extra limbs."
-  },
-  {
-    "id": "bear_runic_ancestor",
-    "display_name": "Cổ Ấn Hùng",
-    "species": "bear",
-    "first_expression_stage": 3,
-    "final_expression_stage": 5,
-    "activation_basis_points": 0,
-    "egg_stage4_eligible": true,
-    "required_loci": [
-      "mark",
-      "coat",
-      "aura"
-    ],
-    "target_regions": [
-      "mark",
-      "coat",
+      "hooves",
       "aura"
     ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Awaken ancestral runes as sparse markings embedded through the bear coat with a faint old-spirit aura.",
-      "4": "Develop the ancestral bear branch with larger connected rune paths, deeper coat contrast and a steady guardian aura.",
-      "5": "Complete the runic ancestor form with refined ancient markings and a dense controlled spirit aura, preserving the bear silhouette."
+      "3": "Awaken the Celestial Steed branch with a longer airy mane, refined luminous hooves and a faint wind-like aura following the horse's movement.",
+      "4": "Develop the Celestial Steed with a flowing cloudlike mane, elegant light-bearing hooves and stronger sky currents around the body while remaining hornless unless another authorized mutation says otherwise.",
+      "5": "Complete the Celestial Steed with a majestic mane, radiant hooves and a clean heavenly movement aura, preserving pure equine anatomy."
     },
-    "preserve_hint": "Keep bear anatomy unchanged: four legs, one head, two ears and one short tail. Runes are markings, not armor."
+    "preserve_hint": "Keep one horse head, two ears, four legs with four hooves and exactly one tail. Do not add antlers, wings or horns in this branch."
   },
   {
-    "id": "rabbit_moon_hare",
-    "display_name": "Nguyệt Thố",
-    "species": "rabbit",
+    "id": "horse_nightmare",
+    "display_name": "Mộng Yểm",
+    "species": "horse",
     "first_expression_stage": 3,
     "final_expression_stage": 5,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_loci": [
-      "ears",
-      "body",
-      "mark"
-    ],
-    "target_regions": [
-      "ears",
-      "body",
-      "mark"
-    ],
-    "required_traits": {},
-    "gene_tag_affinity": {},
-    "stage_prompts": {
-      "3": "Awaken the Moon Hare branch with elegant lunar ear accents, stronger hind-leg silhouette and a small moon sigil.",
-      "4": "Develop the Moon Hare with longer flowing ear tips, spring-loaded hindquarters and a clearer lunar marking.",
-      "5": "Complete the Moon Hare form with graceful lunar ears, powerful celestial hind legs and a refined moon sigil with restrained halo light."
-    },
-    "preserve_hint": "Keep exactly two ears, four limbs and one rabbit tail. No wings or extra ears."
-  },
-  {
-    "id": "rabbit_jade_horn",
-    "display_name": "Ngọc Giác Thố",
-    "species": "rabbit",
-    "first_expression_stage": 3,
-    "final_expression_stage": 5,
-    "activation_basis_points": 0,
-    "egg_stage4_eligible": true,
-    "required_loci": [
-      "mark",
+      "eyes",
       "coat",
       "aura"
     ],
     "target_regions": [
-      "structure",
-      "mark",
+      "eyes",
+      "coat",
+      "mane",
       "aura"
     ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Awaken one small central jade-like spirit horn above the forehead mark, subtle and naturally integrated with the rabbit head.",
-      "4": "Develop the jade-horn rabbit with a longer elegant central horn, refined forehead pattern and controlled elemental aura.",
-      "5": "Complete the jade-horn mythic form with one mature elegant horn, ceremonial marking and balanced spirit aura."
+      "3": "Awaken the Nightmare branch with deeper coat shadows, intense but readable eyes and a faint spectral mane trail. Keep the horse elegant and non-horrific.",
+      "4": "Develop the Nightmare with stronger shadowed plumage-like mane flow, brighter supernatural eyes and a restrained dream-smoke aura around the hooves.",
+      "5": "Complete the Nightmare as a mysterious mythic horse with flowing shadow mane, lucid eyes and disciplined dream aura, beautiful rather than grotesque."
     },
-    "preserve_hint": "Keep the same rabbit face, exactly two ears, four limbs and one tail. Exactly one central horn; no antlers or wings."
-  },
-  {
-    "id": "lizard_dragonkin",
-    "display_name": "Long Duệ",
-    "species": "lizard",
-    "first_expression_stage": 3,
-    "final_expression_stage": 5,
-    "activation_basis_points": 0,
-    "egg_stage4_eligible": true,
-    "required_loci": [
-      "structure",
-      "coat",
-      "tail"
-    ],
-    "target_regions": [
-      "structure",
-      "coat",
-      "tail"
-    ],
-    "required_traits": {},
-    "gene_tag_affinity": {},
-    "stage_prompts": {
-      "3": "Awaken a dragonkin lizard branch with small paired horn ridges, a stronger dorsal crest and more defined elemental scales.",
-      "4": "Develop the dragonkin with elegant horns, layered dorsal structure and a more powerful tail while staying quadrupedal.",
-      "5": "Complete the dragonkin form with mature horn ridges, refined armored scales and a dominant elemental tail, clearly descended from the same lizard."
-    },
-    "preserve_hint": "Keep four legs, one reptilian head and exactly one tail. No wings in this branch and no humanoid dragon anatomy."
+    "preserve_hint": "Keep normal equine anatomy: one head, two ears, four legs, four hooves and one tail. No skeletal body, extra limbs or monster jaws."
   },
   {
     "id": "lizard_basilisk",
@@ -324,57 +464,196 @@
     "preserve_hint": "Keep four legs and one tail. Do not remove limbs, become a snake, add wings or duplicate the head."
   },
   {
-    "id": "bird_phoenix",
-    "display_name": "Phượng Hoàng",
-    "species": "bird",
+    "id": "lizard_dragonkin",
+    "display_name": "Long Duệ",
+    "species": "lizard",
     "first_expression_stage": 3,
     "final_expression_stage": 5,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_loci": [
-      "tail",
+      "structure",
       "coat",
-      "aura"
+      "tail"
     ],
     "target_regions": [
-      "tail",
+      "structure",
       "coat",
-      "aura"
+      "tail"
     ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Awaken a phoenix branch with warmer luminous feather edges, a longer tail plume and small controlled rebirth embers.",
-      "4": "Develop the phoenix with richer layered plumage, stronger flowing tail feathers and a radiant elemental fire-like aura appropriate to the pet's element.",
-      "5": "Complete the phoenix form with majestic luminous plumage, grand tail streamers and a clean rebirth halo, while preserving one pair of wings."
+      "3": "Awaken a dragonkin lizard branch with small paired horn ridges, a stronger dorsal crest and more defined elemental scales.",
+      "4": "Develop the dragonkin with elegant horns, layered dorsal structure and a more powerful tail while staying quadrupedal.",
+      "5": "Complete the dragonkin form with mature horn ridges, refined armored scales and a dominant elemental tail, clearly descended from the same lizard."
     },
-    "preserve_hint": "Keep one bird head, two legs, exactly one pair of wings and one feather tail assembly. No extra wing pair or horns."
+    "preserve_hint": "Keep four legs, one reptilian head and exactly one tail. No wings in this branch and no humanoid dragon anatomy."
   },
   {
-    "id": "bird_thunder_roc",
-    "display_name": "Lôi Bằng",
-    "species": "bird",
+    "id": "phoenix_sun",
+    "display_name": "Nhật Phượng",
+    "species": "phoenix",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "coat",
+      "aura",
+      "tail"
+    ],
+    "target_regions": [
+      "wings",
+      "tail",
+      "coat",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken the Sun Phoenix branch with brighter sacred feather edges, longer organized tail streamers and a warm rebirth aura adapted to the pet's element.",
+      "4": "Develop the Sun Phoenix with broader layered wings, richer luminous plumage, longer ceremonial tail feathers and a strong but clean rebirth halo.",
+      "5": "Complete the Sun Phoenix with majestic sacred wings, a grand coherent tail fan and radiant rebirth energy while keeping the individual face and lineage recognizable."
+    },
+    "preserve_hint": "Keep one phoenix head, two legs, exactly one pair of wings and one coherent tail-feather assembly. No extra wing pairs or duplicated tails."
+  },
+  {
+    "id": "phoenix_void",
+    "display_name": "Hư Phượng",
+    "species": "phoenix",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "eyes",
+      "mark",
+      "aura"
+    ],
+    "target_regions": [
+      "eyes",
+      "wings",
+      "mark",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken the Void Phoenix branch with calm luminous eyes, restrained eclipse-like feather markings and a cool spectral aura around the existing wing pair.",
+      "4": "Develop the Void Phoenix with deeper symbolic wing markings, stronger supernatural eyes and a controlled ash-or-shadow aura that never hides the body.",
+      "5": "Complete the Void Phoenix with refined dark sacred plumage, lucid mythic eyes and a disciplined void halo, elegant rather than sinister or monstrous."
+    },
+    "preserve_hint": "Keep one phoenix head, two legs, exactly one pair of wings and one tail assembly. No skeletal horror, extra eyes as organs, or extra wings."
+  },
+  {
+    "id": "qilin_celestial",
+    "display_name": "Thiên Kỳ Lân",
+    "species": "qilin",
     "first_expression_stage": 3,
     "final_expression_stage": 5,
     "activation_basis_points": 0,
     "egg_stage4_eligible": true,
     "required_loci": [
       "structure",
+      "mane",
+      "mark"
+    ],
+    "target_regions": [
+      "horns",
+      "mane",
+      "hooves",
+      "mark"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken the Celestial Qilin branch with a more refined sacred horn structure, fuller cloud mane, luminous hoof edges and one blessing mark.",
+      "4": "Develop the Celestial Qilin with elegant horn or antler-like sacred geometry, layered cloud mane and clearer ceremonial markings while retaining the same divine-beast body.",
+      "5": "Complete the Celestial Qilin with mature sacred horns, majestic cloud mane, light-bearing hooves and a refined blessing sigil."
+    },
+    "preserve_hint": "Keep one qilin head, two ears, four hoofed legs and one tail. Use one coherent horn plan only; no wings or unrelated dragon anatomy."
+  },
+  {
+    "id": "qilin_dread",
+    "display_name": "Huyền Kỳ Lân",
+    "species": "qilin",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "coat",
+      "tail",
+      "aura"
+    ],
+    "target_regions": [
+      "horns",
+      "coat",
+      "tail",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken the dark Qilin branch with denser sacred scale patches, a stronger horn silhouette, a longer ritual tail and a subdued ominous aura.",
+      "4": "Develop the dark Qilin with deeper scale contrast, heavier but elegant horn structure and a controlled mist-like elemental aura.",
+      "5": "Complete the dark Qilin with mature ceremonial scales, formidable sacred horns, one flowing tail and a disciplined mythic aura without becoming monstrous."
+    },
+    "preserve_hint": "Keep one qilin head, two ears, four hoofed legs and exactly one tail. No extra horns beyond one coherent arrangement, no wings and no body horror."
+  },
+  {
+    "id": "rabbit_jade_horn",
+    "display_name": "Ngọc Giác Thố",
+    "species": "rabbit",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "mark",
+      "coat",
+      "aura"
+    ],
+    "target_regions": [
+      "structure",
+      "mark",
+      "aura"
+    ],
+    "required_traits": {},
+    "gene_tag_affinity": {},
+    "stage_prompts": {
+      "3": "Awaken one small central jade-like spirit horn above the forehead mark, subtle and naturally integrated with the rabbit head.",
+      "4": "Develop the jade-horn rabbit with a longer elegant central horn, refined forehead pattern and controlled elemental aura.",
+      "5": "Complete the jade-horn mythic form with one mature elegant horn, ceremonial marking and balanced spirit aura."
+    },
+    "preserve_hint": "Keep the same rabbit face, exactly two ears, four limbs and one tail. Exactly one central horn; no antlers or wings."
+  },
+  {
+    "id": "rabbit_moon_hare",
+    "display_name": "Nguyệt Thố",
+    "species": "rabbit",
+    "first_expression_stage": 3,
+    "final_expression_stage": 5,
+    "activation_basis_points": 0,
+    "egg_stage4_eligible": true,
+    "required_loci": [
+      "ears",
       "body",
       "mark"
     ],
     "target_regions": [
-      "structure",
+      "ears",
       "body",
       "mark"
     ],
     "required_traits": {},
     "gene_tag_affinity": {},
     "stage_prompts": {
-      "3": "Awaken a thunder-roc branch with a stronger wing-root silhouette, sharper crown feathers and subtle storm-like markings.",
-      "4": "Develop the roc with broader powerful wings, stronger chest and clearer elemental storm markings while remaining a single bird.",
-      "5": "Complete the thunder-roc form with commanding wing span, mature crest and refined storm sigils, keeping the body readable and chibi-fantasy rather than gigantic."
+      "3": "Awaken the Moon Hare branch with elegant lunar ear accents, stronger hind-leg silhouette and a small moon sigil.",
+      "4": "Develop the Moon Hare with longer flowing ear tips, spring-loaded hindquarters and a clearer lunar marking.",
+      "5": "Complete the Moon Hare form with graceful lunar ears, powerful celestial hind legs and a refined moon sigil with restrained halo light."
     },
-    "preserve_hint": "Keep exactly one pair of wings, two legs, one head and one tail. No extra limbs or second wing pair."
+    "preserve_hint": "Keep exactly two ears, four limbs and one rabbit tail. No wings or extra ears."
   }
 ]
