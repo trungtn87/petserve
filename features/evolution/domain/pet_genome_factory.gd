@@ -15,6 +15,10 @@ const DEFAULT_TRAITS: Dictionary = {
 	"mark": "base",
 	"structure": "base",
 	"aura": "base",
+	"horns": "base",
+	"wings": "base",
+	"hooves": "base",
+	"antlers": "base",
 }
 
 
