@@ -164,7 +164,24 @@ func _current_pet_visual_state() -> StringName:
 		return &"none"
 
 	if (
-		visual.source_mode in [&"initial_pethome_v5_text_to_image", &"evolution_pethome_v5_image_edit"]
+		visual.source_mode in [
+			&"initial_pethome_v5_text_to_image",
+			&"initial_pethome_v6_text_to_image",
+			&"initial_pethome_v7_text_to_image",
+			&"initial_pethome_v8_text_to_image",
+			&"initial_pethome_v9_text_to_image",
+			&"evolution_pethome_v5_image_edit",
+			&"evolution_pethome_v7_full_regenerate",
+			&"evolution_pethome_v7_image_edit",
+			&"evolution_pethome_v8_full_regenerate",
+			&"evolution_pethome_v8_image_edit",
+			&"evolution_pethome_v9_full_regenerate",
+			&"evolution_pethome_v9_image_edit",
+			&"evolution_pethome_v10_full_regenerate",
+			&"evolution_pethome_v10_image_edit",
+			&"evolution_pethome_v11_full_regenerate",
+			&"evolution_pethome_v11_image_edit",
+		]
 	):
 		return &"current"
 
