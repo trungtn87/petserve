@@ -115,20 +115,20 @@ func _test_visual_schema() -> void:
 	var genome = factory.create_initial()
 
 	_expect(
-		PetGenomeSchema.render_field_count() == 16,
-		"Genome V1 render contract must contain 16 fields"
+		PetGenomeSchema.render_field_count() == 20,
+		"Genome V2 render contract must contain 20 fields"
 	)
 
 	_expect(
-		PetGenomeSchema.VISUAL_LOCI.size() == 12,
-		"Genome V1 must contain exactly 12 mutable visual loci"
+		PetGenomeSchema.VISUAL_LOCI.size() == 16,
+		"Genome V2 must contain exactly 16 mutable visual loci"
 	)
 
 	var visual := genome.visual_traits_snapshot()
 
 	_expect(
-		visual.size() == 12,
-		"initial visual phenotype must expose all 12 loci"
+		visual.size() == 16,
+		"initial visual phenotype must expose all 16 loci"
 	)
 
 	for locus in PetGenomeSchema.VISUAL_LOCI:
@@ -153,8 +153,8 @@ func _test_sparse_snapshot_visual_completion() -> void:
 	var visual := genome.visual_traits_snapshot()
 
 	_expect(
-		visual.size() == 12,
-		"legacy sparse genome must expand to the full visual contract"
+		visual.size() == 16,
+		"legacy sparse genome must expand to the expanded visual contract"
 	)
 
 	_expect(
