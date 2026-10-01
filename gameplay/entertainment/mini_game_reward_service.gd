@@ -435,3 +435,23 @@ func _ensure_run(
 		}
 
 	_meta[META_KEY] = new_state
+
+
+# Only the currently saved, finished session is eligible. Its settled flag is
+# committed in the same metadata save as the fragments/chests by the facade.
+func claim_energy_2048(run_id: int, stage_index: int, match_id: String) -> Dictionary:
+	var data: Dictionary = _meta.get("energy_2048", {})
+	var session := Energy2048Session.new()
+	if int(data.get("run_id", -1)) != run_id or not session.restore(data):
+		return {"ok": false, "message": "Không tìm thấy ván 2048 hợp lệ."}
+	if session.match_id != match_id or session.status == "playing" or session.settled:
+		return {"ok": false, "message": "Ván chưa kết thúc hoặc đã nhận thưởng."}
+	var amount := Energy2048Rules.fragments(Energy2048Rules.largest(session.board))
+	var crafted := _chests.add_salvage_fragments(amount, run_id, stage_index)
+	session.settled = true
+	var stored := session.snapshot()
+	stored["run_id"] = run_id
+	_meta["energy_2048"] = stored
+	return {"ok": true, "rewarded": amount > 0, "fragments": amount, "crafted": crafted,
+		"message": ("Nhận %d mảnh rương." % amount if amount > 0 else "Chưa đạt ô 128. Thử lại nhé!")
+			+ (" Đã ghép %d rương — mở trong Kho." % crafted if crafted > 0 else "")}
