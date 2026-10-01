@@ -9,6 +9,7 @@ const ElementCrystallizationServiceScript = preload(
 
 const META_SCHEMA: int = 5
 const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
+const CRYSTALLIZATION_NOTICE_SECONDS: int = 8
 
 
 var _meta: Dictionary = {}
@@ -26,6 +27,7 @@ var _gene_catalog: GeneCatalog = GeneCatalog.new()
 var _gene_definitions: Array[GeneDefinition] = []
 var _gene_state: GeneDevelopmentState
 var _evolution_plan_pending: bool = false
+var _crystallization_notice: Dictionary = {}
 var _run_id: int = 0
 var _stage_index: int = 1
 var _element_id: StringName = &"neutral"
@@ -230,6 +232,9 @@ func snapshot() -> Dictionary:
 	)
 	state["crystallization"] = (
 		_crystallization.snapshot()
+	)
+	state["crystallization_notice"] = (
+		_active_crystallization_notice()
 	)
 	state["legacy_inheritance_id"] = String(
 		_meta.get(
@@ -1447,9 +1452,58 @@ func _apply_crystallization_update(
 
 	if not rewards.is_empty():
 		_inventory.add_items(rewards)
+		var first_reward := rewards[0]
+		var now := int(
+			Time.get_unix_time_from_system()
+		)
+		_crystallization_notice = {
+			"uid": String(
+				first_reward.get(
+					"uid",
+					""
+				)
+			),
+			"message": (
+				"Kết tinh thành công • "
+				+ String(
+					first_reward.get(
+						"display_name",
+						"Vật phẩm"
+					)
+				)
+			),
+			"created_at_unix": now,
+			"expires_at_unix": (
+				now
+				+ CRYSTALLIZATION_NOTICE_SECONDS
+			),
+		}
 		changed = true
 
 	return changed
+
+
+func _active_crystallization_notice() -> Dictionary:
+	if _crystallization_notice.is_empty():
+		return {}
+
+	var now := int(
+		Time.get_unix_time_from_system()
+	)
+	var expires_at := int(
+		_crystallization_notice.get(
+			"expires_at_unix",
+			0
+		)
+	)
+
+	if expires_at <= now:
+		_crystallization_notice = {}
+		return {}
+
+	return _crystallization_notice.duplicate(
+		true
+	)
 
 
 func _gene_definition_for_item(
