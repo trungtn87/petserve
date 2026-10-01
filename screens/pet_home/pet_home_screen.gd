@@ -285,7 +285,7 @@ func _build_main_hud() -> void:
 	_name_label.text = str(
 		_data.get(
 			"pet_name",
-			"PET"
+			"THÚ CƯNG"
 		)
 	)
 	_name_label.size_flags_horizontal = (
@@ -640,7 +640,7 @@ func _build_section_overlay() -> void:
 		&"info"
 	)
 	_add_pet_info_tab_button(
-		"KỸ NĂNG & GENE",
+		"KỸ NĂNG & GEN",
 		&"skills_gene"
 	)
 	_add_pet_info_tab_button(
@@ -776,7 +776,7 @@ func _populate_pet_info_tab() -> void:
 		str(
 			_data.get(
 				"pet_name",
-				"PET"
+				"THÚ CƯNG"
 			)
 		)
 	)
@@ -910,7 +910,7 @@ func _add_mythic_name_row(
 		return
 
 	_add_info_row(
-		"Biến dị fantasy",
+		"Biến dị huyền ảo",
 		name
 	)
 
@@ -1166,24 +1166,9 @@ func _add_lifetime_gene_score_rows(
 func _gene_display_name(
 	gene_id: String
 ) -> String:
-	var normalized := gene_id.strip_edges()
-
-	if normalized.is_empty():
-		return "Gen"
-
-	var catalog := GeneCatalog.new()
-	var definition := catalog.find_by_id(
-		catalog.load_default(),
-		StringName(normalized)
+	return ViDisplay.gene_name(
+		gene_id
 	)
-
-	if definition != null:
-		return definition.display_name()
-
-	return normalized.replace(
-		"_",
-		" "
-	).capitalize()
 
 
 func _add_last_evolution_gene_rows(
@@ -1752,7 +1737,7 @@ func _refresh_gameplay() -> void:
 			"Sẵn sàng tiến hóa"
 			if naturally_ready
 			else (
-				"Có thể tiến hóa ngay nhờ thiên phú TEST"
+				"Có thể tiến hóa ngay nhờ thiên phú THỬ NGHIỆM"
 				if can_evolve
 				else "Trưởng thành theo thời gian và vật phẩm"
 			)
@@ -1834,7 +1819,7 @@ func _open_storage() -> void:
 	)
 	_add_info_row("Kết tinh", crystal_text)
 	_section_button("RƯƠNG • Mở rương kế tiếp", _open_chest)
-	_section_button("HÒM ITEM", func(): _close_section(); _hud.open_inventory())
+	_section_button("HÒM VẬT PHẨM", func(): _close_section(); _hud.open_inventory())
 	_section_button("KẾT TINH NGUYÊN TỐ", _open_crystallization)
 	_section_overlay.visible = true
 
@@ -2310,7 +2295,7 @@ func _populate_pet_evolution_tab() -> void:
 			"Xem thành tích đời thú cưng → chọn di sản → đời sau"
 		)
 		_section_button(
-			"XEM THÀNH TÍCH ĐỜI PET",
+			"XEM THÀNH TÍCH ĐỜI THÚ CƯNG",
 			_open_current_final_record
 		)
 		_section_button(
@@ -3146,7 +3131,7 @@ func _show_final_record(
 	if preview == null or preview.is_empty():
 		_add_info_row(
 			"Ảnh",
-			"Không dựng được preview."
+			"Không dựng được ảnh xem trước."
 		)
 	else:
 		var texture_rect := TextureRect.new()
