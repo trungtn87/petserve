@@ -398,6 +398,22 @@ func _prepare_resolved_stage(
 			"Evolution render request bị rỗng."
 		)
 
+	var resolved_prompt := preload(
+		"res://features/evolution/visual/resolved_form_prompt.gd"
+	).new().build(
+		identity,
+		target_stage,
+		gene_state.gene_scores_snapshot(),
+		mythic_resolution
+	)
+
+	if resolved_prompt.is_empty():
+		return _error(
+			"Không tạo được resolved-form evolution prompt."
+		)
+
+	request.positive_prompt = resolved_prompt
+
 	var gene_score_prompt := GenePromptResolver.new().build(
 		gene_state,
 		identity.element(),
@@ -419,8 +435,6 @@ func _prepare_resolved_stage(
 			+ gene_scope_rule
 			+ gene_score_prompt
 		)
-
-	request.positive_prompt += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, target_stage, gene_state.gene_scores_snapshot())
 
 	var next := PetGenome.new(
 		target_stage,
