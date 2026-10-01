@@ -54,6 +54,12 @@ func traits_snapshot() -> Dictionary:
 	return _traits.duplicate(true)
 
 
+func visual_traits_snapshot() -> Dictionary:
+	return PetGenomeSchema.complete_visual_traits(
+		_traits
+	)
+
+
 func mutation_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
 

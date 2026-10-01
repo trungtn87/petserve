@@ -8,22 +8,15 @@ func build_positive(
 	if spec == null or not spec.is_valid():
 		return ""
 
-	return "\n\n".join([
-		"[INITIAL IDENTITY]\n"
-		+ spec.identity_section,
-
-		"[MYTHIC ELEMENTAL STYLE]\n"
-		+ spec.style_section,
-
-		"[INFANT FORM]\n"
-		+ spec.form_section,
-
-		"[COMPOSITION]\n"
-		+ spec.composition_section,
-
-		"[EVOLUTION SPACE]\n"
-		+ spec.future_space_section,
-	])
+	return " ".join([
+		spec.identity_section,
+		spec.style_section,
+		spec.form_section,
+		spec.scene_section,
+		spec.composition_section,
+		spec.ui_safe_section,
+		spec.future_space_section,
+	]).strip_edges()
 
 
 func build_negative(

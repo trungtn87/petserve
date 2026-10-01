@@ -1,12 +1,12 @@
-# M1 — PetIdentity
+# M1 — PetIdentity + PetSceneProfile
 
-Status: implemented on `feat/evolution-m1-pet-identity`
+Status: implemented on the evolution main line.
 
 ## Purpose
 
-M1 defines the stable identity of one pet life. Evolution visuals, genome values, stage growth and mutation data are intentionally not part of identity.
+M1 now creates the stable identity of one pet life together with a stable PetHome scene identity.
 
-A pet may change appearance many times while these values remain fixed:
+The pet identity remains:
 
 - `pet_id`
 - `species`
@@ -14,41 +14,46 @@ A pet may change appearance many times while these values remain fixed:
 - `lineage_seed`
 - `generation`
 
-## Identity rule
+The scene companion profile is derived deterministically from that identity:
+
+- `environment_theme`
+- `environment_variant`
+- `palette_id`
+- `palette_description`
+- `lighting_theme`
+- `motif_id`
+- `motif_description`
+- `scene_seed`
+
+## Stability rule
 
 For one pet life:
 
 ```text
 PetIdentity
-    stays fixed
-        ↓
-future Genome / Evolution / Visual layers may change
++ PetSceneProfile
+      stay stable
+          ↓
+Genome / Evolution / Visual layers may change
 ```
 
-The renderer must never be allowed to replace PetIdentity.
+The scene profile is not a second AI render. It is prompt data that makes the pet and its PetHome environment belong to the same visual world.
 
 ## Initial creation
 
 The current first species is `cat`.
 
-The initial pet identity can be deterministically created from:
-
 ```text
 run_seed + species + element + generation
+        ↓
+PetIdentity
+        ↓
+PetSceneProfileFactory
+        ↓
+stable world palette / environment / lighting / motif
 ```
 
-Example:
-
-```text
-species       = cat
-element       = dark
-lineage_seed  = 7281
-generation    = 0
-
-pet_id = cat_dark_7281_g0
-```
-
-The seven existing egg elements are accepted by the identity layer:
+The seven current elements are supported:
 
 - metal
 - wood
@@ -58,40 +63,40 @@ The seven existing egg elements are accepted by the identity layer:
 - dark
 - light
 
-PetIdentity itself does not hard-code an element registry. Element validity/content rules belong to a later content/rule layer so adding a future element does not require editing identity core.
+Each element has multiple deterministic environment, palette, lighting and motif variants. Different pet lives therefore receive different scene combinations while the same life always reconstructs the same profile.
 
 ## Files
 
 ```text
 features/evolution/domain/pet_identity.gd
 features/evolution/domain/pet_identity_factory.gd
+features/evolution/domain/pet_scene_profile.gd
+features/evolution/domain/pet_scene_profile_factory.gd
 tools/test_pet_identity.gd
+tools/test_pet_scene_profile.gd
 ```
 
 ## Pass criteria
 
 M1 passes when:
 
-1. All seven current elements can create a valid cat identity.
-2. Same inputs always produce the same `pet_id`.
-3. Different lineage seed produces a different `pet_id`.
-4. Different element produces a different `pet_id`.
-5. Serialization round-trip preserves identity exactly.
-6. Invalid seed/element/generation is rejected.
-7. No 3D/2.5D/pet-interaction code is reintroduced.
+1. All seven elements create a valid identity and scene profile.
+2. Same pet life always creates the same `pet_id` and same scene profile.
+3. Different lineage seeds create different pet IDs and different scene seeds.
+4. Identity and scene profile both serialize/deserialize exactly.
+5. Invalid identity input is rejected.
+6. No renderer/provider dependency exists inside M1.
 
-## Manual/headless test
-
-When a Godot executable is available:
+## Headless tests
 
 ```bash
 godot --headless --path . --script res://tools/test_pet_identity.gd
+godot --headless --path . --script res://tools/test_pet_scene_profile.gd
 ```
 
-Expected output:
+Expected:
 
 ```text
 M1 PetIdentity: PASS
+M1 PetSceneProfile: PASS
 ```
-
-M1 does not yet connect identity into Hatch runtime. That integration is intentionally deferred until the identity domain is stable.
