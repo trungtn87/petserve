@@ -390,5 +390,152 @@
     "instruction": "Evolve only the far end of the existing long fluffy tail into two soft distinct tips that share the same tail base and flow naturally together. Preserve the established elemental aura.",
     "preserve_hint": "Do not create two separate tails and do not move the tail root.",
     "edit_strength": 0.23
+  },
+  {
+    "mutation_id": "cat_folded_spirit_ears",
+    "target_region": "ears",
+    "instruction": "Evolve the same feline ears into a soft folded spirit-ear shape while keeping their base placement and the cat identity readable.",
+    "preserve_hint": "Preserve face, eye placement, head size, tail and every non-ear trait.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "cat_double_tail",
+    "target_region": "tail",
+    "instruction": "Split the existing developed feline tail into exactly two balanced natural fantasy tails that share the same base coat and elemental identity.",
+    "preserve_hint": "Keep the same cat body, leg count, face, ears and all non-tail traits. Exactly two tails total.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "cat_hunter_mane",
+    "target_region": "mane",
+    "instruction": "Develop a compact predatory feline neck-and-shoulder mane that strengthens the silhouette without becoming lion-like.",
+    "preserve_hint": "Preserve head, legs, tail count, coat pattern and body proportions outside the mane.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "dog_drop_ears",
+    "target_region": "ears",
+    "instruction": "Develop the same canine ears into a larger soft drop-ear form with natural puppy anatomy and clear breed-like variation.",
+    "preserve_hint": "Keep muzzle, skull, eyes, body and tail unchanged.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "dog_curl_tail",
+    "target_region": "tail",
+    "instruction": "Curl the same canine tail into a strong natural spiral carried over the back, preserving coat and elemental cues.",
+    "preserve_hint": "Do not add or split the tail. Preserve body, legs, face and ears.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "dog_guardian_shoulders",
+    "target_region": "body",
+    "instruction": "Broaden the canine shoulders and chest into a guardian-like build while keeping a four-legged dog silhouette and youthful fantasy proportions.",
+    "preserve_hint": "Keep head, muzzle, ears, tail and leg count unchanged.",
+    "edit_strength": 0.21
+  },
+  {
+    "mutation_id": "fox_fan_tail",
+    "target_region": "tail",
+    "instruction": "Expand the fox's single tail into a broad elegant fan-shaped tail with layered fur and strong species readability.",
+    "preserve_hint": "Keep exactly one tail. Preserve fox head, ears, legs and face.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "fox_double_tail",
+    "target_region": "tail",
+    "instruction": "Divide the established fox fan tail into exactly two flowing spirit tails with matching base fur and elemental identity.",
+    "preserve_hint": "Keep fox anatomy and face unchanged. Exactly two tails total, no extra limbs.",
+    "edit_strength": 0.23
+  },
+  {
+    "mutation_id": "fox_spirit_mask",
+    "target_region": "mark",
+    "instruction": "Add a restrained species-specific spirit-mask marking around the fox eyes and muzzle using the existing elemental palette.",
+    "preserve_hint": "Do not change face shape, eye placement, ears, muzzle length or body anatomy.",
+    "edit_strength": 0.17
+  },
+  {
+    "mutation_id": "bear_massive_paws",
+    "target_region": "paws",
+    "instruction": "Develop the bear cub's paws into broader heavy fantasy paws with stronger pads and subtle elemental reinforcement.",
+    "preserve_hint": "Keep claw size restrained and preserve body, head and limb count.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "bear_shoulder_mane",
+    "target_region": "mane",
+    "instruction": "Grow a dense mantle of fur around the bear shoulders and neck, creating a powerful ancient-bear silhouette.",
+    "preserve_hint": "Preserve head shape, paws, body length and all non-mane traits.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "bear_ancient_bulk",
+    "target_region": "body",
+    "instruction": "Increase torso depth, shoulder mass and grounded weight into an ancient guardian bear build while retaining four natural legs.",
+    "preserve_hint": "Do not make the bear humanoid or bipedal. Preserve face and appendage count.",
+    "edit_strength": 0.22
+  },
+  {
+    "mutation_id": "rabbit_lop_ears",
+    "target_region": "ears",
+    "instruction": "Transform the rabbit's two long ears into a distinctive lop-ear configuration, naturally drooping while preserving their original pair.",
+    "preserve_hint": "Exactly two ears. Preserve face, body, legs and tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "rabbit_giant_tail",
+    "target_region": "tail",
+    "instruction": "Grow the rabbit tail into one oversized soft fantasy plume while keeping it clearly attached as a single tail.",
+    "preserve_hint": "Preserve ears, hind-leg anatomy, face and body proportions.",
+    "edit_strength": 0.19
+  },
+  {
+    "mutation_id": "rabbit_moon_hindlegs",
+    "target_region": "body",
+    "instruction": "Strengthen and lengthen the rabbit hindquarter silhouette for a spring-loaded moon-hare build while keeping the forebody delicate.",
+    "preserve_hint": "Preserve four-limb anatomy, ears, face and tail.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "lizard_dorsal_crest",
+    "target_region": "structure",
+    "instruction": "Grow a clean species-specific dorsal crest from head to upper back, integrated with the existing reptilian scales.",
+    "preserve_hint": "Preserve four legs, one tail, skull shape and all non-crest anatomy.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "lizard_crystal_scales",
+    "target_region": "coat",
+    "instruction": "Develop selected reptilian scales into sparse polished elemental crystal scales, concentrated in coherent patches rather than covering the whole body.",
+    "preserve_hint": "Preserve lizard silhouette, face, limbs and tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "lizard_spiked_tail",
+    "target_region": "tail",
+    "instruction": "Develop the same single lizard tail with a controlled line of fantasy spikes toward the tip.",
+    "preserve_hint": "Keep exactly one tail and preserve body, legs, head and dorsal structure.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "bird_crown_crest",
+    "target_region": "structure",
+    "instruction": "Grow a compact species-specific feather crown or crest on the head, clearly integrated into the existing plumage.",
+    "preserve_hint": "Preserve beak, eye placement, two legs, one wing pair and tail.",
+    "edit_strength": 0.18
+  },
+  {
+    "mutation_id": "bird_long_tail_plume",
+    "target_region": "tail",
+    "instruction": "Extend the bird tail into a longer layered fantasy plume with clear feather structure and elemental accents.",
+    "preserve_hint": "Preserve body, head, exactly one pair of wings and two legs.",
+    "edit_strength": 0.2
+  },
+  {
+    "mutation_id": "bird_wing_eye_pattern",
+    "target_region": "mark",
+    "instruction": "Add one elegant eye-like symbolic pattern to each wing using feather coloration only, symmetrical and restrained.",
+    "preserve_hint": "Do not add literal eyes, extra wings or change wing anatomy.",
+    "edit_strength": 0.17
   }
 ]
