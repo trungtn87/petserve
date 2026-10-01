@@ -223,7 +223,7 @@ func _build() -> void:
 
 	_add_action(
 		&"pet_info",
-		"Thông tin pet"
+		"Thông tin thú cưng"
 	)
 	_add_action(
 		&"chest",
