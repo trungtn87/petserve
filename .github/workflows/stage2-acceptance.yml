@@ -62,6 +62,9 @@ jobs:
       - name: Legacy item inheritance
         run: godot --headless --path . res://tools/test_legacy_item_inheritance.tscn
 
+      - name: Pet skill slots, inheritance and lifecycle effects
+        run: godot --headless --path . res://tools/test_pet_skill_system.tscn
+
       - name: Gene evolution render contract
         run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
 

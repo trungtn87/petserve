@@ -892,7 +892,8 @@ func _complete_initial_render(
 		visual,
 		_pet_name,
 		_scene_profile,
-		_mythic_destiny
+		_mythic_destiny,
+		_egg_stage
 	)
 
 	if not saved:

@@ -224,7 +224,8 @@ func _test_generation_bootstrap_and_inventory_claim() -> void:
 		bool(
 			legacy.prepare(
 				source,
-				item
+				item,
+				&"slow_digestion"
 			).get(
 				"ok",
 				false
@@ -321,12 +322,33 @@ func _test_generation_bootstrap_and_inventory_claim() -> void:
 		"legacy_inherited_item",
 		{}
 	)
+	var inherited_skills: Variant = snapshot.get(
+		"skills",
+		[]
+	)
 	_expect(
 		typeof(snapshot_item) == TYPE_DICTIONARY
 		and not (
 			snapshot_item as Dictionary
 		).is_empty(),
 		"PetHome snapshot must expose inherited item feedback"
+	)
+	_expect(
+		typeof(inherited_skills) == TYPE_ARRAY
+		and not (inherited_skills as Array).is_empty()
+		and String(
+			((inherited_skills as Array)[0] as Dictionary).get(
+				"skill_id",
+				""
+			)
+		) == "slow_digestion"
+		and String(
+			((inherited_skills as Array)[0] as Dictionary).get(
+				"source",
+				""
+			)
+		) == "legacy",
+		"next PetHome must put the inherited skill in Slot 1"
 	)
 	_expect(
 		String(
