@@ -14,7 +14,7 @@ var _first_expression_stage: int = 3
 var _final_expression_stage: int = 4
 var _activation_basis_points: int = 0
 var _egg_stage4_eligible: bool = false
-var _required_gene_ids: Array[StringName] = []
+var _required_loci: Array[StringName] = []
 var _target_regions: Array[StringName] = []
 var _required_traits: Dictionary = {}
 var _gene_tag_affinity: Dictionary = {}
@@ -30,7 +30,7 @@ func _init(
 	final_expression_stage: int = 4,
 	activation_basis_points: int = 0,
 	egg_stage4_eligible: bool = false,
-	required_gene_ids: Array = [],
+	required_loci: Array = [],
 	target_regions: Array = [],
 	required_traits: Dictionary = {},
 	gene_tag_affinity: Dictionary = {},
@@ -44,7 +44,7 @@ func _init(
 	_final_expression_stage = final_expression_stage
 	_activation_basis_points = activation_basis_points
 	_egg_stage4_eligible = egg_stage4_eligible
-	_required_gene_ids = _normalize_gene_ids(required_gene_ids)
+	_required_loci = _normalize_loci(required_loci)
 	_target_regions = _normalize_regions(target_regions)
 	_required_traits = _normalize_traits(required_traits)
 	_gene_tag_affinity = _normalize_affinity(gene_tag_affinity)
@@ -84,19 +84,19 @@ func egg_stage4_eligible() -> bool:
 	return _egg_stage4_eligible
 
 
-func required_gene_ids() -> Array[StringName]:
-	return _required_gene_ids.duplicate()
+func required_loci() -> Array[StringName]:
+	return _required_loci.duplicate()
 
 
 func recipe_matches(
-	accumulated_gene_ids: Array
+	accumulated_loci: Array
 ) -> bool:
-	if _required_gene_ids.size() != 3:
+	if _required_loci.size() != 3:
 		return false
 
 	var normalized: Array[StringName] = []
 
-	for value in accumulated_gene_ids:
+	for value in accumulated_loci:
 		var gene_id := _normalize_token(
 			StringName(
 				str(value)
@@ -115,7 +115,7 @@ func recipe_matches(
 			gene_id
 		)
 
-	for required_id in _required_gene_ids:
+	for required_id in _required_loci:
 		if not normalized.has(
 			required_id
 		):
@@ -173,7 +173,7 @@ func required_traits_match(
 		var locus := StringName(
 			str(key_value)
 		)
-		var required := StringName(
+		var required_trait := StringName(
 			str(
 				_required_traits[
 					key_value
@@ -184,7 +184,7 @@ func required_traits_match(
 		if genome.get_trait(
 			locus,
 			PetGenomeSchema.BASE_TRAIT
-		) != required:
+		) != required_trait:
 			return false
 
 	return true
@@ -238,26 +238,28 @@ func is_valid() -> bool:
 		or _activation_basis_points < 0
 		or _activation_basis_points > MAX_BASIS_POINTS
 		or (
-			not _required_gene_ids.is_empty()
-			and _required_gene_ids.size() != 3
+			not _required_loci.is_empty()
+			and _required_loci.size() != 3
 		)
 		or _target_regions.is_empty()
 		or _preserve_hint.is_empty()
 	):
 		return false
 
-	var seen_genes: Dictionary = {}
+	var seen_loci: Dictionary = {}
 
-	for gene_id in _required_gene_ids:
+	for locus in _required_loci:
 		if (
-			String(gene_id).is_empty()
-			or seen_genes.has(
-				gene_id
+			not PetGenomeSchema.is_visual_locus(
+				locus
+			)
+			or seen_loci.has(
+				locus
 			)
 		):
 			return false
 
-		seen_genes[gene_id] = true
+		seen_loci[locus] = true
 
 	for region in _target_regions:
 		if not PetGenomeSchema.is_visual_locus(
@@ -269,7 +271,7 @@ func is_valid() -> bool:
 		var locus := StringName(
 			str(key_value)
 		)
-		var trait := StringName(
+		var trait_id := StringName(
 			str(
 				_required_traits[
 					key_value
@@ -281,7 +283,7 @@ func is_valid() -> bool:
 			not PetGenomeSchema.is_visual_locus(
 				locus
 			)
-			or String(trait).is_empty()
+			or String(trait_id).is_empty()
 		):
 			return false
 
@@ -310,11 +312,11 @@ func is_valid() -> bool:
 
 func to_dict() -> Dictionary:
 	var regions: Array[String] = []
-	var gene_ids: Array[String] = []
+	var loci: Array[String] = []
 
-	for gene_id in _required_gene_ids:
-		gene_ids.append(
-			String(gene_id)
+	for locus in _required_loci:
+		loci.append(
+			String(locus)
 		)
 
 	for region in _target_regions:
@@ -349,7 +351,7 @@ func to_dict() -> Dictionary:
 		"egg_stage4_eligible": (
 			_egg_stage4_eligible
 		),
-		"required_gene_ids": gene_ids,
+		"required_loci": loci,
 		"target_regions": regions,
 		"required_traits": (
 			_required_traits.duplicate(true)
@@ -365,8 +367,8 @@ func to_dict() -> Dictionary:
 static func from_dict(
 	data: Dictionary
 ) -> SpeciesMythicMutationDefinition:
-	var gene_ids_value: Variant = data.get(
-		"required_gene_ids",
+	var loci_value: Variant = data.get(
+		"required_loci",
 		[]
 	)
 	var regions_value: Variant = data.get(
@@ -387,7 +389,7 @@ static func from_dict(
 	)
 
 	if (
-		typeof(gene_ids_value) != TYPE_ARRAY
+		typeof(loci_value) != TYPE_ARRAY
 		or typeof(regions_value) != TYPE_ARRAY
 		or typeof(traits_value) != TYPE_DICTIONARY
 		or typeof(affinity_value) != TYPE_DICTIONARY
@@ -442,7 +444,7 @@ static func from_dict(
 				false
 			)
 		),
-		gene_ids_value as Array,
+		loci_value as Array,
 		regions_value as Array,
 		traits_value as Dictionary,
 		affinity_value as Dictionary,
@@ -475,28 +477,28 @@ static func _normalize_token(
 	)
 
 
-static func _normalize_gene_ids(
+static func _normalize_loci(
 	source: Array
 ) -> Array[StringName]:
 	var result: Array[StringName] = []
 
 	for value in source:
-		var gene_id := _normalize_token(
+		var locus := _normalize_token(
 			StringName(
 				str(value)
 			)
 		)
 
 		if (
-			String(gene_id).is_empty()
+			String(locus).is_empty()
 			or result.has(
-				gene_id
+				locus
 			)
 		):
 			continue
 
 		result.append(
-			gene_id
+			locus
 		)
 
 	return result
@@ -538,7 +540,7 @@ static func _normalize_traits(
 				str(key_value)
 			)
 		)
-		var trait := _normalize_token(
+		var trait_id := _normalize_token(
 			StringName(
 				str(
 					source[
@@ -549,7 +551,7 @@ static func _normalize_traits(
 		)
 
 		result[String(locus)] = String(
-			trait
+			trait_id
 		)
 
 	return result

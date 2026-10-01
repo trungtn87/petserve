@@ -34,6 +34,11 @@ var _drawer
 var _section_overlay: Control
 var _section_title: Label
 var _section_body: VBoxContainer
+var _active_section: StringName = &""
+var _crystal_status_value: Label
+var _crystal_stage_value: Label
+var _crystal_timer_value: Label
+var _crystal_running: bool = false
 
 
 func _ready() -> void:
@@ -712,7 +717,7 @@ func _open_pet_info() -> void:
 	):
 		_add_info_row(
 			"Thiên phú",
-			"Bẻ cong thời gian [TEST]"
+			"Tiến hóa ngay [TEST]"
 		)
 	_add_info_row(
 		"Loài",
@@ -742,6 +747,9 @@ func _open_pet_info() -> void:
 	)
 	_add_current_trait_rows(
 		genome
+	)
+	_add_gene_choice_rows(
+		gameplay_state
 	)
 	_add_last_evolution_row()
 
@@ -795,7 +803,7 @@ func _add_mythic_name_row(
 		return
 
 	_add_info_row(
-		"Thú thần thoại",
+		"Biến dị fantasy",
 		name
 	)
 
@@ -809,17 +817,17 @@ func _add_current_trait_rows(
 	var added := 0
 
 	for locus in PetGenomeSchema.VISUAL_LOCI:
-		var trait := genome.get_trait(
+		var trait_id := genome.get_trait(
 			locus,
 			PetGenomeSchema.BASE_TRAIT
 		)
 
-		if trait == PetGenomeSchema.BASE_TRAIT:
+		if trait_id == PetGenomeSchema.BASE_TRAIT:
 			continue
 
 		_add_info_row(
 			(
-				"Trait"
+				"Đang có"
 				if added == 0
 				else ""
 			),
@@ -829,7 +837,7 @@ func _add_current_trait_rows(
 					locus
 				),
 				_trait_value(
-					trait
+					trait_id
 				),
 			]
 		)
@@ -837,7 +845,7 @@ func _add_current_trait_rows(
 
 	if added == 0:
 		_add_info_row(
-			"Trait",
+			"Đang có",
 			"Cơ bản"
 		)
 
@@ -857,6 +865,13 @@ func _add_gene_choice_rows(
 			0
 		)
 	)
+
+	if limit <= 0:
+		_add_info_row(
+			"Gene Item",
+			"Không dùng ở stage này"
+		)
+		return
 
 	_add_info_row(
 		"Gene Item",
@@ -919,7 +934,7 @@ func _add_gene_choice_rows(
 
 		_add_info_row(
 			(
-				"Định hướng"
+				"Đang định hướng"
 				if index == 0
 				else ""
 			),
@@ -935,6 +950,17 @@ func _add_gene_choice_rows(
 			]
 		)
 		index += 1
+
+	if index == 0:
+		_add_info_row(
+			"Đang định hướng",
+			"Chưa dùng Gene"
+		)
+	else:
+		_add_info_row(
+			"Kết quả",
+			"Chưa khóa • chốt khi tiến hóa"
+		)
 
 
 func _add_last_evolution_row() -> void:
@@ -965,81 +991,147 @@ func _add_last_evolution_row() -> void:
 			)
 		)
 	)
+	var deltas_value: Variant = plan.get(
+		"deltas",
+		[]
+	)
+	var deltas: Array[Dictionary] = []
 
-	if mode == StageEvolutionResolver.MODE_NATURAL:
+	if typeof(deltas_value) == TYPE_ARRAY:
+		for delta_value in deltas_value as Array:
+			if typeof(delta_value) == TYPE_DICTIONARY:
+				deltas.append(
+					(delta_value as Dictionary).duplicate(
+						true
+					)
+				)
+
+	if deltas.is_empty():
+		var legacy_delta_value: Variant = plan.get(
+			"delta",
+			{}
+		)
+
+		if (
+			typeof(legacy_delta_value) == TYPE_DICTIONARY
+			and not (
+				legacy_delta_value as Dictionary
+			).is_empty()
+		):
+			deltas.append(
+				(legacy_delta_value as Dictionary).duplicate(
+					true
+				)
+			)
+
+	if (
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and deltas.is_empty()
+	):
 		_add_info_row(
 			"Tiến hóa gần nhất",
 			"Tự nhiên • giữ nguyên Gene trait"
 		)
-		return
+	else:
+		var index := 0
 
-	var delta_value: Variant = plan.get(
-		"delta",
+		for delta in deltas:
+			var locus := StringName(
+				str(
+					delta.get(
+						"target_trait",
+						""
+					)
+				)
+			)
+			var from_trait := StringName(
+				str(
+					delta.get(
+						"from_trait",
+						""
+					)
+				)
+			)
+			var to_trait := StringName(
+				str(
+					delta.get(
+						"to_trait",
+						""
+					)
+				)
+			)
+
+			if (
+				String(locus).is_empty()
+				or String(from_trait).is_empty()
+				or String(to_trait).is_empty()
+			):
+				continue
+
+			_add_info_row(
+				(
+					"Tiến hóa gần nhất"
+					if index == 0
+					else ""
+				),
+				"%s: %s → %s"
+				% [
+					_trait_label(
+						locus
+					),
+					_trait_value(
+						from_trait
+					),
+					_trait_value(
+						to_trait
+					),
+				]
+			)
+			index += 1
+
+	var mythic_value: Variant = plan.get(
+		"mythic_resolution",
 		{}
 	)
 
-	if typeof(delta_value) != TYPE_DICTIONARY:
+	if typeof(mythic_value) != TYPE_DICTIONARY:
 		return
 
-	var delta := delta_value as Dictionary
+	var mythic := mythic_value as Dictionary
+	var mythic_mode := StringName(
+		str(
+			mythic.get(
+				"mode",
+				"none"
+			)
+		)
+	)
+	var mythic_name := String(
+		mythic.get(
+			"display_name",
+			""
+		)
+	).strip_edges()
 
-	if delta.is_empty():
+	if (
+		mythic_name.is_empty()
+		or mythic_mode not in [
+				SpeciesMythicMutationResolver.MODE_AWAKEN,
+				SpeciesMythicMutationResolver.MODE_CONTINUE,
+			]
+	):
 		return
-
-	var locus := StringName(
-		str(
-			delta.get(
-				"target_trait",
-				""
-			)
-		)
-	)
-	var from_trait := StringName(
-		str(
-			delta.get(
-				"from_trait",
-				""
-			)
-		)
-	)
-	var to_trait := StringName(
-		str(
-			delta.get(
-				"to_trait",
-				""
-			)
-		)
-	)
-	var gene_resolution: Dictionary = plan.get(
-		"gene_resolution",
-		{}
-	)
-	var suffix := (
-		" • củng cố"
-		if bool(
-			gene_resolution.get(
-				"reinforced",
-				false
-			)
-		)
-		else ""
-	)
 
 	_add_info_row(
-		"Tiến hóa gần nhất",
-		"%s: %s → %s%s"
-		% [
-			_trait_label(
-				locus
-			),
-			_trait_value(
-				from_trait
-			),
-			_trait_value(
-				to_trait
-			),
-			suffix,
-		]
+		"Thần thoại",
+		(
+			"Thức tỉnh %s"
+			% mythic_name
+			if mythic_mode
+				== SpeciesMythicMutationResolver.MODE_AWAKEN
+			else "Tiếp tục %s"
+				% mythic_name
+		)
 	)
 
 
@@ -1081,13 +1173,13 @@ func _trait_label(
 
 
 func _trait_value(
-	trait: StringName
+	trait_id: StringName
 ) -> String:
-	if trait == PetGenomeSchema.BASE_TRAIT:
+	if trait_id == PetGenomeSchema.BASE_TRAIT:
 		return "Cơ bản"
 
 	return String(
-		trait
+		trait_id
 	).replace(
 		"_",
 		" "
@@ -1126,8 +1218,13 @@ func _open_placeholder(
 
 
 func _prepare_section(
-	title: String
+	title: String,
+	section_id: StringName = &""
 ) -> void:
+	_active_section = section_id
+	_crystal_status_value = null
+	_crystal_stage_value = null
+	_crystal_timer_value = null
 	_section_title.text = title
 
 	for child in _section_body.get_children():
@@ -1137,8 +1234,11 @@ func _prepare_section(
 func _add_info_row(
 	label_text: String,
 	value_text: String
-) -> void:
+) -> Label:
 	var row := HBoxContainer.new()
+	row.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
 	row.add_theme_constant_override(
 		"separation",
 		10
@@ -1148,6 +1248,12 @@ func _add_info_row(
 	var label := Label.new()
 	label.text = label_text
 	label.custom_minimum_size.x = 92
+	label.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
+	)
 	label.add_theme_color_override(
 		"font_color",
 		_theme.get(
@@ -1162,8 +1268,17 @@ func _add_info_row(
 	value.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	value.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	value.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
 	value.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	value.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
 	)
 	value.add_theme_color_override(
 		"font_color",
@@ -1173,9 +1288,14 @@ func _add_info_row(
 		)
 	)
 	row.add_child(value)
+	return value
 
 
 func _close_section() -> void:
+	_active_section = &""
+	_crystal_status_value = null
+	_crystal_stage_value = null
+	_crystal_timer_value = null
 	_section_overlay.visible = false
 
 
@@ -1184,7 +1304,8 @@ func _setup_gameplay() -> void:
 	var genome: PetGenome = _data.get("_genome_object")
 	_game.setup(
 		identity.lineage_seed(),
-		genome.stage()
+		genome.stage(),
+		identity.element()
 	)
 	theme = PetHomeGameplayTheme.build(_theme)
 	_hud = PetHomeGameplayUI.new()
@@ -1196,6 +1317,7 @@ func _setup_gameplay() -> void:
 	)
 	_hud.bind(_game)
 	_hud.item_use_requested.connect(_use_item)
+	_hud.item_salvage_requested.connect(_salvage_item)
 	_hub = EntertainmentHubUI.new()
 	_hub.palette = _theme
 	add_child(_hub)
@@ -1203,7 +1325,9 @@ func _setup_gameplay() -> void:
 		Control.PRESET_FULL_RECT
 	)
 	_hub.caro_win_reward_requested.connect(_reward)
-	_hub.maze_reward_requested.connect(_reward_maze)
+	_hub.obstacle_reward_requested.connect(_reward_obstacle)
+	_hub.energy_2048_api = _game
+	_hub.energy_2048_reward_received.connect(_refresh_gameplay)
 	_hub.snake_reward_requested.connect(_reward_snake)
 	_refresh_gameplay()
 
@@ -1267,6 +1391,7 @@ func _refresh_gameplay() -> void:
 		)
 	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
+	_refresh_crystallization_section()
 
 func _notification(what: int) -> void:
 	if _hud == null:
@@ -1279,7 +1404,8 @@ func _notification(what: int) -> void:
 		var genome: PetGenome = _data.get("_genome_object")
 		_game.setup(
 			identity.lineage_seed(),
-			genome.stage()
+			genome.stage(),
+			identity.element()
 		)
 		_paused = false
 		_skip_tick = true
@@ -1288,21 +1414,288 @@ func _exit_tree() -> void:
 	if _hud != null:
 		_game.save()
 
-func _section_button(text: String, callback: Callable) -> void:
+func _section_button(text: String, callback: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
 	button.custom_minimum_size.y = 48
 	button.pressed.connect(callback)
 	_section_body.add_child(button)
+	return button
 
 func _open_storage() -> void:
 	_prepare_section("Kho tài nguyên")
 	var state := _game.snapshot()
+	var crystal := _crystallization_snapshot()
+	var crystal_text := "Sẵn sàng"
+
+	if bool(crystal.get("running", false)):
+		crystal_text = (
+			"Giai đoạn %s • %s"
+			% [
+				_crystal_stage_name(
+					int(crystal.get("stage", 1))
+				),
+				_format_crystal_time(
+					int(
+						crystal.get(
+							"remaining_seconds",
+							0
+						)
+					)
+				),
+			]
+		)
+
 	_add_info_row("Rương", str(state.get("pending_chests", 0)))
 	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
+	_add_info_row(
+		"Mảnh rương",
+		"%d/%d" % [
+			int(state.get("chest_fragments", 0)),
+			int(state.get("chest_fragments_required", 10)),
+		]
+	)
+	_add_info_row("Kết tinh", crystal_text)
 	_section_button("RƯƠNG • Mở rương kế tiếp", _open_chest)
 	_section_button("HÒM ITEM", func(): _close_section(); _hud.open_inventory())
+	_section_button("KẾT TINH NGUYÊN TỐ", _open_crystallization)
 	_section_overlay.visible = true
+
+
+func _open_crystallization() -> void:
+	_prepare_section(
+		"Kết tinh nguyên tố",
+		&"crystallization"
+	)
+	var crystal := _crystallization_snapshot()
+	var running := bool(
+		crystal.get(
+			"running",
+			false
+		)
+	)
+	_crystal_running = running
+	var element_id := StringName(
+		crystal.get(
+			"element_id",
+			"neutral"
+		)
+	)
+
+	_add_info_row(
+		"Nguyên tố",
+		PetHomeThemeScript.element_label(
+			element_id
+		)
+	)
+	_crystal_status_value = _add_info_row(
+		"Trạng thái",
+		(
+			"Đang kết tinh"
+			if running
+			else "Sẵn sàng"
+		)
+	)
+	_crystal_stage_value = _add_info_row(
+		"Giai đoạn",
+		(
+			_crystal_stage_name(
+				int(
+					crystal.get(
+						"stage",
+						1
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+	)
+	_crystal_timer_value = _add_info_row(
+		"Còn lại",
+		(
+			_format_crystal_time(
+				int(
+					crystal.get(
+						"remaining_seconds",
+						0
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+	)
+
+
+	var last_value: Variant = crystal.get(
+		"last_result",
+		{}
+	)
+	if typeof(last_value) == TYPE_DICTIONARY:
+		var last := last_value as Dictionary
+		if not last.is_empty():
+			_add_info_row(
+				"Kết quả gần nhất",
+				String(
+					last.get(
+						"display_name",
+						"Vật phẩm"
+					)
+				)
+			)
+
+	if running:
+		_section_button(
+			"HỦY KẾT TINH",
+			_cancel_crystallization
+		)
+	else:
+		_section_button(
+			"BẮT ĐẦU KẾT TINH",
+			_start_crystallization
+		)
+
+	_section_overlay.visible = true
+
+
+func _start_crystallization() -> void:
+	var result := _game.start_crystallization()
+	_hud.show_message(
+		String(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+
+	if bool(result.get("ok", false)):
+		_open_crystallization()
+		_refresh_gameplay()
+
+
+func _cancel_crystallization() -> void:
+	var result := _game.cancel_crystallization()
+	_hud.show_message(
+		String(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+
+	if bool(result.get("ok", false)):
+		_open_crystallization()
+		_refresh_gameplay()
+
+
+func _refresh_crystallization_section() -> void:
+	if (
+		_active_section != &"crystallization"
+		or not _section_overlay.visible
+	):
+		return
+
+	var crystal := _crystallization_snapshot()
+	var running := bool(
+		crystal.get(
+			"running",
+			false
+		)
+	)
+
+	if running != _crystal_running:
+		_crystal_running = running
+		call_deferred(
+			"_open_crystallization"
+		)
+		return
+
+	if _crystal_status_value != null:
+		_crystal_status_value.text = (
+			"Đang kết tinh"
+			if running
+			else "Sẵn sàng"
+		)
+
+	if _crystal_stage_value != null:
+		_crystal_stage_value.text = (
+			_crystal_stage_name(
+				int(
+					crystal.get(
+						"stage",
+						1
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+
+	if _crystal_timer_value != null:
+		_crystal_timer_value.text = (
+			_format_crystal_time(
+				int(
+					crystal.get(
+						"remaining_seconds",
+						0
+					)
+				)
+			)
+			if running
+			else "—"
+		)
+
+
+func _crystallization_snapshot() -> Dictionary:
+	var value: Variant = _game.snapshot().get(
+		"crystallization",
+		{}
+	)
+
+	if typeof(value) != TYPE_DICTIONARY:
+		return {}
+
+	return (
+		value as Dictionary
+	).duplicate(true)
+
+
+func _crystal_stage_name(
+	stage: int
+) -> String:
+	match stage:
+		1:
+			return "I"
+		2:
+			return "II"
+		3:
+			return "III"
+		_:
+			return "—"
+
+
+func _format_crystal_time(
+	seconds: int
+) -> String:
+	var safe := maxi(
+		0,
+		seconds
+	)
+	var hours := int(
+		safe / 3600
+	)
+	var minutes := int(
+		(safe % 3600) / 60
+	)
+	var secs := safe % 60
+	return "%02d:%02d:%02d" % [
+		hours,
+		minutes,
+		secs,
+	]
 
 func _open_chest() -> void:
 	var items := _game.open_next_chest()
@@ -1318,6 +1711,20 @@ func _use_item(uid: String) -> void:
 	_hud.show_message(str(result.get("message", "")))
 	_hud.open_inventory()
 	_refresh_gameplay()
+
+func _salvage_item(uid: String) -> void:
+	var result := _game.salvage_item(uid)
+	_hud.show_message(
+		str(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+	_hud.open_inventory()
+	_refresh_gameplay()
+
 
 func _open_games() -> void:
 	var state := _game.snapshot()
@@ -1360,7 +1767,7 @@ func _open_games() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready
+		stage_index == 2
 	)
 
 
@@ -1378,15 +1785,15 @@ func _reward() -> void:
 	_refresh_gameplay()
 
 
-func _reward_maze(
+func _reward_obstacle(
 	score: int,
 	match_id: String
 ) -> void:
-	var result := _game.claim_maze_hunt_reward(
+	var result := _game.claim_obstacle_run_reward(
 		score,
 		match_id
 	)
-	_hub.show_maze_reward_message(
+	_hub.show_obstacle_reward_message(
 		str(
 			result.get(
 				"message",
@@ -1461,16 +1868,13 @@ func _sync_entertainment_reward_state() -> void:
 				4
 			)
 		),
-		stage_index == 2 and not ready,
+		stage_index == 2,
 		stage_index
 	)
 
 func _open_evolution() -> void:
 	_prepare_section("Tiến hóa")
 	var state := _game.snapshot()
-	_add_info_row("Giai đoạn", PetHomeTheme.stage_label(int(state.get("stage_index", 1))))
-	_add_info_row("Trưởng thành", "%d%%" % int(state.get("growth_percent", 0)))
-	_add_info_row("Thức ăn", "%d phút" % int(int(state.get("food_seconds", 0)) / 60))
 	var stage_index := int(
 		state.get(
 			"stage_index",
@@ -1489,6 +1893,81 @@ func _open_evolution() -> void:
 			naturally_ready
 		)
 	)
+	var age_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"age_remaining_seconds",
+				0
+			)
+		)
+	)
+	var growth_remaining := maxi(
+		0,
+		int(
+			state.get(
+				"growth_remaining_seconds",
+				0
+			)
+		)
+	)
+
+	_add_info_row(
+		"Giai đoạn",
+		PetHomeTheme.stage_label(
+			stage_index
+		)
+	)
+	_add_info_row(
+		"Trưởng thành",
+		"%d%%"
+		% int(
+			state.get(
+				"growth_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Tuổi stage",
+		"%d%%"
+		% int(
+			state.get(
+				"age_percent",
+				0
+			)
+		)
+	)
+	_add_info_row(
+		"Deadline",
+		(
+			"Đã tới hạn"
+			if bool(
+				state.get(
+					"deadline_reached",
+					false
+				)
+			)
+			else "Còn " + _format_stage_time(
+				age_remaining
+			)
+		)
+	)
+	_add_info_row(
+		"Thức ăn",
+		_format_stage_time(
+			maxi(
+				0,
+				int(
+					state.get(
+						"food_seconds",
+						0
+					)
+				)
+			)
+		)
+	)
+
 	var genome := _data.get(
 		"_genome_object"
 	) as PetGenome
@@ -1497,6 +1976,7 @@ func _open_evolution() -> void:
 		_add_current_trait_rows(
 			genome
 		)
+
 	_add_gene_choice_rows(
 		state
 	)
@@ -1507,6 +1987,11 @@ func _open_evolution() -> void:
 			"Đã đạt hình thái cuối"
 		)
 	elif can_evolve:
+		_add_info_row(
+			"Trạng thái",
+			"SẴN SÀNG TIẾN HÓA"
+		)
+
 		if (
 			not naturally_ready
 			and bool(
@@ -1520,26 +2005,74 @@ func _open_evolution() -> void:
 				"Thiên phú TEST",
 				"Bỏ qua thời gian chờ"
 			)
+
 		_section_button(
-			"TIẾN HÓA",
+			"TIẾN HÓA → %s"
+			% PetHomeTheme.stage_label(
+				stage_index + 1
+			),
 			_evolve
 		)
 	else:
 		_add_info_row(
-			"Tiến độ còn",
-			"~%d phút tăng trưởng"
-			% int(
-				ceil(
-					float(
-						state.get(
-							"growth_remaining_seconds",
-							0
-						)
-					) / 60.0
-				)
+			"Thiếu Growth",
+			_format_stage_time(
+				growth_remaining
 			)
 		)
+
 	_section_overlay.visible = true
+
+
+func _format_stage_time(
+	seconds: int
+) -> String:
+	seconds = maxi(
+		0,
+		seconds
+	)
+
+	if seconds <= 0:
+		return "0 phút"
+
+	var total_minutes := int(
+		ceil(
+			float(seconds) / 60.0
+		)
+	)
+	var days := int(
+		total_minutes / 1440
+	)
+	var hours := int(
+		(
+			total_minutes % 1440
+		) / 60
+	)
+	var minutes := total_minutes % 60
+	var parts: Array[String] = []
+
+	if days > 0:
+		parts.append(
+			"%d ngày" % days
+		)
+
+	if hours > 0:
+		parts.append(
+			"%d giờ" % hours
+		)
+
+	if (
+		minutes > 0
+		and days == 0
+	):
+		parts.append(
+			"%d phút" % minutes
+		)
+
+	return " ".join(
+		parts
+	)
+
 
 func _evolve() -> void:
 	var state := _game.snapshot()

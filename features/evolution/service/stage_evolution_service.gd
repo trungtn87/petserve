@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 4
-const PENDING_SCHEMA: int = 8
+const PENDING_SCHEMA: int = 11
 
 
 var _save := EvolutionSaveService.new()
@@ -13,7 +13,9 @@ var _plan_validator := StageEvolutionPlanValidator.new()
 func prepare(
 	state: Dictionary
 ) -> Dictionary:
-	var data := _save.load_data()
+	var data := _migrate_illegal_birth_talent(
+		_save.load_data()
+	)
 	var identity := PetIdentity.from_dict(
 		data.get(
 			"identity",
@@ -330,64 +332,42 @@ func _prepare_resolved_stage(
 			"none"
 		)
 	)
-	var mythic_active := mythic_mode in [
-		SpeciesMythicMutationResolver.MODE_AWAKEN,
-		SpeciesMythicMutationResolver.MODE_CONTINUE,
-	]
-
-	var coordinator := EvolutionEditCoordinator.new()
-	var plan: Dictionary = {}
 
 	if (
-		mythic_active
-		or deltas.size() > 1
+		mode == StageEvolutionResolver.MODE_NATURAL
+		and delta != null
 	):
-		plan = coordinator.build_composite_request(
-			identity,
-			genome,
-			final_genome,
-			deltas,
-			source_visual,
-			target_stage,
-			scene_profile,
-			mythic_resolution
+		return _error(
+			"Natural Growth không được có EvolutionDelta."
 		)
-	else:
-		match mode:
-			StageEvolutionResolver.MODE_NATURAL:
-				if delta != null:
-					return _error(
-						"Natural Growth không được có EvolutionDelta."
-					)
 
-				plan = coordinator.build_natural_request(
-					identity,
-					genome,
-					source_visual,
-					target_stage,
-					scene_profile
-				)
+	if (
+		mode == StageEvolutionResolver.MODE_GENE
+		and delta == null
+	):
+		return _error(
+			"Gene Expression thiếu EvolutionDelta."
+		)
 
-			StageEvolutionResolver.MODE_GENE:
-				if delta == null:
-					return _error(
-						"Gene Expression thiếu EvolutionDelta."
-					)
+	if mode not in [
+		StageEvolutionResolver.MODE_NATURAL,
+		StageEvolutionResolver.MODE_GENE,
+	]:
+		return _error(
+			"Evolution Resolver trả về mode không hợp lệ."
+		)
 
-				plan = coordinator.build_request(
-					identity,
-					genome,
-					final_genome,
-					delta,
-					source_visual,
-					target_stage,
-					scene_profile
-				)
-
-			_:
-				return _error(
-					"Evolution Resolver trả về mode không hợp lệ."
-				)
+	var coordinator := EvolutionEditCoordinator.new()
+	var plan: Dictionary = coordinator.build_stage_regenerate_request(
+		identity,
+		genome,
+		final_genome,
+		deltas,
+		source_visual,
+		target_stage,
+		scene_profile,
+		mythic_resolution
+	)
 
 	if not bool(
 		plan.get(
@@ -411,6 +391,18 @@ func _prepare_resolved_stage(
 	if request == null:
 		return _error(
 			"Evolution render request bị rỗng."
+		)
+
+	var gene_score_prompt := GenePromptResolver.new().build(
+		gene_state,
+		identity.element(),
+		target_stage
+	)
+
+	if not gene_score_prompt.is_empty():
+		request.positive_prompt += (
+			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
+			+ gene_score_prompt
 		)
 
 	var next := PetGenome.new(
@@ -459,6 +451,13 @@ func _prepare_resolved_stage(
 		"accumulated_gene_ids": (
 			accumulated_gene_ids.duplicate()
 		),
+		"gene_scores": (
+			gene_state.gene_scores_snapshot()
+		),
+		"gene_lifetime_tag_influences": (
+			gene_state.lifetime_tag_influences_snapshot()
+		),
+		"gene_expression_prompt": gene_score_prompt,
 		"source_phenotype": (
 			_string_key_dict(
 				genome.visual_traits_snapshot()
@@ -626,15 +625,10 @@ func _accumulated_gene_ids(
 				)
 
 	if gene_state != null:
-		for item in gene_state.gene_items_snapshot():
+		for gene_id in gene_state.used_gene_ids_snapshot():
 			_append_unique_gene_id(
 				result,
-				String(
-					item.get(
-						"gene_id",
-						""
-					)
-				)
+				gene_id
 			)
 
 	result.sort()
@@ -922,7 +916,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v8_stage_%d"
+		+ "_pethome_v12_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",
@@ -1086,10 +1080,10 @@ func commit(
 		visual_mutation_id
 	)
 	visual.source_mode = (
-		&"evolution_pethome_v8_full_regenerate"
+		&"evolution_pethome_v12_full_regenerate"
 		if expected_request.mode
-			== PetRenderRequest.RenderMode.INITIAL_TEXT_TO_IMAGE
-		else &"evolution_pethome_v8_image_edit"
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		else &"evolution_pethome_v12_image_edit"
 	)
 	visual.image_path = result.image_path
 	visual.renderer_id = result.renderer_id
@@ -1136,6 +1130,99 @@ func commit(
 	return _save.save_data(
 		data
 	)
+
+
+func _migrate_illegal_birth_talent(
+	data: Dictionary
+) -> Dictionary:
+	if data.is_empty():
+		return data
+
+	var destiny_value: Variant = data.get(
+		"mythic_destiny",
+		{}
+	)
+
+	if typeof(destiny_value) != TYPE_DICTIONARY:
+		return data
+
+	var destiny := destiny_value as Dictionary
+
+	if String(
+		destiny.get(
+			"source",
+			""
+		)
+	) != "birth_talent":
+		return data
+
+	var migrated := data.duplicate(
+		true
+	)
+	migrated.erase(
+		"mythic_destiny"
+	)
+	migrated.erase(
+		"pending_evolution"
+	)
+
+	var genome := PetGenome.from_dict(
+		migrated.get(
+			"genome",
+			{}
+		)
+	)
+
+	if genome != null:
+		var kept_mutations: Array[StringName] = []
+
+		for mutation_id in genome.mutation_ids():
+			if mutation_id not in [
+				&"cat_horned_spirit",
+				&"cat_winged_spirit",
+			]:
+				kept_mutations.append(
+					mutation_id
+				)
+
+		var clean_genome := PetGenome.new(
+			genome.stage(),
+			genome.body_growth(),
+			genome.traits_snapshot(),
+			kept_mutations
+		)
+
+		if clean_genome != null and clean_genome.is_valid():
+			migrated["genome"] = clean_genome.to_dict()
+
+	var visual_value: Variant = migrated.get(
+		"current_visual",
+		{}
+	)
+
+	if typeof(visual_value) == TYPE_DICTIONARY:
+		var visual := (
+			visual_value as Dictionary
+		).duplicate(true)
+		var mutation_id := String(
+			visual.get(
+				"mutation_id",
+				""
+			)
+		)
+
+		if mutation_id in [
+			"cat_horned_spirit",
+			"cat_winged_spirit",
+		]:
+			visual["mutation_id"] = ""
+			migrated["current_visual"] = visual
+
+	_save.save_data(
+		migrated
+	)
+
+	return migrated
 
 
 func _error(
