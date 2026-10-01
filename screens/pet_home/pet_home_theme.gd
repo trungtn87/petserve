@@ -83,6 +83,8 @@ static func stage_label(
 		3:
 			return "Trưởng thành"
 		4:
+			return "Giai đoạn 4"
+		5:
 			return "Hình thái cuối"
 		_:
 			return "Giai đoạn %d" % stage
