@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const SAVE_INTERVAL: float = 5.0
-const FINAL_STAGE: int = 4
+const FINAL_STAGE: int = 5
 
 const FULL_SPEED_FOOD_RATIO: float = 0.50
 const LOW_SPEED_FOOD_RATIO: float = 0.25
