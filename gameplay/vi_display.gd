@@ -174,6 +174,39 @@ static func rarity_label(
 	)
 
 
+static func item_name(
+	raw_name: String
+) -> String:
+	var value := raw_name.strip_edges()
+
+	if value.is_empty():
+		return "Vật phẩm"
+
+	# Tương thích save cũ từng lưu tên hiển thị tiếng Anh.
+	value = value.replace(
+		"Gene Aura ",
+		"Gen Hào Quang "
+	)
+	value = value.replace(
+		"Gene ",
+		"Gen "
+	)
+	value = value.replace(
+		"Mảnh Gene ",
+		"Mảnh Gen "
+	)
+	value = value.replace(
+		"Mythic",
+		"Thần Thoại"
+	)
+	value = value.replace(
+		"Aura ",
+		"Hào Quang "
+	)
+
+	return value
+
+
 static func element_label(
 	element: StringName
 ) -> String:
