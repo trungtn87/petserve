@@ -19,7 +19,7 @@ func _run() -> void:
 		var genes: Array[Dictionary] = [{"gene_id": "tail_long", "rarity": "rare", "count": 2}]
 		for stage in range(1, 6):
 			var stage_genes: Array[Dictionary] = []
-			if stage > 1 and stage < 5:
+			if stage > 1:
 				stage_genes = genes
 			var prepared: Dictionary = session.prepare(stage, stage_genes)
 			_check(prepared.get("ok", false), "%s stage %d: %s" % [element, stage, prepared.get("error", "")])
@@ -34,7 +34,7 @@ func _run() -> void:
 			var result := PetRenderResult.ok(path, &"contract_test", &"no_ai", {"seed": request.seed})
 			_check(session.accept(result), "accept stage %d" % stage)
 			if stage > 1:
-				_check(session.pending_genes.score_for(&"tail", &"long") == mini(stage - 1, 3) * 70.0, "scores accumulate once")
+				_check(session.pending_genes.score_for(&"tail", &"long") == (stage - 1) * 70.0, "scores accumulate once")
 		for gene in session.available_genes(1):
 			_check(gene.is_element_compatible(StringName(element)), "element lock filter")
 		var rejected: Dictionary = session.prepare(2, [{"gene_id": "invalid", "rarity": "common", "count": 1}])

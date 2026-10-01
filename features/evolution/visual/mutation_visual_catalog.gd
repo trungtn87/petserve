@@ -90,6 +90,8 @@ func find_by_id(
 	definitions: Array[MutationVisualDefinition],
 	mutation_id: StringName
 ) -> MutationVisualDefinition:
+	if String(mutation_id).begins_with(GENE_EXPR_PREFIX):
+		return _build_gene_expression_visual(mutation_id)
 	for definition in definitions:
 		if (
 			definition.mutation_id()

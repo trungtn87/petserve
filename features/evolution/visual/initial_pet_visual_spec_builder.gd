@@ -94,10 +94,12 @@ func build(
 
 	spec.form_section = (
 		"Stage 1. Young juvenile fantasy cat, at the youngest end of the juvenile-to-adolescent range. "
-		+ "Keep the pet cute, compact and youthful. "
+		+ "Keep the pet youthful with its individual inherited frame. "
 		+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
 		+ "Keep fantasy details subtle."
 	)
+
+	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
 
 	spec.scene_section = (
 		"Simple natural fantasy background matching the same element. "
