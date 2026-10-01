@@ -6,6 +6,10 @@ const DEFAULT_PATH: String = (
 	"res://data/evolution/visual/mutation_visuals.json"
 )
 
+const GENE_EXPR_PREFIX: String = "gene_expr_"
+const MIN_GENE_STAGE: int = 1
+const MAX_GENE_STAGE: int = 3
+
 
 func load_default() -> Array[MutationVisualDefinition]:
 	return load_from_path(DEFAULT_PATH)
@@ -93,7 +97,120 @@ func find_by_id(
 		):
 			return definition
 
-	return null
+	# Gene expressions are generated dynamically by StageEvolutionResolver.
+	# The Gene catalog is the canonical source for their visual instruction.
+	# Keep hand-authored mutation_visuals.json entries as overrides, then
+	# synthesize any missing gene_expr_<gene_id>_s<stage> definition here.
+	return _build_gene_expression_visual(
+		mutation_id
+	)
+
+
+func _build_gene_expression_visual(
+	mutation_id: StringName
+) -> MutationVisualDefinition:
+	var token := String(
+		mutation_id
+	).strip_edges().to_lower()
+
+	if not token.begins_with(
+		GENE_EXPR_PREFIX
+	):
+		return null
+
+	var suffix_index := token.rfind(
+		"_s"
+	)
+
+	if suffix_index <= GENE_EXPR_PREFIX.length():
+		return null
+
+	var stage_text := token.substr(
+		suffix_index + 2
+	)
+
+	if not stage_text.is_valid_int():
+		return null
+
+	var source_stage := stage_text.to_int()
+
+	if (
+		source_stage < MIN_GENE_STAGE
+		or source_stage > MAX_GENE_STAGE
+	):
+		return null
+
+	var gene_id := StringName(
+		token.substr(
+			GENE_EXPR_PREFIX.length(),
+			suffix_index - GENE_EXPR_PREFIX.length()
+		)
+	)
+
+	var gene_catalog := GeneCatalog.new()
+	var gene := gene_catalog.find_by_id(
+		gene_catalog.load_default(),
+		gene_id
+	)
+
+	if gene == null:
+		return null
+
+	var instruction := (
+		gene.prompt_stem()
+		+ " This is the code-selected Gene expression for the Stage %d -> %d transition. "
+		+ "Develop only this Gene locus and keep the result consistent with the target phenotype."
+	) % [
+		source_stage,
+		source_stage + 1,
+	]
+
+	var preserve_hint := gene.preserve_hint()
+
+	if preserve_hint.is_empty():
+		preserve_hint = (
+			"Preserve the same individual pet identity and every non-target Gene locus."
+		)
+	else:
+		preserve_hint += (
+			" Preserve the same individual pet identity and every non-target Gene locus."
+		)
+
+	var visual := MutationVisualDefinition.new(
+		mutation_id,
+		gene.locus(),
+		instruction,
+		preserve_hint,
+		_edit_strength_for_locus(
+			gene.locus()
+		)
+	)
+
+	return (
+		visual
+		if visual.is_valid()
+		else null
+	)
+
+
+func _edit_strength_for_locus(
+	locus: StringName
+) -> float:
+	match locus:
+		&"body", &"structure":
+			return 0.20
+		&"tail", &"mane":
+			return 0.19
+		&"ears", &"fur":
+			return 0.18
+		&"eyes", &"coat", &"paws":
+			return 0.17
+		&"mark", &"aura":
+			return 0.16
+		&"whiskers":
+			return 0.15
+		_:
+			return 0.17
 
 
 func _sort_by_id(
