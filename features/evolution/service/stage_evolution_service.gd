@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 5
-const PENDING_SCHEMA: int = 13
+const PENDING_SCHEMA: int = 14
 
 
 var _save := EvolutionSaveService.new()
@@ -404,23 +404,7 @@ func _prepare_resolved_stage(
 		target_stage
 	)
 
-	if not gene_score_prompt.is_empty():
-		var gene_scope_rule := ""
-
-		if target_stage >= 3:
-			gene_scope_rule = (
-				"Use the reference for individual identity. Natural maturation and the morphology plan may change proportions and pose. Only listed Gene directions may add specialized traits. "
-				+ "Total lifetime score controls expression strength; the highest-scored direction is dominant and other scored directions may blend. "
-				+ "Do not invent unlisted Gene directions or unauthorized appendages.\n"
-			)
-
-		request.positive_prompt += (
-			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
-			+ gene_scope_rule
-			+ gene_score_prompt
-		)
-
-	request.positive_prompt += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, target_stage, gene_state.gene_scores_snapshot())
+	request.positive_prompt = preload("res://features/evolution/visual/resolved_form_prompt.gd").new().build(identity, target_stage, gene_state.gene_scores_snapshot(), mythic_resolution)
 
 	var next := PetGenome.new(
 		target_stage,
@@ -936,7 +920,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v13_stage_%d"
+		+ "_pethome_v14_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",

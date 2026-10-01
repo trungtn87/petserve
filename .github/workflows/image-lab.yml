@@ -24,6 +24,8 @@ jobs:
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_lineage_morphology.gd
       - name: All seven elements through Final and UI
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_image_lab.gd
+      - name: Resolved shape and A/B preset
+        run: timeout 90 godot --headless --path . --script tools/image_lab/test_resolved_form.gd
       - name: Startup
         run: |
           godot --headless --path . --quit-after 5 2>&1 | tee /tmp/startup.log
