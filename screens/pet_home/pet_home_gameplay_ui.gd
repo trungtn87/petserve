@@ -1340,6 +1340,8 @@ func _rarity_color(rarity: String) -> Color:
 			return Color(0.76, 0.47, 1.0)
 		"legendary":
 			return Color(1.0, 0.72, 0.28)
+		"mythic":
+			return Color(0.96, 0.42, 0.86)
 		_:
 			return Color(0.68, 0.68, 0.74)
 
