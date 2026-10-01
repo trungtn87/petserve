@@ -25,7 +25,9 @@ func check(
 
 func run() -> void:
 	_test_stage_lifecycle()
+	_test_hunger_thresholds()
 	_test_stage_item_contract()
+	_test_stage_resource_scaling()
 	_test_evolution_two_and_three()
 
 	print(
@@ -103,6 +105,179 @@ func _test_stage_lifecycle() -> void:
 		)
 	)
 
+	var early_meta: Dictionary = {}
+	var early := StageLifecycle.new()
+	early.setup(
+		early_meta,
+		502,
+		2
+	)
+	check(
+		early.apply_item({
+			"item_type": "food",
+			"display_name": "Early Food",
+			"main_value_seconds": duration_two,
+			"growth_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"Stage 2 must be fed before Growth acceleration"
+	)
+	check(
+		early.apply_item({
+			"item_type": "growth",
+			"display_name": "Good Growth",
+			"main_value_seconds": duration_two,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"good Growth item can accelerate Stage 2"
+	)
+	var early_state := early.snapshot()
+	check(
+		bool(
+			early_state.get(
+				"ready_to_evolve",
+				false
+			)
+		)
+		and not bool(
+			early_state.get(
+				"deadline_reached",
+				true
+			)
+		),
+		"Stage 2 may become READY before the 48-hour age deadline"
+	)
+
+	var trash_meta: Dictionary = {}
+	var trash := StageLifecycle.new()
+	trash.setup(
+		trash_meta,
+		503,
+		2
+	)
+	check(
+		trash.apply_item({
+			"item_type": "food",
+			"display_name": "Trash Test Food",
+			"main_value_seconds": duration_two,
+			"growth_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"Stage 2 trash test starts fully fed"
+	)
+	check(
+		trash.apply_item({
+			"item_type": "growth",
+			"display_name": "Growth Setup",
+			"main_value_seconds": int(duration_two / 4),
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"Stage 2 growth setup item applies"
+	)
+	var age_before_trash := int(
+		trash.snapshot().get(
+			"age_elapsed_seconds",
+			-1
+		)
+	)
+	check(
+		trash.apply_item({
+			"item_type": "growth",
+			"display_name": "Trash Growth",
+			"main_value_seconds": -int(duration_two / 4),
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"trash Growth item is allowed to reduce Growth"
+	)
+	var after_trash := trash.snapshot()
+	check(
+		int(
+			after_trash.get(
+				"growth_percent",
+				-1
+			)
+		) == 0
+		and int(
+			after_trash.get(
+				"age_elapsed_seconds",
+				-2
+			)
+		) == age_before_trash,
+		"trash item reduces Growth without reducing Stage age"
+	)
+	trash.tick(
+		float(
+			duration_two
+		)
+	)
+	var deadline_state := trash.snapshot()
+	check(
+		int(
+			deadline_state.get(
+				"growth_percent",
+				0
+			)
+		) == 20
+		and bool(
+			deadline_state.get(
+				"deadline_reached",
+				false
+			)
+		)
+		and not bool(
+			deadline_state.get(
+				"ready_to_evolve",
+				true
+			)
+		)
+		and bool(
+			deadline_state.get(
+				"hibernating",
+				false
+			)
+		),
+		"one fixed food tank slows to hibernation and deadline no longer forces READY"
+	)
+	var locked_growth := int(
+		deadline_state.get(
+			"growth_percent",
+			-1
+		)
+	)
+	check(
+		not bool(
+			trash.apply_item({
+				"item_type": "growth",
+				"display_name": "Late Trash",
+				"main_value_seconds": -duration_two,
+				"food_delta_seconds": 0,
+			}).get(
+				"ok",
+				true
+			)
+		)
+		and int(
+			trash.snapshot().get(
+				"growth_percent",
+				-2
+			)
+		) == locked_growth,
+		"hibernation blocks Growth items after food reaches zero"
+	)
+
 	check(
 		life.apply_item({
 			"item_type": "food",
@@ -142,6 +317,46 @@ func _test_stage_lifecycle() -> void:
 			duration_two - 600
 		)
 	)
+	var first_food_cycle := life.snapshot()
+	check(
+		not bool(
+			first_food_cycle.get(
+				"ready_to_evolve",
+				true
+			)
+		)
+		and bool(
+			first_food_cycle.get(
+				"hibernating",
+				false
+			)
+		),
+		"one full food cycle does not bypass hunger penalties"
+	)
+	check(
+		life.apply_item({
+			"item_type": "food",
+			"display_name": "Second Test Food",
+			"main_value_seconds": duration_two,
+			"growth_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"stage 2 can wake from hibernation"
+	)
+	check(
+		life.apply_item({
+			"item_type": "growth",
+			"display_name": "Fed Growth Finish",
+			"main_value_seconds": duration_two,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"fed pet accepts Growth item after waking"
+	)
 	check(
 		bool(
 			life.snapshot().get(
@@ -149,7 +364,57 @@ func _test_stage_lifecycle() -> void:
 				false
 			)
 		),
-		"stage 2 becomes ready"
+		"stage 2 becomes ready only after real Growth reaches 100 percent"
+	)
+
+	var starved_meta: Dictionary = {}
+	var starved := StageLifecycle.new()
+	starved.setup(
+		starved_meta,
+		501,
+		2
+	)
+	starved.tick(
+		float(
+			duration_two
+		)
+	)
+	var starved_state := starved.snapshot()
+	check(
+		int(
+			starved_state.get(
+				"growth_percent",
+				-1
+			)
+		) == 0
+		and int(
+			starved_state.get(
+				"growth_speed_percent",
+				-1
+			)
+		) == 0
+		and bool(
+			starved_state.get(
+				"hibernating",
+				false
+			)
+		),
+		"zero fullness hibernates and produces no Growth"
+	)
+	check(
+		bool(
+			starved_state.get(
+				"deadline_reached",
+				false
+			)
+		)
+		and not bool(
+			starved_state.get(
+				"ready_to_evolve",
+				true
+			)
+		),
+		"age deadline cannot evolve a hibernating pet"
 	)
 
 	life.advance_to_stage(
@@ -193,10 +458,17 @@ func _test_stage_lifecycle() -> void:
 		),
 		"stage 3 accepts food"
 	)
-	life.tick(
-		float(
-			duration_three
-		)
+	check(
+		life.apply_item({
+			"item_type": "growth",
+			"display_name": "Stage 3 Growth Finish",
+			"main_value_seconds": duration_three,
+			"food_delta_seconds": 0,
+		}).get(
+			"ok",
+			false
+		),
+		"fed Stage 3 accepts Growth item"
 	)
 	check(
 		bool(
@@ -205,7 +477,7 @@ func _test_stage_lifecycle() -> void:
 				false
 			)
 		),
-		"stage 3 becomes ready"
+		"stage 3 becomes ready after Growth reaches 100 percent"
 	)
 
 	life.advance_to_stage(
@@ -247,6 +519,206 @@ func _test_stage_lifecycle() -> void:
 	)
 
 
+func _test_hunger_thresholds() -> void:
+	var meta: Dictionary = {}
+	var life := StageLifecycle.new()
+	life.setup(
+		meta,
+		550,
+		2
+	)
+
+	check(
+		bool(
+			life.snapshot().get(
+				"hibernating",
+				false
+			)
+		),
+		"fresh Stage 2 with zero food starts hibernating"
+	)
+	check(
+		not bool(
+			life.apply_item({
+				"item_type": "growth",
+				"display_name": "Blocked Growth",
+				"main_value_seconds": 600,
+				"food_delta_seconds": 0,
+			}).get(
+				"ok",
+				true
+			)
+		),
+		"Growth item cannot develop a hibernating pet"
+	)
+
+	var food_capacity := int(
+		life.snapshot().get(
+			"food_capacity_seconds",
+			0
+		)
+	)
+	check(
+		food_capacity > 0,
+		"Stage 2 exposes fixed food capacity"
+	)
+	check(
+		bool(
+			life.apply_item({
+				"item_type": "food",
+				"display_name": "Threshold Food",
+				"main_value_seconds": food_capacity,
+				"growth_delta_seconds": 0,
+			}).get(
+				"ok",
+				false
+			)
+		),
+		"food wakes pet"
+	)
+	var full := life.snapshot()
+	check(
+		int(
+			full.get(
+				"food_percent",
+				-1
+			)
+		) == 100
+		and int(
+			full.get(
+				"growth_speed_percent",
+				-1
+			)
+		) == 100
+		and not bool(
+			full.get(
+				"hibernating",
+				true
+			)
+		),
+		"above 50 percent fullness grows at 100 percent speed"
+	)
+
+	life.tick(
+		float(food_capacity) * 0.5
+	)
+	var half := life.snapshot()
+	check(
+		int(
+			half.get(
+				"food_percent",
+				-1
+			)
+		) == 50
+		and int(
+			half.get(
+				"growth_speed_percent",
+				-1
+			)
+		) == 75
+		and int(
+			meta.life_state.get(
+				"growth_elapsed_seconds",
+				-1
+			)
+		) == int(
+			float(food_capacity) * 0.5
+		),
+		"50 percent fullness switches to 75 percent speed"
+	)
+
+	life.tick(
+		float(food_capacity) * 0.25
+	)
+	var quarter := life.snapshot()
+	check(
+		int(
+			quarter.get(
+				"food_percent",
+				-1
+			)
+		) == 25
+		and int(
+			quarter.get(
+				"growth_speed_percent",
+				-1
+			)
+		) == 50
+		and int(
+			round(
+				float(
+					meta.life_state.get(
+						"growth_elapsed_seconds",
+						-1.0
+					)
+				)
+			)
+		) == int(
+			round(
+				float(food_capacity) * 0.6875
+			)
+		),
+		"25 percent fullness switches to 50 percent speed"
+	)
+
+	life.tick(
+		float(food_capacity) * 0.25
+	)
+	var empty := life.snapshot()
+	var frozen_growth := float(
+		meta.life_state.get(
+			"growth_elapsed_seconds",
+			-1.0
+		)
+	)
+	check(
+		int(
+			empty.get(
+				"food_percent",
+				-1
+			)
+		) == 0
+		and int(
+			empty.get(
+				"growth_speed_percent",
+				-1
+			)
+		) == 0
+		and bool(
+			empty.get(
+				"hibernating",
+				false
+			)
+		)
+		and int(
+			round(
+				frozen_growth
+			)
+		) == int(
+			round(
+				float(food_capacity) * 0.8125
+			)
+		),
+		"zero fullness enters hibernation after piecewise growth"
+	)
+
+	life.tick(
+		600.0
+	)
+	check(
+		is_equal_approx(
+			float(
+				meta.life_state.get(
+					"growth_elapsed_seconds",
+					-2.0
+				)
+			),
+			frozen_growth
+		),
+		"hibernation freezes Growth until food returns"
+	)
+
+
 func _test_stage_item_contract() -> void:
 	SaveManager.delete_meta()
 
@@ -266,8 +738,8 @@ func _test_stage_item_contract() -> void:
 				"can_evolve",
 				false
 			)
-		),
-		"default TEST talent bypasses the stage timer"
+		) == OS.is_debug_build(),
+		"debug build exposes the reopened instant evolution talent"
 	)
 	check(
 		not bool(
@@ -276,21 +748,53 @@ func _test_stage_item_contract() -> void:
 				true
 			)
 		),
-		"timer bypass does not fake natural growth completion"
+		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		(
+		bool(
 			dev_state.get(
-				"talents",
-				[]
-			) as Array
-		).has(
-			String(
-				InfantGameFacade.DEV_INSTANT_EVOLUTION_TALENT
+				"instant_evolution_talent",
+				false
 			)
-		),
-		"default TEST talent is assigned"
+		) == OS.is_debug_build(),
+		"instant evolution talent is auto-granted only in debug builds"
 	)
+
+	if OS.is_debug_build():
+		check(
+			game.set_dev_instant_evolution_enabled(
+				true
+			),
+			"debug build can explicitly enable instant evolution"
+		)
+		var override_state := game.snapshot()
+		check(
+			bool(
+				override_state.get(
+					"can_evolve",
+					false
+				)
+			)
+			and not bool(
+				override_state.get(
+					"ready_to_evolve",
+					true
+				)
+			)
+			and bool(
+				override_state.get(
+					"instant_evolution_talent",
+					false
+				)
+			),
+			"debug override bypasses only can_evolve, not natural READY"
+		)
+		check(
+			game.set_dev_instant_evolution_enabled(
+				false
+			),
+			"debug instant evolution can be disabled again"
+		)
 
 	var rewards := game.open_next_chest()
 	var growth_item: Dictionary = {}
@@ -336,6 +840,72 @@ func _test_stage_item_contract() -> void:
 		)
 
 	SaveManager.delete_meta()
+
+
+func _test_stage_resource_scaling() -> void:
+	var generator := ItemGenerator.new()
+	var base_food := generator.generate(
+		ItemGenerator.TYPE_FOOD,
+		88001
+	)
+	var stage_two_food := generator.generate_for_stage(
+		ItemGenerator.TYPE_FOOD,
+		88001,
+		2
+	)
+	var base_growth := generator.generate(
+		ItemGenerator.TYPE_GROWTH,
+		88002
+	)
+	var stage_two_growth := generator.generate_for_stage(
+		ItemGenerator.TYPE_GROWTH,
+		88002,
+		2
+	)
+
+	check(
+		int(
+			stage_two_food.get(
+				"main_value_seconds",
+				0
+			)
+		) == int(
+			round(
+				float(
+					base_food.get(
+						"main_value_seconds",
+						0
+					)
+				) * 12.0
+			)
+		)
+		and int(
+			stage_two_food.get(
+				"generated_for_stage",
+				0
+			)
+		) == 2,
+		"Stage 2 Food uses the 48-hour resource scale"
+	)
+
+	check(
+		int(
+			stage_two_growth.get(
+				"main_value_seconds",
+				0
+			)
+		) == int(
+			round(
+				float(
+					base_growth.get(
+						"main_value_seconds",
+						0
+					)
+				) * 12.0
+			)
+		),
+		"Stage 2 Growth uses the 48-hour resource scale"
+	)
 
 
 func _test_evolution_two_and_three() -> void:
@@ -487,7 +1057,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v5_stage_3"
+			"_pethome_v12_stage_3"
+		)
+		and request_two.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_two.source_image_path.is_empty()
+		and request_two.positive_prompt.contains(
+			"Create a NEW image for evolution Stage 3"
+		)
+		and request_two.positive_prompt.contains(
+			"28 to 32 percent"
+		)
+		and request_two.positive_prompt.contains(
+			"Background occupies most of the image"
 		),
 		"Evolution II request"
 	)
@@ -584,7 +1166,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v5_stage_4"
+			"_pethome_v12_stage_4"
+		)
+		and request_three.mode
+			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
+		and request_three.source_image_path.is_empty()
+		and request_three.positive_prompt.contains(
+			"Create a NEW image for evolution Stage 4"
+		)
+		and request_three.positive_prompt.contains(
+			"28 to 32 percent"
+		)
+		and request_three.positive_prompt.contains(
+			"Background occupies most of the image"
 		),
 		"Evolution III request"
 	)

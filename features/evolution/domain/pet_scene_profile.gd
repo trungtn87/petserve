@@ -66,7 +66,7 @@ func to_dict() -> Dictionary:
 
 static func from_dict(
 	data: Dictionary
-):
+) -> PetSceneProfile:
 	var profile := PetSceneProfile.new()
 
 	profile.element = StringName(

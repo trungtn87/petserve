@@ -5,6 +5,7 @@ extends RefCounted
 enum RenderMode {
 	INITIAL_TEXT_TO_IMAGE,
 	EVOLUTION_IMAGE_EDIT,
+	EVOLUTION_TEXT_TO_IMAGE,
 }
 
 
@@ -17,6 +18,7 @@ var negative_prompt: String = ""
 var source_image_path: String = ""
 var target_region: StringName = &""
 var edit_strength: float = 0.0
+var seed: int = 0
 
 var output_key: String = ""
 
@@ -30,8 +32,11 @@ func is_valid() -> bool:
 		return false
 
 	match mode:
-		RenderMode.INITIAL_TEXT_TO_IMAGE:
-			return source_image_path.is_empty()
+		RenderMode.INITIAL_TEXT_TO_IMAGE, RenderMode.EVOLUTION_TEXT_TO_IMAGE:
+			return (
+				source_image_path.is_empty()
+				and seed >= 0
+			)
 
 		RenderMode.EVOLUTION_IMAGE_EDIT:
 			return (
@@ -39,6 +44,7 @@ func is_valid() -> bool:
 				and not String(target_region).is_empty()
 				and edit_strength > 0.0
 				and edit_strength <= 1.0
+				and seed >= 0
 			)
 
 	return false
@@ -53,5 +59,6 @@ func to_debug_dict() -> Dictionary:
 		"source_image_path": source_image_path,
 		"target_region": String(target_region),
 		"edit_strength": edit_strength,
+		"seed": seed,
 		"output_key": output_key,
 	}
