@@ -8,6 +8,7 @@ func _ready() -> void:
 	_test_stage4_growth_lifecycle()
 	_test_stage4_gene_gate()
 	_test_stage4_resource_scaling()
+	_test_stage4_entry_gene_reward()
 	_test_mythic_reaches_final_form()
 
 	if _failures == 0:
@@ -260,6 +261,52 @@ func _test_stage4_resource_scaling() -> void:
 			),
 			"Stage 4 resource must use the 48 hour x12 value scale"
 		)
+
+
+func _test_stage4_entry_gene_reward() -> void:
+	var meta := {
+		"chest_queue": [],
+	}
+	var chests := ChestService.new()
+	chests.setup(
+		meta,
+		ItemGenerator.new()
+	)
+
+	_expect(
+		chests.ensure_evolution_chest(
+			4044,
+			3,
+			4
+		),
+		"Evolution III must create the Stage 4 entry chest"
+	)
+
+	var rewards := chests.open_next()
+	var has_gene := false
+
+	for item in rewards:
+		if StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		) == ItemGenerator.TYPE_GENE:
+			has_gene = true
+			break
+
+	_expect(
+		has_gene,
+		"Stage 4 entry chest must provide a supplemental Gene item"
+	)
+	_expect(
+		not chests.ensure_evolution_chest(
+			4044,
+			4,
+			StageLifecycle.FINAL_STAGE
+		),
+		"Final Evolution must not create another Growth/Gene evolution chest"
+	)
 
 
 func _test_mythic_reaches_final_form() -> void:
