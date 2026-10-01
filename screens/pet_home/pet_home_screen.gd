@@ -736,7 +736,7 @@ func _open_pet_info_tab(
 	tab_id: StringName
 ) -> void:
 	_prepare_section(
-		"Thông tin pet",
+		"Thông tin thú cưng",
 		&"pet_info"
 	)
 	_section_tabs.visible = true
@@ -2307,7 +2307,7 @@ func _populate_pet_evolution_tab() -> void:
 		)
 		_add_info_row(
 			"Tiếp theo",
-			"Xem thành tích đời pet → chọn di sản → đời sau"
+			"Xem thành tích đời thú cưng → chọn di sản → đời sau"
 		)
 		_section_button(
 			"XEM THÀNH TÍCH ĐỜI PET",
@@ -2448,7 +2448,7 @@ func _open_legacy_item_selection(
 		return
 
 	_prepare_section(
-		"Chọn item kế thừa"
+		"Chọn vật phẩm kế thừa"
 	)
 	_add_info_row(
 		"Kỹ năng giữ lại",
@@ -2529,7 +2529,7 @@ func _open_legacy_confirmation(
 		and item.is_empty()
 	):
 		_hud.show_message(
-			"Không tìm thấy item đã chọn."
+			"Không tìm thấy vật phẩm đã chọn."
 		)
 		return
 
@@ -2612,7 +2612,7 @@ func _start_next_generation(
 
 	if identity == null:
 		_hud.show_message(
-			"Không đọc được pet hiện tại."
+			"Không đọc được thú cưng hiện tại."
 		)
 		return
 
@@ -2645,7 +2645,7 @@ func _start_next_generation(
 		)
 	):
 		_hud.show_message(
-			"Không lưu được thành tích đời pet: "
+			"Không lưu được thành tích đời thú cưng: "
 			+ String(
 				final_record_result.get(
 					"error",
@@ -2790,7 +2790,7 @@ func _add_skill_rows(
 				24
 			)
 			detail += (
-				"\nKhung giờ của pet: %02d:00–%02d:00."
+				"\nKhung giờ của thú cưng: %02d:00–%02d:00."
 				% [
 					start_hour,
 					end_hour,
@@ -2879,17 +2879,19 @@ func _legacy_item_label(
 	item: Dictionary
 ) -> String:
 	if item.is_empty():
-		return "Không item"
+		return "Không có vật phẩm"
 
-	var display_name := String(
-		item.get(
-			"display_name",
+	var display_name := ViDisplay.item_name(
+		String(
 			item.get(
-				"base_display_name",
-				"Vật phẩm"
+				"display_name",
+				item.get(
+					"base_display_name",
+					"Vật phẩm"
+				)
 			)
 		)
-	).strip_edges()
+	)
 	var rarity := String(
 		item.get(
 			"rarity",
@@ -3039,7 +3041,7 @@ func _open_current_final_record() -> void:
 			String(
 				result.get(
 					"error",
-					"Chưa tạo được thành tích đời pet."
+					"Chưa tạo được thành tích đời thú cưng."
 				)
 			)
 		)
@@ -3082,7 +3084,7 @@ func _show_final_record(
 	mark_as_presented: bool
 ) -> void:
 	_prepare_section(
-		"Thành tích đời pet",
+		"Thành tích đời thú cưng",
 		&"final_record"
 	)
 
@@ -3256,7 +3258,7 @@ func _save_final_record(
 
 	_hud.show_message(
 		(
-			"Đã lưu vào Pictures/PetVerse."
+			"Đã lưu vào thư mục Pictures/PetVerse."
 			if not gallery_path.is_empty()
 			else "Đã lưu thành tích cuối đời trong dữ liệu PetVerse."
 		)
@@ -3280,7 +3282,7 @@ func _open_achievements() -> void:
 	if entries.is_empty():
 		var empty_label := Label.new()
 		empty_label.text = (
-			"Chưa có pet nào hoàn thành vòng đời."
+			"Chưa có thú cưng nào hoàn thành vòng đời."
 		)
 		empty_label.autowrap_mode = (
 			TextServer.AUTOWRAP_WORD_SMART
