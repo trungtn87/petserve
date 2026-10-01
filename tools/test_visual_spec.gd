@@ -39,6 +39,7 @@ func _initialize() -> void:
 	_test_build_visual_spec()
 	_test_prompt_contract()
 	_test_rejects_unrelated_trait_change()
+	_test_stage4_gene_visual_is_synthesized()
 
 	if _failures == 0:
 		print("M4 Visual Spec: PASS")
@@ -356,6 +357,20 @@ func _test_rejects_unrelated_trait_change() -> void:
 	_expect(
 		spec == null,
 		"M4 must reject a render request that changes an unrelated trait"
+	)
+
+
+func _test_stage4_gene_visual_is_synthesized() -> void:
+	var visual_catalog = MutationVisualCatalogScript.new()
+	var visual = visual_catalog.find_by_id(
+		visual_catalog.load_default(),
+		&"gene_expr_eyes_luminous_s4"
+	)
+
+	_expect(
+		visual != null
+		and visual.target_region() == &"eyes",
+		"Stage 4 Gene expression must synthesize a visual definition for Final Evolution"
 	)
 
 
