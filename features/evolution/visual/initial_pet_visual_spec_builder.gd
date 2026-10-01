@@ -130,7 +130,7 @@ func build(
 
 	spec.negative_prompt = (
 		species_profile.forbidden_advanced_features
-		+ ", duplicate anatomy, extra limb, multiple pets, "
+		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
 		+ "heavy accessories, fully adult animal, old animal, text, UI, logo, watermark"
 	)
