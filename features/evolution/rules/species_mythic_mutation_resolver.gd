@@ -200,6 +200,9 @@ func resolve(
 		)
 
 	var recipe_matches: Array[SpeciesMythicMutationDefinition] = []
+	var accumulated_loci := _gene_loci_from_ids(
+		accumulated_gene_ids
+	)
 
 	for definition in species_definitions:
 		if (
@@ -210,7 +213,7 @@ func resolve(
 				genome
 			)
 			and definition.recipe_matches(
-				accumulated_gene_ids
+				accumulated_loci
 			)
 		):
 			recipe_matches.append(
@@ -360,6 +363,38 @@ func resolve(
 		activation_roll,
 		candidate_ids
 	)
+
+
+
+func _gene_loci_from_ids(
+	gene_ids: Array
+) -> Array[StringName]:
+	var result: Array[StringName] = []
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+
+	for value in gene_ids:
+		var definition := catalog.find_by_id(
+			definitions,
+			StringName(
+				str(value)
+			)
+		)
+
+		if (
+			definition == null
+			or result.has(
+				definition.locus()
+			)
+		):
+			continue
+
+		result.append(
+			definition.locus()
+		)
+
+	result.sort()
+	return result
 
 
 func _existing_mythic_definitions(

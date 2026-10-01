@@ -95,10 +95,10 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 			MiniGameRewardService.MAX_STAGE2_ACTIVITY_REWARDS + 1
 		):
 			var claim := (
-				rewards.claim_maze_hunt(
+				rewards.claim_obstacle_run(
 					run_id,
 					100,
-					"maze_%s_%s"
+					"obstacle_%s_%s"
 					% [
 						run_id,
 						reward_index,
@@ -123,7 +123,7 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 						false
 					)
 				),
-				"Maze/Snake must share four Stage 2 reward claims"
+				"Vượt chướng ngại/Snake must share four Stage 2 reward claims"
 			)
 
 			var opened := chests.open_next()
@@ -183,10 +183,10 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 			"Stage 2 reward count must survive reload and stop at four"
 		)
 
-		var fifth := rewards.claim_maze_hunt(
+		var fifth := rewards.claim_obstacle_run(
 			run_id,
 			3000,
-			"maze_%s_fifth"
+			"obstacle_%s_fifth"
 			% run_id
 		)
 		_expect(
@@ -196,7 +196,7 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 					true
 				)
 			),
-			"fifth Maze/Snake reward must be blocked by the shared cap"
+			"fifth Vượt chướng ngại/Snake reward must be blocked by the shared cap"
 		)
 
 		_expect(

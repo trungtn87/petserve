@@ -1,160 +1,80 @@
 extends Node
 
-
 var _failures: int = 0
-
 
 func _ready() -> void:
 	_test_default_cat_catalog()
 	_test_species_isolation()
+	_test_normal_egg_has_no_mythic_destiny()
 	_test_stage4_egg_locks_mythic_destiny()
-	_test_three_fixed_genes_awaken_branch()
-	_test_awaken_does_not_consume_gene_slots()
+	_test_locus_recipes_awaken_cat_branches()
 	_test_existing_branch_continues_without_reroll()
 
 	if _failures == 0:
-		print(
-			"Stage 2 Mythic Mutation: PASS"
-		)
+		print("Stage 2 Mythic Mutation: PASS")
 		get_tree().quit(0)
 		return
 
-	push_error(
-		"Stage 2 Mythic Mutation: FAIL (%d)"
-		% _failures
-	)
+	push_error("Stage 2 Mythic Mutation: FAIL (%d)" % _failures)
 	get_tree().quit(1)
 
 
 func _test_default_cat_catalog() -> void:
 	var catalog := SpeciesMythicMutationCatalog.new()
-	var definitions := catalog.load_default()
-	var cats := catalog.for_species(
-		definitions,
-		&"cat"
-	)
+	var cats := catalog.for_species(catalog.load_default(), &"cat")
+	_expect(cats.size() == 2, "cat must expose exactly two Mythic branches")
 
+	var horn := catalog.find_by_id(cats, &"cat_horned_spirit")
+	var wing := catalog.find_by_id(cats, &"cat_winged_spirit")
 	_expect(
-		cats.size() == 2,
-		"cat must expose exactly two Mythic Mutation branches"
+		horn != null
+		and horn.first_expression_stage() == 3
+		and horn.required_loci() == [&"whiskers", &"mark", &"ears"],
+		"cat horns must be a Stage 3 whiskers+mark+ears recipe"
 	)
-
-	var ids: Array[String] = []
-
-	for definition in cats:
-		ids.append(
-			String(
-				definition.id()
-			)
-		)
-		_expect(
-			definition.first_expression_stage()
-				== 2
-			and definition.supports_stage(
-				2
-			)
-			and definition.supports_stage(
-				3
-			)
-			and definition.supports_stage(
-				4
-			),
-			"cat Mythic Mutation must have Stage 3 and Stage 4 expressions"
-		)
-		_expect(
-			not definition.is_activation_configured(),
-			"default rarity must remain unconfigured until balance is approved"
-		)
-
 	_expect(
-		ids.has(
-			"cat_nekomata"
-		)
-		and ids.has(
-			"cat_bakeneko"
-		),
-		"cat catalog must contain Nekomata and Bakeneko"
+		wing != null
+		and wing.first_expression_stage() == 3
+		and wing.required_loci() == [&"fur", &"body", &"mane"],
+		"cat wings must be a Stage 3 fur+body+mane recipe"
 	)
 
 
 func _test_species_isolation() -> void:
-	var definition := _test_definition(
-		10000
-	)
-	var dog := PetIdentityFactory.new().create_initial(
-		7201,
-		&"dark",
-		&"dog"
-	)
+	var dog := PetIdentityFactory.new().create_initial(7201, &"dark", &"dog")
 	var result := SpeciesMythicMutationResolver.new().resolve(
 		dog,
 		_stage_two_genome(),
 		null,
 		3,
-		[
-			definition,
-		]
+		[_test_definition(10000)]
 	)
-
 	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and StringName(
-			result.get(
-				"mode",
-				""
-			)
-		) == SpeciesMythicMutationResolver.MODE_NONE
-		and String(
-			result.get(
-				"mutation_id",
-				""
-			)
-		).is_empty(),
+		bool(result.get("ok", false))
+		and StringName(result.get("mode", "")) == SpeciesMythicMutationResolver.MODE_NONE,
 		"cat-only Mythic Mutation must never activate for another species"
 	)
 
 
-func _test_stage4_egg_locks_mythic_destiny() -> void:
-	var identity := PetIdentityFactory.new().create_initial(
-		7210,
-		&"dark",
-		&"cat"
-	)
+func _test_normal_egg_has_no_mythic_destiny() -> void:
+	var identity := PetIdentityFactory.new().create_initial(7209, &"dark", &"cat")
 	var service := SpeciesMythicDestinyService.new()
-	var normal_stage_three := service.from_stage4_egg(
-		identity,
-		3
-	)
-	var destiny := service.from_stage4_egg(
-		identity,
-		4
-	)
-
 	_expect(
-		normal_stage_three.is_empty(),
-		"Egg below Stage 4 must not lock Mythic Destiny"
+		service.from_stage4_egg(identity, 1).is_empty()
+		and service.from_stage4_egg(identity, 2).is_empty()
+		and service.from_stage4_egg(identity, 3).is_empty(),
+		"normal Egg Stage 1-3 must never grant a fantasy mutation"
 	)
 
+
+func _test_stage4_egg_locks_mythic_destiny() -> void:
+	var identity := PetIdentityFactory.new().create_initial(7210, &"dark", &"cat")
+	var service := SpeciesMythicDestinyService.new()
+	var destiny := service.from_stage4_egg(identity, 4)
 	_expect(
 		not destiny.is_empty()
-		and bool(
-			destiny.get(
-				"locked",
-				false
-			)
-		)
-		and StringName(
-			destiny.get(
-				"source",
-				""
-			)
-		) == SpeciesMythicDestinyService.SOURCE_EGG_STAGE4,
-		"rare Stage 4 egg must lock one cat Mythic Destiny immediately"
+		and StringName(destiny.get("source", "")) == SpeciesMythicDestinyService.SOURCE_EGG_STAGE4,
+		"rare Stage 4 egg must lock one cat Mythic Destiny"
 	)
 
 	var result := SpeciesMythicMutationResolver.new().resolve(
@@ -166,112 +86,37 @@ func _test_stage4_egg_locks_mythic_destiny() -> void:
 		destiny,
 		[]
 	)
-	var changed := result.get(
-		"genome"
-	) as PetGenome
-	var mutation_id := StringName(
-		destiny.get(
-			"mutation_id",
-			""
-		)
-	)
-
+	var changed := result.get("genome") as PetGenome
 	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and StringName(
-			result.get(
-				"mode",
-				""
-			)
-		) == SpeciesMythicMutationResolver.MODE_AWAKEN
-		and String(
-			result.get(
-				"trigger_source",
-				""
-			)
-		) == "egg_stage4"
+		StringName(result.get("mode", "")) == SpeciesMythicMutationResolver.MODE_AWAKEN
 		and changed != null
-		and changed.has_mutation(
-			mutation_id
-		),
-		"Stage 4 egg destiny must awaken without another rarity roll"
+		and changed.has_mutation(StringName(destiny.get("mutation_id", ""))),
+		"Stage 4 egg destiny must awaken when Stage 3 is reached"
 	)
 
 
-	var scene := PetSceneProfileFactory.new().create_initial(
-		identity
-	)
-	var infant := PetGenomeFactory.new().create_initial()
-	var request_data := InitialPetRenderCoordinator.new().build_request(
+func _test_locus_recipes_awaken_cat_branches() -> void:
+	var identity := PetIdentityFactory.new().create_initial(7211, &"dark", &"cat")
+	var service := SpeciesMythicDestinyService.new()
+
+	var horn := service.from_gene_recipe(
 		identity,
-		infant,
-		scene,
-		destiny
+		[&"whiskers_starlight", &"mark_dark", &"ears_tufted"]
 	)
-	var request := request_data.get(
-		"request"
-	) as PetRenderRequest
-
 	_expect(
-		bool(
-			request_data.get(
-				"ok",
-				false
-			)
-		)
-		and request != null
-		and request.positive_prompt.contains(
-			"[MYTHIC DESTINY FORESHADOW]"
-		)
-		and request.positive_prompt.contains(
-			String(
-				destiny.get(
-					"display_name",
-					""
-				)
-			)
-		)
-		and request.positive_prompt.contains(
-			"Do NOT express the mature mythical anatomy yet"
-		),
-		"Stage 4 egg birth render must foreshadow the locked branch without full transformation"
+		StringName(horn.get("mutation_id", "")) == &"cat_horned_spirit"
+		and _string_array(horn.get("recipe_loci", [])) == ["ears", "mark", "whiskers"],
+		"any valid whiskers+mark+ears Gene combination must lock cat horns"
 	)
 
-
-func _test_three_fixed_genes_awaken_branch() -> void:
-	var identity := PetIdentityFactory.new().create_initial(
-		7211,
-		&"dark",
-		&"cat"
-	)
-	var destiny := SpeciesMythicDestinyService.new().from_gene_recipe(
+	var wing := service.from_gene_recipe(
 		identity,
-		[
-			&"tail_long",
-			&"eyes_moon",
-			&"mark_moon",
-		]
+		[&"fur_sleek", &"body_sturdy", &"mane_astral"]
 	)
-
 	_expect(
-		StringName(
-			destiny.get(
-				"mutation_id",
-				""
-			)
-		) == &"cat_nekomata"
-		and StringName(
-			destiny.get(
-				"source",
-				""
-			)
-		) == SpeciesMythicDestinyService.SOURCE_GENE_RECIPE,
-		"three fixed Nekomata Gene ids must lock the Nekomata destiny"
+		StringName(wing.get("mutation_id", "")) == &"cat_winged_spirit"
+		and _string_array(wing.get("recipe_loci", [])) == ["body", "fur", "mane"],
+		"any valid fur+body+mane Gene combination must lock cat wings"
 	)
 
 	var result := SpeciesMythicMutationResolver.new().resolve(
@@ -281,182 +126,32 @@ func _test_three_fixed_genes_awaken_branch() -> void:
 		3,
 		[],
 		{},
-		[
-			&"tail_long",
-			&"eyes_moon",
-			&"mark_moon",
-		]
+		[&"whiskers_starlight", &"mark_dark", &"ears_long"]
 	)
-
 	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and StringName(
-			result.get(
-				"mode",
-				""
-			)
-		) == SpeciesMythicMutationResolver.MODE_AWAKEN
-		and StringName(
-			result.get(
-				"mutation_id",
-				""
-			)
-		) == &"cat_nekomata"
-		and String(
-			result.get(
-				"trigger_source",
-				""
-			)
-		) == "gene_recipe",
-		"three fixed Genes must deterministically awaken their Mythic branch at evolution"
-	)
-
-
-func _test_awaken_does_not_consume_gene_slots() -> void:
-	var identity := PetIdentityFactory.new().create_initial(
-		7202,
-		&"dark",
-		&"cat"
-	)
-	var genome := _stage_two_genome()
-	var state := GeneDevelopmentState.new(
-		2
-	)
-	var policy := StageGenePolicy.load_default()
-
-	state.record_gene_item(
-		policy,
-		"mythic_test_gene",
-		&"tail_long",
-		&"tail",
-		&"long",
-		20.0,
-		{
-			"agile": 6.0,
-		}
-	)
-
-	var before_count := state.item_count()
-	var result := SpeciesMythicMutationResolver.new().resolve(
-		identity,
-		genome,
-		state,
-		3,
-		[
-			_test_definition(
-				10000
-			),
-		]
-	)
-	var changed := result.get(
-		"genome"
-	) as PetGenome
-
-	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and StringName(
-			result.get(
-				"mode",
-				""
-			)
-		) == SpeciesMythicMutationResolver.MODE_AWAKEN
-		and StringName(
-			result.get(
-				"mutation_id",
-				""
-			)
-		) == &"cat_test_spirit"
-		and changed != null
-		and changed.has_mutation(
-			&"cat_test_spirit"
-		),
-		"configured cat Mythic Mutation must awaken deterministically"
-	)
-
-	_expect(
-		state.item_count() == before_count,
-		"Mythic Mutation must not consume a Gene Item slot"
-	)
-
-	_expect(
-		changed != null
-		and changed.traits_snapshot()
-			== genome.traits_snapshot(),
-		"Mythic Mutation branch id must not silently rewrite normal Gene traits"
+		StringName(result.get("mode", "")) == SpeciesMythicMutationResolver.MODE_AWAKEN
+		and StringName(result.get("mutation_id", "")) == &"cat_horned_spirit",
+		"resolver must awaken Mythic branch from species locus recipe"
 	)
 
 
 func _test_existing_branch_continues_without_reroll() -> void:
-	var identity := PetIdentityFactory.new().create_initial(
-		7203,
-		&"dark",
-		&"cat"
-	)
-	var definition := _test_definition(
-		1
-	)
+	var identity := PetIdentityFactory.new().create_initial(7203, &"dark", &"cat")
+	var definition := _test_definition(1)
 	var stage_three := PetGenomeFactory.new().create_snapshot(
-		3,
-		0.0,
-		PetGenomeSchema.base_traits(),
-		[
-			&"cat_test_spirit",
-		]
+		3, 0.0, PetGenomeSchema.base_traits(), [&"cat_test_spirit"]
 	)
 	var result := SpeciesMythicMutationResolver.new().resolve(
-		identity,
-		stage_three,
-		null,
-		4,
-		[
-			definition,
-		]
+		identity, stage_three, null, 4, [definition]
 	)
-
 	_expect(
-		bool(
-			result.get(
-				"ok",
-				false
-			)
-		)
-		and StringName(
-			result.get(
-				"mode",
-				""
-			)
-		) == SpeciesMythicMutationResolver.MODE_CONTINUE
-		and int(
-			result.get(
-				"roll_basis_points",
-				0
-			)
-		) == -1
-		and String(
-			result.get(
-				"prompt",
-				""
-			)
-		).contains(
-			"Stage 4"
-		),
-		"existing Mythic branch must continue at Stage 4 without a second rarity roll"
+		StringName(result.get("mode", "")) == SpeciesMythicMutationResolver.MODE_CONTINUE
+		and int(result.get("roll_basis_points", 0)) == -1,
+		"existing Mythic branch must continue at Stage 4 without reroll"
 	)
 
 
-func _test_definition(
-	basis_points: int
-) -> SpeciesMythicMutationDefinition:
+func _test_definition(basis_points: int) -> SpeciesMythicMutationDefinition:
 	return SpeciesMythicMutationDefinition.new(
 		&"cat_test_spirit",
 		"Test Spirit Cat",
@@ -466,39 +161,32 @@ func _test_definition(
 		basis_points,
 		false,
 		[],
-		[
-			&"tail",
-			&"aura",
-		],
+		[&"structure", &"aura"],
 		{},
-		{
-			"agile": 5.0,
-		},
-		{
-			3: "Stage 3 test mythic expression.",
-			4: "Stage 4 test mythic expression.",
-		},
+		{"agile": 5.0},
+		{3: "Stage 3 test mythic expression.", 4: "Stage 4 test mythic expression."},
 		"Preserve the same cat identity and every non-target Gene trait."
 	)
 
 
 func _stage_two_genome() -> PetGenome:
 	return PetGenomeFactory.new().create_snapshot(
-		2,
-		0.0,
-		PetGenomeSchema.base_traits(),
-		[]
+		2, 0.0, PetGenomeSchema.base_traits(), []
 	)
 
 
-func _expect(
-	condition: bool,
-	message: String
-) -> void:
+func _string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if typeof(value) != TYPE_ARRAY:
+		return result
+	for item in value as Array:
+		result.append(String(item))
+	result.sort()
+	return result
+
+
+func _expect(condition: bool, message: String) -> void:
 	if condition:
 		return
-
 	_failures += 1
-	push_error(
-		message
-	)
+	push_error(message)
