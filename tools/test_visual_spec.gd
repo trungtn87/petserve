@@ -13,6 +13,9 @@ const EvolutionDeltaScript = preload(
 const MutationCatalogScript = preload(
 	"res://features/evolution/rules/mutation_catalog.gd"
 )
+const GeneCatalogScript = preload(
+	"res://features/evolution/rules/gene_catalog.gd"
+)
 const GenomeDeltaApplierScript = preload(
 	"res://features/evolution/rules/genome_delta_applier.gd"
 )
@@ -39,7 +42,7 @@ func _initialize() -> void:
 	_test_build_visual_spec()
 	_test_prompt_contract()
 	_test_rejects_unrelated_trait_change()
-	_test_stage4_gene_visual_is_synthesized()
+	_test_all_gene_visuals_are_synthesized()
 
 	if _failures == 0:
 		print("M4 Visual Spec: PASS")
@@ -360,18 +363,37 @@ func _test_rejects_unrelated_trait_change() -> void:
 	)
 
 
-func _test_stage4_gene_visual_is_synthesized() -> void:
+func _test_all_gene_visuals_are_synthesized() -> void:
+	var gene_catalog = GeneCatalogScript.new()
+	var genes = gene_catalog.load_default()
 	var visual_catalog = MutationVisualCatalogScript.new()
-	var visual = visual_catalog.find_by_id(
-		visual_catalog.load_default(),
-		&"gene_expr_eyes_luminous_s4"
-	)
+	var visuals = visual_catalog.load_default()
 
 	_expect(
-		visual != null
-		and visual.target_region() == &"eyes",
-		"Stage 4 Gene expression must synthesize a visual definition for Final Evolution"
+		not genes.is_empty(),
+		"Gene catalog must load for visual synthesis coverage"
 	)
+
+	for gene in genes:
+		for source_stage in range(1, 5):
+			var mutation_id := StringName(
+				"gene_expr_%s_s%d"
+				% [
+					String(gene.id()),
+					source_stage,
+				]
+			)
+			var visual = visual_catalog.find_by_id(
+				visuals,
+				mutation_id
+			)
+
+			_expect(
+				visual != null
+				and visual.target_region() == gene.locus(),
+				"Missing Gene visual definition: %s"
+				% String(mutation_id)
+			)
 
 
 func _expect(
