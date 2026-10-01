@@ -17,7 +17,7 @@ signal action_requested(action_id: StringName)
 
 
 const PANEL_WIDTH: float = 164.0
-const PANEL_HEIGHT: float = 390.0
+const PANEL_HEIGHT: float = 444.0
 const PANEL_TOP: float = 14.0
 const PANEL_RIGHT: float = 8.0
 
@@ -236,6 +236,10 @@ func _build() -> void:
 	_add_action(
 		&"evolution",
 		"Tiến hóa"
+	)
+	_add_action(
+		&"achievement",
+		"Thành tích"
 	)
 	_add_action(
 		&"settings",
