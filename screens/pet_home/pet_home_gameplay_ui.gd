@@ -396,6 +396,12 @@ func _refresh_notice(s: Dictionary) -> void:
 			0
 		)
 	)
+	var food_ratio := float(
+		s.get(
+			"food_ratio",
+			0.0
+		)
+	)
 	var growth_speed_percent := int(
 		s.get(
 			"growth_speed_percent",
@@ -403,12 +409,15 @@ func _refresh_notice(s: Dictionary) -> void:
 		)
 	)
 
-	if food_percent <= 0:
+	if food_ratio <= 0.0:
 		_notice_label.text = "Độ no đã hết • trưởng thành đang tạm dừng."
-	elif food_percent <= 50:
+	elif food_ratio <= 0.50:
 		_notice_label.text = (
-			"Độ no thấp đang làm chậm trưởng thành • tốc độ hiện tại %d%%."
-			% growth_speed_percent
+			"Độ no %d%% đang làm chậm trưởng thành • tốc độ hiện tại %d%%."
+			% [
+				food_percent,
+				growth_speed_percent,
+			]
 		)
 	else:
 		_notice_label.text = "Pet đang phát triển bình thường."
