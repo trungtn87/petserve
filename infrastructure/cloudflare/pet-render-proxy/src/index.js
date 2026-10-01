@@ -11,6 +11,8 @@ export default {
       return json({
         ok: true,
         service: "petverse-render-proxy",
+        contract_version: 2,
+        routes: ["/v1/render/initial", "/v1/render/evolution"],
         model: MODEL,
       });
     }

@@ -227,7 +227,7 @@ func _build() -> void:
 	)
 	_add_action(
 		&"chest",
-		"Rương đồ"
+		"Kho tài nguyên"
 	)
 	_add_action(
 		&"entertainment",

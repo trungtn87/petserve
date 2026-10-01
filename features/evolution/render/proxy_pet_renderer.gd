@@ -3,6 +3,8 @@ extends PetRenderer
 
 
 const OUTPUT_DIR: String = "user://pet_renders"
+const MAX_TRANSPORT_ATTEMPTS: int = 2
+const TRANSPORT_RETRY_DELAY_SECONDS: float = 1.25
 
 
 var _config: PetRenderConfig
@@ -65,10 +67,6 @@ func render(
 		reference.resize(maxi(1, int(reference.get_width() * scale)), maxi(1, int(reference.get_height() * scale)), Image.INTERPOLATE_LANCZOS)
 		reference_base64 = Marshalls.raw_to_base64(reference.save_png_to_buffer())
 
-	var http := HTTPRequest.new()
-	http.timeout = _config.timeout_seconds
-	add_child(http)
-
 	var headers := PackedStringArray([
 		"Content-Type: application/json",
 		"Accept: application/json",
@@ -94,61 +92,137 @@ func render(
 		payload["source_image"] = reference_base64
 		endpoint = endpoint.trim_suffix("/initial") + "/evolution"
 
-	var request_error := http.request(
-		endpoint,
-		headers,
-		HTTPClient.METHOD_POST,
-		JSON.stringify(payload)
+	var request_body := JSON.stringify(
+		payload
 	)
+	var response: Array = []
+	var transport_result := -1
+	var response_code := 0
 
-	if request_error != OK:
+	for attempt in range(
+		MAX_TRANSPORT_ATTEMPTS
+	):
+		var http := HTTPRequest.new()
+		http.timeout = _config.timeout_seconds
+		http.use_threads = true
+		add_child(
+			http
+		)
+
+		var request_error := http.request(
+			endpoint,
+			headers,
+			HTTPClient.METHOD_POST,
+			request_body
+		)
+
+		if request_error != OK:
+			http.queue_free()
+
+			return PetRenderResult.fail(
+				&"http_start_failed",
+				"Không bắt đầu được proxy request: %s"
+				% error_string(request_error),
+				renderer_id(),
+				StringName(_config.model_id)
+			)
+
+		response = await http.request_completed
 		http.queue_free()
 
-		return PetRenderResult.fail(
-			&"http_start_failed",
-			"Không bắt đầu được proxy request: %s"
-			% error_string(request_error),
-			renderer_id(),
-			StringName(_config.model_id)
+		if response.size() < 4:
+			return PetRenderResult.fail(
+				&"invalid_http_response",
+				"Proxy HTTP response không đúng định dạng.",
+				renderer_id(),
+				StringName(_config.model_id)
+			)
+
+		transport_result = int(
+			response[0]
+		)
+		response_code = int(
+			response[1]
 		)
 
-	var response: Array = await http.request_completed
-	http.queue_free()
+		if (
+			transport_result
+			== HTTPRequest.RESULT_SUCCESS
+		):
+			break
 
-	if response.size() < 4:
-		return PetRenderResult.fail(
-			&"invalid_http_response",
-			"Proxy HTTP response không đúng định dạng.",
-			renderer_id(),
-			StringName(_config.model_id)
+		var can_retry := (
+			_is_retryable_transport(
+				transport_result
+			)
+			and response_code == 0
+			and attempt
+				< MAX_TRANSPORT_ATTEMPTS - 1
 		)
 
-	var transport_result := int(response[0])
-	var response_code := int(response[1])
+		if not can_retry:
+			return PetRenderResult.fail(
+				&"transport_failed",
+				_transport_error_message(
+					transport_result,
+					attempt + 1
+				),
+				renderer_id(),
+				StringName(_config.model_id)
+			)
+
+		push_warning(
+			(
+				"ProxyPetRenderer: transport %d (%s), "
+				+ "thử lại lần %d/%d."
+			) % [
+				transport_result,
+				_transport_result_label(
+					transport_result
+				),
+				attempt + 2,
+				MAX_TRANSPORT_ATTEMPTS,
+			]
+		)
+
+		await get_tree().create_timer(
+			TRANSPORT_RETRY_DELAY_SECONDS
+		).timeout
+
 	var body: PackedByteArray = response[3]
 	var body_text := body.get_string_from_utf8()
-
-	if transport_result != HTTPRequest.RESULT_SUCCESS:
-		return PetRenderResult.fail(
-			&"transport_failed",
-			"Proxy HTTP transport lỗi: %d"
-			% transport_result,
-			renderer_id(),
-			StringName(_config.model_id)
-		)
 
 	var parsed: Variant = JSON.parse_string(
 		body_text
 	)
 
 	if response_code < 200 or response_code >= 300:
+		var proxy_error := _extract_proxy_error(
+			parsed,
+			response_code,
+			body_text
+		)
+
+		if (
+			request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
+			and response_code == 404
+		):
+			return PetRenderResult.fail(
+				&"proxy_contract_outdated",
+				(
+					"Cloudflare Worker đang chạy bản cũ, chưa có "
+					+ "endpoint /v1/render/evolution. Deploy Worker "
+					+ "trong infrastructure/cloudflare/pet-render-proxy "
+					+ "rồi thử lại. Provider: "
+					+ proxy_error
+				),
+				renderer_id(),
+				StringName(_config.model_id)
+			)
+
 		return PetRenderResult.fail(
 			&"proxy_error",
-			_extract_proxy_error(
-				parsed,
-				response_code,
-				body_text
-			),
+			proxy_error,
 			renderer_id(),
 			StringName(_config.model_id)
 		)
@@ -278,6 +352,70 @@ func render(
 			"seed": request.seed,
 		}
 	)
+
+
+func _is_retryable_transport(
+	result: int
+) -> bool:
+	return result in [
+		HTTPRequest.RESULT_CANT_CONNECT,
+		HTTPRequest.RESULT_CANT_RESOLVE,
+		HTTPRequest.RESULT_CONNECTION_ERROR,
+		HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR,
+		HTTPRequest.RESULT_NO_RESPONSE,
+		HTTPRequest.RESULT_TIMEOUT,
+	]
+
+
+func _transport_result_label(
+	result: int
+) -> String:
+	match result:
+		HTTPRequest.RESULT_CHUNKED_BODY_SIZE_MISMATCH:
+			return "dữ liệu truyền về không đầy đủ"
+		HTTPRequest.RESULT_CANT_CONNECT:
+			return "không kết nối được proxy"
+		HTTPRequest.RESULT_CANT_RESOLVE:
+			return "không phân giải được tên miền proxy"
+		HTTPRequest.RESULT_CONNECTION_ERROR:
+			return "kết nối bị ngắt khi đang gửi/nhận dữ liệu"
+		HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR:
+			return "lỗi bắt tay TLS"
+		HTTPRequest.RESULT_NO_RESPONSE:
+			return "proxy không trả phản hồi"
+		HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED:
+			return "phản hồi vượt giới hạn kích thước"
+		HTTPRequest.RESULT_BODY_DECOMPRESS_FAILED:
+			return "không giải nén được phản hồi"
+		HTTPRequest.RESULT_REQUEST_FAILED:
+			return "request thất bại"
+		HTTPRequest.RESULT_DOWNLOAD_FILE_CANT_OPEN:
+			return "không mở được file tải về"
+		HTTPRequest.RESULT_DOWNLOAD_FILE_WRITE_ERROR:
+			return "không ghi được file tải về"
+		HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED:
+			return "vượt giới hạn chuyển hướng"
+		HTTPRequest.RESULT_TIMEOUT:
+			return "hết thời gian chờ"
+		_:
+			return "lỗi transport không xác định"
+
+
+func _transport_error_message(
+	result: int,
+	attempts: int
+) -> String:
+	return (
+		"Kết nối tới proxy bị lỗi: %s "
+		+ "(mã %d, đã thử %d lần). "
+		+ "Kiểm tra mạng rồi thử lại."
+	) % [
+		_transport_result_label(
+			result
+		),
+		result,
+		attempts,
+	]
 
 
 func _detect_image_format(

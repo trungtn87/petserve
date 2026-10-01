@@ -1,3 +1,5 @@
+> **Superseded at Stage 2 closeout.** The slot/cap and fixed +5% Growth rules below are historical milestone notes only. The authoritative live contract is `docs/gameplay/STAGE2_GENE_SCORE_ITEM_SYSTEM.md`: 64 base Genes, rarity-based score/Growth, unlimited Gene use in Stages 1–3, and lifetime score persistence.
+
 # M9.2 — Stage Gene Policy + Gene Development State
 
 Status: merged to `pethome`; M9.2 foundation complete. Runtime Inventory/Stage 1 integration remains deferred to M9.3.

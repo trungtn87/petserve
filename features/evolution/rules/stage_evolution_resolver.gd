@@ -64,119 +64,190 @@ func resolve(
 			"GeneDevelopmentState không hợp lệ theo StageGenePolicy."
 		)
 
-	if genome.stage() != 1:
-		return {
-			"ok": false,
-			"mode": String(
-				MODE_GENE
-			),
-			"error": (
-				"Gene Expression policy của Stage này chưa được khóa."
-			),
-			"requires_stage_expression_policy": true,
-		}
-
 	var candidates := _valid_candidates(
+		genome,
 		gene_state
 	)
 
 	if candidates.is_empty():
 		return _error(
-			"Không có Gene Expression candidate hợp lệ."
+			"Không có Gene Expression candidate hợp lệ cho phenotype hiện tại."
 		)
 
-	var selected := _weighted_pick(
-		identity,
-		genome,
-		candidates
-	)
+	var by_locus: Dictionary = {}
 
-	if selected.is_empty():
-		return _error(
-			"Không chọn được Gene Expression."
-		)
-
-	var locus := _normalize_token(
-		StringName(
-			selected.get(
+	for candidate in candidates:
+		var locus_key := String(
+			candidate.get(
 				"locus",
 				""
 			)
 		)
-	)
-	var direction := _normalize_token(
-		StringName(
-			selected.get(
-				"direction",
-				""
+
+		if locus_key.is_empty():
+			continue
+
+		var group: Array = by_locus.get(
+			locus_key,
+			[]
+		)
+		group.append(
+			candidate
+		)
+		by_locus[locus_key] = group
+
+	var loci: Array = by_locus.keys()
+	loci.sort()
+
+	var selected_changes: Array[Dictionary] = []
+	var deltas: Array[EvolutionDelta] = []
+	var changed := genome
+
+	for locus_value in loci:
+		var group_value: Variant = by_locus.get(
+			locus_value,
+			[]
+		)
+
+		if typeof(group_value) != TYPE_ARRAY:
+			continue
+
+		var group: Array[Dictionary] = []
+
+		for raw_candidate in group_value as Array:
+			if typeof(raw_candidate) != TYPE_DICTIONARY:
+				continue
+			group.append(
+				(raw_candidate as Dictionary).duplicate(
+					true
+				)
+			)
+
+		if group.is_empty():
+			continue
+
+		var selected := _weighted_pick(
+			identity,
+			genome,
+			group
+		)
+
+		if selected.is_empty():
+			return _error(
+				"Không chọn được Gene Expression cho locus %s."
+				% String(locus_value)
+			)
+
+		var locus := _normalize_token(
+			StringName(
+				selected.get(
+					"locus",
+					""
+				)
 			)
 		)
-	)
-	var gene_id := _normalize_token(
-		StringName(
-			selected.get(
-				"gene_id",
-				""
+		var direction := _normalize_token(
+			StringName(
+				selected.get(
+					"direction",
+					""
+				)
 			)
 		)
-	)
-	var current_trait := genome.get_trait(
-		locus,
-		PetGenomeSchema.BASE_TRAIT
-	)
-
-	if current_trait == direction:
-		return {
-			"ok": false,
-			"mode": String(
-				MODE_GENE
-			),
-			"error": (
-				"Gene direction đã biểu hiện. "
-				+ "Cần expression chain của Stage sau trước khi reinforce."
-			),
-			"requires_expression_chain": true,
-			"selected_gene_id": String(
-				gene_id
-			),
-			"selected_locus": String(
-				locus
-			),
-			"selected_direction": String(
-				direction
-			),
-		}
-
-	var delta_id := StringName(
-		"gene_expr_%s_s%d"
-		% [
-			String(gene_id),
-			genome.stage(),
-		]
-	)
-
-	var delta := EvolutionDelta.new(
-		delta_id,
-		locus,
-		current_trait,
-		direction,
-		genome.mutation_ids().size()
-			+ 1
-	)
-
-	if not delta.is_valid():
-		return _error(
-			"Không tạo được Gene EvolutionDelta."
+		var gene_id := _normalize_token(
+			StringName(
+				selected.get(
+					"gene_id",
+					""
+				)
+			)
+		)
+		var resolved_trait := _normalize_token(
+			StringName(
+				selected.get(
+					"resolved_trait",
+					""
+				)
+			)
+		)
+		var current_trait := changed.get_trait(
+			locus,
+			PetGenomeSchema.BASE_TRAIT
 		)
 
-	var changed := _applier.apply(
-		genome,
-		delta
-	)
+		if (
+			String(resolved_trait).is_empty()
+			or resolved_trait == current_trait
+		):
+			return _error(
+				"Gene Expression không tạo được trait kế tiếp cho locus %s."
+				% String(locus)
+			)
 
-	if changed == null:
+		var delta_id := StringName(
+			"gene_expr_%s_s%d"
+			% [
+				String(gene_id),
+				genome.stage(),
+			]
+		)
+		var delta := EvolutionDelta.new(
+			delta_id,
+			locus,
+			current_trait,
+			resolved_trait,
+			changed.mutation_ids().size()
+				+ 1
+		)
+
+		if not delta.is_valid():
+			return _error(
+				"Không tạo được Gene EvolutionDelta cho locus %s."
+				% String(locus)
+			)
+
+		var next_changed := _applier.apply(
+			changed,
+			delta
+		)
+
+		if next_changed == null:
+			return _error(
+				"Không áp dụng được Gene EvolutionDelta cho locus %s."
+				% String(locus)
+			)
+
+		selected["gene_id"] = String(gene_id)
+		selected["locus"] = String(locus)
+		selected["direction"] = String(direction)
+		selected["resolved_trait"] = String(
+			resolved_trait
+		)
+		selected_changes.append(
+			selected.duplicate(
+				true
+			)
+		)
+		deltas.append(
+			delta
+		)
+		changed = next_changed
+
+	if deltas.is_empty():
 		return _error(
-			"Không áp dụng được Gene EvolutionDelta."
+			"Không tạo được Gene EvolutionDelta hợp lệ."
+		)
+
+	var first := selected_changes[0]
+	var first_delta := deltas[0]
+	var total_influence := 0.0
+
+	for selected in selected_changes:
+		total_influence += float(
+			selected.get(
+				"influence",
+				0.0
+			)
 		)
 
 	return {
@@ -187,33 +258,63 @@ func resolve(
 		"from_stage": genome.stage(),
 		"to_stage": genome.stage() + 1,
 		"selected_gene_id": String(
-			gene_id
+			first.get(
+				"gene_id",
+				""
+			)
 		),
 		"selected_locus": String(
-			locus
+			first.get(
+				"locus",
+				""
+			)
 		),
 		"selected_direction": String(
-			direction
+			first.get(
+				"direction",
+				""
+			)
+		),
+		"resolved_trait": String(
+			first.get(
+				"resolved_trait",
+				""
+			)
+		),
+		"reinforced": bool(
+			first.get(
+				"reinforced",
+				false
+			)
 		),
 		"selected_item_uid": String(
-			selected.get(
+			first.get(
 				"item_uid",
 				""
 			)
 		),
-		"primary_influence": float(
-			selected.get(
-				"influence",
-				0.0
+		"selected_item_uids": (
+			first.get(
+				"item_uids",
+				[]
+			) as Array
+		).duplicate(true),
+		"selected_changes": (
+			selected_changes.duplicate(
+				true
 			)
 		),
+		"candidate_count": candidates.size(),
+		"resolved_locus_count": deltas.size(),
+		"primary_influence": total_influence,
 		"gene_influences": (
 			gene_state.influences_snapshot()
 		),
 		"tag_influences": (
 			gene_state.tag_influences_snapshot()
 		),
-		"delta": delta,
+		"delta": first_delta,
+		"deltas": deltas,
 		"genome": changed,
 	}
 
@@ -243,19 +344,29 @@ func _natural_resolution(
 		"selected_gene_id": "",
 		"selected_locus": "",
 		"selected_direction": "",
+		"resolved_trait": "",
+		"reinforced": false,
 		"selected_item_uid": "",
+		"selected_item_uids": [],
+		"candidate_count": 0,
 		"primary_influence": 0.0,
 		"gene_influences": {},
 		"tag_influences": {},
+		"selected_changes": [],
+		"resolved_locus_count": 0,
 		"delta": null,
+		"deltas": [],
 		"genome": unchanged,
 	}
 
 
 func _valid_candidates(
+	genome: PetGenome,
 	gene_state: GeneDevelopmentState
 ) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
+	var grouped: Dictionary = {}
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
 
 	for raw in gene_state.gene_items_snapshot():
 		var gene_id := _normalize_token(
@@ -288,34 +399,105 @@ func _valid_candidates(
 				0.0
 			)
 		)
+		var definition := catalog.find_by_id(
+			definitions,
+			gene_id
+		)
 
 		if (
-			String(gene_id).is_empty()
-			or not PetGenomeSchema.is_visual_locus(
-				locus
-			)
-			or String(direction).is_empty()
-			or direction
-				== PetGenomeSchema.BASE_TRAIT
+			definition == null
+			or definition.locus() != locus
+			or definition.direction() != direction
 			or influence <= 0.0
 		):
 			continue
 
-		var candidate := raw.duplicate(
-			true
+		var current_trait := genome.get_trait(
+			locus,
+			PetGenomeSchema.BASE_TRAIT
 		)
-		candidate["gene_id"] = String(
-			gene_id
+		var resolved_trait := definition.next_expression(
+			current_trait
 		)
-		candidate["locus"] = String(
-			locus
+
+		if (
+			String(resolved_trait).is_empty()
+			or resolved_trait == current_trait
+		):
+			continue
+
+		var key := (
+			String(gene_id)
+			+ "|"
+			+ String(locus)
+			+ "|"
+			+ String(resolved_trait)
 		)
-		candidate["direction"] = String(
-			direction
+		var candidate: Dictionary = grouped.get(
+			key,
+			{}
 		)
-		candidate["influence"] = influence
+
+		if candidate.is_empty():
+			candidate = {
+				"gene_id": String(gene_id),
+				"locus": String(locus),
+				"direction": String(direction),
+				"resolved_trait": String(
+					resolved_trait
+				),
+				"reinforced": definition.reinforces(
+					current_trait
+				),
+				"influence": 0.0,
+				"item_uid": "",
+				"item_uids": [],
+			}
+
+		candidate["influence"] = float(
+			candidate.get(
+				"influence",
+				0.0
+			)
+		) + influence
+
+		var item_uid := String(
+			raw.get(
+				"item_uid",
+				""
+			)
+		)
+		var item_uids: Array = candidate.get(
+			"item_uids",
+			[]
+		)
+
+		if (
+			not item_uid.is_empty()
+			and not item_uids.has(
+				item_uid
+			)
+		):
+			item_uids.append(
+				item_uid
+			)
+
+		item_uids.sort()
+		candidate["item_uids"] = item_uids
+		candidate["item_uid"] = (
+			String(item_uids[0])
+			if not item_uids.is_empty()
+			else ""
+		)
+		grouped[key] = candidate
+
+	var result: Array[Dictionary] = []
+
+	for value in grouped.values():
 		result.append(
-			candidate
+			(value as Dictionary).duplicate(
+				true
+			)
 		)
 
 	result.sort_custom(
@@ -397,6 +579,10 @@ func _selection_seed(
 	)
 
 	for candidate in candidates:
+		var item_uids: Array = candidate.get(
+			"item_uids",
+			[]
+		)
 		value = _mix(
 			value,
 			_stable_string_hash(
@@ -424,9 +610,13 @@ func _selection_seed(
 					+ "|"
 					+ String(
 						candidate.get(
-							"item_uid",
+							"resolved_trait",
 							""
 						)
+					)
+					+ "|"
+					+ str(
+						item_uids
 					)
 				)
 			)
@@ -489,6 +679,13 @@ func _sort_candidate(
 	var a_key := (
 		String(
 			a.get(
+				"locus",
+				""
+			)
+		)
+		+ "|"
+		+ String(
+			a.get(
 				"gene_id",
 				""
 			)
@@ -496,13 +693,20 @@ func _sort_candidate(
 		+ "|"
 		+ String(
 			a.get(
-				"item_uid",
+				"resolved_trait",
 				""
 			)
 		)
 	)
 	var b_key := (
 		String(
+			b.get(
+				"locus",
+				""
+			)
+		)
+		+ "|"
+		+ String(
 			b.get(
 				"gene_id",
 				""
@@ -511,7 +715,7 @@ func _sort_candidate(
 		+ "|"
 		+ String(
 			b.get(
-				"item_uid",
+				"resolved_trait",
 				""
 			)
 		)

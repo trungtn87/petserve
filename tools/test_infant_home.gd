@@ -29,7 +29,23 @@ func run() -> void:
 	check(game.setup(456), "setup save")
 	var items := game.open_next_chest()
 	check(items.size() == 6, "hatch chest six slots")
-	check(game.open_next_chest().is_empty(), "chest cannot open twice")
+	var hatch_has_gene := false
+	for item in items:
+		if StringName(
+			item.get(
+				"item_type",
+				""
+			)
+		) == ItemGenerator.TYPE_GENE:
+			hatch_has_gene = true
+			break
+	check(
+		hatch_has_gene,
+		"hatch chest provides a normal Stage 1 Gene source"
+	)
+	var daily_items := game.open_next_chest()
+	check(daily_items.size() == 2, "daily chest two slots")
+	check(game.open_next_chest().is_empty(), "opened chest queue is exhausted")
 	var uid := str(items[0].uid)
 	check(game.use_item(uid).ok, "use food")
 	check(not game.use_item(uid).ok, "item cannot be consumed twice")
@@ -39,7 +55,32 @@ func run() -> void:
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(456)
 	check(int(reloaded.snapshot().caro_rewards_claimed) == 4, "reward cap persists")
-	check(int(reloaded.snapshot().inventory_count) == 5, "inventory persists")
+	check(int(reloaded.snapshot().inventory_count) == 7, "inventory persists")
+	check(not reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_locked").get("rewarded", false), "obstacle reward locked in stage one")
+	check(not reloaded.claim_snake_hunt_reward(900, "snake_stage1_locked").get("rewarded", false), "snake reward locked in stage one")
+	check(reloaded.advance_to_stage(2), "advance to stage two")
+	check(reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "obstacle shared reward 1")
+	check(not reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "same obstacle match cannot reward twice")
+	check(reloaded.claim_snake_hunt_reward(1100, "snake_match_1").get("rewarded", false), "snake shared reward 2")
+	check(reloaded.claim_obstacle_run_reward(2200, "obstacle_match_2").get("rewarded", false), "obstacle shared reward 3")
+	check(reloaded.claim_snake_hunt_reward(1800, "snake_match_2").get("rewarded", false), "snake shared reward 4")
+	check(not reloaded.claim_obstacle_run_reward(4000, "obstacle_match_cap").get("rewarded", false), "stage two shared reward cap obstacle")
+	check(not reloaded.claim_snake_hunt_reward(4000, "snake_match_cap").get("rewarded", false), "stage two shared reward cap snake")
+	check(int(reloaded.snapshot().stage2_activity_rewards_claimed) == 4, "stage two shared reward cap persists")
+	check(int(reloaded.snapshot().obstacle_rewards_claimed) == 2, "obstacle contribution persists")
+	check(int(reloaded.snapshot().snake_rewards_claimed) == 2, "snake contribution persists")
+	var obstacle := ObstacleRunGame.new()
+	check(obstacle.result() == ObstacleRunGame.RESULT_READY, "runner waits for tap")
+	obstacle.request_jump()
+	obstacle.tick(0.14)
+	check(not obstacle.is_grounded(), "runner jumps")
+	check(obstacle.result() == ObstacleRunGame.RESULT_PLAYING, "runner starts on tap")
+	var snake := SnakeHuntGame.new()
+	var snake_start := snake.head_position()
+	snake.request_direction(Vector2i.LEFT)
+	snake.tick(0.23)
+	check(snake.head_position().x > snake_start.x, "snake rejects instant reverse")
+	check(snake.result() == SnakeHuntGame.RESULT_PLAYING, "snake starts active")
 	var identity := PetIdentityFactory.new().create_initial(456, &"dark")
 	var genome := PetGenomeFactory.new().create_initial()
 	var image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
@@ -87,6 +128,20 @@ func run() -> void:
 	home._hud.open_inventory()
 	home._open_games()
 	await get_tree().process_frame
+	home._hub.open_hub(0, 4, true, 1, 0, 4, false)
+	check(not home._hub._obstacle_card.disabled, "obstacle playable in stage one")
+	check(not home._hub._snake_card.disabled, "snake playable in stage one")
+	home._hub._open_obstacle()
+	await get_tree().process_frame
+	check(home._hub._obstacle_activity.visible, "obstacle opens in stage one without reward")
+	home._hub._show_hub_screen()
+	home._hub._open_snake()
+	await get_tree().process_frame
+	check(home._hub._snake_activity.visible, "snake opens in stage one without reward")
+	home._hub._show_hub_screen()
+	home._hub.open_hub(4, 4, false, 3, 4, 4, false)
+	check(not home._hub._obstacle_card.disabled, "obstacle playable after stage two")
+	check(not home._hub._snake_card.disabled, "snake playable after stage two")
 	home.queue_free()
 	await get_tree().process_frame
 	print("INFANT HOME failures=", failures)
