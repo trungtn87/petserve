@@ -365,5 +365,280 @@
     "allowed_species": [
       "bird"
     ]
+  },
+  {
+    "id": "dragon_horn_crown",
+    "target_trait": "horns",
+    "required_trait": "base",
+    "result_trait": "juvenile_crown",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_scale_plates",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "layered_scales",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_tail_blade",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "blade_tail",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_wing_buds",
+    "target_trait": "wings",
+    "required_trait": "base",
+    "result_trait": "wing_buds",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_full_wings",
+    "target_trait": "wings",
+    "required_trait": "wing_buds",
+    "result_trait": "full_wings",
+    "min_stage": 4,
+    "weight": 3,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "phoenix_crown_crest",
+    "target_trait": "structure",
+    "required_trait": "base",
+    "result_trait": "crown_crest",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_tail_streamers",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "tail_streamers",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_layered_wings",
+    "target_trait": "wings",
+    "required_trait": "base",
+    "result_trait": "layered_wings",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_rebirth_plumage",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "rebirth_plumage",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_rebirth_aura",
+    "target_trait": "aura",
+    "required_trait": "base",
+    "result_trait": "rebirth_aura",
+    "min_stage": 4,
+    "weight": 4,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "horse_flowing_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "flowing_mane",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_swift_hooves",
+    "target_trait": "hooves",
+    "required_trait": "base",
+    "result_trait": "swift_hooves",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_ribbon_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "ribbon_tail",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_noble_frame",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "noble_frame",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_wind_mark",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "wind_mark",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "qilin_cloud_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "cloud_mane",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_scale_patch",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "sacred_scale_patch",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_sacred_hooves",
+    "target_trait": "hooves",
+    "required_trait": "base",
+    "result_trait": "sacred_hooves",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_horn_growth",
+    "target_trait": "horns",
+    "required_trait": "base",
+    "result_trait": "spirit_horn",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_ribbon_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "spirit_ribbon_tail",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "deer_antler_buds",
+    "target_trait": "antlers",
+    "required_trait": "base",
+    "result_trait": "antler_buds",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_long_legs",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "graceful_frame",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_leaf_marks",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "woodland_marks",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_forest_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "forest_ruff",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_moon_eyes",
+    "target_trait": "eyes",
+    "required_trait": "base",
+    "result_trait": "moonlit_eyes",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "deer"
+    ]
   }
 ]
