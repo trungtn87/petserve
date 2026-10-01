@@ -159,7 +159,7 @@ func claim_obstacle_run(
 	return _claim_stage2_activity(
 		run_id,
 		GAME_OBSTACLE_RUN,
-		"Vượt chướng ngại",
+		"Né vật rơi",
 		score,
 		obstacle_reward_tier(
 			score

@@ -376,8 +376,8 @@ func _build_hub_screen(
 	)
 
 	_obstacle_card = _activity_card(
-		"Vượt chướng ngại",
-		"Chạm để nhảy",
+		"Né vật rơi",
+		"Kéo pet trái/phải",
 		true,
 		_open_obstacle,
 		"◆"
@@ -787,7 +787,7 @@ func _update_hub_reward_label() -> void:
 	if _stage_index == 2:
 		if stage2_remaining > 0:
 			lines.append(
-				"Vượt chướng ngại + Snake: Rương chung còn %d/%d"
+				"Né vật rơi + Snake: Rương chung còn %d/%d"
 				% [
 					stage2_remaining,
 					_stage2_reward_max,
@@ -795,12 +795,12 @@ func _update_hub_reward_label() -> void:
 			)
 		else:
 			lines.append(
-				"Vượt chướng ngại + Snake: Rương chung còn 0/%d • vẫn chơi tự do"
+				"Né vật rơi + Snake: Rương chung còn 0/%d • vẫn chơi tự do"
 				% _stage2_reward_max
 			)
 	else:
 		lines.append(
-			"Vượt chướng ngại + Snake: chơi tự do • rương chỉ thuộc Stage 2"
+			"Né vật rơi + Snake: chơi tự do • rương chỉ thuộc Stage 2"
 		)
 
 	_reward_label.text = "\n".join(

@@ -1,34 +1,45 @@
-# Vượt chướng ngại vật
+# Né vật rơi
 
-Replaces Maze Hunt/Pacman in the PetHome entertainment hub. Caro and Snake remain available.
+Thay gameplay chạy ngang cũ trong cùng slot `ObstacleRun` của PetHome. Tên class/save key được giữ để tương thích code và dữ liệu đã có.
 
-- Tap the playfield or the large **NHẢY** button. Keyboard: Space / Enter / Up.
-- The round waits for the first tap; the pet then runs automatically.
-- Survive 40 seconds with 3 lives. Rocks appear every 2–2.6 seconds, with gradual speed increase.
-- A collision consumes one life, removes that rock, and grants 1.5 seconds of protection.
-- Taps just before landing are buffered for 0.14 seconds; no midair double jump.
-- Replay creates a fresh match ID. Closing the activity stops its simulation.
-- Free play is available at every stage. Winning in Stage 2 allows a chest, subject to the existing shared four-chest limit with Snake.
-- Score: 10/second, 100/rock passed, plus 500 + 400 per remaining life on a win. Tiers use 1000 / 2000 / 3000 thresholds.
+## Gameplay
+
+- Màn chơi dọc 320x420.
+- Pet đứng ở vùng đáy và chỉ di chuyển trái/phải.
+- Mobile: chạm/kéo trực tiếp trên playfield.
+- Desktop: phím Trái/Phải.
+- Ván bắt đầu ở lần điều khiển đầu tiên.
+- Sống sót 40 giây với 3 mạng.
+- Đá, thùng và quả cầu rơi từ trên xuống.
+- Tốc độ rơi tăng dần từ 130 lên 205.
+- Tần suất sinh tăng dần từ khoảng 1,00 giây xuống 0,62 giây.
+- Nửa sau trận có thể xuất hiện 2 vật cùng hàng; hệ 5 lane luôn còn nhiều đường né.
+- Va chạm mất 1 mạng và có 1,15 giây bảo vệ.
+- Né một vật qua khỏi pet được cộng vào bộ đếm và điểm.
+
+## Điểm
+
+- 10 điểm mỗi giây sống.
+- 60 điểm mỗi vật né được.
+- Khi thắng: +500 và +400 cho mỗi mạng còn lại.
+- Reward tier vẫn dùng ngưỡng cũ 1000 / 2000 / 3000 để không làm thay đổi kinh tế Stage 2.
+
+## Tương thích save
+
+- Reward service vẫn dùng storage key legacy `maze_hunt`.
+- Claim cũ, match ID, shared cap 4 rương Stage 2 với Snake vẫn giữ nguyên.
+- Chỉ tên hiển thị đổi thành **Né vật rơi**.
 
 ## Code boundaries
 
-- `gameplay/entertainment/obstacle_run_game.gd`: fixed-step movement, generation, collisions, score and result.
-- `screens/entertainment/obstacle_run_board.gd`: scalable drawing and playfield input.
-- `screens/entertainment/obstacle_run_activity_ui.gd`: controls, round lifecycle and reward request.
-- `MiniGameRewardService`: reward tiers, persistence, per-match deduplication and shared cap.
+- `gameplay/entertainment/obstacle_run_game.gd`: fixed-step simulation, điều khiển ngang, spawn vật rơi, collision, score/result.
+- `screens/entertainment/obstacle_run_board.gd`: board dọc, vẽ pet/vật rơi, touch/drag mapping.
+- `screens/entertainment/obstacle_run_activity_ui.gd`: HUD, keyboard axis, round lifecycle, reward request.
+- `MiniGameRewardService`: persistence, tier, dedup và shared reward cap.
 
-The internal saved reward key remains `maze_hunt` deliberately. Existing claimed rewards, match IDs and chest provenance remain valid; replacing a game must not reset the shared reward limit. Public code/UI now uses Obstacle Run names.
-
-## Verification (Godot 4.6.1)
-
-Use a fresh `XDG_DATA_HOME` for each test run to avoid touching real saves:
+## Verification
 
 ```sh
 godot --headless --editor --path . --import
-XDG_DATA_HOME=/tmp/petverse-runner-tests godot --headless --path . tools/test_obstacle_run.tscn
+XDG_DATA_HOME=/tmp/petverse-falling-dodge godot --headless --path . tools/test_obstacle_run.tscn
 ```
-
-Runner regression covers ready/start/restart, collision/loss/frozen finish, twenty seeded clean wins at 30/60 FPS, old saved reward caps, hub layout at 360×640, closing the activity and duplicate reward clicks.
-
-The broader `test_infant_home.tscn` still stops at its evolution preparation fixture (`prepare evolution`, then missing `data`); its minigame assertions pass before that point. The dedicated runner test covers reward persistence, duplicate claims and stage restrictions independently.
