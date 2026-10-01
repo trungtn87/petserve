@@ -903,10 +903,22 @@ func _test_stage_item_contract() -> void:
 
 	if not growth_item.is_empty():
 		check(
+			game.can_use_item(
+				growth_item
+			),
+			"growth item remains usable in Stage 4"
+		)
+
+	game.advance_to_stage(
+		StageLifecycle.FINAL_STAGE
+	)
+
+	if not growth_item.is_empty():
+		check(
 			not game.can_use_item(
 				growth_item
 			),
-			"growth item locked in final form"
+			"growth item locks only in Final Form"
 		)
 
 	SaveManager.delete_meta()
