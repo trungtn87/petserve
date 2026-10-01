@@ -811,22 +811,40 @@ func _populate_pet_info_tab() -> void:
 	)
 
 	var gameplay_state := _game.snapshot()
-	var inherited_value: Variant = gameplay_state.get(
-		"legacy_inherited_item",
-		{}
+	var inherited_items_value: Variant = gameplay_state.get(
+		"legacy_inherited_items",
+		[]
 	)
 	if (
-		typeof(inherited_value) == TYPE_DICTIONARY
+		typeof(inherited_items_value) == TYPE_ARRAY
 		and not (
-			inherited_value as Dictionary
+			inherited_items_value as Array
 		).is_empty()
 	):
 		_add_info_row(
 			"Kế thừa",
-			_legacy_item_label(
-				inherited_value as Dictionary
-			)
+			"%d vật phẩm từ đời trước"
+			% (
+				inherited_items_value as Array
+			).size()
 		)
+	else:
+		var inherited_value: Variant = gameplay_state.get(
+			"legacy_inherited_item",
+			{}
+		)
+		if (
+			typeof(inherited_value) == TYPE_DICTIONARY
+			and not (
+				inherited_value as Dictionary
+			).is_empty()
+		):
+			_add_info_row(
+				"Kế thừa",
+				_legacy_item_label(
+					inherited_value as Dictionary
+				)
+			)
 
 
 func _populate_pet_skills_gene_tab() -> void:
