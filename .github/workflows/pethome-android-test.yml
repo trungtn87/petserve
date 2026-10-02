@@ -108,6 +108,12 @@ jobs:
           export XDG_DATA_HOME=/tmp/petverse-test-legacy
           godot --headless --path . tools/test_legacy_item_inheritance.tscn
 
+      - name: Test v1.3 cloud save bundle
+        shell: bash
+        run: |
+          export XDG_DATA_HOME=/tmp/petverse-test-cloud-save
+          godot --headless --path . --script tools/test_cloud_save_bundle.gd
+
       - name: Export Android debug APK
         shell: bash
         env:
