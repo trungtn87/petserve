@@ -1051,7 +1051,7 @@ func build_stage_regenerate_request(
 		+ "close-up portrait, extreme close-up, bust shot, pet filling the entire frame, pet taller than 64 percent of image height, tiny distant pet, pet smaller than 45 percent of image height, humanoid pose, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
 		+ "plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, "
-		+ "heavy accessories, text, UI, logo, watermark"
+		+ "heavy accessories, ordinary realistic animal, generic real-world animal, plain natural coat with no elemental signature, element visible only in background, documentary animal photo, text, UI, logo, watermark"
 	)
 
 	if target_stage == 2:
@@ -1602,13 +1602,20 @@ func _append_negative_guard(
 ) -> String:
 	var negative := base.strip_edges()
 
+	var anti_generic := (
+		"ordinary realistic animal, generic real-world animal, documentary animal photo, "
+		+ "plain natural coat with no elemental signature, element visible only in background"
+	)
+
 	if negative.is_empty():
-		return ANATOMY_NEGATIVE_PROMPT
+		return ANATOMY_NEGATIVE_PROMPT + ", " + anti_generic
 
 	return (
 		negative
 		+ ", "
 		+ ANATOMY_NEGATIVE_PROMPT
+		+ ", "
+		+ anti_generic
 	)
 
 
@@ -1674,10 +1681,12 @@ func _stage_two_base_prompt(
 	identity: PetIdentity
 ) -> String:
 	return (
-		"Evolve the exact same cat from Stage 1 to Stage 2 using the reference image. "
-		+ "Keep the same individual face, fur pattern, element colors and exactly one tail. "
+		"Evolve the exact same "
+		+ String(identity.species())
+		+ " from Stage 1 to Stage 2 using the reference image. "
+		+ "Keep the same individual face, body markings, element colors and authorized appendage count. "
 		+ "Make it slightly older and more developed. "
-		+ "Painterly fantasy game art, slight chibi, natural feline anatomy. "
+		+ "Premium fantasy game-pet art, slight chibi, species-appropriate anatomy. "
 		+ "Element: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
@@ -1686,7 +1695,11 @@ func _stage_two_base_prompt(
 		+ _simple_element_traits(
 			identity.element()
 		)
-		+ " Preserve the element-themed PetHome habitat from the reference image. Full body visible. "
+		+ " ELEMENT LOCK: the element must remain clearly readable on the creature itself even if the background is ignored. "
+		+ "If it becomes an ordinary realistic "
+		+ String(identity.species())
+		+ " with the element carried mainly by scenery, the render is wrong. "
+		+ "Preserve the element-themed PetHome habitat from the reference image. Full body visible. "
 		+ "Keep the complete pet in the lower-middle area at about 50 to 56 percent of image height. "
 		+ "Leave generous environment visible above and around the pet and keep the upper 30 percent calm for UI. "
 		+ "Keep the pet grounded with a soft contact shadow. No text or UI."
@@ -1697,7 +1710,8 @@ func _stage_two_simple_negative() -> String:
 	return (
 		"different individual, identity drift, extra tail, duplicate tail, split tail, "
 		+ "extra leg, extra ear, multiple pets, close-up portrait, pet filling the frame, "
-		+ "oversized pet, humanoid pose, heavy accessories, text, UI, logo, watermark"
+		+ "oversized pet, humanoid pose, heavy accessories, ordinary realistic animal, generic real-world animal, "
+		+ "plain natural coat with no elemental signature, element visible only in background, documentary animal photo, text, UI, logo, watermark"
 	)
 
 
