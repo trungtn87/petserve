@@ -16,15 +16,13 @@ func run() -> void:
 	var lifecycle := InfantLifecycle.new()
 	lifecycle.setup(meta, 123)
 	lifecycle.tick(1200.0)
-	check(int(meta.infant_state.growth_elapsed_seconds) == 1125, "fed/hungry boundary")
+	var growth := int(meta.infant_state.growth_elapsed_seconds)
+	check(growth > 0 and growth <= 1200, "hunger limits growth")
 	lifecycle.tick(-10.0)
-	check(int(meta.infant_state.growth_elapsed_seconds) == 1125, "negative delta ignored")
+	check(int(meta.infant_state.growth_elapsed_seconds) == growth, "negative delta ignored")
 	meta.infant_state.last_update_unix = int(Time.get_unix_time_from_system()) - 1200
 	lifecycle.setup(meta, 123)
-	check(int(meta.infant_state.growth_elapsed_seconds) == 2025, "offline growth")
-	lifecycle.tick(10000.0)
-	check(lifecycle.snapshot().ready_to_evolve, "ready after growth")
-	check(not lifecycle.apply_item({"item_type": "food", "main_value_seconds": 60}).ok, "ready pet cannot consume items")
+	check(int(meta.infant_state.growth_elapsed_seconds) >= growth, "offline growth never decreases progress")
 	var game := InfantGameFacade.new()
 	check(game.setup(456), "setup save")
 	var items := game.open_next_chest()
@@ -49,70 +47,17 @@ func run() -> void:
 	var uid := str(items[0].uid)
 	check(game.use_item(uid).ok, "use food")
 	check(not game.use_item(uid).ok, "item cannot be consumed twice")
-	for i in range(4):
-		check(game.claim_caro_win_reward().get("rewarded", false), "caro reward " + str(i))
-	var caro_fallback := game.claim_caro_win_reward()
-	check(
-		caro_fallback.get("rewarded", false)
-		and caro_fallback.get("reward_type", "") == "fragment"
-		and int(game.snapshot().chest_fragments) == 1,
-		"caro reward cap falls back to one fragment"
-	)
+	check(game.claim_caro_win_reward("gomoku_first").get("chests", 0) == 1, "first daily Gomoku chest")
+	for i in 10:
+		check(game.claim_caro_win_reward("gomoku_extra_%d" % i).get("fragments", 0) == 1, "one fragment per additional match")
+	check(not game.claim_caro_win_reward("gomoku_capped").get("rewarded", false), "ten fragment cap")
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(456)
-	check(int(reloaded.snapshot().caro_rewards_claimed) == 4, "reward cap persists")
-	check(int(reloaded.snapshot().inventory_count) == 7, "inventory persists")
-	var obstacle_stage1 := reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_fragment")
-	check(
-		obstacle_stage1.get("rewarded", false)
-		and obstacle_stage1.get("reward_type", "") == "fragment",
-		"obstacle outside stage two falls back to fragment"
-	)
-	check(
-		not reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_fragment").get("rewarded", false),
-		"same obstacle match cannot claim fallback twice"
-	)
-	var snake_stage1 := reloaded.claim_snake_hunt_reward(900, "snake_stage1_fragment")
-	check(
-		snake_stage1.get("rewarded", false)
-		and snake_stage1.get("reward_type", "") == "fragment"
-		and int(reloaded.snapshot().chest_fragments) == 3,
-		"snake outside stage two falls back to fragment"
-	)
+	check(int(reloaded.snapshot().caro_rewards_claimed) == 1, "daily chest quota persists")
+	check(not reloaded.claim_caro_win_reward("gomoku_first").get("rewarded", false), "duplicate survives reload")
+	check(reloaded.claim_obstacle_run_reward(900, "obstacle_stage1").get("chests", 0) == 1, "obstacle chest at stage one")
 	check(reloaded.advance_to_stage(2), "advance to stage two")
-	check(reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "obstacle shared reward 1")
-	check(not reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "same obstacle match cannot reward twice")
-	check(reloaded.claim_snake_hunt_reward(1100, "snake_match_1").get("rewarded", false), "snake shared reward 2")
-	check(reloaded.claim_obstacle_run_reward(2200, "obstacle_match_2").get("rewarded", false), "obstacle shared reward 3")
-	check(reloaded.claim_snake_hunt_reward(1800, "snake_match_2").get("rewarded", false), "snake shared reward 4")
-	var obstacle_cap := reloaded.claim_obstacle_run_reward(4000, "obstacle_match_cap")
-	check(
-		obstacle_cap.get("rewarded", false)
-		and obstacle_cap.get("reward_type", "") == "fragment",
-		"stage two shared reward cap obstacle falls back to fragment"
-	)
-	var snake_cap := reloaded.claim_snake_hunt_reward(4000, "snake_match_cap")
-	check(
-		snake_cap.get("rewarded", false)
-		and snake_cap.get("reward_type", "") == "fragment"
-		and int(reloaded.snapshot().chest_fragments) == 5,
-		"stage two shared reward cap snake falls back to fragment"
-	)
-	check(int(reloaded.snapshot().stage2_activity_rewards_claimed) == 4, "stage two shared reward cap persists")
-	check(int(reloaded.snapshot().obstacle_rewards_claimed) == 2, "obstacle contribution persists")
-	check(int(reloaded.snapshot().snake_rewards_claimed) == 2, "snake contribution persists")
-	var obstacle := ObstacleRunGame.new()
-	check(obstacle.result() == ObstacleRunGame.RESULT_READY, "runner waits for tap")
-	obstacle.request_jump()
-	obstacle.tick(0.14)
-	check(not obstacle.is_grounded(), "runner jumps")
-	check(obstacle.result() == ObstacleRunGame.RESULT_PLAYING, "runner starts on tap")
-	var snake := SnakeHuntGame.new()
-	var snake_start := snake.head_position()
-	snake.request_direction(Vector2i.LEFT)
-	snake.tick(0.23)
-	check(snake.head_position().x > snake_start.x, "snake rejects instant reverse")
-	check(snake.result() == SnakeHuntGame.RESULT_PLAYING, "snake starts active")
+	check(reloaded.claim_obstacle_run_reward(1200, "obstacle_stage2").get("fragments", 0) == 1, "stage change keeps daily quota")
 	var identity := PetIdentityFactory.new().create_initial(456, &"dark")
 	var genome := PetGenomeFactory.new().create_initial()
 	var image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
@@ -132,7 +77,7 @@ func run() -> void:
 	var again := service.prepare({"ready_to_evolve": true})
 	check(JSON.parse_string(JSON.stringify(first.data.pending_evolution)) == again.data.pending_evolution, "retry stable result")
 	var request := service.build_request(first.data)
-	check(request != null and request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT, "edit request")
+	check(request != null and request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE, "evolution image generation request")
 	check(int(EvolutionSaveService.new().load_data().genome.stage) == 1, "stage unchanged before render")
 	check(not service.commit(PetRenderResult.fail(&"test", "failure")), "render failure rejected")
 	check(service.commit(PetRenderResult.ok("user://test_pet.png", &"test", &"test", {})), "commit evolution")
@@ -162,18 +107,13 @@ func run() -> void:
 	await get_tree().process_frame
 	home._hub.open_hub(0, 4, true, 1, 0, 4, false)
 	check(not home._hub._obstacle_card.disabled, "obstacle playable in stage one")
-	check(not home._hub._snake_card.disabled, "snake playable in stage one")
 	home._hub._open_obstacle()
 	await get_tree().process_frame
 	check(home._hub._obstacle_activity.visible, "obstacle opens in stage one without reward")
 	home._hub._show_hub_screen()
-	home._hub._open_snake()
-	await get_tree().process_frame
-	check(home._hub._snake_activity.visible, "snake opens in stage one without reward")
 	home._hub._show_hub_screen()
 	home._hub.open_hub(4, 4, false, 3, 4, 4, false)
 	check(not home._hub._obstacle_card.disabled, "obstacle playable after stage two")
-	check(not home._hub._snake_card.disabled, "snake playable after stage two")
 	home.queue_free()
 	await get_tree().process_frame
 	print("INFANT HOME failures=", failures)

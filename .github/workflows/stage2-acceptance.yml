@@ -42,94 +42,94 @@ jobs:
         run: godot --headless --path . --editor --quit
 
       - name: Breakout 30 maps, collisions, persistence, rewards and touch UI
-        run: timeout 90 godot --headless --path . res://tools/test_breakout.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-breakout timeout 90 godot --headless --path . res://tools/test_breakout.tscn
 
       - name: Breakout defensive playthrough for all 30 maps
-        run: timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-breakout_playthrough timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
 
       - name: Gomoku rules, AI, shared device and real Wi-Fi turns
-        run: timeout 90 godot --headless --path . res://tools/test_gomoku.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-gomoku timeout 90 godot --headless --path . res://tools/test_gomoku.tscn
 
       - name: Pet jigsaw pieces, touch placement and persistence
-        run: timeout 90 godot --headless --path . res://tools/test_jigsaw.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-jigsaw timeout 90 godot --headless --path . res://tools/test_jigsaw.tscn
 
       - name: Sudoku uniqueness, persistence, rewards and touch UI
-        run: timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-sudoku timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
 
       - name: Tank solo balance and twenty-map defensive playthrough
-        run: timeout 90 godot --headless --path . --script tools/test_tank_solo_balance.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-tank_solo_balance timeout 90 godot --headless --path . --script tools/test_tank_solo_balance.gd
 
       - name: Tank maps, gameplay, rewards and real two-player sync
-        run: timeout 90 godot --headless --path . res://tools/test_tank.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-tank timeout 90 godot --headless --path . res://tools/test_tank.tscn
 
       - name: Test local two-player connection
-        run: timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-local_connection timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
 
       - name: Stage 1 prompt contract
-        run: godot --headless --path . --script res://tools/test_initial_render_contract.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-initial_render_contract godot --headless --path . --script res://tools/test_initial_render_contract.gd
 
       - name: Twelve species + anatomy mutation + Mythic contract
-        run: godot --headless --path . --script res://tools/test_species_expansion.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-species_expansion godot --headless --path . --script res://tools/test_species_expansion.gd
 
       - name: Gene score foundation
-        run: godot --headless --path . --script res://tools/test_m9_gene_foundation.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-m9_gene_foundation godot --headless --path . --script res://tools/test_m9_gene_foundation.gd
 
       - name: Gene item catalog + rarity + element lock
-        run: godot --headless --path . res://tools/test_m9_gene_items.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-m9_gene_items godot --headless --path . res://tools/test_m9_gene_items.tscn
 
       - name: Stage 3 Food + Growth rarity catalog
-        run: godot --headless --path . res://tools/test_stage3_food_growth_items.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage3_food_growth_items godot --headless --path . res://tools/test_stage3_food_growth_items.tscn
 
       - name: Stage 3 Tier III chest contract
-        run: godot --headless --path . res://tools/test_stage3_tier3_chest.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage3_tier3_chest godot --headless --path . res://tools/test_stage3_tier3_chest.tscn
 
       - name: Stage 4 Growth + Final Evolution foundation
-        run: godot --headless --path . res://tools/test_stage4_growth_final_evolution.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage4_growth_final_evolution godot --headless --path . res://tools/test_stage4_growth_final_evolution.tscn
 
       - name: Legacy item inheritance
-        run: godot --headless --path . res://tools/test_legacy_item_inheritance.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-legacy_item_inheritance godot --headless --path . res://tools/test_legacy_item_inheritance.tscn
 
       - name: Pet skill slots, inheritance and lifecycle effects
-        run: godot --headless --path . res://tools/test_pet_skill_system.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-pet_skill_system godot --headless --path . res://tools/test_pet_skill_system.tscn
 
       - name: Final Record + achievement collection
-        run: godot --headless --path . res://tools/test_final_record_achievement.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-final_record_achievement godot --headless --path . res://tools/test_final_record_achievement.tscn
 
       - name: Gene evolution render contract
-        run: godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-m9_stage1_evolution_service godot --headless --path . --script res://tools/test_m9_stage1_evolution_service.gd
 
       - name: Stage 1 to 2 identity continuity
-        run: godot --headless --path . res://tools/test_m7_evolution_edit.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-m7_evolution_edit godot --headless --path . res://tools/test_m7_evolution_edit.tscn
 
       - name: Stage 2 lifecycle
-        run: godot --headless --path . res://tools/test_m8_stage_cycle.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-m8_stage_cycle godot --headless --path . res://tools/test_m8_stage_cycle.tscn
 
       - name: Tetris endless gameplay, rewards, leaderboard and mobile UI
-        run: timeout 90 godot --headless --path . res://tools/test_tetris.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-tetris timeout 90 godot --headless --path . res://tools/test_tetris.tscn
 
       - name: 2048 rules, persistence, rewards and mobile UI
-        run: godot --headless --path . res://tools/test_energy_2048.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-energy_2048 godot --headless --path . res://tools/test_energy_2048.tscn
 
       - name: Falling dodge gameplay, rewards and mobile UI
-        run: godot --headless --path . res://tools/test_obstacle_run.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-obstacle_run godot --headless --path . res://tools/test_obstacle_run.tscn
 
       - name: Stage 2 reward contract
-        run: godot --headless --path . res://tools/test_stage2_rewards.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage2_rewards godot --headless --path . res://tools/test_stage2_rewards.tscn
 
       - name: Stage 2 Gene resolver
-        run: godot --headless --path . res://tools/test_m9_stage_evolution_resolver.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-m9_stage_evolution_resolver godot --headless --path . res://tools/test_m9_stage_evolution_resolver.tscn
 
       - name: Stage 2 Mythic contract
-        run: godot --headless --path . res://tools/test_stage2_mythic_mutation.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage2_mythic_mutation godot --headless --path . res://tools/test_stage2_mythic_mutation.tscn
 
       - name: Stage 2 Mythic retry plan
-        run: godot --headless --path . res://tools/test_stage2_mythic_evolution_plan.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage2_mythic_evolution_plan godot --headless --path . res://tools/test_stage2_mythic_evolution_plan.tscn
 
       - name: Stage 2 PetHome feedback
-        run: godot --headless --path . res://tools/test_stage2_pethome_feedback.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage2_pethome_feedback godot --headless --path . res://tools/test_stage2_pethome_feedback.tscn
 
       - name: Stage 2 to Stage 3 acceptance
-        run: godot --headless --path . res://tools/test_stage2_to_stage3_acceptance.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-stage2_to_stage3_acceptance godot --headless --path . res://tools/test_stage2_to_stage3_acceptance.tscn
 
   android-debug-apk:
     name: Android debug APK smoke build

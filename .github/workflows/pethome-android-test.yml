@@ -82,10 +82,10 @@ jobs:
           godot --headless --editor --path . --quit
 
       - name: Exact source prompt assembly and transport for twelve species
-        run: timeout 90 godot --headless --path . --script tools/test_source_prompt_contract.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-source_prompt_contract timeout 90 godot --headless --path . --script tools/test_source_prompt_contract.gd
 
       - name: Test twelve species morphology from 47d8688
-        run: timeout 120 godot --headless --path . --script tools/test_species_morphology.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-species_morphology timeout 120 godot --headless --path . --script tools/test_species_morphology.gd
 
       - name: Test initial render contract
         shell: bash
@@ -118,31 +118,31 @@ jobs:
           godot --headless --path . tools/test_element_crystallization.tscn
 
       - name: Daily chest quotas, evolution rewards and opening animation
-        run: timeout 90 godot --headless --path . res://tools/test_daily_rewards.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-daily_rewards timeout 90 godot --headless --path . res://tools/test_daily_rewards.tscn
 
       - name: Breakout 30 maps, collisions, persistence, rewards and touch UI
-        run: timeout 90 godot --headless --path . res://tools/test_breakout.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-breakout timeout 90 godot --headless --path . res://tools/test_breakout.tscn
 
       - name: Breakout defensive playthrough for all 30 maps
-        run: timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-breakout_playthrough timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
 
       - name: Gomoku rules, AI, shared device and real Wi-Fi turns
-        run: timeout 90 godot --headless --path . res://tools/test_gomoku.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-gomoku timeout 90 godot --headless --path . res://tools/test_gomoku.tscn
 
       - name: Sudoku uniqueness, persistence, rewards and touch UI
-        run: timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-sudoku timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
 
       - name: Tetris endless gameplay, rewards, leaderboard and mobile UI
-        run: timeout 90 godot --headless --path . res://tools/test_tetris.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-tetris timeout 90 godot --headless --path . res://tools/test_tetris.tscn
 
       - name: Tank solo balance and twenty-map defensive playthrough
-        run: timeout 90 godot --headless --path . --script tools/test_tank_solo_balance.gd
+        run: XDG_DATA_HOME=/tmp/petverse-test-tank_solo_balance timeout 90 godot --headless --path . --script tools/test_tank_solo_balance.gd
 
       - name: Tank maps, gameplay, rewards and real two-player sync
-        run: timeout 90 godot --headless --path . res://tools/test_tank.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-tank timeout 90 godot --headless --path . res://tools/test_tank.tscn
 
       - name: Test local two-player connection
-        run: timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
+        run: XDG_DATA_HOME=/tmp/petverse-test-local_connection timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
 
       - name: Portable backup, corruption checks and crash recovery
         run: XDG_DATA_HOME=/tmp/petverse-test-backup timeout 60 godot --headless --path . res://tools/test_backup.tscn
