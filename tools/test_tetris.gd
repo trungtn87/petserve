@@ -149,7 +149,7 @@ func _test_records() -> void:
 	check(records.entries.size() == 10 and records.entries[0].score == 9000, "top ten sorted by score")
 
 func _test_facade() -> void:
-	SaveManager.save_meta({"tetris_records": {}, "chest_fragments": 9})
+	SaveManager.save_meta({"tetris_records": {}, "chest_fragments": 9, "daily_game_rewards_v2": {}, "last_daily_chest_day": ""})
 	var game := FailingSaveFacade.new()
 	check(game.setup(123,1,&"dark"), "facade setup")
 	check(game.start_tetris().ok, "start via facade")
@@ -161,8 +161,8 @@ func _test_facade() -> void:
 	check(game.snapshot().chest_fragments == 9 and game.tetris_records().is_empty() and not game._tetris_session.settled, "failed save rolls back fragments records bonus and settlement")
 	game.fail_save = false
 	var result := game.settle_tetris()
-	check(result.ok and result.fragments == 0 and result.chests == 1 and result.bonus_chests == 0, "unlimited fragments plus record chest")
-	check(game.snapshot().chest_fragments == 9 and game._chests.pending_count() == 3, "9+23 makes three recycled chests plus one bonus and two existing chests")
+	check(result.ok and result.fragments == 0 and result.chests == 1 and result.bonus_chests == 0, "first completed match grants the daily chest without a score bonus")
+	check(game.snapshot().chest_fragments == 9 and game._chests.pending_count() == 3, "daily game chest is added to hatch and daily login chests; fragments stay unchanged")
 	check(not game.settle_tetris().ok, "cannot receive twice")
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(123,1,&"dark")
