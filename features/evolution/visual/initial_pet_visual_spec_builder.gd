@@ -106,41 +106,39 @@ func build(
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
 
 	spec.scene_section = (
-		"MANDATORY PETHOME ENVIRONMENT. Render a complete natural fantasy habitat clearly belonging to the "
+		"PETHOME HABITAT: a complete natural fantasy environment for the "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ " element. Environment identity: "
+		+ " element. Scene: "
 		+ scene_profile.environment_theme
 		+ ". Palette: "
 		+ scene_profile.palette_description
 		+ ". Lighting: "
 		+ scene_profile.lighting_theme
-		+ ". Element motif: "
+		+ ". Motif: "
 		+ scene_profile.motif_description
-		+ ". Show readable foreground, midground and background depth. "
-		+ "The habitat must remain visible across the full canvas and must immediately communicate the element. "
-		+ "Never use a white, empty, transparent, product-photo or studio backdrop."
+		+ ". The canvas visibly contains foreground ground, midground habitat and distant background depth. "
+		+ "The pet is clearly standing or sitting inside this world."
 	)
 
 	spec.composition_section = (
-		"Exactly one pet. Full body visible from head to tail, including feet and all visible appendages. "
-		+ "The pet must be physically grounded in the habitat with a soft natural contact shadow beneath it. "
+		"Exactly one pet, complete full body from ears to feet and tail. "
+		+ "All body parts fit comfortably inside the canvas. "
+		+ "The pet touches a visible ground surface and casts a soft contact shadow. "
 		+ species_profile.composition
 		+ " "
 		+ species_profile.freestyle_pose
 	)
 
 	spec.ui_safe_section = (
-		"Vertical 9:16 mobile environmental establishing shot with the camera pulled back. "
-		+ "The environment is the main composition and the pet is a smaller focal subject living inside it. "
-		+ "Keep the complete pet in the lower-middle area, centered slightly below the vertical midpoint. "
-		+ "LOCKED PETHOME SCALE: the visible pet height should occupy about 38 to 44 percent of total image height. "
-		+ "Place the lowest visible pet point around 88 to 90 percent of image height and keep the highest visible pet point around 46 to 52 percent. "
-		+ "At least about 55 to 60 percent of the image must clearly read as environment, with foreground, midground and background depth. "
-		+ "Leave generous environmental space around the silhouette and keep the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
-		+ "Use a medium-wide environmental character shot, never a close-up or product portrait. "
-		+ "Do not zoom in, do not crop ears, feet, body or tail, and do not let the pet fill the frame. No text or UI."
+		"PRIMARY COMPOSITION: vertical 9:16 WIDE environmental PetHome shot. "
+		+ "Show the complete habitat first and the pet as a medium-small subject. "
+		+ "Pet height is about 38 to 44 percent of the full canvas height, centered in the lower-middle. "
+		+ "About 56 to 62 percent of the canvas visibly shows habitat around and above the pet. "
+		+ "Keep the upper 30 percent spacious, calm and low-detail for the game HUD. "
+		+ "Camera is pulled back enough to show ground around the feet, space around the tail, and substantial scenery above the head. "
+		+ "One full-body pet plus environment, no text and no interface graphics."
 	)
 
 	spec.future_space_section = (
