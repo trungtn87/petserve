@@ -120,6 +120,9 @@ jobs:
       - name: Tetris endless gameplay, rewards, leaderboard and mobile UI
         run: timeout 90 godot --headless --path . res://tools/test_tetris.tscn
 
+      - name: Tank maps, gameplay, rewards and real two-player sync
+        run: timeout 90 godot --headless --path . res://tools/test_tank.tscn
+
       - name: Test local two-player connection
         run: timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
 

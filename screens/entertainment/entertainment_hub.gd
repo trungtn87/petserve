@@ -25,6 +25,7 @@ var palette: Dictionary = {}
 var energy_2048_api: InfantGameFacade
 var _energy_2048_activity: Energy2048ActivityUI
 var _tetris_activity: TetrisActivityUI
+var _tank_activity: TankActivityUI
 
 var _is_open: bool = false
 var _stage_index: int = 1
@@ -87,6 +88,8 @@ func open_hub(
 
 
 func close_hub() -> void:
+	if _tank_activity != null:
+		_tank_activity.close_activity()
 	if _tetris_activity != null:
 		_tetris_activity.close_activity()
 
@@ -300,6 +303,7 @@ func _build_ui() -> void:
 	)
 	_build_energy_2048_activity(body)
 	_build_tetris_activity(body)
+	_build_tank_activity(body)
 
 
 func _build_hub_screen(
@@ -424,6 +428,8 @@ func _build_hub_screen(
 	)
 
 	grid.add_child(_activity_card("Tetris", "Vô hạn • Điểm đổi mảnh rương", true, _open_tetris, "▥"))
+
+	grid.add_child(_activity_card("Tank", "20 map • 1 hoặc 2 người", true, _open_tank, "✦"))
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -680,6 +686,8 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _tank_activity != null:
+		_tank_activity.close_activity()
 	if _tetris_activity != null:
 		_tetris_activity.close_activity()
 
@@ -930,3 +938,19 @@ func _open_connection() -> void:
 	dialog.confirmed.connect(dialog.queue_free)
 	dialog.canceled.connect(dialog.queue_free)
 	dialog.popup_centered(Vector2i(300, 430))
+
+
+func _build_tank_activity(parent: Control) -> void:
+	_tank_activity = TankActivityUI.new()
+	parent.add_child(_tank_activity)
+	_tank_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_tank_activity.visible = false
+	_tank_activity.back_requested.connect(_show_hub_screen)
+	_tank_activity.reward_received.connect(func() -> void: tetris_reward_received.emit())
+	_tank_activity.match_finished.connect(_on_match_finished)
+
+func _open_tank() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_tank_activity.game_api = energy_2048_api
+	_tank_activity.open_activity()

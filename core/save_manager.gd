@@ -60,6 +60,10 @@ func delete_meta() -> void:
 		if not AtomicJson.write(TetrisRecords.ARCHIVE_PATH, current["tetris_records"]):
 			push_error("Không thể giữ bảng kỷ lục Tetris. Chưa xóa dữ liệu đời cũ.")
 			return
+	for key in ["tank_records_solo", "tank_records_duo"]:
+		if current.has(key) and not AtomicJson.write("user://" + key + ".json", current[key]):
+			push_error("Không thể giữ bảng kỷ lục Tank. Chưa xóa dữ liệu đời cũ.")
+			return
 	if FileAccess.file_exists(META_PATH):
 		DirAccess.remove_absolute(
 			ProjectSettings.globalize_path(META_PATH)

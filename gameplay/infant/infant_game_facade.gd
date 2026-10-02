@@ -1806,3 +1806,49 @@ func settle_tetris() -> Dictionary:
 	elif bool(result.broken_record):
 		result.message += " • Hôm nay đã nhận rương top 1"
 	return result
+
+
+func tank_records(duo: bool) -> Dictionary:
+	var key := "tank_records_duo" if duo else "tank_records_solo"
+	if not _meta.has(key):
+		var archive: Variant = JSON.parse_string(FileAccess.get_file_as_string("user://" + key + ".json")) if FileAccess.file_exists("user://" + key + ".json") else {}
+		_meta[key] = archive if archive is Dictionary else {}
+	return (_meta[key] as Dictionary).duplicate(true)
+
+func settle_tank(state: Dictionary, slot: int) -> Dictionary:
+	if state.get("status") != "lost" or str(state.get("match_id", "")).is_empty():
+		return {"ok": false, "message": "Ván chưa kết thúc."}
+	var players: Array = state.get("players", [])
+	if slot < 0 or slot >= players.size():
+		return {"ok": false, "message": "Người chơi không hợp lệ."}
+	var ids: Array = _meta.get("tank_claimed_ids", [])
+	if ids.has(state.match_id):
+		return {"ok": false, "message": "Ván đã nhận thưởng."}
+	var before := _meta.duplicate(true)
+	var duo := bool(state.get("duo", false))
+	var key := "tank_records_duo" if duo else "tank_records_solo"
+	var records := tank_records(duo)
+	var score := maxi(0, int(state.get("team_score", 0)))
+	var broken := score > maxi(5000, int(records.get("best_score", 5000)))
+	var day := Time.get_date_string_from_system()
+	var bonus := broken and day > str(records.get("last_bonus_day", ""))
+	var entries: Array = records.get("entries", [])
+	entries.append({"score":score,"wave":int(state.get("wave",1)),"at_unix":int(Time.get_unix_time_from_system())})
+	entries.sort_custom(func(a: Dictionary,b: Dictionary): return int(a.score)>int(b.score))
+	if entries.size() > 10:
+		entries.resize(10)
+	records["entries"] = entries
+	records["best_score"] = maxi(score,maxi(5000,int(records.get("best_score",5000))))
+	if bonus:
+		records["last_bonus_day"] = day
+	_meta[key] = records
+	ids.append(state.match_id)
+	_meta["tank_claimed_ids"] = ids
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var fragments := maxi(0,int(players[slot].score)) / 1000
+	var crafted := _chests.add_salvage_fragments(fragments + (10 if bonus else 0),_run_id,stage)
+	if not save():
+		_restore(before)
+		return {"ok":false,"message":"Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
+	return {"ok":true,"fragments":fragments,"bonus_chests":1 if bonus else 0,"crafted":crafted,
+		"message":"Nhận %d mảnh%s%s" % [fragments," • Kỷ lục mới!" if broken else ""," • +1 rương top 1" if bonus else ""]}
