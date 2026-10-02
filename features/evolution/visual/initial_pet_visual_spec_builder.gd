@@ -124,7 +124,8 @@ func build(
 	)
 
 	spec.composition_section = (
-		"Exactly one pet. Full body visible. "
+		"Exactly one pet. Full body visible from head to tail, including feet and all visible appendages. "
+		+ "The pet must be physically grounded in the habitat with a soft natural contact shadow beneath it. "
 		+ species_profile.composition
 		+ " "
 		+ species_profile.freestyle_pose
@@ -133,12 +134,13 @@ func build(
 	spec.ui_safe_section = (
 		"Vertical 9:16 mobile environmental establishing shot with the camera pulled back. "
 		+ "The environment is the main composition and the pet is a smaller focal subject living inside it. "
-		+ "Keep the full pet bottom-center in the lower third. "
-		+ "The visible pet height should occupy only about 28 to 32 percent of total image height. "
-		+ "Place the lowest visible pet point around 88 to 90 percent of image height and keep the highest visible pet point below roughly 58 to 60 percent. "
-		+ "At least about 65 to 70 percent of the image must read as environment, with clear space above and around the pet. "
-		+ "Keep the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
-		+ "Do not zoom in, do not crop the pet, do not let the pet fill the frame. No text or UI."
+		+ "Keep the complete pet in the lower-middle area, centered slightly below the vertical midpoint. "
+		+ "LOCKED PETHOME SCALE: the visible pet height should occupy about 38 to 44 percent of total image height. "
+		+ "Place the lowest visible pet point around 88 to 90 percent of image height and keep the highest visible pet point around 46 to 52 percent. "
+		+ "At least about 55 to 60 percent of the image must clearly read as environment, with foreground, midground and background depth. "
+		+ "Leave generous environmental space around the silhouette and keep the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
+		+ "Use a medium-wide environmental character shot, never a close-up or product portrait. "
+		+ "Do not zoom in, do not crop ears, feet, body or tail, and do not let the pet fill the frame. No text or UI."
 	)
 
 	spec.future_space_section = (
@@ -148,8 +150,9 @@ func build(
 	spec.negative_prompt = (
 		species_profile.forbidden_advanced_features
 		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
-		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
-		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
+		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
+		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
+		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
