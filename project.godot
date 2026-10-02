@@ -21,6 +21,7 @@ config/features=PackedStringArray("4.7")
 RandomManager="*res://core/random_manager.gd"
 SaveManager="*res://core/save_manager.gd"
 RunManager="*res://core/run_manager.gd"
+LocalConnection="*res://network/local_connection.gd"
 
 [display]
 
@@ -31,6 +32,10 @@ window/size/window_height_override=640
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/petverse_bluetooth/plugin.cfg")
 
 [gui]
 

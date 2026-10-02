@@ -20,3 +20,7 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.log
+# Generated Android Gradle template and Bluetooth library
+android/build/
+android/.build_version
+addons/petverse_bluetooth/bin/

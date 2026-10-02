@@ -343,6 +343,12 @@ func _build_hub_screen(
 		intro
 	)
 
+	var connection_button := Button.new()
+	connection_button.text = "Kết nối 2 người • Wi-Fi / Bluetooth"
+	connection_button.custom_minimum_size.y = 44
+	connection_button.pressed.connect(_open_connection)
+	root.add_child(connection_button)
+
 	var game_label := Label.new()
 	game_label.text = "TRÒ CHƠI"
 	game_label.add_theme_font_size_override(
@@ -906,3 +912,21 @@ func _open_tetris() -> void:
 	_hub_screen.visible = false
 	_tetris_activity.game_api = energy_2048_api
 	_tetris_activity.open_activity()
+
+
+func _open_connection() -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = "Kết nối 2 người"
+	dialog.ok_button_text = "Đóng"
+	dialog.dialog_hide_on_ok = true
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(280, 360)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	dialog.add_child(scroll)
+	var panel := LocalConnectionPanel.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(panel)
+	add_child(dialog)
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
+	dialog.popup_centered(Vector2i(300, 430))

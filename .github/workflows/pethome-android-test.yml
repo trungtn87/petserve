@@ -57,6 +57,9 @@ jobs:
 
           godot --version
 
+      - name: Build Bluetooth plugin and install Android source template
+        run: python3 tools/build_bluetooth_plugin.py --configure-export --templates "$HOME/.local/share/godot/export_templates/4.6.1.stable"
+
       - name: Prepare Android debug keystore
         shell: bash
         run: |
@@ -116,6 +119,9 @@ jobs:
 
       - name: Tetris endless gameplay, rewards, leaderboard and mobile UI
         run: timeout 90 godot --headless --path . res://tools/test_tetris.tscn
+
+      - name: Test local two-player connection
+        run: timeout 60 godot --headless --path . res://tools/test_local_connection.tscn
 
       - name: Export Android debug APK
         shell: bash

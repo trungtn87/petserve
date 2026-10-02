@@ -3945,5 +3945,13 @@ func _open_settings() -> void:
 	sound.button_pressed = not AudioServer.is_bus_mute(0)
 	sound.toggled.connect(func(enabled: bool): AudioServer.set_bus_mute(0, not enabled))
 	_section_body.add_child(sound)
+	_section_button("Kết nối 2 người • Wi-Fi / Bluetooth", _open_local_connection)
 	_section_button("Lưu tiến trình", func(): _hud.show_message("Đã lưu" if _game.save() else "Chưa lưu được. Hãy thử lại."))
+	_section_overlay.visible = true
+
+
+func _open_local_connection() -> void:
+	_prepare_section("Kết nối 2 người")
+	var panel := LocalConnectionPanel.new()
+	_section_body.add_child(panel)
 	_section_overlay.visible = true
