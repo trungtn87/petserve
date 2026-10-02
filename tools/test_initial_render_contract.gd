@@ -144,7 +144,7 @@ func _initialize() -> void:
 			"lower-middle"
 		)
 		and request.positive_prompt.contains(
-			"55 to 60 percent"
+			"56 to 62 percent"
 		)
 		and request.positive_prompt.contains(
 			"camera pulled back"
@@ -157,7 +157,7 @@ func _initialize() -> void:
 
 	_expect(
 		request.positive_prompt.contains(
-			"MANDATORY PETHOME ENVIRONMENT"
+			"PETHOME HABITAT"
 		)
 		and request.positive_prompt.contains(
 			scene_profile.environment_theme
@@ -175,7 +175,7 @@ func _initialize() -> void:
 			"plain white background"
 		)
 		and request.positive_prompt.contains(
-			"No text or UI"
+			"no text and no interface graphics"
 		),
 		"Stage 1 must render the actual element PetHome scene and reject blank/studio backgrounds"
 	)
