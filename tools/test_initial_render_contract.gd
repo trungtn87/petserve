@@ -138,18 +138,21 @@ func _initialize() -> void:
 
 	_expect(
 		request.positive_prompt.contains(
-			"28 to 32 percent"
+			"38 to 44 percent"
 		)
 		and request.positive_prompt.contains(
-			"lower third"
+			"lower-middle area"
 		)
 		and request.positive_prompt.contains(
-			"65 to 70 percent"
+			"55 to 60 percent"
 		)
 		and request.positive_prompt.contains(
 			"camera pulled back"
+		)
+		and request.negative_prompt.contains(
+			"pet taller than 48 percent"
 		),
-		"Stage 1 must keep the pet small inside PetHome"
+		"Stage 1 must keep the pet medium-small inside PetHome with stable UI-safe framing"
 	)
 
 	_expect(
@@ -178,7 +181,7 @@ func _initialize() -> void:
 	)
 
 	_expect(
-		request.positive_prompt.length() < 5000,
+		request.positive_prompt.length() < 5600,
 		"Stage 1 prompt must stay bounded even with element-specific integrated traits"
 	)
 
