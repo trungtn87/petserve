@@ -153,7 +153,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v14_stage_2"
+			"_pethome_v15_stage_2"
 		)
 		and request.positive_prompt.contains(
 			"TARGET: the same individual cat at Stage 2"
@@ -446,7 +446,7 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v14_stage_2"
+			"_pethome_v15_stage_2"
 		)
 		and request.positive_prompt.contains(
 			"TARGET: the same individual cat at Stage 2"
