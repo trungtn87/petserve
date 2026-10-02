@@ -41,6 +41,9 @@ jobs:
       - name: Import project
         run: godot --headless --path . --editor --quit
 
+      - name: Sudoku uniqueness, persistence, rewards and touch UI
+        run: timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
+
       - name: Tank solo balance and twenty-map defensive playthrough
         run: timeout 90 godot --headless --path . --script tools/test_tank_solo_balance.gd
 

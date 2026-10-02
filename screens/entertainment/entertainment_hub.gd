@@ -13,6 +13,7 @@ const SnakeHuntActivityScript = preload(
 )
 
 
+signal sudoku_reward_received
 signal tetris_reward_received
 signal energy_2048_reward_received
 signal caro_win_reward_requested
@@ -24,6 +25,7 @@ signal match_finished(result: StringName)
 var palette: Dictionary = {}
 var energy_2048_api: InfantGameFacade
 var _energy_2048_activity: Energy2048ActivityUI
+var _sudoku_activity: SudokuActivityUI
 var _tetris_activity: TetrisActivityUI
 var _tank_activity: TankActivityUI
 
@@ -88,6 +90,8 @@ func open_hub(
 
 
 func close_hub() -> void:
+	if _sudoku_activity != null:
+		_sudoku_activity.close_activity()
 	if _tank_activity != null:
 		_tank_activity.close_activity()
 	if _tetris_activity != null:
@@ -302,6 +306,7 @@ func _build_ui() -> void:
 		body
 	)
 	_build_energy_2048_activity(body)
+	_build_sudoku_activity(body)
 	_build_tetris_activity(body)
 	_build_tank_activity(body)
 
@@ -381,9 +386,11 @@ func _build_hub_screen(
 		"v_separation",
 		8
 	)
-	root.add_child(
-		grid
-	)
+	var game_scroll := ScrollContainer.new()
+	game_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	game_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	root.add_child(game_scroll)
+	game_scroll.add_child(grid)
 
 	grid.add_child(
 		_activity_card(
@@ -427,15 +434,11 @@ func _build_hub_screen(
 		)
 	)
 
+	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
+
 	grid.add_child(_activity_card("Tetris", "Vô hạn • Điểm đổi mảnh rương", true, _open_tetris, "▥"))
 
 	grid.add_child(_activity_card("Tank", "20 map • 1 hoặc 2 người", true, _open_tank, "✦"))
-
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(
-		spacer
-	)
 
 	_reward_label = Label.new()
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -686,6 +689,8 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _sudoku_activity != null:
+		_sudoku_activity.close_activity()
 	if _tank_activity != null:
 		_tank_activity.close_activity()
 	if _tetris_activity != null:
@@ -954,3 +959,20 @@ func _open_tank() -> void:
 	_hub_screen.visible = false
 	_tank_activity.game_api = energy_2048_api
 	_tank_activity.open_activity()
+
+
+func _build_sudoku_activity(parent: Control) -> void:
+	_sudoku_activity = SudokuActivityUI.new()
+	_sudoku_activity.palette = palette
+	parent.add_child(_sudoku_activity)
+	_sudoku_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_sudoku_activity.visible = false
+	_sudoku_activity.back_requested.connect(_show_hub_screen)
+	_sudoku_activity.reward_received.connect(func() -> void: sudoku_reward_received.emit())
+	_sudoku_activity.match_finished.connect(_on_match_finished)
+
+func _open_sudoku() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_sudoku_activity.game_api = energy_2048_api
+	_sudoku_activity.open_activity()

@@ -1852,3 +1852,58 @@ func settle_tank(state: Dictionary, slot: int) -> Dictionary:
 		return {"ok":false,"message":"Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
 	return {"ok":true,"fragments":fragments,"bonus_chests":1 if bonus else 0,"crafted":crafted,
 		"message":"Nhận %d mảnh%s%s" % [fragments," • Kỷ lục mới!" if broken else ""," • +1 rương top 1" if bonus else ""]}
+
+
+func sudoku_snapshot() -> Dictionary:
+	var data: Dictionary = _meta.get("sudoku", {})
+	return data.duplicate(true) if int(data.get("run_id", -1)) == _run_id else {}
+
+func open_sudoku(level: int = 0, restart: bool = false) -> Dictionary:
+	var session := SudokuSession.new()
+	if not restart and session.restore(sudoku_snapshot()):
+		return {"ok": true, "state": session.snapshot()}
+	if restart and session.restore(sudoku_snapshot()) and session.complete() and not session.settled:
+		return {"ok": false, "message": "Nhận thưởng ván đã hoàn thành trước."}
+	session.start(level)
+	return _commit_sudoku(session)
+
+func enter_sudoku(index: int, value: int, note: bool = false) -> Dictionary:
+	var session := SudokuSession.new()
+	if not session.restore(sudoku_snapshot()):
+		return {"ok": false, "message": "Không có ván Sudoku."}
+	session.enter(index, value, note)
+	return _commit_sudoku(session)
+
+func undo_sudoku() -> Dictionary:
+	var session := SudokuSession.new()
+	if not session.restore(sudoku_snapshot()):
+		return {"ok": false}
+	session.undo()
+	return _commit_sudoku(session)
+
+func settle_sudoku() -> Dictionary:
+	var session := SudokuSession.new()
+	if not session.restore(sudoku_snapshot()) or not session.complete() or session.settled:
+		return {"ok": false, "message": "Ván chưa hoàn thành hoặc đã nhận thưởng."}
+	var before := _meta.duplicate(true)
+	session.settled = true
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["sudoku"] = stored
+	var amount: int = SudokuRules.REWARDS[session.level]
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	_chests.add_salvage_fragments(amount, _run_id, stage)
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
+	return {"ok": true, "state": sudoku_snapshot(), "fragments": amount, "message": "Đã nhận %d mảnh rương." % amount}
+
+func _commit_sudoku(session: SudokuSession) -> Dictionary:
+	var before := _meta.duplicate(true)
+	var stored := session.snapshot()
+	stored["run_id"] = _run_id
+	_meta["sudoku"] = stored
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được ván. Hãy thử lại."}
+	return {"ok": true, "state": sudoku_snapshot()}
