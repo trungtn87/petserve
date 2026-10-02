@@ -50,6 +50,9 @@ jobs:
       - name: Gomoku rules, AI, shared device and real Wi-Fi turns
         run: timeout 90 godot --headless --path . res://tools/test_gomoku.tscn
 
+      - name: Pet jigsaw pieces, touch placement and persistence
+        run: timeout 90 godot --headless --path . res://tools/test_jigsaw.tscn
+
       - name: Sudoku uniqueness, persistence, rewards and touch UI
         run: timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
 

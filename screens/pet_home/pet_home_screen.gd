@@ -2515,6 +2515,7 @@ func _salvage_item(uid: String) -> void:
 
 
 func _open_games() -> void:
+	_hub.pet_image_path = str((_data.get("current_visual", {}) as Dictionary).get("image_path", ""))
 	var state := _game.snapshot()
 	var stage_index := int(
 		state.get(

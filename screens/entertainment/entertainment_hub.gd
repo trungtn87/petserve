@@ -24,6 +24,8 @@ signal match_finished(result: StringName)
 
 
 var palette: Dictionary = {}
+var pet_image_path := ""
+var _jigsaw_activity: JigsawActivityUI
 var energy_2048_api: InfantGameFacade
 var _energy_2048_activity: Energy2048ActivityUI
 var _breakout_activity: BreakoutActivityUI
@@ -94,6 +96,9 @@ func open_hub(
 func close_hub() -> void:
 	if _breakout_activity != null:
 		_breakout_activity.close_activity()
+
+	if _jigsaw_activity != null:
+		_jigsaw_activity.close_activity()
 	if _sudoku_activity != null:
 		_sudoku_activity.close_activity()
 	if _tank_activity != null:
@@ -311,6 +316,8 @@ func _build_ui() -> void:
 	)
 	_build_energy_2048_activity(body)
 	_build_breakout_activity()
+
+	_build_jigsaw_activity(body)
 	_build_sudoku_activity(body)
 	_build_tetris_activity(body)
 	_build_tank_activity(body)
@@ -440,6 +447,8 @@ func _build_hub_screen(
 	)
 
 	grid.add_child(_activity_card("Phá gạch", "30 màn • Khó dần", true, _open_breakout, "▰"))
+
+	grid.add_child(_activity_card("Ghép hình pet", "20 / 50 / 100 mảnh", true, _open_jigsaw, "▧"))
 
 	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
 
@@ -698,6 +707,9 @@ func _show_hub_screen() -> void:
 func _hide_activities() -> void:
 	if _breakout_activity != null:
 		_breakout_activity.close_activity()
+
+	if _jigsaw_activity != null:
+		_jigsaw_activity.close_activity()
 	if _sudoku_activity != null:
 		_sudoku_activity.close_activity()
 	if _tank_activity != null:
@@ -1002,3 +1014,18 @@ func _open_breakout() -> void:
 	_hub_screen.visible = false
 	_breakout_activity.game_api = energy_2048_api
 	_breakout_activity.open_activity()
+
+func _build_jigsaw_activity(parent: Control) -> void:
+	_jigsaw_activity = JigsawActivityUI.new()
+	_jigsaw_activity.palette = palette
+	parent.add_child(_jigsaw_activity)
+	_jigsaw_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_jigsaw_activity.visible = false
+	_jigsaw_activity.back_requested.connect(_show_hub_screen)
+	_jigsaw_activity.match_finished.connect(_on_match_finished)
+
+func _open_jigsaw() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_jigsaw_activity.current_image_path = pet_image_path
+	_jigsaw_activity.open_activity()
