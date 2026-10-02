@@ -447,7 +447,8 @@ func _prepare_resolved_stage(
 	var gene_score_prompt := GenePromptResolver.new().build(
 		gene_state,
 		identity.element(),
-		target_stage
+		target_stage,
+		identity.species()
 	)
 
 	var normal_prompt := _normal_mutation_prompt(
