@@ -58,7 +58,7 @@ func _run() -> void:
 	_check(builder.build(identity, 4, scores) == builder.build(identity, 4, reversed), "order independent blend")
 	var mythic := builder.build(identity, 4, scores, {"mode": "awaken", "prompt": "authorized pair of wings"})
 	_check(
-		mythic.contains("AUTHORIZED MYTHIC ANATOMY:")
+		mythic.contains("[MYTHIC]")
 		and mythic.contains("authorized pair of wings"),
 		"mythic permission preserved"
 	)
