@@ -117,6 +117,12 @@ jobs:
           export XDG_DATA_HOME=/tmp/petverse-test-crystallization
           godot --headless --path . tools/test_element_crystallization.tscn
 
+      - name: Breakout 30 maps, collisions, persistence, rewards and touch UI
+        run: timeout 90 godot --headless --path . res://tools/test_breakout.tscn
+
+      - name: Breakout defensive playthrough for all 30 maps
+        run: timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
+
       - name: Sudoku uniqueness, persistence, rewards and touch UI
         run: timeout 90 godot --headless --path . res://tools/test_sudoku.tscn
 

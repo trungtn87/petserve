@@ -13,6 +13,7 @@ const SnakeHuntActivityScript = preload(
 )
 
 
+signal breakout_reward_received
 signal sudoku_reward_received
 signal tetris_reward_received
 signal energy_2048_reward_received
@@ -25,6 +26,7 @@ signal match_finished(result: StringName)
 var palette: Dictionary = {}
 var energy_2048_api: InfantGameFacade
 var _energy_2048_activity: Energy2048ActivityUI
+var _breakout_activity: BreakoutActivityUI
 var _sudoku_activity: SudokuActivityUI
 var _tetris_activity: TetrisActivityUI
 var _tank_activity: TankActivityUI
@@ -90,6 +92,8 @@ func open_hub(
 
 
 func close_hub() -> void:
+	if _breakout_activity != null:
+		_breakout_activity.close_activity()
 	if _sudoku_activity != null:
 		_sudoku_activity.close_activity()
 	if _tank_activity != null:
@@ -306,6 +310,7 @@ func _build_ui() -> void:
 		body
 	)
 	_build_energy_2048_activity(body)
+	_build_breakout_activity()
 	_build_sudoku_activity(body)
 	_build_tetris_activity(body)
 	_build_tank_activity(body)
@@ -433,6 +438,8 @@ func _build_hub_screen(
 			"▦"
 		)
 	)
+
+	grid.add_child(_activity_card("Phá gạch", "30 màn • Khó dần", true, _open_breakout, "▰"))
 
 	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
 
@@ -689,6 +696,8 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _breakout_activity != null:
+		_breakout_activity.close_activity()
 	if _sudoku_activity != null:
 		_sudoku_activity.close_activity()
 	if _tank_activity != null:
@@ -976,3 +985,20 @@ func _open_sudoku() -> void:
 	_hub_screen.visible = false
 	_sudoku_activity.game_api = energy_2048_api
 	_sudoku_activity.open_activity()
+
+
+func _build_breakout_activity() -> void:
+	_breakout_activity = BreakoutActivityUI.new()
+	_breakout_activity.palette = palette
+	add_child(_breakout_activity)
+	_breakout_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_breakout_activity.visible = false
+	_breakout_activity.back_requested.connect(_show_hub_screen)
+	_breakout_activity.reward_received.connect(func() -> void: breakout_reward_received.emit())
+	_breakout_activity.match_finished.connect(_on_match_finished)
+
+func _open_breakout() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_breakout_activity.game_api = energy_2048_api
+	_breakout_activity.open_activity()

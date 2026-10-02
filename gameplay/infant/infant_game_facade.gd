@@ -1892,11 +1892,11 @@ func settle_sudoku() -> Dictionary:
 	_meta["sudoku"] = stored
 	var amount: int = SudokuRules.REWARDS[session.level]
 	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-	_chests.add_salvage_fragments(amount, _run_id, stage)
+	_chests.add_salvage_fragments(amount * ChestService.FRAGMENTS_PER_RECYCLED_CHEST, _run_id, stage)
 	if not save():
 		_restore(before)
 		return {"ok": false, "message": "Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
-	return {"ok": true, "state": sudoku_snapshot(), "fragments": amount, "message": "Đã nhận %d mảnh rương." % amount}
+	return {"ok": true, "state": sudoku_snapshot(), "chests": amount, "message": "Đã nhận %d rương." % amount}
 
 func _commit_sudoku(session: SudokuSession) -> Dictionary:
 	var before := _meta.duplicate(true)
@@ -1907,3 +1907,88 @@ func _commit_sudoku(session: SudokuSession) -> Dictionary:
 		_restore(before)
 		return {"ok": false, "message": "Chưa lưu được ván. Hãy thử lại."}
 	return {"ok": true, "state": sudoku_snapshot()}
+
+
+var _breakout_session: BreakoutSession
+
+func breakout_progress() -> Dictionary:
+	var cleared: Array[int] = []
+	var stored: Variant = _meta.get("breakout_cleared", [])
+	if stored is Array:
+		for value in stored:
+			var level := int(value)
+			if level >= 1 and level <= BreakoutMaps.COUNT and not cleared.has(level):
+				cleared.append(level)
+	return {"unlocked": clampi(int(_meta.get("breakout_unlocked", 1)), 1, BreakoutMaps.COUNT), "cleared": cleared}
+
+func breakout_snapshot() -> Dictionary:
+	return _breakout_session.snapshot() if _breakout_session != null else {}
+
+func open_breakout() -> Dictionary:
+	if _breakout_session != null:
+		return {"ok": true, "state": breakout_snapshot(), "progress": breakout_progress()}
+	var saved: Dictionary = _meta.get("breakout", {})
+	var session := BreakoutSession.new()
+	if int(saved.get("run_id", -1)) == _run_id and session.restore(saved):
+		_breakout_session = session
+		return {"ok": true, "state": breakout_snapshot(), "progress": breakout_progress()}
+	return start_breakout(int(breakout_progress().unlocked))
+
+func start_breakout(level: int) -> Dictionary:
+	if level < 1 or level > int(breakout_progress().unlocked):
+		return {"ok": false, "message": "Vượt màn trước để mở màn này."}
+	if _breakout_session != null and _breakout_session.status == "won" and not _breakout_session.settled:
+		return {"ok": false, "message": "Nhận thưởng màn đã hoàn thành trước."}
+	var previous := _breakout_session
+	_breakout_session = BreakoutSession.new()
+	_breakout_session.start(level)
+	var result := checkpoint_breakout()
+	if not bool(result.get("ok", false)):
+		_breakout_session = previous
+	return result
+
+func tick_breakout(delta: float, x: float, launch: bool = false) -> Dictionary:
+	if _breakout_session == null:
+		return {"ok": false}
+	_breakout_session.set_paddle(x)
+	if launch:
+		_breakout_session.launch()
+	_breakout_session.tick(delta)
+	return {"ok": true, "state": breakout_snapshot()}
+
+func checkpoint_breakout() -> Dictionary:
+	if _breakout_session == null:
+		return {"ok": false}
+	var before := _meta.duplicate(true)
+	var stored := breakout_snapshot()
+	stored["run_id"] = _run_id
+	_meta["breakout"] = stored
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được màn chơi. Hãy thử lại."}
+	return {"ok": true, "state": breakout_snapshot(), "progress": breakout_progress()}
+
+func settle_breakout() -> Dictionary:
+	if _breakout_session == null or _breakout_session.status != "won" or _breakout_session.remaining() != 0 or _breakout_session.settled:
+		return {"ok": false, "message": "Màn chưa hoàn thành hoặc đã nhận thưởng."}
+	var before := _meta.duplicate(true)
+	var cleared: Array = breakout_progress().cleared.duplicate()
+	var level := _breakout_session.level
+	var first := not cleared.has(level)
+	if first:
+		cleared.append(level)
+	_meta["breakout_cleared"] = cleared
+	_meta["breakout_unlocked"] = mini(BreakoutMaps.COUNT, maxi(int(breakout_progress().unlocked), level + 1))
+	if first:
+		var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+		_chests.add_salvage_fragments(1, _run_id, stage)
+	_breakout_session.settled = true
+	var stored := breakout_snapshot()
+	stored["run_id"] = _run_id
+	_meta["breakout"] = stored
+	if not save():
+		_restore(before)
+		_breakout_session.settled = false
+		return {"ok": false, "message": "Chưa lưu được kết quả. Bấm Nhận thưởng để thử lại."}
+	return {"ok": true, "state": breakout_snapshot(), "progress": breakout_progress(), "fragments": 1 if first else 0,
+		"message": "Vượt màn! +1 mảnh rương." if first else "Đã vượt lại màn này • Thưởng lần đầu đã nhận."}

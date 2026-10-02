@@ -56,12 +56,13 @@ func run() -> void:
 	check(game.setup(935, 2, &"dark"), "setup")
 	check(game.open_sudoku().state.complete, "resume completed board")
 	check(not game.open_sudoku(0, true).ok, "cannot discard pending reward")
+	var pending := game._chests.pending_count()
 	game.fail_save = true
 	check(not game.settle_sudoku().ok, "failed save reported")
 	check(not game.sudoku_snapshot().settled and game.snapshot().chest_fragments == 9, "reward failure rolls back")
 	game.fail_save = false
-	check(game.settle_sudoku().fragments == 3, "hard reward")
-	check(game.snapshot().chest_fragments == 2, "fragments craft chest")
+	check(game.settle_sudoku().chests == 3, "hard reward")
+	check(game.snapshot().chest_fragments == 9 and game._chests.pending_count() == pending + 3, "three chests preserve existing fragments")
 	check(not game.settle_sudoku().ok, "duplicate denied")
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(935, 2, &"dark")
