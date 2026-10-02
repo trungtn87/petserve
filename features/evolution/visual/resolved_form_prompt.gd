@@ -90,10 +90,15 @@ func build(
 			)
 		),
 		(
-			"ELEMENT EMBODIMENT: %s The element must be clearly readable on the creature itself at first glance, even if the background is ignored. Express it through anatomy-safe surface materials, color zones, markings, coat/plumage/scale flow and small body-integrated magical accents; never rely on the environment alone."
-			% _element_embodiment(
-				identity.element()
-			)
+			"ELEMENT LOCK: %s. The creature itself must read as this element at first glance, even with the entire background removed. %s"
+			% [
+				PetElementCatalog.prompt_name(identity.element()),
+				_element_embodiment(identity.element()),
+			]
+		),
+		(
+			"FAILURE CONDITION: if the result looks like an ordinary realistic %s with a mostly normal natural coat and the element expressed mainly by scenery, lighting or background effects, the render is wrong."
+			% String(identity.species())
 		),
 		(
 			"INHERITED INDIVIDUAL: %s"
@@ -223,31 +228,31 @@ func _element_embodiment(
 	match element:
 		&"water":
 			return (
-				"Use pearl-white, aqua and turquoise surface accents on the pet; flowing current-like contour rhythm in mane, fur, feathers or fins already allowed by the species; ripple-like markings, moist reflective highlights and a few translucent droplet accents close to the body. Keep it elegant and clearly Water, never merely a normal animal standing beside water."
+				"Use clear pearl-white, aqua and turquoise body zones; flowing current-like contour rhythm in existing mane, coat, plumage or scales; readable ripple markings, moist reflective highlights and a few translucent droplet accents close to the body. The pet must look intrinsically Water, never like a normal animal merely standing beside water."
 			)
 		&"fire":
 			return (
-				"Use cream, peach, orange and ember accents on the pet; swept flame-like surface flow, warm luminous markings and small controlled living-flame highlights on existing tips or contours. Keep the creature readable and natural, never an uncontrolled fire blob."
+				"Use clear cream, peach, orange and ember body zones; swept flame-like surface flow, readable warm luminous markings and small controlled living-flame highlights on existing tips or contours. The pet must look intrinsically Fire while remaining species-safe, never an uncontrolled fire blob."
 			)
 		&"wood":
 			return (
-				"Use warm cream, brown and fresh green accents on the pet; leaf-like surface tufts, vine or vein markings and tiny living sprout cues integrated into existing coat, plumage or scales. Keep botanical growth light and body-integrated, never a pile of plants."
+				"Use clear warm cream, brown and fresh-green body zones; leaf-like surface tufts, readable vine or vein markings and small living sprout cues integrated into existing coat, plumage or scales. The pet must look intrinsically Wood, never like a normal animal with loose leaves attached."
 			)
 		&"earth":
 			return (
-				"Use beige, warm brown and restrained mineral accents on the pet; grounded heavier surface rhythm, stone-grain markings and a few small polished crystal or mineral seams integrated into existing body surfaces. Never turn the creature into a statue or armor."
+				"Use clear beige, warm-brown and mineral body zones; grounded heavier surface rhythm, readable stone-grain markings and a few polished crystal or mineral seams integrated into existing body surfaces. The pet must look intrinsically Earth without becoming a statue or armor."
 			)
 		&"metal":
 			return (
-				"Use silver-white, cool gray and icy-blue accents on the pet; crisp reflective highlights, geometric surface separations and a few small polished metallic or crystal facets integrated into existing body surfaces. Keep it organic, never mechanical armor."
+				"Use clear silver-white, cool-gray and icy-blue body zones; crisp reflective highlights, readable geometric surface separations and a few polished metallic or crystal facets integrated into existing body surfaces. The pet must look intrinsically Metal while staying organic, never mechanical armor."
 			)
 		&"light":
 			return (
-				"Use ivory, pearl and soft gold accents on the pet; clean radiant markings, luminous edge highlights and a restrained halo-like glow hugging the existing silhouette. Keep it elegant and clearly Light without adding wings or angelic anatomy."
+				"Use clear ivory, pearl and soft-gold body zones; readable radiant markings, luminous edge highlights and a controlled halo-like glow hugging the existing silhouette. The pet must look intrinsically Light without adding wings or angelic anatomy."
 			)
 		&"dark":
 			return (
-				"Use charcoal-indigo, muted violet and restrained cyan accents on the pet; shadow-gradient markings, faint astral or crescent motifs and soft mist close to existing contours. Keep it mysterious and clearly Umbral without random spikes, horns or galaxy texture."
+				"Use clearly visible charcoal-indigo, smoky blue-black and muted-violet body zones with cyan-violet highlights; a readable crescent or astral sigil, shadow-gradient markings, luminous eye accents and controlled dark mist close to existing mane or ruff, tail and lower legs where anatomy allows. The pet must look intrinsically Umbral, never like a normal animal placed in a dark scene. Do not add random spikes, horns or galaxy texture."
 			)
 		_:
 			return "Use a clear, body-integrated elemental signature on the creature."
