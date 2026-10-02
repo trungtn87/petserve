@@ -153,20 +153,24 @@ func show_reward_message(
 
 
 func show_obstacle_reward_message(
-	message: String
+	message: String,
+	rewarded: bool = false
 ) -> void:
 	if _obstacle_activity != null:
 		_obstacle_activity.show_reward_message(
-			message
+			message,
+			rewarded
 		)
 
 
 func show_snake_reward_message(
-	message: String
+	message: String,
+	rewarded: bool = false
 ) -> void:
 	if _snake_activity != null:
 		_snake_activity.show_reward_message(
-			message
+			message,
+			rewarded
 		)
 
 
@@ -729,10 +733,10 @@ func _update_stage2_card_subtitles() -> void:
 				_stage2_reward_max,
 			]
 			if remaining > 0
-			else "Hết rương • vẫn chơi tự do"
+			else "Hết rương • thắng = 1 mảnh"
 		)
 	else:
-		subtitle = "Chơi tự do • thưởng ở Stage 2"
+		subtitle = "Ngoài Stage 2 • thắng = 1 mảnh"
 
 	_set_card_subtitle(
 		_obstacle_card,
@@ -781,7 +785,7 @@ func _update_hub_reward_label() -> void:
 		)
 	else:
 		lines.append(
-			"Caro: chơi tự do • không mở lại thưởng Stage 1"
+			"Caro: ngoài Stage/rương đã hết • thắng = 1 mảnh"
 		)
 
 	var stage2_claimed := clampi(
@@ -806,12 +810,11 @@ func _update_hub_reward_label() -> void:
 			)
 		else:
 			lines.append(
-				"Né vật rơi + Snake: Rương chung còn 0/%d • vẫn chơi tự do"
-				% _stage2_reward_max
+				"Né vật rơi + Snake: hết rương • thắng = 1 mảnh"
 			)
 	else:
 		lines.append(
-			"Né vật rơi + Snake: chơi tự do • rương chỉ thuộc Stage 2"
+			"Né vật rơi + Snake: ngoài Stage 2 • thắng = 1 mảnh"
 		)
 
 	_reward_label.text = "\n".join(

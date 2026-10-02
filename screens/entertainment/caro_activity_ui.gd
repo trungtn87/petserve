@@ -245,10 +245,7 @@ func _start_new_round() -> void:
 			_reward_enabled
 			and _reward_claimed < _reward_max
 		)
-		else (
-			"Có thể chơi tiếp • "
-			+ "phần thưởng giai đoạn này đã hết."
-		)
+		else "Thắng để nhận 1 mảnh rương."
 	)
 	_render_board()
 
@@ -327,17 +324,9 @@ func _finish_round(
 					_reward_enabled
 					and _reward_claimed < _reward_max
 				)
-				else (
-					"Bạn thắng • "
-					+ "không còn rương thưởng."
-				)
+				else "Đang nhận 1 mảnh rương..."
 			)
-
-			if (
-				_reward_enabled
-				and _reward_claimed < _reward_max
-			):
-				reward_requested.emit()
+			reward_requested.emit()
 
 		TicTacToeGame.RESULT_PET:
 			_status_label.text = "Pet thắng!"
@@ -403,8 +392,13 @@ func _update_reward_label() -> void:
 
 	if not _reward_enabled:
 		_reward_label.text = (
-			"Rương Ấu thể • "
-			+ "giai đoạn thưởng đã kết thúc"
+			"Ngoài giai đoạn thưởng rương • thắng = 1 mảnh"
+		)
+		return
+
+	if claimed >= _reward_max:
+		_reward_label.text = (
+			"Đã hết Rương Caro • thắng = 1 mảnh"
 		)
 		return
 

@@ -27,6 +27,7 @@ var _reward_button: Button
 var _shared_reward_claimed: int = 0
 var _shared_reward_max: int = 4
 var _reward_enabled: bool = false
+var _match_rewarded: bool = false
 var _last_result: StringName = &""
 
 
@@ -45,6 +46,8 @@ func open_activity() -> void:
 		_game
 	)
 	_last_result = &""
+	_match_rewarded = false
+	_reward_button.disabled = false
 	_message_label.text = (
 		"Vuốt để đổi hướng. "
 		+ "Ăn đủ 10 mồi, tránh tường và chính đuôi."
@@ -85,15 +88,19 @@ func set_reward_status(
 		and _game.result()
 			== SnakeHuntGame.RESULT_WIN
 	):
-		_reward_button.visible = (
-			_reward_enabled
-			and _shared_reward_claimed
-				< _shared_reward_max
-		)
+		_reward_button.visible = not _match_rewarded
 
 
-func show_reward_message(message: String) -> void:
+func show_reward_message(
+	message: String,
+	rewarded: bool = false
+) -> void:
 	_message_label.text = message
+
+	if rewarded:
+		_match_rewarded = true
+		_reward_button.visible = false
+
 	_reward_button.disabled = false
 	_update_reward_label()
 
@@ -374,11 +381,7 @@ func _finish_match() -> void:
 				tier,
 			]
 		)
-		_reward_button.visible = (
-			_reward_enabled
-			and _shared_reward_claimed
-				< _shared_reward_max
-		)
+		_reward_button.visible = not _match_rewarded
 	else:
 		_message_label.text = (
 			"Rắn va chạm hoặc hết giờ. "
@@ -389,12 +392,11 @@ func _finish_match() -> void:
 
 func _on_reward_pressed() -> void:
 	if (
-		not _reward_enabled
-		or _shared_reward_claimed
-			>= _shared_reward_max
-		or _game == null
+		_game == null
 		or _game.result()
 			!= SnakeHuntGame.RESULT_WIN
+		or _match_rewarded
+		or _reward_button.disabled
 	):
 		return
 
@@ -409,25 +411,31 @@ func _update_reward_label() -> void:
 	if _reward_label == null:
 		return
 
-	if not _reward_enabled:
-		_reward_label.text = (
-			"Chơi tự do • rương hoạt động chỉ có ở Stage 2."
-		)
-		return
-
 	var remaining := maxi(
 		0,
 		_shared_reward_max
 		- _shared_reward_claimed
 	)
+	var chest_available := (
+		_reward_enabled
+		and remaining > 0
+	)
 
-	_reward_label.text = (
-		"Rương chung Maze + Snake còn %d/%d"
-		% [
-			remaining,
-			_shared_reward_max,
-		]
-		if remaining > 0
-		else "Rương chung Maze + Snake còn 0/%d • vẫn chơi tự do"
-			% _shared_reward_max
+	if chest_available:
+		_reward_label.text = (
+			"Rương chung Maze + Snake còn %d/%d"
+			% [
+				remaining,
+				_shared_reward_max,
+			]
+		)
+	else:
+		_reward_label.text = (
+			"Hết/ngoài Stage thưởng rương • thắng = 1 mảnh"
+		)
+
+	_reward_button.text = (
+		"NHẬN RƯƠNG HOẠT ĐỘNG"
+		if chest_available
+		else "NHẬN 1 MẢNH RƯƠNG"
 	)

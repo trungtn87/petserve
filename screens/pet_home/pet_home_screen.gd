@@ -2585,6 +2585,12 @@ func _reward_obstacle(
 				"message",
 				""
 			)
+		),
+		bool(
+			result.get(
+				"rewarded",
+				false
+			)
 		)
 	)
 	_sync_entertainment_reward_state()
@@ -2604,6 +2610,12 @@ func _reward_snake(
 			result.get(
 				"message",
 				""
+			)
+		),
+		bool(
+			result.get(
+				"rewarded",
+				false
 			)
 		)
 	)

@@ -52,9 +52,18 @@ func set_reward_status(claimed: int, maximum: int, enabled: bool) -> void:
 	_reward_enabled = enabled
 	_sync_reward()
 
-func show_reward_message(message: String) -> void:
+func show_reward_message(
+	message: String,
+	rewarded: bool = false
+) -> void:
 	_message_label.text = message
+	_claim_pending = false
+
+	if rewarded:
+		_match_rewarded = true
+
 	_reward_button.disabled = false
+	_sync_reward()
 
 func _process(delta: float) -> void:
 	if _game == null:
@@ -189,30 +198,37 @@ func _sync_reward() -> void:
 	if _reward_label == null:
 		return
 
-	if _reward_enabled:
+	var chest_available := (
+		_reward_enabled
+		and _reward_claimed < _reward_max
+	)
+
+	if chest_available:
 		var remaining := maxi(0, _reward_max - _reward_claimed)
 		_reward_label.text = (
 			"Rương chung Né vật rơi + Snake còn %d/%d"
 			% [remaining, _reward_max]
-			if remaining > 0
-			else "Rương chung Né vật rơi + Snake còn 0/%d • vẫn chơi tự do"
-				% _reward_max
 		)
 	else:
-		_reward_label.text = "Chơi tự do • rương hoạt động chỉ có ở Stage 2."
+		_reward_label.text = (
+			"Hết/ngoài Stage thưởng rương • thắng = 1 mảnh"
+		)
 
+	_reward_button.text = (
+		"NHẬN RƯƠNG HOẠT ĐỘNG"
+		if chest_available
+		else "NHẬN 1 MẢNH RƯƠNG"
+	)
 	_reward_button.visible = (
 		_game != null
 		and _game.result() == ObstacleRunGame.RESULT_WIN
-		and _reward_enabled
-		and _reward_claimed < _reward_max
 		and not _match_rewarded
 	)
 
 func _on_reward_pressed() -> void:
 	if _game == null or _game.result() != ObstacleRunGame.RESULT_WIN:
 		return
-	if not _reward_enabled or _reward_claimed >= _reward_max or _match_rewarded or _reward_button.disabled:
+	if _match_rewarded or _reward_button.disabled:
 		return
 	_claim_pending = true
 	_reward_button.disabled = true
