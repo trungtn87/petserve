@@ -34,7 +34,7 @@ func _ready() -> void:
 	controls.add_theme_constant_override("separation", 10)
 	scroll.add_child(controls)
 	_label("AI IMAGE LAB • PetVerse", controls)
-	_label("Tạo lần lượt Stage 1 → Final. Gene dùng ở stage trước sẽ biểu hiện khi tiến hóa. Mỗi lần bấm tạo sẽ gọi AI thật.", controls)
+	_label("Flow mặc định: random đúng PetHome (loài + hệ từ run seed), rồi tạo Stage 1 → 4. Stage 2–4 nhận bộ Gene random hợp lệ nhưng prompt/render vẫn dùng nguyên production pipeline.", controls)
 	for index in range(ELEMENTS.size()):
 		element.add_item(["Kim", "Mộc", "Thủy", "Hỏa", "Thổ", "Quang", "Ám"][index])
 	element.select(6)
@@ -44,8 +44,9 @@ func _ready() -> void:
 	seed_input.max_value = 2147483646
 	seed_input.value = int(Time.get_unix_time_from_system()) % 2147483646 + 1
 	controls.add_child(seed_input)
-	_button("Bắt đầu lượt test / đổi hệ và seed", _reset, controls)
-	_button("Đời mới: random dáng bẩm sinh", _new_lineage, controls)
+	_button("Random pet + hệ mới (đúng flow PetHome)", _new_lineage, controls)
+	_button("Tạo tự động Stage 1 → 4 (random Gene)", _run_random_four_stages, controls)
+	_button("Manual: dùng hệ + seed hiện tại", _reset, controls)
 	_label("Ảnh muốn tạo", controls)
 	for stage in range(1, 6):
 		target.add_item("Stage %d" % stage if stage < 5 else "Final (sau Stage 4)")
@@ -79,7 +80,7 @@ func _ready() -> void:
 	_label("Ảnh kết quả", controls)
 	_image_box(output)
 	_button("Mở thư mục ảnh và prompt", func(): OS.shell_open(ProjectSettings.globalize_path("user://pet_renders")), controls)
-	_reset()
+	_new_lineage()
 	if config == null or not config.is_configured():
 		status.text = "Chưa cấu hình proxy tạo ảnh trong data/evolution/render/proxy_dev.json."
 
@@ -104,23 +105,51 @@ func _image_box(rect: TextureRect) -> void:
 func _new_lineage() -> void:
 	if busy:
 		return
-	var rng := RandomNumberGenerator.new()
-	rng.randomize()
-	var next_seed := rng.randi_range(1, 2147483646)
-	if next_seed == int(seed_input.value):
-		next_seed = next_seed % 2147483646 + 1
 	preset_active = false
-	seed_input.value = next_seed
+	var next_seed := RandomService.new().create_run_seed()
+	seed_input.set_value_no_signal(next_seed)
+	var randomized := session.reset_random(next_seed)
+	if not randomized.get("ok", false):
+		status.text = String(randomized.get("error", "Không random được pet."))
+		return
+	_sync_element_from_identity()
+	target.select(0)
+	output.texture = null
+	last_path = ""
+	_refresh()
+	status.text = "Đời mới • %s • hệ %s • seed %d" % [
+		String(session.identity.species()).to_upper(),
+		PetElementCatalog.display_name(session.identity.element()),
+		next_seed,
+	]
 
 func _reset() -> void:
 	if busy:
 		return
-	session.reset(StringName(ELEMENTS[element.selected]), int(seed_input.value))
+	var seed_value := int(seed_input.value)
+	var species := PetSpeciesCatalog.pick_for_seed(seed_value)
+	session.reset(
+		StringName(ELEMENTS[element.selected]),
+		seed_value,
+		species
+	)
 	target.select(0)
 	output.texture = null
 	last_path = ""
-	status.text = "Sẵn sàng. Dữ liệu test độc lập với pet đang chơi."
+	status.text = "Manual • %s • hệ %s • seed %d" % [
+		String(session.identity.species()).to_upper(),
+		PetElementCatalog.display_name(session.identity.element()),
+		seed_value,
+	]
 	_refresh()
+
+
+func _sync_element_from_identity() -> void:
+	if session.identity == null:
+		return
+	var index := ELEMENTS.find(String(session.identity.element()))
+	if index >= 0:
+		element.select(index)
 
 func _invalidate() -> void:
 	request = null
@@ -133,7 +162,15 @@ func _refresh() -> void:
 		rows.remove_child(child)
 		child.queue_free()
 	var stage := target.selected + 1
-	info.text = "Stage 1: ảnh mới nở, chưa áp dụng Gene." if stage == 1 else "Chọn Gene dùng ở Stage %d → tạo ảnh %s. Có thể thêm nhiều Gene, độ hiếm và số lượng; bỏ trống để tiến hóa tự nhiên." % [stage - 1, target.get_item_text(target.selected)]
+	var stage_note := "Stage 1: ảnh mới nở, chưa áp dụng Gene." if stage == 1 else "Chọn Gene dùng ở Stage %d → tạo ảnh %s. Có thể thêm nhiều Gene, độ hiếm và số lượng; bỏ trống để tiến hóa tự nhiên." % [stage - 1, target.get_item_text(target.selected)]
+	var identity_note := ""
+	if session.identity != null:
+		identity_note = "Pet %s • hệ %s • seed %d\n" % [
+			String(session.identity.species()).to_upper(),
+			PetElementCatalog.display_name(session.identity.element()),
+			session.identity.lineage_seed(),
+		]
+	info.text = identity_note + stage_note
 	source.texture = null
 	output.texture = null
 	if session.snapshots.has(stage - 1):
@@ -235,6 +272,135 @@ func _render() -> void:
 	generate.disabled = true
 	for index in range(1, 5):
 		target.set_item_disabled(index, not session.snapshots.has(index))
+
+func _run_random_four_stages() -> void:
+	if busy:
+		return
+	_new_lineage()
+	if session.identity == null:
+		return
+
+	busy = true
+	_set_disabled(controls, true)
+	var run_lines: Array[String] = []
+	run_lines.append(
+		"%s • hệ %s • seed %d" % [
+			String(session.identity.species()).to_upper(),
+			PetElementCatalog.display_name(session.identity.element()),
+			session.identity.lineage_seed(),
+		]
+	)
+	var failed := ""
+
+	for stage in range(1, 5):
+		var selections: Array[Dictionary] = []
+		if stage > 1:
+			selections = session.random_gene_selections(stage - 1)
+			if selections.is_empty():
+				failed = "Stage %d không có Gene hợp lệ để random." % stage
+				break
+
+		var plan: Dictionary = session.prepare(stage, selections)
+		if not plan.get("ok", false):
+			failed = "Stage %d: %s" % [
+				stage,
+				String(plan.get("error", "Không tạo được request.")),
+			]
+			break
+
+		request = plan.request
+		prompt.text = renderer._compose_prompt(request)
+		status.text = "Đang tạo Stage %d/4 • %s" % [
+			stage,
+			_selection_summary(selections),
+		]
+		var result: PetRenderResult = await renderer.render(request)
+		if not result.success:
+			failed = "Stage %d • %s: %s" % [
+				stage,
+				result.error_code,
+				result.error_message,
+			]
+			break
+		if not session.accept(result):
+			failed = "Stage %d có ảnh nhưng production commit từ chối." % stage
+			break
+
+		output.texture = _texture(result.image_path)
+		last_path = result.image_path
+		_write_random_report(result, stage, selections)
+		run_lines.append(
+			"Stage %d: %s" % [
+				stage,
+				_selection_summary(selections),
+			]
+		)
+		request = null
+		await get_tree().process_frame
+
+	busy = false
+	_set_disabled(controls, false)
+	request = null
+	generate.disabled = true
+
+	if not failed.is_empty():
+		status.text = "Dừng auto run. %s\n%s" % [
+			failed,
+			"\n".join(run_lines),
+		]
+		return
+
+	target.set_item_disabled(3, false)
+	target.select(3)
+	_refresh()
+	status.text = "Hoàn tất random Stage 1 → 4 bằng production pipeline.\n%s" % "\n".join(run_lines)
+
+
+func _selection_summary(selections: Array[Dictionary]) -> String:
+	if selections.is_empty():
+		return "base form"
+	var parts: Array[String] = []
+	for selection in selections:
+		parts.append(
+			"%s[%s]" % [
+				String(selection.get("gene_id", "")),
+				String(selection.get("rarity", "")),
+			]
+		)
+	return ", ".join(parts)
+
+
+func _write_random_report(
+	result: PetRenderResult,
+	stage: int,
+	selections: Array[Dictionary]
+) -> void:
+	if request == null:
+		return
+	var report := request.to_debug_dict()
+	report["wire_prompt"] = prompt.text
+	report["experiment"] = "auto_random_pethome_4stage"
+	report["identity"] = {
+		"pet_id": String(session.identity.pet_id()),
+		"species": String(session.identity.species()),
+		"element": String(session.identity.element()),
+		"lineage_seed": session.identity.lineage_seed(),
+		"generation": session.identity.generation(),
+	}
+	report["random_gene_items"] = selections.duplicate(true)
+	report["morphology"] = preload("res://features/evolution/visual/lineage_morphology.gd").new().resolve(
+		session.identity,
+		stage,
+		session.pending_genes.gene_scores_snapshot()
+	)
+	report["result"] = {
+		"model": String(result.model_id),
+		"metadata": result.metadata,
+		"image_path": result.image_path,
+	}
+	report["gene_state"] = session.pending_genes.to_dict()
+	AtomicJson.write(result.image_path.get_basename() + ".json", report)
+
 
 func _set_disabled(node: Node, value: bool) -> void:
 	if node is BaseButton:
