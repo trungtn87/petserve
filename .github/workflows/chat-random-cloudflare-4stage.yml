@@ -1,0 +1,52 @@
+name: Random four-stage Cloudflare render
+
+on:
+  push:
+    branches:
+      - test/chat-random-4stage-20261002
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot
+        run: |
+          curl -fL https://github.com/godotengine/godot/releases/download/4.6.1-stable/Godot_v4.6.1-stable_linux.x86_64.zip -o /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          sudo install -m 755 /tmp/godot/Godot_v4.6.1-stable_linux.x86_64 /usr/local/bin/godot
+
+      - name: Import project
+        run: |
+          godot --headless --editor --path . --import 2>&1 | tee /tmp/import.log
+          if grep -E 'SCRIPT ERROR|Parse Error' /tmp/import.log; then exit 1; fi
+
+      - name: Render random pet through Stage 1-4
+        run: |
+          godot --headless --path . --script tools/image_lab/chat_random_cloudflare_4stage.gd
+
+      - name: Inspect outputs
+        run: |
+          file /tmp/cloudflare_stage_1.png
+          file /tmp/cloudflare_stage_2.png
+          file /tmp/cloudflare_stage_3.png
+          file /tmp/cloudflare_stage_4.png
+          jq '{species, element, lineage_seed, stages: [.stages[] | {stage, mode, render_seed, genes, model}]}' /tmp/cloudflare_4stage_summary.json
+
+      - name: Upload four-stage result
+        uses: actions/upload-artifact@v4
+        with:
+          name: random-cloudflare-4stage
+          path: |
+            /tmp/cloudflare_stage_1.png
+            /tmp/cloudflare_stage_2.png
+            /tmp/cloudflare_stage_3.png
+            /tmp/cloudflare_stage_4.png
+            /tmp/cloudflare_4stage_summary.json
+          if-no-files-found: error
+          retention-days: 1
