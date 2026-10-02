@@ -335,57 +335,44 @@ func build(
 	if identity == null or not identity.is_valid():
 		return ""
 
-	var p := resolve(
-		identity,
-		stage,
-		scores
-	)
-
+	var p := resolve(identity, stage, scores)
 	if p.is_empty():
 		return ""
 
-	var adapter := SpeciesExpression.new()
-	var focus := _dominant_focus(
-		scores
-	)
-	var pose := adapter.pose_hint(
-		identity.species(),
-		focus,
-		String(
-			p.get(
-				"temperament",
-				"calm"
-			)
-		)
-	)
+	var focus := _dominant_focus(scores)
+	var pose := String(p.get("pose", "calm planted stance"))
+	match focus:
+		"tail":
+			pose = "side three-quarter standing view, entire tail sweeping outside the torso outline"
+		"paws":
+			pose = "three-quarter walking step, one front paw advanced and readable, no crossed limbs"
+		"mane":
+			pose = "three-quarter upright stance, chest raised and mane or ruff separated from the face"
+		"body", "structure":
+			pose = "three-quarter standing stance, clear shoulder, ribcage, waist and hindquarter contours"
+		_:
+			pose += ", three-quarter full-body view with head turned toward the viewer"
 
 	return (
-		"\n\n[INDIVIDUAL MORPHOLOGY V3]\n"
-		+ "Inherited individual: %s\n"
-		+ "Maturation target: %s\n"
-		+ "Individual response: %s\n"
-		+ "Presentation: %s. This pose only reveals the form; it must not reshape anatomy.\n"
-		+ "Keep the individual recognizable across stages. Do not convert this qualitative design direction into rigid numeric body ratios. Do not enlarge or shrink unrelated anatomy just to satisfy a Gene."
+		"\n\n[INDIVIDUAL MORPHOLOGY V1]\n"
+		+ "Inherited frame: %s; face: %s; surface contour language: %s. These are stable ancestry cues, not a frozen infant body.\n"
+		+ "Target Stage %d: %s\n"
+		+ "Use approximate design ratios, not text labels: torso length/head width %.2f; standing leg length/head height %.2f; chest width/head width %.2f; tail length/torso length %.2f; ear length relative to species baseline %.2f.\n"
+		+ "Gene emphasis: %s. Present from the %s: %s. Separate limbs, ears and authorized tail from the body outline; never hide the focal feature behind the torso.\n"
+		+ "Preserve individual facial recognition and elemental palette, not exact previous proportions or pose. Natural maturation is authorized even without new Genes. Apply scored Genes to this inherited frame, rather than replacing it with a generic breed template. Structural traits must read in silhouette without glow. Keep pupils readable. Do not substitute bloom, recoloring or camera zoom for bodily development. Species and code-authorized mythical anatomy take precedence over baseline ratios."
 	) % [
-		adapter.birth_expression(
-			identity.species(),
-			p
-		),
-		STAGES[
-			int(
-				p.get(
-					"stage",
-					clampi(
-						stage,
-						1,
-						5
-					)
-				)
-			)
-		],
-		adapter.response_hint(
-			p
-		),
+		String(p.get("frame", "balanced frame")),
+		String(p.get("face", "recognizable youthful face")),
+		String(p.get("fur_line", "clean surface contours")),
+		int(p.get("stage", clampi(stage, 1, 5))),
+		STAGES[int(p.get("stage", clampi(stage, 1, 5)))],
+		float(p.get("torso", 1.0)),
+		float(p.get("legs", 1.0)),
+		float(p.get("chest", 1.0)),
+		float(p.get("tail", 1.0)),
+		float(p.get("ears", 1.0)),
+		focus,
+		String(p.get("side", "left")),
 		pose,
 	]
 

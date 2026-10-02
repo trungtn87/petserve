@@ -27,199 +27,83 @@ func build(
 	if identity == null or not identity.is_valid():
 		return ""
 
-	var target_stage := clampi(
-		stage,
-		1,
-		5
-	)
+	var target_stage := clampi(stage, 1, 5)
 	var morphology := Morphology.new()
-	var form := morphology.resolve(
-		identity,
-		target_stage,
-		scores
-	)
-
+	var form := morphology.resolve(identity, target_stage, scores)
 	if form.is_empty():
 		return ""
 
 	var adapter := SpeciesExpression.new()
-	var traits := resolve_traits(
-		identity,
-		target_stage,
-		scores
-	)
+	var traits := resolve_traits(identity, target_stage, scores)
 	var focus := "whole body"
-
 	if not traits.is_empty():
-		focus = String(
-			traits[0].get(
-				"locus",
-				"whole body"
-			)
-		)
+		focus = String(traits[0].get("locus", "whole body"))
 
 	var pose := adapter.pose_hint(
 		identity.species(),
 		focus,
-		String(
-			form.get(
-				"temperament",
-				"calm"
-			)
-		)
+		String(form.get("temperament", "calm"))
 	)
 
 	var lines: Array[String] = [
-		(
-			"TARGET: the same individual %s at Stage %d. %s."
-			% [
-				String(
-					identity.species()
-				),
-				target_stage,
-				pose,
-			]
-		),
-		(
-			"SUBJECT SCALE: the pet is the unmistakable main subject, shown as one complete full body at a medium-close environmental distance. Target visible pet height is about 50 to 56 percent of the 9:16 canvas, roughly 30 percent larger on screen than the old PetHome framing. Keep ears, feet, tail and authorized appendages inside frame. Do not shrink the pet to showcase the scenery."
-		),
-		(
-			"SPECIES LOCK: %s. Keep the species immediately recognizable. A Gene may change emphasis inside this anatomy, but must never turn the pet into another species or add unrelated anatomy."
-			% adapter.anatomy(
-				identity.species()
-			)
-		),
-		(
-			"ELEMENT LOCK: %s. The creature itself must read as this element at first glance, even with the entire background removed. %s"
-			% [
-				PetElementCatalog.prompt_name(identity.element()),
-				_element_embodiment(identity.element()),
-			]
-		),
-		(
-			"FAILURE CONDITION: if the result looks like an ordinary realistic %s with a mostly normal natural coat and the element expressed mainly by scenery, lighting or background effects, the render is wrong."
-			% String(identity.species())
-		),
-		(
-			"INHERITED INDIVIDUAL: %s"
-			% adapter.birth_expression(
-				identity.species(),
-				form
-			)
-		),
-		(
-			"MATURATION: %s"
-			% Morphology.STAGES[
-				target_stage
-			]
-		),
-		(
-			"INDIVIDUAL RESPONSE: %s"
-			% adapter.response_hint(
-				form
-			)
-		),
+		"TARGET IMAGE: one %s, Stage %d. %s. View from the %s. Avoid a symmetrical frontal portrait." % [
+			String(identity.species()),
+			target_stage,
+			pose,
+			String(form.get("side", "left")),
+		],
+		"AGE AND BODY: " + Morphology.STAGES[target_stage],
 	]
 
 	if target_stage > 1:
 		lines.append(
-			"REFERENCE CONTINUITY: if a previous-stage image is supplied, preserve face identity, elemental palette and established lineage cues. Allow natural maturation and the selected development priorities to change pose and form; do not trace immature proportions exactly."
+			"Draw the complete target form described below. If a previous-stage reference is supplied, use it for face, markings and color recognition; allow the new stage to change pose and immature proportions. Visible natural maturation is required."
 		)
 
-	if not traits.is_empty():
-		var priorities: Array[String] = []
-		var limit := mini(
-			3,
-			traits.size()
-		)
+	var features: Array[String] = []
+	for feature in traits:
+		features.append(String(feature.get("text", "")))
+	if not features.is_empty():
+		lines.append("PRIORITY FEATURES: " + " | ".join(features.slice(0, mini(3, features.size()))))
 
-		for index in range(
-			limit
-		):
-			priorities.append(
-				"%d) %s"
-				% [
-					index + 1,
-					String(
-						traits[index].get(
-							"text",
-							""
-						)
-					),
-				]
-			)
+	lines.append(
+		"INDIVIDUAL FRAME: %s; %s; %s. Approximate silhouette ratios: torso/head-width %.2f, legs/head-height %.2f, chest/head-width %.2f, tail/torso %.2f, ears/species-baseline %.2f. Keep this inherited frame rather than substituting a generic breed template." % [
+			String(form.get("frame", "balanced frame")),
+			String(form.get("face", "recognizable face")),
+			String(form.get("fur_line", "clean surface contours")),
+			float(form.get("torso", 1.0)),
+			float(form.get("legs", 1.0)),
+			float(form.get("chest", 1.0)),
+			float(form.get("tail", 1.0)),
+			float(form.get("ears", 1.0)),
+		]
+	)
 
-		lines.append(
-			"DEVELOPMENT PRIORITIES — only these are strong visual priorities in this render: "
-			+ " ".join(
-				priorities
-			)
-		)
+	if features.size() > 3:
+		lines.append("SUPPORTING FEATURES: " + " | ".join(features.slice(3)))
 
-		if traits.size() > limit:
-			lines.append(
-				"Other accumulated Gene scores remain supporting lineage information for later development; do not force every scored Gene into a large visible change at once."
-			)
-	else:
-		lines.append(
-			"No strong Gene-directed feature is required in this render. Show clear natural maturation of the inherited individual instead."
-		)
-
-	var mythic_active := String(
-		mythic.get(
-			"mode",
-			"none"
-		)
-	) in [
-		"awaken",
-		"continue",
-	]
-
+	var mythic_active := String(mythic.get("mode", "none")) in ["awaken", "continue"]
 	if mythic_active:
 		lines.append(
-			(
-				"AUTHORIZED MYTHIC ANATOMY: %s %s This is the only permission for anatomy beyond the species lock."
-				% [
-					String(
-						mythic.get(
-							"prompt",
-							""
-						)
-					),
-					String(
-						mythic.get(
-							"preserve_hint",
-							""
-						)
-					),
-				]
-			).strip_edges()
+			"AUTHORIZED MYTHIC ANATOMY: "
+			+ String(mythic.get("prompt", ""))
+			+ " "
+			+ String(mythic.get("preserve_hint", ""))
+		)
+	else:
+		lines.append(
+			"ANATOMY: "
+			+ adapter.anatomy(identity.species())
+			+ " Preserve species identity and existing authorized appendage count."
 		)
 
 	lines.append(
-		(
-			"STYLE: polished stylized 3D fantasy pet illustration with clean shading and species-appropriate fur, plumage, scales or coat surface. Palette: %s. Make the elemental identity clearly visible on the pet itself while keeping effects controlled, body-integrated and secondary to readable anatomy. Keep eyes and pupils readable."
-			% PALETTES.get(
-				String(
-					identity.element()
-				),
-				"coherent elemental colors"
-			)
-		)
+		"STYLE: polished stylized 3D fantasy pet illustration, clean shading and readable species-appropriate surface masses. Palette: %s. Keep elemental cues organic and controlled. Keep pupils readable." % PALETTES.get(String(identity.element()), "coherent elemental colors")
 	)
-
 	lines.append(
-		(
-			"SCENE: uncluttered natural %s-element environment, vertical 9:16, full body and authorized appendages inside frame, calm upper area for UI. The habitat supports the pet but stays visually secondary; the creature must dominate the composition and must already communicate its element without the scenery. Use pose and camera only to reveal the selected form. No text or watermark."
-			% String(
-				identity.element()
-			)
-		)
+		"SCENE: simple uncluttered natural %s-element fantasy background. Vertical 9:16 mobile scene. The pet is the clear main subject, about 45 to 52 percent of image height in the lower-middle. Full body and authorized appendages visible. Keep the upper area calm for UI. No text or watermark. Differences between stages must read in body shape and selected Gene features, not camera zoom or bloom." % String(identity.element())
 	)
-
-	return "\n\n".join(
-		lines
-	)
+	return "\n\n".join(lines)
 
 
 func _element_embodiment(

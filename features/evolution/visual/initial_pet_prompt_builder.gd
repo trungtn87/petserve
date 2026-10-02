@@ -9,14 +9,12 @@ func build_positive(
 		return ""
 
 	return " ".join([
-		# Klein 4B follows the beginning of the prompt most strongly.
-		# Put subject scale + creature identity first so the habitat never overpowers the pet.
-		spec.ui_safe_section,
 		spec.identity_section,
 		spec.style_section,
 		spec.form_section,
-		spec.composition_section,
 		spec.scene_section,
+		spec.composition_section,
+		spec.ui_safe_section,
 		spec.future_space_section,
 	]).strip_edges()
 
