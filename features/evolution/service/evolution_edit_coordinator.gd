@@ -16,17 +16,14 @@ const COMPOSITE_MYTHIC_TARGET_REGION: StringName = &"whole_pet_mythic"
 const MYTHIC_EDIT_STRENGTH: float = 0.24
 const SEED_MODULUS: int = 2147483647
 const ANATOMY_LOCK_PROMPT: String = (
-	"Preserve the reference pet's species body plan and existing anatomy exactly. "
-	+ "Keep every existing limb, wing, foot or paw, ear, tail, horn and other appendage "
-	+ "consistent with the reference. Do not add, duplicate, remove or invent appendages. "
-	+ "Preserve attachment points, joint layout, stance, body orientation and pose. "
-	+ "A body part hidden by perspective must remain naturally hidden rather than being "
-	+ "duplicated or moved into view."
+	"Preserve the recognizable identity and overall species family of the reference pet. "
+	+ "Gene traits selected by code may transform, extend or stylize body parts even when "
+	+ "the result is unusual for the species. Keep every requested Gene trait on the same "
+	+ "coherent creature with readable attachment and a believable fantasy silhouette."
 )
 const ANATOMY_NEGATIVE_PROMPT: String = (
-	"extra limb, duplicate limb, duplicated appendage, extra appendage, second body, "
-	+ "duplicated body parts, malformed anatomy, deformed anatomy, impossible joint, "
-	+ "detached appendage, anatomy inconsistent with the species"
+	"second body, accidental duplicate body parts, malformed anatomy, deformed anatomy, "
+	+ "impossible broken joint, detached body part"
 )
 
 
@@ -1066,7 +1063,7 @@ func build_stage_regenerate_request(
 
 	if not mythic_active:
 		negative_prompt += (
-			", unauthorized mythical branch anatomy, unearned appendage"
+			", accidental duplicate body parts unrelated to requested Gene"
 		)
 
 	var request := PetRenderRequest.new()
@@ -1252,7 +1249,7 @@ func _build_reference_stage_request(
 	)
 
 	if not mythic_active:
-		negative_prompt += ", unauthorized mythical branch anatomy, unearned appendage"
+		negative_prompt += ", accidental duplicate body parts unrelated to requested Gene"
 
 	var request := PetRenderRequest.new()
 	request.mode = PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT

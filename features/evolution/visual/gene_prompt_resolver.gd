@@ -2,10 +2,6 @@ class_name GenePromptResolver
 extends RefCounted
 
 
-const SpeciesExpression = preload(
-	"res://features/evolution/visual/species_gene_expression.gd"
-)
-
 func build(
 	state: GeneDevelopmentState,
 	element: StringName,
@@ -14,6 +10,7 @@ func build(
 ) -> String:
 	if state == null:
 		return ""
+
 	return build_from_scores(
 		state.gene_scores_snapshot(),
 		element,
@@ -32,151 +29,102 @@ func build_from_scores(
 		return ""
 
 	var definitions := GeneCatalog.new().load_default()
-	var sections: Array[String] = []
-	var species_adapter = null
+	var rows: Array[Dictionary] = []
 
-	if not String(
-		species
-	).is_empty():
-		species_adapter = SpeciesExpression.new()
-
-	for locus in PetGenomeSchema.VISUAL_LOCI:
-		var rows: Array[Dictionary] = []
-
-		for definition in definitions:
-			if (
-				definition == null
-				or definition.locus() != locus
-				or not definition.is_element_compatible(
-					element
-				)
-			):
-				continue
-
-			var key := GeneDevelopmentState.score_key(
-				definition.locus(),
-				definition.direction()
-			)
-			var score := float(
-				scores.get(
-					key,
-					0.0
-				)
-			)
-
-			if score <= 0.0:
-				continue
-
-			rows.append({
-				"definition": definition,
-				"score": score,
-			})
-
-		rows.sort_custom(
-			_sort_rows
-		)
-
-		if rows.is_empty():
+	for definition in definitions:
+		if (
+			definition == null
+			or not definition.is_element_compatible(element)
+		):
 			continue
 
-		var lines: Array[String] = []
-
-		for index in range(
-			rows.size()
-		):
-			var row := rows[index]
-			var definition := row.get(
-				"definition"
-			) as GeneDefinition
-			var score := float(
-				row.get(
-					"score",
-					0.0
-				)
-			)
-			var tier := GeneExpressionScale.tier_for_score(
-				score
-			)
-			var role := (
-				"DOMINANT"
-				if index == 0
-				else "SECONDARY BLEND"
-			)
-
-			var instruction := definition.prompt_stem()
-			var preserve := definition.preserve_hint()
-
-			if species_adapter != null:
-				var translated: String = String(
-					species_adapter.translate(
-						species,
-						definition.locus(),
-						definition.direction()
-					)
-				)
-
-				if not translated.is_empty():
-					instruction = translated
-
-				preserve = (
-					"Preserve %s."
-					% species_adapter.anatomy(
-						species
-					)
-				)
-
-			lines.append(
-				"- %s / %s / %.0f pts / %s: %s %s %s"
-				% [
-					role,
-					String(tier).to_upper(),
-					score,
-					String(
-						definition.direction()
-					),
-					_tier_instruction(
-						tier
-					),
-					instruction,
-					preserve,
-				]
-			)
-
-		sections.append(
-			"Locus %s:\n%s"
-			% [
-				String(locus),
-				"\n".join(lines),
-			]
+		var key := GeneDevelopmentState.score_key(
+			definition.locus(),
+			definition.direction()
 		)
+		var score := float(scores.get(key, 0.0))
 
-	if sections.is_empty():
+		if score <= 0.0:
+			continue
+
+		rows.append({
+			"definition": definition,
+			"score": score,
+		})
+
+	rows.sort_custom(_sort_rows)
+
+	if rows.is_empty():
 		return ""
 
+	var subject := String(species).strip_edges().to_lower()
+	if subject.is_empty():
+		subject = "pet"
+
+	var lines: Array[String] = []
+
+	for row in rows:
+		var definition := row.get("definition") as GeneDefinition
+		var score := float(row.get("score", 0.0))
+		var tier := GeneExpressionScale.tier_for_score(score)
+		var fragment := definition.prompt_stem()
+
+		lines.append(
+			"- " + _trait_sentence(
+				tier,
+				subject,
+				fragment
+			)
+		)
+
 	return (
-		"Accumulated Gene Score phenotype for evolution Stage %d. "
-		+ "Scores persist across stages. Multiple directions in one locus may blend; "
-		+ "the highest score establishes the primary direction. Secondary directions contribute complementary details rather than averaging the form into a generic body. Structure Genes coordinate existing body regions. Express every trait within the target stage maturity envelope. Do not invent unlisted directions.\n%s"
-	) % [
-		target_stage,
-		"\n".join(sections),
-	]
+		"[GENE TRAITS]\n"
+		+ (
+			"Apply every Gene trait below to the same %s at Stage %d. "
+			+ "Each line is a direct visual hint, not an anatomy rule. "
+			+ "Interpret unusual combinations freely as fantasy design. "
+			+ "Higher-score traits should be more visually obvious than weaker traits.\n"
+		) % [
+			subject,
+			target_stage,
+		]
+		+ "\n".join(lines)
+		+ "\nKeep all requested Gene traits visible on the same pet. "
+		+ "Do not omit any strongly expressed Gene trait."
+	)
 
 
-func _tier_instruction(
-	tier: StringName
+func _trait_sentence(
+	tier: StringName,
+	subject: String,
+	fragment: String
 ) -> String:
 	match tier:
 		GeneExpressionScale.TRACE:
-			return "Express only a faint early trace of this direction:"
+			return (
+				"The %s shows only a subtle hint of this Gene trait: %s."
+				% [subject, fragment]
+			)
 		GeneExpressionScale.DEVELOPING:
-			return "Make this direction visibly distinguishable in shape or pattern at full-body scale:"
+			return (
+				"The %s visibly shows this Gene trait: %s."
+				% [subject, fragment]
+			)
 		GeneExpressionScale.EXPRESSED:
-			return "Make this a clear signature feature: structural Genes must change the silhouette, while energy Genes stay localized:"
+			return (
+				"The %s clearly develops this Gene trait: %s."
+				% [subject, fragment]
+			)
 		GeneExpressionScale.DOMINANT:
-			return "Make this a strong defining feature of this locus:"
+			return (
+				"The %s strongly displays this distinctive Gene trait: %s."
+				% [subject, fragment]
+			)
 		GeneExpressionScale.ASCENDED:
-			return "Express this as an exceptional mature signature of the lineage while preserving believable anatomy:"
+			return (
+				"The %s has an exceptional fantasy expression of this Gene trait: %s."
+				% [subject, fragment]
+			)
 		_:
 			return ""
 
@@ -185,34 +133,13 @@ func _sort_rows(
 	a: Dictionary,
 	b: Dictionary
 ) -> bool:
-	var a_score := float(
-		a.get(
-			"score",
-			0.0
-		)
-	)
-	var b_score := float(
-		b.get(
-			"score",
-			0.0
-		)
-	)
+	var a_score := float(a.get("score", 0.0))
+	var b_score := float(b.get("score", 0.0))
 
-	if not is_equal_approx(
-		a_score,
-		b_score
-	):
+	if not is_equal_approx(a_score, b_score):
 		return a_score > b_score
 
-	var a_def := a.get(
-		"definition"
-	) as GeneDefinition
-	var b_def := b.get(
-		"definition"
-	) as GeneDefinition
+	var a_def := a.get("definition") as GeneDefinition
+	var b_def := b.get("definition") as GeneDefinition
 
-	return String(
-		a_def.id()
-	) < String(
-		b_def.id()
-	)
+	return String(a_def.id()) < String(b_def.id())
