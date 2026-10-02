@@ -546,28 +546,9 @@ func _display_name(
 
 
 func _load_archive() -> Dictionary:
-	if not FileAccess.file_exists(
-		ARCHIVE_PATH
-	):
+	var archive := AtomicJson.read(ARCHIVE_PATH)
+	if archive.is_empty():
 		return _empty_archive()
-
-	var file := FileAccess.open(
-		ARCHIVE_PATH,
-		FileAccess.READ
-	)
-
-	if file == null:
-		return _empty_archive()
-
-	var parsed: Variant = JSON.parse_string(
-		file.get_as_text()
-	)
-	file.close()
-
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return _empty_archive()
-
-	var archive := parsed as Dictionary
 
 	if int(
 		archive.get(

@@ -5,6 +5,8 @@ var _app: GameApp
 
 
 func _ready() -> void:
+	if not BackupService.recovery_ok:
+		return
 	_app = GameApp.new()
 
 	if not _app.start(self):
@@ -19,6 +21,10 @@ func _process(delta: float) -> void:
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED and _app != null:
+		var egg := _app.get_egg()
+		if egg != null and egg.has_active_life():
+			egg.save()
 	if what != NOTIFICATION_WM_CLOSE_REQUEST:
 		return
 

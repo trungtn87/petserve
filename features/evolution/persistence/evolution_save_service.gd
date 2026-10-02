@@ -84,41 +84,11 @@ func save_data(data: Dictionary) -> bool:
 
 
 func load_data() -> Dictionary:
-	if not FileAccess.file_exists(SAVE_PATH):
-		return {}
-
-	var file := FileAccess.open(
-		SAVE_PATH,
-		FileAccess.READ
-	)
-
-	if file == null:
-		return {}
-
-	var parsed: Variant = JSON.parse_string(
-		file.get_as_text()
-	)
-	file.close()
-
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return {}
-
-	return parsed as Dictionary
+	return AtomicJson.read(SAVE_PATH)
 
 
 func delete_data() -> bool:
-	if not FileAccess.file_exists(
-		SAVE_PATH
-	):
-		return true
-
-	return (
-		DirAccess.remove_absolute(
-			ProjectSettings.globalize_path(
-				SAVE_PATH
-			)
-		) == OK
-	)
+	return AtomicJson.erase(SAVE_PATH)
 
 
 func load_scene_profile():

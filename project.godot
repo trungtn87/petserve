@@ -12,12 +12,14 @@ config_version=5
 
 config/name="PetVerse"
 config/description="Một pet, một cuộc đời, phát triển không cố định."
-config/version="1.0.0-dev"
+config/version="1.0.1"
+config/icon="res://assets/icon/Main.png"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
 
+BackupService="*res://core/backup/backup_service.gd"
 RandomManager="*res://core/random_manager.gd"
 SaveManager="*res://core/save_manager.gd"
 RunManager="*res://core/run_manager.gd"

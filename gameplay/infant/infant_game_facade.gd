@@ -1811,7 +1811,7 @@ func settle_tetris() -> Dictionary:
 func tank_records(duo: bool) -> Dictionary:
 	var key := "tank_records_duo" if duo else "tank_records_solo"
 	if not _meta.has(key):
-		var archive: Variant = JSON.parse_string(FileAccess.get_file_as_string("user://" + key + ".json")) if FileAccess.file_exists("user://" + key + ".json") else {}
+		var archive := AtomicJson.read("user://" + key + ".json")
 		_meta[key] = archive if archive is Dictionary else {}
 	return (_meta[key] as Dictionary).duplicate(true)
 

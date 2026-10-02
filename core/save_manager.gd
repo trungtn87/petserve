@@ -22,14 +22,11 @@ func load_run() -> Dictionary:
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH)
+	return AtomicJson.exists(SAVE_PATH)
 
 
 func delete_save() -> void:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(
-			ProjectSettings.globalize_path(SAVE_PATH)
-		)
+	AtomicJson.erase(SAVE_PATH)
 
 
 func save_meta(data: Dictionary) -> bool:
@@ -49,7 +46,7 @@ func load_meta() -> Dictionary:
 
 
 func has_meta_save() -> bool:
-	return FileAccess.file_exists(META_PATH)
+	return AtomicJson.exists(META_PATH)
 
 
 func delete_meta() -> void:
@@ -64,10 +61,7 @@ func delete_meta() -> void:
 		if current.has(key) and not AtomicJson.write("user://" + key + ".json", current[key]):
 			push_error("Không thể giữ bảng kỷ lục Tank. Chưa xóa dữ liệu đời cũ.")
 			return
-	if FileAccess.file_exists(META_PATH):
-		DirAccess.remove_absolute(
-			ProjectSettings.globalize_path(META_PATH)
-		)
+	AtomicJson.erase(META_PATH)
 
 
 func _write_dictionary(
@@ -78,31 +72,5 @@ func _write_dictionary(
 	return AtomicJson.write(path, data)
 
 
-func _read_dictionary(
-	path: String,
-	parse_error: String,
-	type_error: String
-) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-
-	var file := FileAccess.open(path, FileAccess.READ)
-
-	if file == null:
-		push_error("Không thể mở file dữ liệu để đọc.")
-		return {}
-
-	var text := file.get_as_text()
-	file.close()
-
-	var parsed = JSON.parse_string(text)
-
-	if parsed == null:
-		push_error(parse_error)
-		return {}
-
-	if typeof(parsed) != TYPE_DICTIONARY:
-		push_error(type_error)
-		return {}
-
-	return parsed
+func _read_dictionary(path: String, _parse_error: String, _type_error: String) -> Dictionary:
+	return AtomicJson.read(path)

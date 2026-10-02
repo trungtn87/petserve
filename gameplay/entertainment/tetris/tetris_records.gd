@@ -7,13 +7,7 @@ const ARCHIVE_PATH := "user://tetris_records_v1.json"
 const INITIAL_RECORD := 5000
 
 static func load_archive() -> Dictionary:
-	if not FileAccess.file_exists(ARCHIVE_PATH):
-		return {}
-	var file := FileAccess.open(ARCHIVE_PATH, FileAccess.READ)
-	if file == null:
-		return {}
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	return parsed if parsed is Dictionary else {}
+	return AtomicJson.read(ARCHIVE_PATH)
 
 static func top_score(records: Dictionary) -> int:
 	return maxi(INITIAL_RECORD, int(records.get("best_score", INITIAL_RECORD)))

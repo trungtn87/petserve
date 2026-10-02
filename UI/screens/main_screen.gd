@@ -76,6 +76,7 @@ func setup() -> bool:
 	_setup_info_box()
 	_create_name_dialog()
 	_connect_signals()
+	_create_backup_button()
 
 	return true
 func _find_node(
@@ -756,3 +757,29 @@ func _show_empty() -> void:
 		_egg_view.has_method("clear_egg")
 	):
 		_egg_view.call("clear_egg")
+
+
+func _create_backup_button() -> void:
+	var button := Button.new()
+	button.text = "Sao lưu / Khôi phục"
+	_root.add_child(button)
+	button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	button.position -= Vector2(178, 52)
+	button.size = Vector2(170, 44)
+	button.pressed.connect(func():
+		var window := Window.new()
+		window.title = "Dữ liệu game"
+		window.size = Vector2i(330, 460)
+		window.exclusive = true
+		window.close_requested.connect(window.queue_free)
+		_root.add_child(window)
+		var margin := MarginContainer.new()
+		margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		for side in ["left", "right", "top", "bottom"]:
+			margin.add_theme_constant_override("margin_" + side, 14)
+		window.add_child(margin)
+		var panel := BackupPanel.new()
+		panel.save_callback = _egg.save
+		margin.add_child(panel)
+		window.popup_centered()
+	)

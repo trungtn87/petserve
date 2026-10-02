@@ -1751,7 +1751,7 @@ func _refresh_gameplay() -> void:
 	_refresh_crystallization_section()
 
 func _notification(what: int) -> void:
-	if _hud == null:
+	if _hud == null or _suppress_exit_save:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_paused = true
@@ -3943,9 +3943,13 @@ func _open_settings() -> void:
 	var sound := CheckButton.new()
 	sound.text = "Âm thanh"
 	sound.button_pressed = not AudioServer.is_bus_mute(0)
-	sound.toggled.connect(func(enabled: bool): AudioServer.set_bus_mute(0, not enabled))
+	sound.toggled.connect(func(enabled: bool):
+		AudioServer.set_bus_mute(0, not enabled)
+		AtomicJson.write("user://settings_v1.json", {"sound": enabled})
+	)
 	_section_body.add_child(sound)
 	_section_button("Kết nối 2 người • Wi-Fi / Bluetooth", _open_local_connection)
+	_section_button("Dữ liệu • Sao lưu / Khôi phục", _open_backup)
 	_section_button("Lưu tiến trình", func(): _hud.show_message("Đã lưu" if _game.save() else "Chưa lưu được. Hãy thử lại."))
 	_section_overlay.visible = true
 
@@ -3953,5 +3957,21 @@ func _open_settings() -> void:
 func _open_local_connection() -> void:
 	_prepare_section("Kết nối 2 người")
 	var panel := LocalConnectionPanel.new()
+	_section_body.add_child(panel)
+	_section_overlay.visible = true
+
+
+func _open_backup() -> void:
+	_prepare_section("Sao lưu / Khôi phục")
+	var panel := BackupPanel.new()
+	panel.save_callback = _game.save
+	panel.restore_started.connect(func():
+		_suppress_exit_save = true
+		_paused = true
+	)
+	panel.restore_failed.connect(func():
+		_suppress_exit_save = not BackupService.recovery_ok
+		_paused = not BackupService.recovery_ok
+	)
 	_section_body.add_child(panel)
 	_section_overlay.visible = true

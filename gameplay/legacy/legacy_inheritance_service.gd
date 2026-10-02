@@ -451,30 +451,9 @@ func mark_claimed(
 
 
 func load_data() -> Dictionary:
-	if not FileAccess.file_exists(
-		SAVE_PATH
-	):
+	var data := AtomicJson.read(SAVE_PATH).duplicate(true)
+	if data.is_empty():
 		return {}
-
-	var file := FileAccess.open(
-		SAVE_PATH,
-		FileAccess.READ
-	)
-
-	if file == null:
-		return {}
-
-	var parsed: Variant = JSON.parse_string(
-		file.get_as_text()
-	)
-	file.close()
-
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return {}
-
-	var data := (
-		parsed as Dictionary
-	).duplicate(true)
 	var schema := int(
 		data.get(
 			"schema",
@@ -503,18 +482,7 @@ func load_data() -> Dictionary:
 
 
 func clear() -> bool:
-	if not FileAccess.file_exists(
-		SAVE_PATH
-	):
-		return true
-
-	return (
-		DirAccess.remove_absolute(
-			ProjectSettings.globalize_path(
-				SAVE_PATH
-			)
-		) == OK
-	)
+	return AtomicJson.erase(SAVE_PATH)
 
 
 func _migrate_single_item_schema(
