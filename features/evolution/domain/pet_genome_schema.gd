@@ -11,6 +11,22 @@ const LOCKED_RENDER_FIELDS: Array[StringName] = [
 	&"face_identity",
 ]
 
+const GENE_LOCI: Array[StringName] = [
+	&"body",
+	&"eyes",
+	&"ears",
+	&"whiskers",
+	&"fur",
+	&"coat",
+	&"tail",
+	&"paws",
+	&"mane",
+	&"mark",
+	&"structure",
+	&"aura",
+]
+
+
 const VISUAL_LOCI: Array[StringName] = [
 	&"body",
 	&"eyes",
@@ -24,6 +40,10 @@ const VISUAL_LOCI: Array[StringName] = [
 	&"mark",
 	&"structure",
 	&"aura",
+	&"horns",
+	&"wings",
+	&"hooves",
+	&"antlers",
 ]
 
 
@@ -47,6 +67,16 @@ static func is_visual_locus(
 	locus: StringName
 ) -> bool:
 	return VISUAL_LOCI.has(locus)
+
+
+static func gene_loci() -> Array[StringName]:
+	return GENE_LOCI.duplicate()
+
+
+static func is_gene_locus(
+	locus: StringName
+) -> bool:
+	return GENE_LOCI.has(locus)
 
 
 static func base_traits() -> Dictionary:

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const SAVE_PATH: String = "user://legacy_inheritance_v1.json"
-const CURRENT_SCHEMA: int = 2
+const CURRENT_SCHEMA: int = 3
 
 const STATUS_PENDING: String = "pending"
 const STATUS_BOUND: String = "bound"
@@ -12,7 +12,7 @@ const STATUS_CLAIMED: String = "claimed"
 
 func prepare(
 	source_identity: PetIdentity,
-	item: Dictionary = {},
+	items: Array = [],
 	skill_id: StringName = &""
 ) -> Dictionary:
 	if (
@@ -23,9 +23,17 @@ func prepare(
 			"Pet nguồn không hợp lệ."
 		)
 
-	var inherited_item: Dictionary = {}
+	var inherited_items: Array = []
 
-	if not item.is_empty():
+	for raw_value in items:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			return _error(
+				"Rương đồ kế thừa có vật phẩm không hợp lệ."
+			)
+
+		var item := (
+			raw_value as Dictionary
+		).duplicate(true)
 		var uid := String(
 			item.get(
 				"uid",
@@ -41,11 +49,11 @@ func prepare(
 
 		if uid.is_empty() or item_type.is_empty():
 			return _error(
-				"Item kế thừa không hợp lệ."
+				"Rương đồ kế thừa có vật phẩm không hợp lệ."
 			)
 
-		inherited_item = item.duplicate(
-			true
+		inherited_items.append(
+			item
 		)
 
 	var inherited_skill := String(
@@ -62,23 +70,17 @@ func prepare(
 			"Kỹ năng kế thừa không hợp lệ."
 		)
 
-	var item_uid := String(
-		inherited_item.get(
-			"uid",
-			"none"
-		)
-	)
 	var skill_token := (
 		inherited_skill
 		if not inherited_skill.is_empty()
 		else "none"
 	)
 	var inheritance_id := (
-		"%s:g%d:%s:%s"
+		"%s:g%d:%ditems:%s"
 		% [
 			source_identity.pet_id(),
 			source_identity.generation(),
-			item_uid,
+			inherited_items.size(),
 			skill_token,
 		]
 	)
@@ -91,7 +93,7 @@ func prepare(
 		"source_generation": source_identity.generation(),
 		"target_generation": source_identity.generation() + 1,
 		"target_run_seed": 0,
-		"item": inherited_item,
+		"items": inherited_items.duplicate(true),
 		"skill_id": inherited_skill,
 	}
 
@@ -106,9 +108,14 @@ func prepare(
 		"ok": true,
 		"inheritance_id": inheritance_id,
 		"target_generation": source_identity.generation() + 1,
-		"has_item": not inherited_item.is_empty(),
-		"item": inherited_item.duplicate(
-			true
+		"has_items": not inherited_items.is_empty(),
+		"has_item": not inherited_items.is_empty(),
+		"item_count": inherited_items.size(),
+		"items": inherited_items.duplicate(true),
+		"item": (
+			(inherited_items[0] as Dictionary).duplicate(true)
+			if not inherited_items.is_empty()
+			else {}
 		),
 		"has_skill": not inherited_skill.is_empty(),
 		"skill_id": inherited_skill,
@@ -176,13 +183,8 @@ func bind_to_run(
 			"Không gắn được kế thừa với đời mới."
 		)
 
-	var item_value: Variant = data.get(
-		"item",
-		{}
-	)
-	var has_item := (
-		typeof(item_value) == TYPE_DICTIONARY
-		and not (item_value as Dictionary).is_empty()
+	var inherited_items := _items_from_data(
+		data
 	)
 	var inherited_skill := String(
 		data.get(
@@ -206,7 +208,9 @@ func bind_to_run(
 				0
 			)
 		),
-		"has_item": has_item,
+		"has_items": not inherited_items.is_empty(),
+		"has_item": not inherited_items.is_empty(),
+		"item_count": inherited_items.size(),
 		"has_skill": (
 			not inherited_skill.is_empty()
 			and PetSkillCatalog.is_valid(
@@ -272,30 +276,62 @@ func apply_pending_to_meta(
 			""
 		)
 	) == inheritance_id:
+		var existing_items_value: Variant = meta.get(
+			"legacy_inherited_items",
+			[]
+		)
+		var existing_count := 0
+
+		if typeof(existing_items_value) == TYPE_ARRAY:
+			existing_count = (
+				existing_items_value as Array
+			).size()
+		elif typeof(
+			meta.get(
+				"legacy_inherited_item",
+				{}
+			)
+		) == TYPE_DICTIONARY:
+			var old_item := meta.get(
+				"legacy_inherited_item",
+				{}
+			) as Dictionary
+			if not old_item.is_empty():
+				existing_count = 1
+
 		return {
 			"applied": true,
 			"already_present": true,
 			"inheritance_id": inheritance_id,
+			"has_items": existing_count > 0,
+			"has_item": existing_count > 0,
+			"item_count": existing_count,
 			"has_skill": not inherited_skill.is_empty(),
 			"skill_id": inherited_skill,
 		}
 
-	var item_value: Variant = data.get(
-		"item",
-		{}
+	var inherited_items := _items_from_data(
+		data
 	)
-	var inherited_item: Dictionary = {}
+	var decorated_items: Array = []
+	var stored_value: Variant = meta.get(
+		"inventory",
+		[]
+	)
+	var stored: Array = (
+		(stored_value as Array).duplicate(true)
+		if typeof(stored_value) == TYPE_ARRAY
+		else []
+	)
 
-	if typeof(
-		item_value
-	) == TYPE_DICTIONARY:
-		inherited_item = (
-			item_value as Dictionary
-		).duplicate(
-			true
-		)
+	for raw_value in inherited_items:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
 
-	if not inherited_item.is_empty():
+		var inherited_item := (
+			raw_value as Dictionary
+		).duplicate(true)
+
 		inherited_item["legacy_inherited"] = true
 		inherited_item["legacy_source_pet_id"] = String(
 			data.get(
@@ -316,17 +352,22 @@ func apply_pending_to_meta(
 			)
 		)
 
-		var stored: Array = meta.get(
-			"inventory",
-			[]
-		)
 		stored.append(
 			inherited_item
 		)
-		meta["inventory"] = stored
-		meta["legacy_inherited_item"] = inherited_item.duplicate(
-			true
+		decorated_items.append(
+			inherited_item.duplicate(true)
 		)
+
+	meta["inventory"] = stored
+	meta["legacy_inherited_items"] = (
+		decorated_items.duplicate(true)
+	)
+	meta["legacy_inherited_item"] = (
+		(decorated_items[0] as Dictionary).duplicate(true)
+		if not decorated_items.is_empty()
+		else {}
+	)
 
 	if (
 		not inherited_skill.is_empty()
@@ -360,9 +401,14 @@ func apply_pending_to_meta(
 		"applied": true,
 		"already_present": false,
 		"inheritance_id": inheritance_id,
-		"has_item": not inherited_item.is_empty(),
-		"item": inherited_item.duplicate(
-			true
+		"has_items": not decorated_items.is_empty(),
+		"has_item": not decorated_items.is_empty(),
+		"item_count": decorated_items.size(),
+		"items": decorated_items.duplicate(true),
+		"item": (
+			(decorated_items[0] as Dictionary).duplicate(true)
+			if not decorated_items.is_empty()
+			else {}
 		),
 		"has_skill": not inherited_skill.is_empty(),
 		"skill_id": inherited_skill,
@@ -437,10 +483,21 @@ func load_data() -> Dictionary:
 	)
 
 	if schema == 1:
-		data["schema"] = CURRENT_SCHEMA
 		data["skill_id"] = ""
+		data = _migrate_single_item_schema(
+			data
+		)
+	elif schema == 2:
+		data = _migrate_single_item_schema(
+			data
+		)
 	elif schema != CURRENT_SCHEMA:
 		return {}
+
+	if not data.has(
+		"items"
+	):
+		data["items"] = []
 
 	return data
 
@@ -458,6 +515,56 @@ func clear() -> bool:
 			)
 		) == OK
 	)
+
+
+func _migrate_single_item_schema(
+	data: Dictionary
+) -> Dictionary:
+	var migrated := data.duplicate(true)
+	var items: Array = []
+	var item_value: Variant = migrated.get(
+		"item",
+		{}
+	)
+
+	if (
+		typeof(item_value) == TYPE_DICTIONARY
+		and not (
+			item_value as Dictionary
+		).is_empty()
+	):
+		items.append(
+			(item_value as Dictionary).duplicate(true)
+		)
+
+	migrated.erase(
+		"item"
+	)
+	migrated["items"] = items
+	migrated["schema"] = CURRENT_SCHEMA
+	return migrated
+
+
+func _items_from_data(
+	data: Dictionary
+) -> Array:
+	var result: Array = []
+	var items_value: Variant = data.get(
+		"items",
+		[]
+	)
+
+	if typeof(items_value) != TYPE_ARRAY:
+		return result
+
+	for raw_value in items_value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
+		result.append(
+			(raw_value as Dictionary).duplicate(true)
+		)
+
+	return result
 
 
 func _save_data(

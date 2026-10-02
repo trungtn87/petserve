@@ -9,6 +9,10 @@ const PETHOME_SCENE: PackedScene = preload(
 	"res://scenes/pet/pet_home.tscn"
 )
 
+const CURRENT_INITIAL_RENDER_SOURCE_MODE: StringName = (
+	&"initial_pethome_v14_habitat_frame"
+)
+
 
 var _root: Control
 
@@ -163,20 +167,40 @@ func _current_pet_visual_state() -> StringName:
 	):
 		return &"none"
 
-	var source_mode := String(
+	var source_mode := StringName(
 		visual.source_mode
 	)
 
-	# Bất kỳ visual nào đã được tạo bởi pipeline PetHome đều là
-	# pet đã sinh / đã tiến hóa thành công. Không dùng version renderer
-	# để quyết định phát lại transition khi mở app.
-	if (
-		source_mode.begins_with(
-			"initial_pethome_"
+	var genome_value: Variant = data.get(
+		"genome",
+		{}
+	)
+	var genome: PetGenome = null
+
+	if typeof(genome_value) == TYPE_DICTIONARY:
+		genome = PetGenome.from_dict(
+			genome_value as Dictionary
 		)
-		or source_mode.begins_with(
-			"evolution_pethome_"
-		)
+
+	# Stage 1 render contract changed: old saved portraits must be
+	# regenerated once so prompt/layout fixes actually reach PetHome.
+	# Do not invalidate later-stage evolution visuals here because the
+	# initial-birth transition is only safe for Stage 1.
+	if String(source_mode).begins_with(
+		"initial_pethome_"
+	):
+		if (
+			genome != null
+			and genome.stage() == 1
+			and source_mode
+				!= CURRENT_INITIAL_RENDER_SOURCE_MODE
+		):
+			return &"stale"
+
+		return &"current"
+
+	if String(source_mode).begins_with(
+		"evolution_pethome_"
 	):
 		return &"current"
 

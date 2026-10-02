@@ -11,12 +11,14 @@ const SEED_MODULUS: int = 2147483647
 
 func from_stage4_egg(
 	identity: PetIdentity,
-	egg_stage: int
+	egg_stage: int,
+	egg_mutation_active: bool = false
 ) -> Dictionary:
 	if (
 		identity == null
 		or not identity.is_valid()
 		or egg_stage != 4
+		or not egg_mutation_active
 	):
 		return {}
 

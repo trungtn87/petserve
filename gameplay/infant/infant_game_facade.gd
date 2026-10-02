@@ -8,7 +8,6 @@ const ElementCrystallizationServiceScript = preload(
 
 
 const META_SCHEMA: int = 5
-const DEV_INSTANT_EVOLUTION_TALENT: StringName = &"dev_instant_evolution"
 const CRYSTALLIZATION_NOTICE_SECONDS: int = 8
 
 
@@ -62,7 +61,7 @@ func setup(
 		run_id
 	)
 
-	_sanitize_dev_test_talent()
+	_clear_legacy_dev_test_talent()
 
 	_gene_policy = StageGenePolicy.load_default()
 	_gene_definitions = (
@@ -191,12 +190,6 @@ func save() -> bool:
 
 func snapshot() -> Dictionary:
 	var state := _lifecycle.snapshot()
-	var has_instant_evolution := _has_talent(
-		DEV_INSTANT_EVOLUTION_TALENT
-	)
-
-	state["talents"] = _talent_ids()
-	state["instant_evolution_talent"] = has_instant_evolution
 	state["can_evolve"] = (
 		not bool(
 			state.get(
@@ -204,14 +197,11 @@ func snapshot() -> Dictionary:
 				false
 			)
 		)
-		and (
-			bool(
-				state.get(
-					"ready_to_evolve",
-					false
-				)
+		and bool(
+			state.get(
+				"ready_to_evolve",
+				false
 			)
-			or has_instant_evolution
 		)
 	)
 
@@ -241,6 +231,17 @@ func snapshot() -> Dictionary:
 			"legacy_inheritance_id",
 			""
 		)
+	)
+	var legacy_items_value: Variant = _meta.get(
+		"legacy_inherited_items",
+		[]
+	)
+	state["legacy_inherited_items"] = (
+		(legacy_items_value as Array).duplicate(
+			true
+		)
+		if typeof(legacy_items_value) == TYPE_ARRAY
+		else []
 	)
 	var legacy_item_value: Variant = _meta.get(
 		"legacy_inherited_item",
@@ -1571,67 +1572,33 @@ func _sync_gene_meta() -> void:
 	_meta["gene_items_used_lifetime"] = _gene_state.lifetime_gene_count()
 
 
-func set_dev_instant_evolution_enabled(
-	enabled: bool
-) -> bool:
-	if not OS.is_debug_build():
-		return false
-
-	_meta["dev_instant_evolution_enabled"] = enabled
-	_sanitize_dev_test_talent()
-	return save()
-
-
-func _sanitize_dev_test_talent() -> void:
-	var talents := _talent_ids()
-	var talent_id := String(
-		DEV_INSTANT_EVOLUTION_TALENT
-	)
-	var enabled := OS.is_debug_build()
-	_meta["dev_instant_evolution_enabled"] = enabled
-
-	if enabled:
-		if not talents.has(
-			talent_id
-		):
-			talents.append(
-				talent_id
-			)
-	else:
-		talents.erase(
-			talent_id
-		)
-		_meta["dev_instant_evolution_enabled"] = false
-
-	_meta["talents"] = talents
-
-
-func _talent_ids() -> Array:
+func _clear_legacy_dev_test_talent() -> void:
+	# Migration only: old debug builds injected an instant-evolution
+	# pseudo talent. Remove it permanently so progression uses the
+	# real lifecycle rules and player choices.
 	var value: Variant = _meta.get(
 		"talents",
 		[]
 	)
 
-	if typeof(value) != TYPE_ARRAY:
-		return []
+	if typeof(value) == TYPE_ARRAY:
+		var talents := (
+			value as Array
+		).duplicate(true)
+		talents.erase(
+			"dev_instant_evolution"
+		)
 
-	return (
-		value as Array
-	).duplicate(true)
+		if talents.is_empty():
+			_meta.erase(
+				"talents"
+			)
+		else:
+			_meta["talents"] = talents
 
-
-func _has_talent(
-	talent_id: StringName
-) -> bool:
-	var expected := String(
-		talent_id
+	_meta.erase(
+		"dev_instant_evolution_enabled"
 	)
-
-	for value in _talent_ids():
-		if str(value) == expected:
-			return true
-
-	return false
 
 
 func _saved_stage_index() -> int:

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 5
-const PENDING_SCHEMA: int = 14
+const PENDING_SCHEMA: int = 15
 
 
 var _save := EvolutionSaveService.new()
@@ -263,6 +263,36 @@ func _prepare_resolved_stage(
 			delta
 		)
 
+	var normal_mutation_resolution := SpeciesNormalMutationResolver.new().resolve(
+		identity,
+		resolved_genome,
+		target_stage
+	)
+
+	if not bool(
+		normal_mutation_resolution.get(
+			"ok",
+			false
+		)
+	):
+		return _error(
+			String(
+				normal_mutation_resolution.get(
+					"error",
+					"Không resolve được Normal Mutation."
+				)
+			)
+		)
+
+	var normal_genome := normal_mutation_resolution.get(
+		"genome"
+	) as PetGenome
+
+	if normal_genome == null:
+		return _error(
+			"Normal Mutation resolver không trả về PetGenome hợp lệ."
+		)
+
 	var accumulated_gene_ids := _accumulated_gene_ids(
 		data,
 		gene_state
@@ -299,7 +329,7 @@ func _prepare_resolved_stage(
 
 	var mythic_resolution := SpeciesMythicMutationResolver.new().resolve(
 		identity,
-		resolved_genome,
+		normal_genome,
 		gene_state,
 		target_stage,
 		[],
@@ -398,13 +428,34 @@ func _prepare_resolved_stage(
 			"Evolution render request bị rỗng."
 		)
 
+	var resolved_prompt := preload(
+		"res://features/evolution/visual/resolved_form_prompt.gd"
+	).new().build(
+		identity,
+		target_stage,
+		gene_state.gene_scores_snapshot(),
+		mythic_resolution
+	)
+
+	if resolved_prompt.is_empty():
+		return _error(
+			"Không tạo được resolved-form evolution prompt."
+		)
+
+	request.positive_prompt = resolved_prompt
+
 	var gene_score_prompt := GenePromptResolver.new().build(
 		gene_state,
 		identity.element(),
-		target_stage
+		target_stage,
+		identity.species()
 	)
 
-	request.positive_prompt = preload("res://features/evolution/visual/resolved_form_prompt.gd").new().build(identity, target_stage, gene_state.gene_scores_snapshot(), mythic_resolution)
+	var normal_prompt := _normal_mutation_prompt(
+		normal_mutation_resolution
+	)
+	if not normal_prompt.is_empty():
+		request.positive_prompt += normal_prompt
 
 	var next := PetGenome.new(
 		target_stage,
@@ -437,6 +488,11 @@ func _prepare_resolved_stage(
 		"gene_resolution": (
 			_serializable_gene_resolution(
 				resolution
+			)
+		),
+		"normal_mutation_resolution": (
+			_serializable_normal_mutation_resolution(
+				normal_mutation_resolution
 			)
 		),
 		"mythic_resolution": (
@@ -670,6 +726,96 @@ func _serialize_deltas(
 			)
 
 	return result
+
+
+func _serializable_normal_mutation_resolution(
+	resolution: Dictionary
+) -> Dictionary:
+	var delta := resolution.get(
+		"delta"
+	) as EvolutionDelta
+
+	return {
+		"mode": String(
+			resolution.get(
+				"mode",
+				"none"
+			)
+		),
+		"target_stage": int(
+			resolution.get(
+				"target_stage",
+				0
+			)
+		),
+		"mutation_id": String(
+			resolution.get(
+				"mutation_id",
+				""
+			)
+		),
+		"probability_basis_points": int(
+			resolution.get(
+				"probability_basis_points",
+				0
+			)
+		),
+		"roll_basis_points": int(
+			resolution.get(
+				"roll_basis_points",
+				-1
+			)
+		),
+		"candidate_ids": (
+			resolution.get(
+				"candidate_ids",
+				[]
+			) as Array
+		).duplicate(
+			true
+		),
+		"delta": (
+			delta.to_dict()
+			if delta != null
+			else {}
+		),
+	}
+
+
+func _normal_mutation_prompt(
+	resolution: Dictionary
+) -> String:
+	if StringName(
+		resolution.get(
+			"mode",
+			"none"
+		)
+	) != SpeciesNormalMutationResolver.MODE_MUTATE:
+		return ""
+
+	var mutation_id := StringName(
+		resolution.get(
+			"mutation_id",
+			""
+		)
+	)
+	var catalog := MutationVisualCatalog.new()
+	var visual := catalog.find_by_id(
+		catalog.load_default(),
+		mutation_id
+	)
+
+	if visual == null:
+		return ""
+
+	return (
+		"\n\n[CODE-SELECTED NORMAL MUTATION]\n"
+		+ "This individual naturally developed one species-compatible mutation during this life-stage transition. "
+		+ visual.instruction()
+		+ " "
+		+ visual.preserve_hint()
+		+ " Do not add a second unselected mutation."
+	)
 
 
 func _serializable_mythic_resolution(
@@ -920,7 +1066,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v14_stage_%d"
+		+ "_pethome_v15_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",
@@ -939,14 +1085,18 @@ func build_request(
 func commit(
 	result: PetRenderResult
 ) -> bool:
-	if (
-		result == null
-		or not result.success
-		or Image.load_from_file(
-			result.image_path
-		) == null
-	):
-		return false
+	if result == null:
+		return _commit_reject("render result bị rỗng.")
+
+	if not result.success:
+		return _commit_reject("render result báo thất bại.")
+
+	if Image.load_from_file(
+		result.image_path
+	) == null:
+		return _commit_reject(
+			"không đọc được ảnh render: " + result.image_path
+		)
 
 	var data := _save.load_data()
 	var pending: Dictionary = data.get(
@@ -955,19 +1105,22 @@ func commit(
 	)
 
 	if pending.is_empty():
-		return false
+		return _commit_reject("không có pending evolution.")
 
-	if not _plan_validator.validate(
+	var commit_plan_error := _plan_validator.validate(
 		data
-	).is_empty():
-		return false
+	)
+	if not commit_plan_error.is_empty():
+		return _commit_reject(
+			"plan invalid: " + commit_plan_error
+		)
 
 	var expected_request := build_request(
 		data
 	)
 
 	if expected_request == null:
-		return false
+		return _commit_reject("không rebuild được render request.")
 
 	if (
 		result.metadata.has(
@@ -980,7 +1133,7 @@ func commit(
 			)
 		) != expected_request.seed
 	):
-		return false
+		return _commit_reject("seed render không khớp pending request.")
 
 	var identity := PetIdentity.from_dict(
 		data.get(
@@ -1023,7 +1176,7 @@ func commit(
 		or current.stage() != from_stage
 		or next.stage() != to_stage
 	):
-		return false
+		return _commit_reject("Identity/Genome/stage transition không hợp lệ khi commit.")
 
 	var previous_visual := PetVisualRecord.from_dict(
 		pending.get(
@@ -1037,7 +1190,7 @@ func commit(
 		or previous_visual.pet_id
 			!= identity.pet_id()
 	):
-		return false
+		return _commit_reject("source visual không khớp pet identity.")
 
 	var visual := PetVisualRecord.new()
 	visual.pet_id = identity.pet_id()
@@ -1057,6 +1210,20 @@ func commit(
 				""
 			)
 		)
+
+	if visual_mutation_id.is_empty():
+		var normal_value_commit: Variant = pending.get(
+			"normal_mutation_resolution",
+			{}
+		)
+
+		if typeof(normal_value_commit) == TYPE_DICTIONARY:
+			visual_mutation_id = String(
+				(normal_value_commit as Dictionary).get(
+					"mutation_id",
+					""
+				)
+			)
 
 	if visual_mutation_id.is_empty():
 		var deltas_value_commit: Variant = pending.get(
@@ -1131,9 +1298,22 @@ func commit(
 		"pending_evolution"
 	)
 
-	return _save.save_data(
+	if not _save.save_data(
 		data
+	):
+		return _commit_reject("không ghi được evolution save sau commit.")
+
+	return true
+
+
+func _commit_reject(
+	reason: String
+) -> bool:
+	push_error(
+		"StageEvolutionService.commit rejected: "
+		+ reason
 	)
+	return false
 
 
 func _migrate_illegal_birth_talent(

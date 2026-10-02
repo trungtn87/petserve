@@ -119,7 +119,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v12_morphology"
+		+ "_pethome_infant_v14_habitat_frame"
 	)
 
 	if not request.is_valid():
@@ -182,10 +182,36 @@ func has_render_endpoint() -> bool:
 func _stage_one_fantasy_hint(
 	mutation_id: StringName
 ) -> String:
-	match mutation_id:
-		&"cat_horned_spirit":
-			return "tiny subtle spirit horn buds on the forehead."
-		&"cat_winged_spirit":
-			return "one small symmetrical pair of soft wing buds on the upper back."
-		_:
-			return ""
+	var hints: Dictionary = {
+		&"cat_horned_spirit": "tiny subtle spirit horn buds on the forehead.",
+		&"cat_winged_spirit": "one small symmetrical pair of soft wing buds on the upper back.",
+		&"dog_cerberus_guardian": "a barely visible guardian-shadow echo close to the shoulders; keep exactly one physical head.",
+		&"dog_black_hound": "a faint shadow wake around the tail and slightly brighter supernatural eyes.",
+		&"fox_kitsune": "a faint fox-fire wisp near the single tail and a tiny spirit-mask hint.",
+		&"fox_spirit_oracle": "slightly elongated spirit ear tips and a subtle dreamlike eye glow.",
+		&"bear_mountain_guardian": "slightly heavier shoulder fluff and subtly reinforced young paws.",
+		&"bear_runic_ancestor": "one or two tiny ancestral rune flecks hidden in the coat.",
+		&"rabbit_moon_hare": "a tiny moon-shaped ear accent and subtle lunar forehead hint.",
+		&"rabbit_jade_horn": "a tiny central jade-colored horn bud, barely emerging.",
+		&"lizard_dragonkin": "tiny paired horn ridges and a very small dorsal crest hint.",
+		&"lizard_basilisk": "a subtle crown-crest hint and slightly more intense eyes.",
+		&"bird_phoenix": "slightly brighter sacred wing edges and a tiny golden feather accent; remain an ordinary Bird lineage.",
+		&"bird_thunder_roc": "slightly stronger crown feathers and a faint storm-like wing marking.",
+		&"dragon_celestial": "a tiny elegant horn-crown hint and one faint cloudlike mane wisp.",
+		&"dragon_abyss": "slightly denser shoulder scales and a restrained dark horn-ridge hint.",
+		&"phoenix_sun": "a few warm luminous feather edges and one tiny rebirth-light wisp.",
+		&"phoenix_void": "one faint eclipse-like feather mark and a cool subtle eye glow.",
+		&"horse_celestial_steed": "a barely longer airy mane and a tiny luminous edge on the hooves.",
+		&"horse_nightmare": "a faint shadow tint in the mane and slightly brighter supernatural eyes.",
+		&"qilin_celestial": "a tiny sacred horn glow and one small cloudlike mane curl.",
+		&"qilin_dread": "a slightly darker sacred scale patch and a firmer horn silhouette.",
+		&"deer_worldtree_stag": "tiny symmetrical antler buds and one subtle woodland coat mark.",
+		&"deer_moonveil": "tiny pale antler buds and a very soft moonlit eye sheen.",
+	}
+
+	return String(
+		hints.get(
+			mutation_id,
+			""
+		)
+	)

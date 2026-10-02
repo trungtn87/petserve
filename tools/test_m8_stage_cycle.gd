@@ -926,19 +926,19 @@ func _test_stage_item_contract() -> void:
 		"stage 2 facade setup"
 	)
 
-	var dev_state := game.snapshot()
+	var natural_state := game.snapshot()
 	check(
-		bool(
-			dev_state.get(
+		not bool(
+			natural_state.get(
 				"can_evolve",
-				false
+				true
 			)
-		) == OS.is_debug_build(),
-		"debug build exposes the reopened instant evolution talent"
+		),
+		"fresh Stage 2 cannot evolve before real lifecycle requirements are met"
 	)
 	check(
 		not bool(
-			dev_state.get(
+			natural_state.get(
 				"ready_to_evolve",
 				true
 			)
@@ -946,50 +946,11 @@ func _test_stage_item_contract() -> void:
 		"fresh Stage 2 is not naturally READY"
 	)
 	check(
-		bool(
-			dev_state.get(
-				"instant_evolution_talent",
-				false
-			)
-		) == OS.is_debug_build(),
-		"instant evolution talent is auto-granted only in debug builds"
+		not natural_state.has(
+			"instant_evolution_talent"
+		),
+		"instant evolution test talent is removed from gameplay state"
 	)
-
-	if OS.is_debug_build():
-		check(
-			game.set_dev_instant_evolution_enabled(
-				true
-			),
-			"debug build can explicitly enable instant evolution"
-		)
-		var override_state := game.snapshot()
-		check(
-			bool(
-				override_state.get(
-					"can_evolve",
-					false
-				)
-			)
-			and not bool(
-				override_state.get(
-					"ready_to_evolve",
-					true
-				)
-			)
-			and bool(
-				override_state.get(
-					"instant_evolution_talent",
-					false
-				)
-			),
-			"debug override bypasses only can_evolve, not natural READY"
-		)
-		check(
-			game.set_dev_instant_evolution_enabled(
-				false
-			),
-			"debug instant evolution can be disabled again"
-		)
 
 	var rewards := game.open_next_chest()
 	var growth_item: Dictionary = {}
@@ -1264,19 +1225,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v12_stage_3"
+			"_pethome_v15_stage_3"
 		)
 		and request_two.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_two.source_image_path == "user://m8_pet.png"
 		and request_two.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"REFERENCE CONTINUITY:"
 		)
 		and request_two.positive_prompt.contains(
-			"[GENE-ONLY PET CHANGE]"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request_two.positive_prompt.contains(
-			"background is NOT continuity-locked"
+			"SCENE: uncluttered natural"
 		)
 		and not request_two.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1376,19 +1337,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v12_stage_4"
+			"_pethome_v15_stage_4"
 		)
 		and request_three.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_three.source_image_path == "user://m8_pet.png"
 		and request_three.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"REFERENCE CONTINUITY:"
 		)
 		and request_three.positive_prompt.contains(
-			"[GENE-ONLY PET CHANGE]"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request_three.positive_prompt.contains(
-			"background is NOT continuity-locked"
+			"SCENE: uncluttered natural"
 		)
 		and not request_three.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1509,13 +1470,13 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		final_request != null
 		and final_request.output_key.ends_with(
-			"_pethome_v12_stage_5"
+			"_pethome_v15_stage_5"
 		)
 		and final_request.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and final_request.source_image_path == "user://m8_pet.png"
 		and final_request.positive_prompt.contains(
-			"[REFERENCE EVOLUTION RULE]"
+			"REFERENCE CONTINUITY:"
 		),
 		"Final Evolution edits the Stage 4 visual into Final Form"
 	)

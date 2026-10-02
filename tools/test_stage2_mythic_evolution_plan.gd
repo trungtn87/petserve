@@ -129,8 +129,8 @@ func _test_locus_recipe_builds_retry_safe_mythic_plan() -> void:
 		request != null
 		and request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == source_path
-		and request.positive_prompt.contains("[CODE-LOCKED MYTHIC RESULT]")
-		and request.positive_prompt.contains("[ACCUMULATED GENE SCORE PHENOTYPE]"),
+		and request.positive_prompt.contains("AUTHORIZED MYTHIC ANATOMY:")
+		and request.positive_prompt.contains("PRIORITY FEATURES:"),
 		"renderer receives reference-based composite Gene + Mythic plan"
 	)
 	if request == null:

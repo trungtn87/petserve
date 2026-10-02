@@ -22,6 +22,10 @@ enum TransitionMode {
 const MIN_TRANSITION_SECONDS: float = 3.0
 const MIN_INITIAL_HATCH_SECONDS: float = 1.2
 
+const CURRENT_INITIAL_RENDER_SOURCE_MODE: StringName = (
+	&"initial_pethome_v14_habitat_frame"
+)
+
 const TRANSITION_BG := Color("#090617")
 const HATCH_BACKGROUND_TEXTURE: Texture2D = preload(
 	"res://assets/eggs/backgroud.png"
@@ -882,7 +886,7 @@ func _complete_initial_render(
 	visual.pet_id = _identity.pet_id()
 	visual.visual_index = 0
 	visual.image_path = result.image_path
-	visual.source_mode = &"initial_pethome_v11_text_to_image"
+	visual.source_mode = CURRENT_INITIAL_RENDER_SOURCE_MODE
 	visual.renderer_id = result.renderer_id
 	visual.model_id = result.model_id
 
@@ -1191,7 +1195,7 @@ func _get_existing_visual_path() -> String:
 
 	if (
 		visual == null
-		or visual.source_mode not in [&"initial_pethome_v11_text_to_image", &"evolution_pethome_v12_full_regenerate", &"evolution_pethome_v12_image_edit", &"evolution_pethome_v10_full_regenerate", &"evolution_pethome_v10_image_edit", &"evolution_pethome_v9_full_regenerate", &"evolution_pethome_v9_image_edit", &"evolution_pethome_v8_full_regenerate", &"evolution_pethome_v8_image_edit", &"evolution_pethome_v7_full_regenerate", &"evolution_pethome_v7_image_edit", &"evolution_pethome_v5_image_edit"]
+		or visual.source_mode not in [CURRENT_INITIAL_RENDER_SOURCE_MODE, &"evolution_pethome_v12_full_regenerate", &"evolution_pethome_v12_image_edit", &"evolution_pethome_v10_full_regenerate", &"evolution_pethome_v10_image_edit", &"evolution_pethome_v9_full_regenerate", &"evolution_pethome_v9_image_edit", &"evolution_pethome_v8_full_regenerate", &"evolution_pethome_v8_image_edit", &"evolution_pethome_v7_full_regenerate", &"evolution_pethome_v7_image_edit", &"evolution_pethome_v5_image_edit"]
 	):
 		return ""
 

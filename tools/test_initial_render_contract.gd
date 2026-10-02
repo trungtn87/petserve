@@ -138,29 +138,50 @@ func _initialize() -> void:
 
 	_expect(
 		request.positive_prompt.contains(
-			"25 to 30 percent"
+			"38 to 44 percent"
 		)
 		and request.positive_prompt.contains(
-			"lower third"
+			"lower-middle"
 		)
 		and request.positive_prompt.contains(
-			"Background occupies most of the image"
+			"56 to 62 percent"
+		)
+		and request.positive_prompt.contains(
+			"Camera is pulled back"
+		)
+		and request.negative_prompt.contains(
+			"pet taller than 48 percent"
 		),
-		"Stage 1 must keep the pet small inside PetHome"
+		"Stage 1 must keep the pet medium-small inside PetHome with stable UI-safe framing"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"Simple natural fantasy background"
+			"PETHOME HABITAT"
 		)
 		and request.positive_prompt.contains(
-			"No text or UI"
+			scene_profile.environment_theme
+		)
+		and request.positive_prompt.contains(
+			scene_profile.palette_description
+		)
+		and request.positive_prompt.contains(
+			scene_profile.lighting_theme
+		)
+		and request.positive_prompt.contains(
+			scene_profile.motif_description
+		)
+		and request.negative_prompt.contains(
+			"plain white background"
+		)
+		and request.positive_prompt.contains(
+			"no text and no interface graphics"
 		),
-		"Stage 1 background must stay simple and UI-safe"
+		"Stage 1 must render the actual element PetHome scene and reject blank/studio backgrounds"
 	)
 
 	_expect(
-		request.positive_prompt.length() < 2400,
+		request.positive_prompt.length() < 5600,
 		"Stage 1 prompt must stay bounded even with element-specific integrated traits"
 	)
 

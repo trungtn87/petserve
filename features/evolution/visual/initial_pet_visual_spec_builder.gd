@@ -80,7 +80,7 @@ func build(
 	spec.style_section = (
 	"Premium fantasy pet illustration, premium fantasy game character art, "
 	+ "polished stylized 3D appearance, evolved chibi proportions, "
-	+ "cute youthful feline proportions, large expressive eyes, soft fluffy fur, "
+	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
 	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
 	+ "harmonious collectible game-pet design. "
 	+ "Elemental features must feel organically grown from or naturally integrated into the fur and body design, "
@@ -93,28 +93,52 @@ func build(
 )
 
 	spec.form_section = (
-		"Stage 1. Young juvenile fantasy cat, at the youngest end of the juvenile-to-adolescent range. "
+		"Stage 1. Young juvenile fantasy "
+		+ String(identity.species())
+		+ ", at the youngest end of the juvenile-to-adolescent range. "
 		+ "Keep the pet youthful with its individual inherited frame. "
-		+ "Normal feline anatomy: four legs total, two ears and exactly one tail total. "
-		+ "Keep fantasy details subtle."
+		+ species_profile.infant_form
+		+ " "
+		+ species_profile.species_anatomy
+		+ " Keep fantasy details subtle."
 	)
 
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
 
 	spec.scene_section = (
-		"Simple natural fantasy background matching the same element. "
-		+ "Keep it uncluttered and atmospheric."
+		"PETHOME HABITAT: a complete natural fantasy environment for the "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ " element. Scene: "
+		+ scene_profile.environment_theme
+		+ ". Palette: "
+		+ scene_profile.palette_description
+		+ ". Lighting: "
+		+ scene_profile.lighting_theme
+		+ ". Motif: "
+		+ scene_profile.motif_description
+		+ ". The canvas visibly contains foreground ground, midground habitat and distant background depth. "
+		+ "The pet is clearly standing or sitting inside this world."
 	)
 
 	spec.composition_section = (
-		"Exactly one pet. Full body visible."
+		"Exactly one pet, complete full body from ears to feet and tail. "
+		+ "All body parts fit comfortably inside the canvas. "
+		+ "The pet touches a visible ground surface and casts a soft contact shadow. "
+		+ species_profile.composition
+		+ " "
+		+ species_profile.freestyle_pose
 	)
 
 	spec.ui_safe_section = (
-		"Vertical 9:16 mobile scene. "
-		+ "Pet about 25 to 30 percent of image height in the lower third. "
-		+ "Background occupies most of the image. "
-		+ "Keep the upper area calm for UI. No text or UI."
+		"PRIMARY COMPOSITION: vertical 9:16 WIDE environmental PetHome shot. "
+		+ "Show the complete habitat first and the pet as a medium-small subject. "
+		+ "Pet height is about 38 to 44 percent of the full canvas height, centered in the lower-middle. "
+		+ "About 56 to 62 percent of the canvas visibly shows habitat around and above the pet. "
+		+ "Keep the upper 30 percent spacious, calm and low-detail for the game HUD. "
+		+ "Camera is pulled back enough to show ground around the feet, space around the tail, and substantial scenery above the head. "
+		+ "One full-body pet plus environment, no text and no interface graphics."
 	)
 
 	spec.future_space_section = (
@@ -122,9 +146,11 @@ func build(
 	)
 
 	spec.negative_prompt = (
-		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
-		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
-		+ "heavy accessories, fully adult cat, old cat, text, UI, logo, watermark"
+		species_profile.forbidden_advanced_features
+		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
+		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
+		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():

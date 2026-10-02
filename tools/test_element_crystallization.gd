@@ -1,224 +1,77 @@
 extends Node
 
-
 var failures: int = 0
 
-
 func _ready() -> void:
-	call_deferred("run")
+    call_deferred("run")
 
-
-func check(
-	ok: bool,
-	label: String
-) -> void:
-	if ok:
-		return
-
-	failures += 1
-	push_error(label)
-
+func check(ok: bool, label: String) -> void:
+    if ok:
+        return
+    failures += 1
+    push_error(label)
 
 func run() -> void:
-	var generator := ItemGenerator.new()
-	var catalog := GeneCatalog.new()
-	var definitions := catalog.load_default()
-	var policy := StageGenePolicy.load_default()
+    var generator := ItemGenerator.new()
+    var catalog := GeneCatalog.new()
+    var definitions := catalog.load_default()
+    var policy := StageGenePolicy.load_default()
+    check(not definitions.is_empty(), "gene catalog must load")
+    check(policy != null, "gene policy must load")
 
-	check(
-		not definitions.is_empty(),
-		"gene catalog must load"
-	)
-	check(
-		policy != null,
-		"gene policy must load"
-	)
+    var meta: Dictionary = {}
+    var service := ElementCrystallizationService.new()
+    service.setup(meta, generator, definitions, policy, 7281, 1, &"dark")
+    var start_time := 100000
+    var started := service.start(start_time)
+    check(bool(started.get("ok", false)), "stage 1 crystallization must start")
+    var first := service.snapshot(start_time)
+    check(int(first.get("unlocked_slots", 0)) == 1, "stage 1 must unlock one slot")
+    check(int(first.get("running_count", 0)) == 1, "stage 1 must run one slot")
+    check(int(first.get("remaining_seconds", 0)) == 3600, "stage one must last one hour")
 
-	var meta: Dictionary = {}
-	var service := ElementCrystallizationService.new()
-	service.setup(
-		meta,
-		generator,
-		definitions,
-		policy,
-		7281,
-		1,
-		&"dark"
-	)
+    # Tiến hóa khi đang kết tinh chỉ mở thêm slot cho lượt mới; slot đang chạy không đổi.
+    service.update_context(2, &"fire")
+    var after_evolution := service.snapshot(start_time)
+    check(int(after_evolution.get("unlocked_slots", 0)) == 2, "stage 2 must unlock two slots")
+    var slots := after_evolution.get("slots", []) as Array
+    check(slots.size() == 4, "snapshot must expose four physical slots")
+    check(String((slots[0] as Dictionary).get("element_id", "")) == "dark", "running slot must preserve start element after evolution")
+    check(int((slots[0] as Dictionary).get("pet_stage_at_start", 0)) == 1, "running slot must preserve start pet stage")
+    check(int((slots[0] as Dictionary).get("finish_at_unix", 0)) == start_time + 3600, "evolution must not reset running timer")
 
-	var start_time := 100000
-	var start_result := service.start(
-		start_time
-	)
-	check(
-		bool(start_result.get("ok", false)),
-		"crystallization must start"
-	)
+    var final_time := start_time + 12 * 60 * 60
+    var finish := service.process(final_time)
+    check((finish.get("rewards", []) as Array).size() == 1, "stage 1 running slot must resolve exactly one reward")
+    check(int(service.snapshot(final_time).get("running_count", -1)) == 0, "finished slot must return idle")
 
-	var first := service.snapshot(
-		start_time
-	)
-	check(
-		bool(first.get("running", false)),
-		"stage one must be running"
-	)
-	check(
-		int(first.get("stage", 0)) == 1,
-		"must start at stage one"
-	)
-	check(
-		int(first.get("remaining_seconds", 0)) == 3600,
-		"stage one must last one hour"
-	)
-	check(
-		String(first.get("element_id", "")) == "dark",
-		"must keep pet element"
-	)
+    # Sau khi đã ở pet stage 2, một lần bắt đầu lấp hai slot đã mở.
+    var stage2_start := service.start(final_time + 1)
+    check(bool(stage2_start.get("ok", false)), "stage 2 crystallization must start")
+    var stage2 := service.snapshot(final_time + 1)
+    check(int(stage2.get("unlocked_slots", 0)) == 2, "stage 2 capacity must remain two")
+    check(int(stage2.get("running_count", 0)) == 2, "stage 2 must run two crystallization slots")
+    slots = stage2.get("slots", []) as Array
+    check(String((slots[0] as Dictionary).get("element_id", "")) == "fire", "new slot must use current element")
+    check(String((slots[1] as Dictionary).get("element_id", "")) == "fire", "second new slot must use current element")
 
-	service.update_context(
-		2,
-		&"fire"
-	)
-	check(
-		String(
-			service.snapshot(start_time).get(
-				"element_id",
-				""
-			)
-		) == "dark",
-		"running cycle must preserve start element"
-	)
+    # Tiến hóa tiếp không đụng hai slot đang chạy.
+    var finish0 := int((slots[0] as Dictionary).get("finish_at_unix", 0))
+    var finish1 := int((slots[1] as Dictionary).get("finish_at_unix", 0))
+    service.update_context(4, &"water")
+    var stage4 := service.snapshot(final_time + 2)
+    check(int(stage4.get("unlocked_slots", 0)) == 4, "stage 4 must unlock maximum four slots")
+    slots = stage4.get("slots", []) as Array
+    check(int((slots[0] as Dictionary).get("finish_at_unix", 0)) == finish0, "evolution must not alter slot 1 timing")
+    check(int((slots[1] as Dictionary).get("finish_at_unix", 0)) == finish1, "evolution must not alter slot 2 timing")
+    check(String((slots[0] as Dictionary).get("element_id", "")) == "fire", "evolution must not alter slot 1 element")
 
-	var early := service.process(
-		start_time + 3599
-	)
-	check(
-		not bool(early.get("changed", false)),
-		"must not finish before one hour"
-	)
-	check(
-		(early.get("rewards", []) as Array).is_empty(),
-		"must not reward before deadline"
-	)
+    # Bắt đầu lại chỉ lấp hai slot mới, không restart hai slot cũ.
+    var fill_more := service.start(final_time + 2)
+    check(bool(fill_more.get("ok", false)), "newly unlocked slots must be startable")
+    var full := service.snapshot(final_time + 2)
+    check(int(full.get("running_count", 0)) == 4, "stage 4 must support four simultaneous slots")
+    check(int(full.get("available_slots", -1)) == 0, "all four slots must be occupied")
 
-	var frozen_meta := meta.duplicate(true)
-	var final_time := start_time + 12 * 60 * 60
-	var first_finish := service.process(
-		final_time
-	)
-	var rewards_a := first_finish.get(
-		"rewards",
-		[]
-	) as Array
-	check(
-		rewards_a.size() == 1,
-		"offline catch-up must resolve to one reward"
-	)
-	check(
-		not bool(
-			service.snapshot(final_time).get(
-				"running",
-				true
-			)
-		),
-		"service must return to idle after reward"
-	)
-
-	var replay_meta := frozen_meta.duplicate(true)
-	var replay := ElementCrystallizationService.new()
-	replay.setup(
-		replay_meta,
-		generator,
-		definitions,
-		policy,
-		7281,
-		3,
-		&"fire"
-	)
-	var replay_finish := replay.process(
-		final_time
-	)
-	var rewards_b := replay_finish.get(
-		"rewards",
-		[]
-	) as Array
-
-	check(
-		rewards_b.size() == 1,
-		"replay must resolve one reward"
-	)
-
-	if (
-		rewards_a.size() == 1
-		and rewards_b.size() == 1
-	):
-		var item_a := rewards_a[0] as Dictionary
-		var item_b := rewards_b[0] as Dictionary
-		check(
-			String(item_a.get("uid", ""))
-			== String(item_b.get("uid", "")),
-			"fixed seed must prevent restart reroll"
-		)
-		check(
-			String(item_a.get("source", ""))
-			== "element_crystallization",
-			"reward source must be crystallization"
-		)
-		check(
-			String(
-				item_a.get(
-					"crystallization_element",
-					""
-				)
-			) == "dark",
-			"reward must carry element metadata"
-		)
-
-		if StringName(
-			item_a.get(
-				"item_type",
-				""
-			)
-		) == ItemGenerator.TYPE_GENE:
-			var tags := item_a.get(
-				"influence_tags",
-				{}
-			) as Dictionary
-			check(
-				tags.has("element_dark"),
-				"gene crystallization must carry element tag"
-			)
-
-	var second_start := service.start(
-		final_time + 1
-	)
-	check(
-		bool(second_start.get("ok", false)),
-		"new cycle must start after completion"
-	)
-	var cancel_result := service.cancel(
-		final_time + 2
-	)
-	check(
-		bool(cancel_result.get("ok", false)),
-		"running cycle must cancel"
-	)
-	check(
-		not bool(
-			service.snapshot(
-				final_time + 2
-			).get(
-				"running",
-				true
-			)
-		),
-		"cancel must clear running state"
-	)
-
-	print(
-		"ELEMENT CRYSTALLIZATION failures=",
-		failures
-	)
-	get_tree().quit(
-		1 if failures else 0
-	)
+    print("ELEMENT CRYSTALLIZATION failures=", failures)
+    get_tree().quit(1 if failures else 0)

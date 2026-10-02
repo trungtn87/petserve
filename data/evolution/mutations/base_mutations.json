@@ -13,7 +13,14 @@
     "required_trait": "base",
     "result_trait": "star_tips",
     "min_stage": 1,
-    "weight": 10
+    "weight": 10,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit"
+    ]
   },
   {
     "id": "tail_long_fluffy",
@@ -21,7 +28,14 @@
     "required_trait": "base",
     "result_trait": "long_fluffy",
     "min_stage": 1,
-    "weight": 10
+    "weight": 10,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit"
+    ]
   },
   {
     "id": "moon_forehead_mark",
@@ -37,7 +51,14 @@
     "required_trait": "base",
     "result_trait": "nebula_speckles",
     "min_stage": 1,
-    "weight": 8
+    "weight": 8,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit"
+    ]
   },
   {
     "id": "luminous_paws",
@@ -45,7 +66,15 @@
     "required_trait": "base",
     "result_trait": "luminous",
     "min_stage": 1,
-    "weight": 6
+    "weight": 6,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit",
+      "lizard"
+    ]
   },
   {
     "id": "starlight_whiskers",
@@ -53,7 +82,14 @@
     "required_trait": "base",
     "result_trait": "starlight",
     "min_stage": 1,
-    "weight": 6
+    "weight": 6,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit"
+    ]
   },
   {
     "id": "constellation_freckles",
@@ -69,7 +105,14 @@
     "required_trait": "base",
     "result_trait": "astral_mane",
     "min_stage": 2,
-    "weight": 5
+    "weight": 5,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox",
+      "bear",
+      "rabbit"
+    ]
   },
   {
     "id": "tail_twin_tip",
@@ -77,7 +120,12 @@
     "required_trait": "long_fluffy",
     "result_trait": "twin_tip",
     "min_stage": 2,
-    "weight": 4
+    "weight": 4,
+    "allowed_species": [
+      "cat",
+      "dog",
+      "fox"
+    ]
   },
   {
     "id": "eclipse_forehead_mark",
@@ -86,5 +134,511 @@
     "result_trait": "eclipse_mark",
     "min_stage": 3,
     "weight": 3
+  },
+  {
+    "id": "cat_folded_spirit_ears",
+    "target_trait": "ears",
+    "required_trait": "base",
+    "result_trait": "folded_spirit",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "cat"
+    ]
+  },
+  {
+    "id": "cat_double_tail",
+    "target_trait": "tail",
+    "required_trait": "long_fluffy",
+    "result_trait": "double_tail",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "cat"
+    ]
+  },
+  {
+    "id": "cat_hunter_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "hunter_mane",
+    "min_stage": 3,
+    "weight": 4,
+    "allowed_species": [
+      "cat"
+    ]
+  },
+  {
+    "id": "dog_drop_ears",
+    "target_trait": "ears",
+    "required_trait": "base",
+    "result_trait": "drop_ears",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "dog"
+    ]
+  },
+  {
+    "id": "dog_curl_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "curl_tail",
+    "min_stage": 2,
+    "weight": 6,
+    "allowed_species": [
+      "dog"
+    ]
+  },
+  {
+    "id": "dog_guardian_shoulders",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "guardian_shoulders",
+    "min_stage": 3,
+    "weight": 4,
+    "allowed_species": [
+      "dog"
+    ]
+  },
+  {
+    "id": "fox_fan_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "fan_tail",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "fox"
+    ]
+  },
+  {
+    "id": "fox_double_tail",
+    "target_trait": "tail",
+    "required_trait": "fan_tail",
+    "result_trait": "double_tail",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "fox"
+    ]
+  },
+  {
+    "id": "fox_spirit_mask",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "spirit_mask",
+    "min_stage": 2,
+    "weight": 6,
+    "allowed_species": [
+      "fox"
+    ]
+  },
+  {
+    "id": "bear_massive_paws",
+    "target_trait": "paws",
+    "required_trait": "base",
+    "result_trait": "massive_paws",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "bear"
+    ]
+  },
+  {
+    "id": "bear_shoulder_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "shoulder_mane",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "bear"
+    ]
+  },
+  {
+    "id": "bear_ancient_bulk",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "ancient_bulk",
+    "min_stage": 3,
+    "weight": 4,
+    "allowed_species": [
+      "bear"
+    ]
+  },
+  {
+    "id": "rabbit_lop_ears",
+    "target_trait": "ears",
+    "required_trait": "base",
+    "result_trait": "lop_ears",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "rabbit"
+    ]
+  },
+  {
+    "id": "rabbit_giant_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "giant_fluff",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "rabbit"
+    ]
+  },
+  {
+    "id": "rabbit_moon_hindlegs",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "moon_hindlegs",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "rabbit"
+    ]
+  },
+  {
+    "id": "lizard_dorsal_crest",
+    "target_trait": "structure",
+    "required_trait": "base",
+    "result_trait": "dorsal_crest",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "lizard"
+    ]
+  },
+  {
+    "id": "lizard_crystal_scales",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "crystal_scales",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "lizard"
+    ]
+  },
+  {
+    "id": "lizard_spiked_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "spiked_tail",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "lizard"
+    ]
+  },
+  {
+    "id": "bird_crown_crest",
+    "target_trait": "structure",
+    "required_trait": "base",
+    "result_trait": "crown_crest",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "bird"
+    ]
+  },
+  {
+    "id": "bird_long_tail_plume",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "long_plume",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "bird"
+    ]
+  },
+  {
+    "id": "bird_wing_eye_pattern",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "wing_eye_pattern",
+    "min_stage": 3,
+    "weight": 4,
+    "allowed_species": [
+      "bird"
+    ]
+  },
+  {
+    "id": "dragon_horn_crown",
+    "target_trait": "horns",
+    "required_trait": "base",
+    "result_trait": "juvenile_crown",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_scale_plates",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "layered_scales",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_tail_blade",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "blade_tail",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_wing_buds",
+    "target_trait": "wings",
+    "required_trait": "base",
+    "result_trait": "wing_buds",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "dragon_full_wings",
+    "target_trait": "wings",
+    "required_trait": "wing_buds",
+    "result_trait": "full_wings",
+    "min_stage": 4,
+    "weight": 3,
+    "allowed_species": [
+      "dragon"
+    ]
+  },
+  {
+    "id": "phoenix_crown_crest",
+    "target_trait": "structure",
+    "required_trait": "base",
+    "result_trait": "crown_crest",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_tail_streamers",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "tail_streamers",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_layered_wings",
+    "target_trait": "wings",
+    "required_trait": "base",
+    "result_trait": "layered_wings",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_rebirth_plumage",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "rebirth_plumage",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "phoenix_rebirth_aura",
+    "target_trait": "aura",
+    "required_trait": "base",
+    "result_trait": "rebirth_aura",
+    "min_stage": 4,
+    "weight": 4,
+    "allowed_species": [
+      "phoenix"
+    ]
+  },
+  {
+    "id": "horse_flowing_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "flowing_mane",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_swift_hooves",
+    "target_trait": "hooves",
+    "required_trait": "base",
+    "result_trait": "swift_hooves",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_ribbon_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "ribbon_tail",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_noble_frame",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "noble_frame",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "horse_wind_mark",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "wind_mark",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "horse"
+    ]
+  },
+  {
+    "id": "qilin_cloud_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "cloud_mane",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_scale_patch",
+    "target_trait": "coat",
+    "required_trait": "base",
+    "result_trait": "sacred_scale_patch",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_sacred_hooves",
+    "target_trait": "hooves",
+    "required_trait": "base",
+    "result_trait": "sacred_hooves",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_horn_growth",
+    "target_trait": "horns",
+    "required_trait": "base",
+    "result_trait": "spirit_horn",
+    "min_stage": 3,
+    "weight": 6,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "qilin_ribbon_tail",
+    "target_trait": "tail",
+    "required_trait": "base",
+    "result_trait": "spirit_ribbon_tail",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "qilin"
+    ]
+  },
+  {
+    "id": "deer_antler_buds",
+    "target_trait": "antlers",
+    "required_trait": "base",
+    "result_trait": "antler_buds",
+    "min_stage": 2,
+    "weight": 8,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_long_legs",
+    "target_trait": "body",
+    "required_trait": "base",
+    "result_trait": "graceful_frame",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_leaf_marks",
+    "target_trait": "mark",
+    "required_trait": "base",
+    "result_trait": "woodland_marks",
+    "min_stage": 2,
+    "weight": 7,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_forest_mane",
+    "target_trait": "mane",
+    "required_trait": "base",
+    "result_trait": "forest_ruff",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "deer"
+    ]
+  },
+  {
+    "id": "deer_moon_eyes",
+    "target_trait": "eyes",
+    "required_trait": "base",
+    "result_trait": "moonlit_eyes",
+    "min_stage": 3,
+    "weight": 5,
+    "allowed_species": [
+      "deer"
+    ]
   }
 ]

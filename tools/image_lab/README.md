@@ -2,6 +2,8 @@
 
 Nhánh test: `test/ai-image-gene-stages`, tách từ `pethome` tại `909ba51`.
 
+Phần tạo ảnh đã tích hợp vào `pethome`: F5 chạy game bình thường; F6 tại scene Image Lab dùng để thử riêng. Stage 1 dùng dáng bẩm sinh theo seed; Stage 2–Final dùng resolved form, Stage 3 trở đi giữ ảnh trước làm tham chiếu. Chế độ dựng ảnh mới A/B chỉ dành cho Image Lab.
+
 ## Chạy
 
 Mở project bằng Godot 4.6.1+ và bấm **F6** tại `tools/image_lab/image_lab.tscn`, hoặc **F5** (nhánh này đặt Image Lab làm màn hình khởi động).

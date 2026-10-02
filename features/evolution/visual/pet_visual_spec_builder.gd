@@ -49,7 +49,7 @@ func build(
 	var state_prompt := (
 		"Source life stage: %d. Target life stage: %d. "
 		+ "Use the provided previous pet image as the visual source of truth. "
-		+ "Current phenotype (all 12 visual loci): %s. "
+		+ "Current phenotype (all 16 visual loci): %s. "
 		+ "Target phenotype after the code-selected change: %s."
 	) % [
 		previous_genome.stage(),

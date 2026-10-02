@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 14
+const PLAN_SCHEMA: int = 15
 const FINAL_STAGE: int = 5
 
 
@@ -28,7 +28,7 @@ func validate(
 			)
 		) != PLAN_SCHEMA
 	):
-		return "Pending evolution cũ phải được rebuild theo composite Gene/Mythic policy."
+		return "Pending evolution cũ phải được rebuild theo Gene/Normal Mutation/Mythic policy."
 
 	var identity := PetIdentity.from_dict(
 		data.get(
@@ -126,7 +126,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v14_stage_%d"
+				+ "_pethome_v15_stage_%d"
 				% to_stage
 			)
 	):
@@ -263,6 +263,56 @@ func validate(
 	):
 		return "Gene evolution không thay đúng số locus đã resolve."
 
+	var normal_value: Variant = pending.get(
+		"normal_mutation_resolution",
+		{}
+	)
+
+	if typeof(normal_value) != TYPE_DICTIONARY:
+		return "Pending evolution thiếu Normal Mutation resolution."
+
+	var stored_normal := normal_value as Dictionary
+	var expected_normal := SpeciesNormalMutationResolver.new().resolve(
+		identity,
+		intermediate,
+		to_stage
+	)
+
+	if not bool(
+		expected_normal.get(
+			"ok",
+			false
+		)
+	):
+		return "Không rebuild được Normal Mutation resolution."
+
+	var stored_normal_signature := _normal_resolution_signature(
+		stored_normal
+	)
+	var expected_normal_signature := _normal_resolution_signature(
+		expected_normal
+	)
+
+	if stored_normal_signature != expected_normal_signature:
+		return (
+			"Pending Normal Mutation resolution đã drift. stored=%s expected=%s"
+			% [
+				JSON.stringify(
+					stored_normal_signature
+				),
+				JSON.stringify(
+					expected_normal_signature
+				),
+			]
+		)
+
+	var normal_genome := expected_normal.get(
+		"genome"
+	) as PetGenome
+
+	if normal_genome == null:
+		return "Normal Mutation resolution không có Genome hợp lệ."
+
 	var mythic_value: Variant = pending.get(
 		"mythic_resolution",
 		{}
@@ -284,7 +334,7 @@ func validate(
 			""
 		)
 	)
-	var expected_mutations := intermediate.mutation_ids()
+	var expected_mutations := normal_genome.mutation_ids()
 	var mythic_active := mythic_mode in [
 		SpeciesMythicMutationResolver.MODE_AWAKEN,
 		SpeciesMythicMutationResolver.MODE_CONTINUE,
@@ -315,8 +365,8 @@ func validate(
 	elif mythic_mode != SpeciesMythicMutationResolver.MODE_NONE:
 		return "Mythic resolution mode không hợp lệ."
 
-	if next.traits_snapshot() != intermediate.traits_snapshot():
-		return "Target Genome drift khỏi Gene delta đã khóa."
+	if next.traits_snapshot() != normal_genome.traits_snapshot():
+		return "Target Genome drift khỏi Gene/Normal Mutation plan đã khóa."
 
 	if next.mutation_ids() != expected_mutations:
 		return "Target mutation history drift khỏi Gene/Mythic plan."
@@ -383,7 +433,8 @@ func validate(
 	var expected_gene_prompt := GenePromptResolver.new().build_from_scores(
 		gene_scores,
 		identity.element(),
-		to_stage
+		to_stage,
+		identity.species()
 	)
 	var stored_gene_prompt := String(
 		pending.get(
@@ -429,7 +480,25 @@ func validate(
 	) as PetRenderRequest
 
 	if expected_request != null:
-		expected_request.positive_prompt = preload("res://features/evolution/visual/resolved_form_prompt.gd").new().build(identity, to_stage, gene_scores, mythic)
+		var resolved_prompt := preload(
+			"res://features/evolution/visual/resolved_form_prompt.gd"
+		).new().build(
+			identity,
+			to_stage,
+			gene_scores,
+			mythic
+		)
+
+		if resolved_prompt.is_empty():
+			return "Không rebuild được resolved-form prompt."
+
+		expected_request.positive_prompt = resolved_prompt
+
+		var normal_prompt := _normal_mutation_prompt(
+			expected_normal
+		)
+		if not normal_prompt.is_empty():
+			expected_request.positive_prompt += normal_prompt
 
 	if (
 		not bool(
@@ -522,6 +591,119 @@ func _restore_deltas(
 		"ok": true,
 		"deltas": result,
 	}
+
+
+func _normal_resolution_signature(
+	resolution: Dictionary
+) -> Dictionary:
+	var raw_delta: Dictionary = {}
+	var delta_value: Variant = resolution.get(
+		"delta",
+		{}
+	)
+
+	if delta_value is EvolutionDelta:
+		raw_delta = (
+			delta_value as EvolutionDelta
+		).to_dict()
+	elif typeof(delta_value) == TYPE_DICTIONARY:
+		raw_delta = (
+			delta_value as Dictionary
+		).duplicate(true)
+
+	var delta_dict: Dictionary = {}
+	if not raw_delta.is_empty():
+		delta_dict = {
+			"mutation_id": String(
+				raw_delta.get(
+					"mutation_id",
+					""
+				)
+			),
+			"target_trait": String(
+				raw_delta.get(
+					"target_trait",
+					""
+				)
+			),
+			"from_trait": String(
+				raw_delta.get(
+					"from_trait",
+					""
+				)
+			),
+			"to_trait": String(
+				raw_delta.get(
+					"to_trait",
+					""
+				)
+			),
+			"step_index": int(
+				raw_delta.get(
+					"step_index",
+					0
+				)
+			),
+		}
+
+	# Normalize JSON number types before comparing the authoritative result.
+	return {
+		"mode": String(
+			resolution.get(
+				"mode",
+				"none"
+			)
+		),
+		"target_stage": int(
+			resolution.get(
+				"target_stage",
+				0
+			)
+		),
+		"mutation_id": String(
+			resolution.get(
+				"mutation_id",
+				""
+			)
+		),
+		"delta": delta_dict,
+	}
+
+
+func _normal_mutation_prompt(
+	resolution: Dictionary
+) -> String:
+	if StringName(
+		resolution.get(
+			"mode",
+			"none"
+		)
+	) != SpeciesNormalMutationResolver.MODE_MUTATE:
+		return ""
+
+	var mutation_id := StringName(
+		resolution.get(
+			"mutation_id",
+			""
+		)
+	)
+	var catalog := MutationVisualCatalog.new()
+	var visual := catalog.find_by_id(
+		catalog.load_default(),
+		mutation_id
+	)
+
+	if visual == null:
+		return ""
+
+	return (
+		"\n\n[CODE-SELECTED NORMAL MUTATION]\n"
+		+ "This individual naturally developed one species-compatible mutation during this life-stage transition. "
+		+ visual.instruction()
+		+ " "
+		+ visual.preserve_hint()
+		+ " Do not add a second unselected mutation."
+	)
 
 
 func _apply_deltas(

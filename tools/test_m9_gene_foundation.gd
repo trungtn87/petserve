@@ -21,12 +21,12 @@ func _initialize() -> void:
 func _test_stage_policy(policy: StageGenePolicy) -> void:
 	for stage_index in [1, 2, 3, 4]:
 		_expect(
-			policy.allowed_loci(stage_index) == PetGenomeSchema.VISUAL_LOCI
+			policy.allowed_loci(stage_index) == PetGenomeSchema.GENE_LOCI
 			and policy.is_unlimited(stage_index)
 			and policy.max_gene_items(stage_index) == StageGenePolicy.UNLIMITED_ITEMS,
 			"Stage %d must allow all 12 Gene loci with unlimited item use" % stage_index
 		)
-		for locus in PetGenomeSchema.VISUAL_LOCI:
+		for locus in PetGenomeSchema.GENE_LOCI:
 			_expect(
 				policy.can_accept_gene(stage_index, locus),
 				"Stage %d missing locus %s" % [stage_index, String(locus)]

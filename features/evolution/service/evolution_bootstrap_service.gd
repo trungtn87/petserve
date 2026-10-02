@@ -67,10 +67,14 @@ func build_from_hatch() -> Dictionary:
 			),
 		}
 
+	var species := PetSpeciesCatalog.pick_for_seed(
+		egg_state.run_seed
+	)
+
 	var identity := PetIdentityFactory.new().create(
 		egg_state.run_seed,
 		StringName(egg_state.egg_type),
-		&"cat",
+		species,
 		int(
 			legacy_binding.get(
 				"generation",
@@ -95,7 +99,11 @@ func build_from_hatch() -> Dictionary:
 		SpeciesMythicDestinyService.new()
 		.from_stage4_egg(
 			identity,
-			int(egg_state.stage)
+			int(egg_state.stage),
+			(
+				egg_state.mutation_checked
+				and egg_state.mutation
+			)
 		)
 	)
 

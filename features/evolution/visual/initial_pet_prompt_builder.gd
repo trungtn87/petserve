@@ -9,12 +9,14 @@ func build_positive(
 		return ""
 
 	return " ".join([
-		spec.identity_section,
-		spec.style_section,
-		spec.form_section,
+		# Klein 4B follows the beginning of the prompt most strongly.
+		# PetHome framing/background are gameplay constraints, so they go first.
+		spec.ui_safe_section,
 		spec.scene_section,
 		spec.composition_section,
-		spec.ui_safe_section,
+		spec.identity_section,
+		spec.form_section,
+		spec.style_section,
 		spec.future_space_section,
 	]).strip_edges()
 

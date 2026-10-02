@@ -164,7 +164,7 @@ func _test_stage4_gene_gate() -> void:
 		"Stage 4 must keep unlimited Gene item use"
 	)
 
-	for locus in PetGenomeSchema.VISUAL_LOCI:
+	for locus in PetGenomeSchema.GENE_LOCI:
 		_expect(
 			policy.can_accept_gene(
 				4,

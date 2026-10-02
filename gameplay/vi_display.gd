@@ -15,6 +15,10 @@ const LOCUS_LABELS := {
 	"mark": "Ấn",
 	"structure": "Cấu trúc",
 	"aura": "Hào quang",
+	"horns": "Sừng",
+	"wings": "Cánh",
+	"hooves": "Móng",
+	"antlers": "Gạc",
 }
 
 
@@ -100,6 +104,34 @@ const RARITY_LABELS := {
 	"legendary": "Huyền thoại",
 	"mythic": "Thần thoại",
 }
+
+
+const SPECIES_LABELS := {
+	"cat": "Mèo",
+	"dog": "Chó",
+	"fox": "Cáo",
+	"bear": "Gấu",
+	"rabbit": "Thỏ",
+	"lizard": "Thằn lằn",
+	"bird": "Chim",
+	"dragon": "Rồng",
+	"phoenix": "Phượng hoàng",
+	"horse": "Ngựa",
+	"qilin": "Kỳ lân",
+	"deer": "Hươu",
+}
+
+
+static func species_label(
+	species: StringName
+) -> String:
+	var key := String(species).strip_edges().to_lower()
+	return String(
+		SPECIES_LABELS.get(
+			key,
+			key.capitalize()
+		)
+	)
 
 
 static func locus_label(
