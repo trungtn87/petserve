@@ -132,20 +132,13 @@ func validate(
 	):
 		return "Pending evolution có render request không khớp identity/stage."
 
-	if to_stage == 2:
-		if (
-			request.mode
-				!= PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
-			or not request.source_image_path.is_empty()
-		):
-			return "Stage 1 -> 2 phải dùng full-regenerate text-to-image."
-	elif (
+	if (
 		request.mode
 			!= PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		or request.source_image_path
 			!= source_visual.image_path
 	):
-		return "Stage 3 trở đi phải dùng ảnh stage trước làm reference image-edit."
+		return "Stage 2 trở đi phải dùng ảnh stage trước làm reference image-edit."
 
 	var source_phenotype := _normalize_phenotype_dict(
 		pending.get(
