@@ -119,11 +119,14 @@ func build(
 		+ ". Motif: "
 		+ scene_profile.motif_description
 		+ ". The canvas visibly contains foreground ground, midground habitat and distant background depth. "
+		+ "The habitat supports the creature but remains visually secondary: the pet must be the first thing the eye notices. "
+		+ "Do not rely on the scenery alone to communicate the element; the element must already be obvious on the pet itself. "
 		+ "The pet is clearly standing or sitting inside this world."
 	)
 
 	spec.composition_section = (
 		"Exactly one pet, complete full body from ears to feet and tail. "
+		+ "The pet is the clear primary subject and visual focal point. "
 		+ "All body parts fit comfortably inside the canvas. "
 		+ "The pet touches a visible ground surface and casts a soft contact shadow. "
 		+ species_profile.composition
@@ -132,12 +135,12 @@ func build(
 	)
 
 	spec.ui_safe_section = (
-		"PRIMARY COMPOSITION: vertical 9:16 WIDE environmental PetHome shot. "
-		+ "Show the complete habitat first and the pet as a medium-small subject. "
-		+ "Pet height is about 38 to 44 percent of the full canvas height, centered in the lower-middle. "
-		+ "About 56 to 62 percent of the canvas visibly shows habitat around and above the pet. "
-		+ "Keep the upper 30 percent spacious, calm and low-detail for the game HUD. "
-		+ "Camera is pulled back enough to show ground around the feet, space around the tail, and substantial scenery above the head. "
+		"PRIMARY COMPOSITION: vertical 9:16 environmental PetHome shot. PET FIRST: the creature is the unmistakable main subject, with the habitat secondary. "
+		+ "Show exactly one complete full-body pet at a medium-close environmental distance. "
+		+ "Pet height is about 50 to 56 percent of the full canvas height, roughly 30 percent larger on screen than the old PetHome framing, centered in the lower-middle. "
+		+ "Keep enough ground around the feet and enough space around ears, tail and authorized appendages so nothing is cropped. "
+		+ "Keep the upper 24 to 28 percent calm and lower-detail for the game HUD, but do not shrink or push the pet far into the distance to create this space. "
+		+ "The pet must visually dominate the scene while the environment still reads clearly as a complete habitat. "
 		+ "One full-body pet plus environment, no text and no interface graphics."
 	)
 
@@ -148,7 +151,7 @@ func build(
 	spec.negative_prompt = (
 		species_profile.forbidden_advanced_features
 		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
-		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
+		+ "close-up portrait, extreme close-up, bust shot, pet filling the entire frame, pet taller than 64 percent of image height, tiny distant pet, pet smaller than 45 percent of image height, humanoid pose, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
 		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
 	)
