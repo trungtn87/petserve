@@ -1,30 +1,44 @@
 class_name GenePromptResolver
 extends RefCounted
 
+
+const SpeciesExpression = preload(
+	"res://features/evolution/visual/species_gene_expression.gd"
+)
+
 func build(
 	state: GeneDevelopmentState,
 	element: StringName,
-	target_stage: int
+	target_stage: int,
+	species: StringName = &""
 ) -> String:
 	if state == null:
 		return ""
 	return build_from_scores(
 		state.gene_scores_snapshot(),
 		element,
-		target_stage
+		target_stage,
+		species
 	)
 
 
 func build_from_scores(
 	scores: Dictionary,
 	element: StringName,
-	target_stage: int
+	target_stage: int,
+	species: StringName = &""
 ) -> String:
 	if scores.is_empty():
 		return ""
 
 	var definitions := GeneCatalog.new().load_default()
 	var sections: Array[String] = []
+	var species_adapter = null
+
+	if not String(
+		species
+	).is_empty():
+		species_adapter = SpeciesExpression.new()
 
 	for locus in PetGenomeSchema.VISUAL_LOCI:
 		var rows: Array[Dictionary] = []
@@ -89,6 +103,26 @@ func build_from_scores(
 				else "SECONDARY BLEND"
 			)
 
+			var instruction := definition.prompt_stem()
+			var preserve := definition.preserve_hint()
+
+			if species_adapter != null:
+				var translated := species_adapter.translate(
+					species,
+					definition.locus(),
+					definition.direction()
+				)
+
+				if not translated.is_empty():
+					instruction = translated
+
+				preserve = (
+					"Preserve %s."
+					% species_adapter.anatomy(
+						species
+					)
+				)
+
 			lines.append(
 				"- %s / %s / %.0f pts / %s: %s %s %s"
 				% [
@@ -101,8 +135,8 @@ func build_from_scores(
 					_tier_instruction(
 						tier
 					),
-					definition.prompt_stem(),
-					definition.preserve_hint(),
+					instruction,
+					preserve,
 				]
 			)
 
