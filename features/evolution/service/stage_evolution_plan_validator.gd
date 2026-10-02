@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 15
+const PLAN_SCHEMA: int = 16
 const FINAL_STAGE: int = 5
 
 
@@ -126,7 +126,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v15_stage_%d"
+				+ "_pethome_v17_species_stage_%d"
 				% to_stage
 			)
 	):

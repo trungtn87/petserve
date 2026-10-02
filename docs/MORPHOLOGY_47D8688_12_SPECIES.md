@@ -1,0 +1,11 @@
+# PetHome — morphology from 47d8688, calibrated for 12 species
+
+Source: `47d8688ec6b3fceeed1c31012e9b6bb62c23d2e2`. The 64-Gene catalog on PetHome already matches this source. Restore its seeded inherited frame, bounded score effects and stage progression; adapt them to the current 12-species runtime. Retain the current production renderer, lifecycle and reference-image routing (Stage 2 fresh, Stage 3–Final reference).
+
+`lineage_morphology.gd` contains explicit baselines, age increments, Gene response scales and appendage limits for cat, dog, fox, bear, rabbit, lizard, bird, dragon, phoenix, horse, qilin and deer. These are artistic design ratios, not zoological measurements. Each life seed chooses a stable body-frame variant and individual facial/appendage/response cues; age and accumulated Gene scores resolve that frame into its next stage. Numerical targets are approximate image-model instructions, not guaranteed pixel proportions.
+
+Birds use breast, legs, wing/feather contours; reptiles use torso, limbs, scales and dorsal contours; hoofed animals retain neck, leg and hoof silhouettes. No ear-ratio instruction is emitted for birds or reptiles. Bear, rabbit and deer tails remain species-bounded even under tail-long Genes; shared tail instructions are translated accordingly. Element accents in initial artwork use the correct surface vocabulary.
+
+The initial render and canonical `ResolvedFormPrompt` both include this morphology. Canonical pending-plan validation rebuilds the same prompt. Pending schema 16 rebuilds older unfinished plans; new initial/evolution image keys avoid reusing cached artwork from previous prompts. Existing completed images are not regenerated automatically. New lives or later evolution renders use the adapted morphology. Saves, Gene IDs, scores and gameplay policy are unchanged.
+
+Verification: Godot 4.6.1 import; 12 species × 64 seeds × 5 stages for deterministic individuality, maturation, bounded appendages and production prompt inclusion; 84 species/element initial briefs; initial-render, Stage 1→2 Gene policy, lifecycle through Final, inheritance and Image Lab contracts. No paid image request is needed for these contracts; real image quality requires on-device play.

@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 5
-const PENDING_SCHEMA: int = 15
+const PENDING_SCHEMA: int = 16
 
 
 var _save := EvolutionSaveService.new()
@@ -1066,7 +1066,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v15_stage_%d"
+		+ "_pethome_v17_species_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",

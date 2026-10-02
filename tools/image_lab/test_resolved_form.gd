@@ -32,9 +32,9 @@ func _run() -> void:
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE and lab.request.source_image_path.is_empty(), "fresh mode removes reference")
 			_check(lab.request.positive_prompt == positive and lab.request.seed == seed_value, "A/B same exact brief and seed")
 		if stage == 4:
-			_check(positive.contains("rounded tips") and positive.contains("fan tufts"), "merged ears")
-			_check(positive.contains("60 degrees") and positive.contains("plume width"), "tail pose and width")
-			_check(positive.begins_with("TARGET IMAGE:"), "target comes first")
+			_check(positive.contains("rounded tips") and positive.contains("ear silhouettes"), "merged ears")
+			_check(positive.contains("Gene emphasis: tail") and positive.contains("native tail assembly/torso"), "tail pose and width")
+			_check(positive.begins_with("TARGET:"), "target comes first")
 			_check(not positive.contains("GENE-ONLY PET CHANGE"), "legacy repetitive prompt removed")
 			print("Stage 4 resolved prompt characters: ", positive.length())
 		_check(lab.session.accept(PetRenderResult.ok(path, &"test", &"fixture", {"seed": seed_value})), "commit stage %d" % stage)

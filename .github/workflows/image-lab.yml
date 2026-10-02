@@ -20,6 +20,9 @@ jobs:
         run: |
           godot --headless --editor --path . --import 2>&1 | tee /tmp/import.log
           if grep -E 'SCRIPT ERROR|Parse Error' /tmp/import.log; then exit 1; fi
+      - name: Test twelve species morphology from 47d8688
+        run: timeout 120 godot --headless --path . --script tools/test_species_morphology.gd
+
       - name: Deterministic morphology and Gene catalog
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_lineage_morphology.gd
       - name: All seven elements through Final and UI

@@ -153,7 +153,7 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v15_stage_2"
+			"_pethome_v17_species_stage_2"
 		)
 		and request.positive_prompt.contains(
 			"TARGET: the same individual cat at Stage 2"
@@ -165,13 +165,13 @@ func _test_natural_stage_one_plan() -> void:
 			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2 — early development"
+			"MATURATION: Stage 2:"
 		)
 		and request.positive_prompt.contains(
 			"Show clear natural maturation of the inherited individual instead"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2 — early development"
+			"MATURATION: Stage 2:"
 		)
 		and request.positive_prompt.contains(
 			"elemental effects restrained and secondary"
@@ -446,7 +446,7 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v15_stage_2"
+			"_pethome_v17_species_stage_2"
 		)
 		and request.positive_prompt.contains(
 			"TARGET: the same individual cat at Stage 2"
@@ -458,7 +458,7 @@ func _test_gene_stage_one_plan() -> void:
 			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2 — early development"
+			"MATURATION: Stage 2:"
 		)
 		and request.positive_prompt.contains(
 			"elemental effects restrained and secondary"

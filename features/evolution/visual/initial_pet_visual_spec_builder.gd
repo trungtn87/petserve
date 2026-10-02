@@ -83,12 +83,12 @@ func build(
 	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
 	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
 	+ "harmonious collectible game-pet design. "
-	+ "Elemental features must feel organically grown from or naturally integrated into the fur and body design, "
+	+ "Elemental features must feel organically grown from or naturally integrated into the species-native surface and body design, "
 	+ "not like random objects, stickers or loose decorations placed on the pet. "
 	+ "Keep the elemental palette rich but controlled. "
 	+ "Element traits: "
 	+ _simple_element_traits(
-		identity.element()
+		identity.element(), identity.species()
 	)
 )
 
@@ -160,8 +160,21 @@ func build(
 
 
 func _simple_element_traits(
-	element: StringName
+	element: StringName,
+	species: StringName = &"cat"
 ) -> String:
+	var traits := _element_traits(element)
+	var family := preload("res://features/evolution/visual/species_gene_expression.gd").new().family_for(species)
+	if family == "avian":
+		traits = traits.replace("ear tips", "wing tips").replace("ear fur", "crown plumage").replace("head and ear fur", "head plumage").replace("fur", "plumage").replace("coat", "plumage")
+	elif family == "reptile":
+		traits = traits.replace("ear tips", "dorsal contours").replace("ear fur", "brow scales").replace("head and ear fur", "head scales").replace("fur", "scale surface").replace("coat", "scale pattern").replace("fluffy", "smooth")
+	elif species == &"deer":
+		traits = traits.replace("fluffy", "short-coated").replace("layered leafy chest fluff", "subtle leaf-shaped chest coat markings")
+	return traits
+
+
+func _element_traits(element: StringName) -> String:
 	match element:
 		&"wood":
 			return (

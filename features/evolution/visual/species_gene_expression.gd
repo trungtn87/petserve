@@ -226,6 +226,18 @@ func translate(
 		direction
 	)
 
+	if locus_key == "tail" and species in [&"bear", &"rabbit", &"deer"]:
+		var short_tail := "the existing short " + String(species) + " tail"
+		match direction_key:
+			"long":
+				return "Lengthen %s only modestly within its species-native short-tail proportions; never grow a fox-like plume." % short_tail
+			"fluffy", "plumed":
+				return "Develop soft separated coat tufts on %s while keeping it compact and short." % short_tail
+			"curled":
+				return "Give %s a slight natural upward curve without turning it into a long curled appendage." % short_tail
+			"ribbon", "astral":
+				return "Express %s as restrained flowing surface markings on %s, keeping the native short silhouette." % [direction_key, short_tail]
+
 	match locus_key:
 		"body":
 			return _body_instruction(

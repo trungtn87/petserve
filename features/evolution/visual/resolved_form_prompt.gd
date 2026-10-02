@@ -95,9 +95,7 @@ func build(
 		),
 		(
 			"MATURATION: %s"
-			% Morphology.STAGES[
-				target_stage
-			]
+			% morphology.stage_description(identity, target_stage)
 		),
 		(
 			"INDIVIDUAL RESPONSE: %s"
@@ -106,6 +104,8 @@ func build(
 			)
 		),
 	]
+
+	lines.append(morphology.build(identity, target_stage, scores))
 
 	if target_stage > 1:
 		lines.append(
@@ -196,7 +196,7 @@ func build(
 
 	lines.append(
 		(
-			"SCENE: uncluttered natural %s-element environment, vertical 9:16, full body and authorized appendages inside frame, calm upper area for UI. Use pose and camera only to reveal the selected form. No text or watermark."
+			"SCENE: uncluttered natural %s-element environment, vertical 9:16, full body and authorized appendages inside frame, pet at 38 to 44 percent of canvas height in the lower-middle with visible ground and habitat depth, upper 30 percent calm for UI. Use pose and camera only to reveal the selected form. No text or watermark."
 			% String(
 				identity.element()
 			)

@@ -201,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v16_habitat_frame_stage_%d"
+		+ "_pethome_v17_species_stage_%d"
 		% target_stage
 	)
 
@@ -1085,7 +1085,7 @@ func build_stage_regenerate_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v15_stage_%d"
+		+ "_pethome_v17_species_stage_%d"
 		% target_stage
 	)
 
@@ -1674,10 +1674,10 @@ func _stage_two_base_prompt(
 	identity: PetIdentity
 ) -> String:
 	return (
-		"Evolve the exact same cat from Stage 1 to Stage 2 using the reference image. "
+		"Evolve the exact same " + String(identity.species()) + " from Stage 1 to Stage 2 using the reference image. "
 		+ "Keep the same individual face, fur pattern, element colors and exactly one tail. "
 		+ "Make it slightly older and more developed. "
-		+ "Painterly fantasy game art, slight chibi, natural feline anatomy. "
+		+ "Painterly fantasy game art, slight chibi, natural species-appropriate anatomy. "
 		+ "Element: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
@@ -1864,7 +1864,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v15_stage_%d"
+		+ "_pethome_v17_species_stage_%d"
 		% target_stage
 	)
 

@@ -78,6 +78,9 @@ jobs:
         run: |
           godot --headless --editor --path . --quit
 
+      - name: Test twelve species morphology from 47d8688
+        run: timeout 120 godot --headless --path . --script tools/test_species_morphology.gd
+
       - name: Test initial render contract
         shell: bash
         run: |
