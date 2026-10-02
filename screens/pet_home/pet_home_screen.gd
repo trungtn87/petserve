@@ -323,9 +323,9 @@ func _build_main_hud() -> void:
 	_menu_button.text = "☰"
 	_menu_button.focus_mode = Control.FOCUS_NONE
 	_menu_button.anchor_left = 0.855
-	_menu_button.anchor_top = 0.035
+	_menu_button.anchor_top = 0.900
 	_menu_button.anchor_right = 0.955
-	_menu_button.anchor_bottom = 0.100
+	_menu_button.anchor_bottom = 0.965
 	_menu_button.add_theme_font_size_override(
 		"font_size",
 		19
@@ -505,6 +505,7 @@ func _build_drawer() -> void:
 	_drawer.configure(
 		_theme
 	)
+	_drawer.set_menu_button(_menu_button)
 	_drawer.action_requested.connect(
 		_on_drawer_action
 	)

@@ -20,6 +20,7 @@ const PANEL_WIDTH: float = 164.0
 const PANEL_HEIGHT: float = 444.0
 const PANEL_TOP: float = 14.0
 const PANEL_RIGHT: float = 8.0
+const PANEL_GAP: float = 8.0
 
 
 var _theme: Dictionary = {}
@@ -29,6 +30,7 @@ var _content: VBoxContainer
 var _cards: Array[Dictionary] = []
 var _is_open: bool = false
 var _animating: bool = false
+var _menu_button: Control
 
 
 func _ready() -> void:
@@ -65,6 +67,11 @@ func configure(
 		_apply_theme()
 
 
+func set_menu_button(button: Control) -> void:
+	_menu_button = button
+	_layout_panel()
+
+
 func open_drawer() -> void:
 	if _is_open or _animating:
 		return
@@ -84,7 +91,7 @@ func open_drawer() -> void:
 	)
 	_panel.pivot_offset = Vector2(
 		_panel.size.x,
-		0
+		_panel.size.y
 	)
 
 	var tween := create_tween()
@@ -518,24 +525,29 @@ func _layout_panel() -> void:
 	)
 
 	var panel_width := minf(
-		PANEL_WIDTH,
+		maxf(PANEL_WIDTH, _panel.get_combined_minimum_size().x),
 		viewport_width - 16.0
 	)
+	var panel_right := viewport_width - PANEL_RIGHT
+	var panel_bottom := viewport_height - 12.0
+	if is_instance_valid(_menu_button):
+		var button_rect := _menu_button.get_global_rect()
+		panel_right = button_rect.end.x - global_position.x
+		panel_bottom = button_rect.position.y - global_position.y - PANEL_GAP
 	var panel_height := minf(
 		PANEL_HEIGHT,
-		viewport_height - PANEL_TOP - 12.0
+		maxf(panel_bottom - PANEL_TOP, 1.0)
 	)
 
 	_panel.position = Vector2(
-		viewport_width
-		- panel_width
-		- PANEL_RIGHT,
-		PANEL_TOP
+		maxf(panel_right - panel_width, 8.0),
+		maxf(panel_bottom - panel_height, PANEL_TOP)
 	)
 	_panel.size = Vector2(
 		panel_width,
 		panel_height
 	)
+	_panel.pivot_offset = _panel.size
 
 
 func _input(
