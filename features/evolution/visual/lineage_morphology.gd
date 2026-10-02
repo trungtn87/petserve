@@ -105,6 +105,14 @@ func profile(
 			)
 		]
 	)
+	var temperament := String(
+		TEMPERAMENTS[
+			rng.randi_range(
+				0,
+				TEMPERAMENTS.size() - 1
+			)
+		]
+	)
 
 	return {
 		"version": VERSION,
@@ -142,14 +150,8 @@ func profile(
 				)
 			]
 		),
-		"temperament": String(
-			TEMPERAMENTS[
-				rng.randi_range(
-					0,
-					TEMPERAMENTS.size() - 1
-				)
-			]
-		),
+		"temperament": temperament,
+		"pose": temperament + " natural posture",
 		"expression_bias": String(
 			RESPONSE_BIASES[
 				rng.randi_range(
