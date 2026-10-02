@@ -1,38 +1,60 @@
 extends RefCounted
 
-# Versioned deterministic visual genome. Never uses global random state.
-const VERSION := 2
-const FRAMES := [
-	[1.15, 0.88, 1.10, "compact deep frame"],
-	[1.35, 1.15, 0.90, "tall light frame"],
-	[1.65, 0.98, 0.94, "long flexible frame"],
-	[1.42, 1.06, 1.06, "balanced athletic frame"],
-]
-const FACES := ["rounded forehead and short muzzle", "tapered cheeks and a small distinct muzzle", "broad cheek planes and a soft jaw", "narrow cheek planes and a rounded brow"]
-const SURFACE_LINES := ["rounded separate surface clumps", "smooth directional surface contours", "layered tapered surface contours", "soft flowing curved surface lines"]
-const POSES := ["curious forward step", "calm planted stance", "alert poised step", "proud elevated chest"]
-const SPECIES_BIASES := {
-	"cat": {"torso": 0.95, "legs": 0.88, "chest": 0.95, "tail": 1.08, "ears": 1.00},
-	"dog": {"torso": 1.00, "legs": 0.95, "chest": 1.08, "tail": 0.95, "ears": 1.00},
-	"fox": {"torso": 1.12, "legs": 1.06, "chest": 0.88, "tail": 1.28, "ears": 1.12},
-	"bear": {"torso": 0.92, "legs": 0.78, "chest": 1.24, "tail": 0.72, "ears": 0.88},
-	"rabbit": {"torso": 0.88, "legs": 1.10, "chest": 0.82, "tail": 0.72, "ears": 1.38},
-	"lizard": {"torso": 1.30, "legs": 0.68, "chest": 0.82, "tail": 1.35, "ears": 0.72},
-	"bird": {"torso": 0.82, "legs": 0.88, "chest": 0.78, "tail": 0.78, "ears": 0.78},
-	"dragon": {"torso": 1.30, "legs": 0.92, "chest": 1.02, "tail": 1.38, "ears": 0.86},
-	"phoenix": {"torso": 0.90, "legs": 0.92, "chest": 0.78, "tail": 1.42, "ears": 0.92},
-	"horse": {"torso": 1.24, "legs": 1.40, "chest": 1.00, "tail": 1.16, "ears": 0.96},
-	"qilin": {"torso": 1.16, "legs": 1.28, "chest": 0.92, "tail": 1.22, "ears": 1.00},
-	"deer": {"torso": 1.10, "legs": 1.45, "chest": 0.78, "tail": 0.68, "ears": 1.12},
-}
+# Deterministic individual morphology.
+# V3 keeps the useful V1 idea (each life has a stable inherited frame), but
+# does not expose hard numeric body ratios to the image model. Numeric values
+# remain only as internal diagnostics/compatibility data.
+const VERSION := 3
 
-const SPECIES_POSES := {
-	"dragon": ["alert hatchling stance", "low stalking dragon step", "proud juvenile long-neck stance", "curled dragon rest"],
-	"phoenix": ["elegant juvenile perch", "small divine-bird hop", "upright phoenix chick stance", "wings-tucked ceremonial pose"],
-	"horse": ["light foal step", "playful trot preparation", "calm long-legged stance", "gentle head-turn pose"],
-	"qilin": ["poised sacred-beast stance", "light lifted-forehoof step", "serene ceremonial posture", "calm forward glide"],
-	"deer": ["delicate fawn stance", "cautious woodland step", "listening posture", "gentle neck-turn pose"],
-}
+const SpeciesExpression = preload(
+	"res://features/evolution/visual/species_gene_expression.gd"
+)
+
+const FRAMES := [
+	[1.15, 0.88, 1.10, "compact grounded frame", "compact_grounded"],
+	[1.35, 1.15, 0.90, "tall light frame", "tall_light"],
+	[1.65, 0.98, 0.94, "long flexible frame", "long_flexible"],
+	[1.42, 1.06, 1.06, "balanced athletic frame", "balanced_athletic"],
+]
+
+const HEAD_CHARACTERS := [
+	"rounded youthful head impression",
+	"refined tapered head impression",
+	"broader calm facial planes",
+	"narrow alert facial impression",
+]
+
+const SURFACE_FLOWS := [
+	"soft separated surface masses",
+	"smooth directional surface flow",
+	"layered tapered surface flow",
+	"soft flowing curved surface rhythm",
+]
+
+const APPENDAGE_CHARACTERS := [
+	"compact and tidy",
+	"long and flowing",
+	"broad and soft",
+	"clean and tapered",
+]
+
+const TEMPERAMENTS := [
+	"curious",
+	"alert",
+	"proud",
+	"calm",
+	"playful",
+]
+
+const RESPONSE_BIASES := [
+	"balanced_response",
+	"length_before_bulk",
+	"bulk_before_length",
+	"flow_before_width",
+	"surface_before_volume",
+]
+
+# Internal compatibility vectors. These are not sent to the image model.
 const EFFECTS := {
 	"body.sturdy": [0.10, 0.02, 0.34],
 	"body.agile": [0.22, 0.15, 0.04],
@@ -45,150 +67,361 @@ const EFFECTS := {
 	"structure.ancient": [0.10, 0.12, 0.20],
 	"structure.spirit": [0.15, 0.16, -0.04],
 }
+
 const STAGES := [
 	"",
-	"Infant: soft juvenile body; individual frame already visible; sparse details, small undeveloped ruff.",
-	"Juvenile: clearly longer torso and legs relative to the head; first Gene-driven silhouette changes, distinct tail and chest outline.",
-	"Adolescent: a visibly differentiated silhouette, developed chest and limbs; selected structural Genes must change outline, not merely add glow.",
-	"Mature: full chest, confident weight-bearing limbs, developed neck and strongly organized fur masses; clearly beyond the adolescent body.",
-	"Final: complete lineage form with fully resolved proportions and coherent signature structures; no new unearned appendages or generic accessory pile.",
+	"Stage 1 — inherited juvenile form: keep the pet clearly young, simple and species-correct while letting its individual frame already read.",
+	"Stage 2 — early development: natural maturation becomes visible and the strongest accumulated Gene direction begins to shape the body or feature.",
+	"Stage 3 — differentiated adolescent form: the selected development direction is clearly readable, but the animal must still look anatomically natural for its species.",
+	"Stage 4 — mature form: strengthen the established identity and the most important accumulated traits without redesigning every body region at once.",
+	"Final — resolved individual form: finish the established lineage coherently; polish dominant traits instead of inventing new accessories or anatomy.",
 ]
 
-func profile(identity: PetIdentity) -> Dictionary:
+
+func profile(
+	identity: PetIdentity
+) -> Dictionary:
+	if identity == null or not identity.is_valid():
+		return {}
+
 	var rng := RandomNumberGenerator.new()
-	rng.seed = identity.lineage_seed() + identity.generation() * 104729
-	var frame: Array = FRAMES[rng.randi_range(0, FRAMES.size() - 1)]
-	var species_key := String(identity.species())
-	var bias: Dictionary = SPECIES_BIASES.get(
-		species_key,
-		{"torso": 1.0, "legs": 1.0, "chest": 1.0, "tail": 1.0, "ears": 1.0}
+	rng.seed = (
+		identity.lineage_seed()
+		+ identity.generation() * 104729
 	)
-	var pose_pool: Array = SPECIES_POSES.get(
-		species_key,
-		POSES
-	)
-	var surface_line: String = String(SURFACE_LINES[
+
+	var frame: Array = FRAMES[
 		rng.randi_range(
 			0,
-			SURFACE_LINES.size() - 1
+			FRAMES.size() - 1
 		)
-	])
+	]
+
+	var surface_flow := String(
+		SURFACE_FLOWS[
+			rng.randi_range(
+				0,
+				SURFACE_FLOWS.size() - 1
+			)
+		]
+	)
+
 	return {
 		"version": VERSION,
-		"frame": frame[3],
-		"torso": (float(frame[0]) + rng.randf_range(-0.07, 0.07)) * float(bias.get("torso", 1.0)),
-		"legs": (float(frame[1]) + rng.randf_range(-0.06, 0.06)) * float(bias.get("legs", 1.0)),
-		"chest": (float(frame[2]) + rng.randf_range(-0.06, 0.06)) * float(bias.get("chest", 1.0)),
-		"tail": rng.randf_range(0.80, 1.30) * float(bias.get("tail", 1.0)),
-		"ears": rng.randf_range(0.85, 1.20) * float(bias.get("ears", 1.0)),
-		"face": FACES[rng.randi_range(0, FACES.size() - 1)],
-		"surface_line": surface_line,
-		"fur_line": surface_line,
+		"frame": String(frame[3]),
+		"frame_key": String(frame[4]),
+		"torso": float(frame[0]) + rng.randf_range(-0.07, 0.07),
+		"legs": float(frame[1]) + rng.randf_range(-0.06, 0.06),
+		"chest": float(frame[2]) + rng.randf_range(-0.06, 0.06),
+		"tail": rng.randf_range(0.80, 1.30),
+		"ears": rng.randf_range(0.85, 1.20),
+		"head_character": String(
+			HEAD_CHARACTERS[
+				rng.randi_range(
+					0,
+					HEAD_CHARACTERS.size() - 1
+				)
+			]
+		),
+		"face": String(
+			HEAD_CHARACTERS[
+				rng.randi_range(
+					0,
+					HEAD_CHARACTERS.size() - 1
+				)
+			]
+		),
+		"surface_flow": surface_flow,
+		"surface_line": surface_flow,
+		"fur_line": surface_flow,
+		"appendage_character": String(
+			APPENDAGE_CHARACTERS[
+				rng.randi_range(
+					0,
+					APPENDAGE_CHARACTERS.size() - 1
+				)
+			]
+		),
+		"temperament": String(
+			TEMPERAMENTS[
+				rng.randi_range(
+					0,
+					TEMPERAMENTS.size() - 1
+				)
+			]
+		),
+		"expression_bias": String(
+			RESPONSE_BIASES[
+				rng.randi_range(
+					0,
+					RESPONSE_BIASES.size() - 1
+				)
+			]
+		),
+		"side": (
+			"left"
+			if rng.randi_range(0, 1) == 0
+			else "right"
+		),
+		"response": rng.randf_range(0.88, 1.12),
 		"ear_fan_width": rng.randf_range(0.88, 1.12),
 		"ear_roundness": rng.randf_range(0.28, 0.72),
 		"tail_width": rng.randf_range(0.20, 0.36),
 		"mane_width": rng.randf_range(0.82, 1.12),
-		"pose": pose_pool[rng.randi_range(0, pose_pool.size() - 1)],
-		"side": "left" if rng.randi_range(0, 1) == 0 else "right",
-		"response": rng.randf_range(0.88, 1.12),
 	}
 
-func resolve(identity: PetIdentity, stage: int, scores: Dictionary) -> Dictionary:
-	var result := profile(identity)
-	var age := clampi(stage, 1, 5) - 1
-	result["torso"] = float(result.torso) + age * 0.14
-	result["legs"] = float(result.legs) + age * 0.13
-	result["chest"] = float(result.chest) + age * 0.09
-	var allowance: float = [0.0, 0.0, 0.55, 0.80, 1.0, 1.15][clampi(stage, 1, 5)]
+
+func resolve(
+	identity: PetIdentity,
+	stage: int,
+	scores: Dictionary
+) -> Dictionary:
+	var result := profile(
+		identity
+	)
+
+	if result.is_empty():
+		return {}
+
+	var target_stage := clampi(
+		stage,
+		1,
+		5
+	)
+	var age := target_stage - 1
+
+	# Internal progression only. The prompt layer intentionally does not expose
+	# these ratios as hard image-generation constraints.
+	result["torso"] = (
+		float(result.get("torso", 1.0))
+		+ age * 0.14
+	)
+	result["legs"] = (
+		float(result.get("legs", 1.0))
+		+ age * 0.13
+	)
+	result["chest"] = (
+		float(result.get("chest", 1.0))
+		+ age * 0.09
+	)
+
+	var allowance: float = [
+		0.0,
+		0.0,
+		0.55,
+		0.80,
+		1.0,
+		1.15,
+	][target_stage]
+
 	var keys: Array = scores.keys()
 	keys.sort()
+
 	for key in keys:
-		if not EFFECTS.has(String(key)):
+		var token := String(
+			key
+		)
+
+		if not EFFECTS.has(
+			token
+		):
 			continue
-		var effect: Array = EFFECTS[String(key)]
-		var strength := minf(1.5, maxf(0.0, float(scores[key])) / 100.0) * float(allowance) * float(result.response)
-		result["torso"] = float(result.torso) + float(effect[0]) * strength
-		result["legs"] = float(result.legs) + float(effect[1]) * strength
-		result["chest"] = float(result.chest) + float(effect[2]) * strength
-	result["torso"] = clampf(float(result.torso), 0.95, 3.0)
-	result["legs"] = clampf(float(result.legs), 0.70, 2.5)
-	result["chest"] = clampf(float(result.chest), 0.70, 2.2)
-	result["tail"] = clampf(float(result.tail) + minf(1.0, float(scores.get("tail.long", 0.0)) / 160.0) * float(allowance), 0.7, 2.3)
-	result["ears"] = clampf(float(result.ears) + minf(0.7, float(scores.get("ears.long", 0.0)) / 200.0) * float(allowance), 0.7, 1.9)
-	result["ear_fan_width"] = clampf(
-		float(result.ear_fan_width)
-		+ minf(0.9, float(scores.get("ears.softfan", 0.0)) / 140.0) * float(allowance),
-		0.75,
-		2.0
+
+		var effect: Array = EFFECTS[
+			token
+		]
+		var strength := (
+			minf(
+				1.5,
+				maxf(
+					0.0,
+					float(
+						scores[key]
+					)
+				) / 100.0
+			)
+			* allowance
+			* float(
+				result.get(
+					"response",
+					1.0
+				)
+			)
+		)
+
+		result["torso"] = (
+			float(
+				result.get(
+					"torso",
+					1.0
+				)
+			)
+			+ float(effect[0]) * strength
+		)
+		result["legs"] = (
+			float(
+				result.get(
+					"legs",
+					1.0
+				)
+			)
+			+ float(effect[1]) * strength
+		)
+		result["chest"] = (
+			float(
+				result.get(
+					"chest",
+					1.0
+				)
+			)
+			+ float(effect[2]) * strength
+		)
+
+	result["torso"] = clampf(
+		float(result.get("torso", 1.0)),
+		0.95,
+		3.0
 	)
-	result["ear_roundness"] = clampf(
-		float(result.ear_roundness)
-		+ minf(0.45, float(scores.get("ears.rounded", 0.0)) / 220.0) * float(allowance),
-		0.0,
-		1.0
-	)
-	result["tail_width"] = clampf(
-		float(result.tail_width)
-		+ minf(0.65, float(scores.get("tail.fluffy", 0.0)) / 220.0) * float(allowance),
-		0.12,
-		1.0
-	)
-	result["mane_width"] = clampf(
-		float(result.mane_width)
-		+ minf(0.75, _max_score_for_locus(scores, "mane") / 180.0) * float(allowance),
+	result["legs"] = clampf(
+		float(result.get("legs", 1.0)),
 		0.70,
-		2.0
+		2.5
 	)
-	result["stage"] = clampi(stage, 1, 5)
+	result["chest"] = clampf(
+		float(result.get("chest", 1.0)),
+		0.70,
+		2.2
+	)
+	result["tail"] = clampf(
+		float(result.get("tail", 1.0))
+		+ minf(
+			1.0,
+			float(
+				scores.get(
+					"tail.long",
+					0.0
+				)
+			) / 160.0
+		) * allowance,
+		0.7,
+		2.3
+	)
+	result["ears"] = clampf(
+		float(result.get("ears", 1.0))
+		+ minf(
+			0.7,
+			float(
+				scores.get(
+					"ears.long",
+					0.0
+				)
+			) / 200.0
+		) * allowance,
+		0.7,
+		1.9
+	)
+	result["stage"] = target_stage
+
 	return result
 
-func build(identity: PetIdentity, stage: int, scores: Dictionary = {}) -> String:
-	var p := resolve(identity, stage, scores)
-	var focus := "whole-body silhouette"
+
+func build(
+	identity: PetIdentity,
+	stage: int,
+	scores: Dictionary = {}
+) -> String:
+	if identity == null or not identity.is_valid():
+		return ""
+
+	var p := resolve(
+		identity,
+		stage,
+		scores
+	)
+
+	if p.is_empty():
+		return ""
+
+	var adapter := SpeciesExpression.new()
+	var focus := _dominant_focus(
+		scores
+	)
+	var pose := adapter.pose_hint(
+		identity.species(),
+		focus,
+		String(
+			p.get(
+				"temperament",
+				"calm"
+			)
+		)
+	)
+
+	return (
+		"\n\n[INDIVIDUAL MORPHOLOGY V3]\n"
+		+ "Inherited individual: %s\n"
+		+ "Maturation target: %s\n"
+		+ "Individual response: %s\n"
+		+ "Presentation: %s. This pose only reveals the form; it must not reshape anatomy.\n"
+		+ "Keep the individual recognizable across stages. Do not convert this qualitative design direction into rigid numeric body ratios. Do not enlarge or shrink unrelated anatomy just to satisfy a Gene."
+	) % [
+		adapter.birth_expression(
+			identity.species(),
+			p
+		),
+		STAGES[
+			int(
+				p.get(
+					"stage",
+					clampi(
+						stage,
+						1,
+						5
+					)
+				)
+			)
+		],
+		adapter.response_hint(
+			p
+		),
+		pose,
+	]
+
+
+func _dominant_focus(
+	scores: Dictionary
+) -> String:
+	var focus := "whole body"
 	var best := 0.0
 	var keys: Array = scores.keys()
 	keys.sort()
+
 	for key in keys:
-		var locus := String(key).get_slice(".", 0)
-		if locus not in ["body", "structure", "tail", "mane", "paws", "ears", "fur"]:
+		var token := String(
+			key
+		)
+		var locus := token.get_slice(
+			".",
+			0
+		)
+
+		if locus not in [
+			"body",
+			"structure",
+			"tail",
+			"mane",
+			"paws",
+			"ears",
+			"fur",
+		]:
 			continue
-		var score := float(scores[key])
+
+		var score := float(
+			scores[key]
+		)
+
 		if score > best:
 			best = score
 			focus = locus
-	var pose := String(p.pose)
-	match focus:
-		"tail":
-			pose = "side three-quarter standing view, entire tail sweeping outside the torso outline"
-		"paws":
-			pose = "three-quarter walking step, one front paw advanced and readable, no crossed legs"
-		"mane":
-			pose = "three-quarter upright quadruped stance, chest raised and ruff separated from the face"
-		"body", "structure":
-			pose = "three-quarter standing stance, clear shoulder, ribcage, waist and hindquarter contours"
-		_:
-			pose += ", three-quarter full-body view with head turned toward the viewer"
-	return (
-		"\n\n[INDIVIDUAL MORPHOLOGY V1]\n"
-		+ "Inherited frame: %s; face: %s; surface contour language: %s. These are stable ancestry cues, not a frozen infant body.\n"
-		+ "Target Stage %d: %s\n"
-		+ "Use approximate design ratios, not text labels: torso length/head width %.2f; limb length/head height %.2f; chest width/head width %.2f; tail length/torso length %.2f; signature appendage scale relative to this species baseline %.2f.\n"
-		+ "Gene emphasis: %s. Present from the %s: %s. Separate limbs and code-authorized species appendages from the body outline; never hide the focal feature behind the torso.\n"
-		+ "Preserve individual facial recognition and elemental palette, not exact previous proportions or pose. Natural maturation is authorized even without new Genes. Apply scored Genes to this inherited frame, rather than replacing it with a generic breed template. Structural traits must read in silhouette without glow. Keep pupils readable. Do not substitute bloom, recoloring or camera zoom for bodily development. Species and code-authorized mythical anatomy take precedence over baseline ratios."
-	) % [p.frame, p.face, p.surface_line, p.stage, STAGES[int(p.stage)], p.torso, p.legs, p.chest, p.tail, p.ears, focus, p.side, pose]
 
-
-func _max_score_for_locus(
-	scores: Dictionary,
-	locus: String
-) -> float:
-	var best := 0.0
-	var prefix := locus + "."
-	for key in scores.keys():
-		var token := String(key)
-		if token.begins_with(prefix):
-			best = maxf(
-				best,
-				float(scores[key])
-			)
-	return best
+	return focus
