@@ -71,7 +71,7 @@ func _ready() -> void:
 	_board = TankBoard.new()
 	board_space.add_child(_board)
 	_board.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_message = _label("Chơi đơn 5 mạng • Căn cứ 3 HP • Bảo vệ ★ • 1.000 điểm = 1 mảnh")
+	_message = _label("Chơi đơn 5 mạng • Căn cứ 3 HP • Bảo vệ ★ • 1 rương/ngày • Chơi thêm tối đa 10 mảnh")
 	root.add_child(_message)
 	var modes := HBoxContainer.new()
 	root.add_child(modes)
@@ -358,7 +358,7 @@ func _show_ranking() -> void:
 	text += " • Top 1: %d\n" % int(records.get("best_score",5000))
 	for entry in records.get("entries",[]):
 		text += "%d điểm • Màn %d\n" % [int(entry.score),int(entry.wave)]
-	_ranking.dialog_text = text + "\nVượt top 1: +1 rương, tối đa 1 lần/ngày/chế độ."
+	_ranking.dialog_text = text + "\nMọi chế độ: chung 1 rương và tối đa 10 mảnh/ngày."
 	_ranking.popup_centered(Vector2i(280,0))
 
 func _unhandled_key_input(event: InputEvent) -> void:

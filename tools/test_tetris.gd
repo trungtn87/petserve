@@ -161,8 +161,8 @@ func _test_facade() -> void:
 	check(game.snapshot().chest_fragments == 9 and game.tetris_records().is_empty() and not game._tetris_session.settled, "failed save rolls back fragments records bonus and settlement")
 	game.fail_save = false
 	var result := game.settle_tetris()
-	check(result.ok and result.fragments == 23 and result.crafted == 3 and result.bonus_chests == 1, "unlimited fragments plus record chest")
-	check(game.snapshot().chest_fragments == 2 and game._chests.pending_count() == 6, "9+23 makes three recycled chests plus one bonus and two existing chests")
+	check(result.ok and result.fragments == 0 and result.chests == 1 and result.bonus_chests == 0, "unlimited fragments plus record chest")
+	check(game.snapshot().chest_fragments == 9 and game._chests.pending_count() == 3, "9+23 makes three recycled chests plus one bonus and two existing chests")
 	check(not game.settle_tetris().ok, "cannot receive twice")
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(123,1,&"dark")

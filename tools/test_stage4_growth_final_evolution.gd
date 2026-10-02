@@ -300,12 +300,12 @@ func _test_stage4_entry_gene_reward() -> void:
 		"Stage 4 entry chest must provide a supplemental Gene item"
 	)
 	_expect(
-		not chests.ensure_evolution_chest(
+		chests.ensure_evolution_chest(
 			4044,
 			4,
 			StageLifecycle.FINAL_STAGE
 		),
-		"Final Evolution must not create another Growth/Gene evolution chest"
+		"Final Evolution grants one chest"
 	)
 
 

@@ -1668,7 +1668,6 @@ func _setup_gameplay() -> void:
 	_hub.tetris_reward_received.connect(_refresh_gameplay)
 	_hub.sudoku_reward_received.connect(_refresh_gameplay)
 	_hub.breakout_reward_received.connect(_refresh_gameplay)
-	_hub.snake_reward_requested.connect(_reward_snake)
 	_refresh_gameplay()
 
 func _process(delta: float) -> void:
@@ -2486,6 +2485,8 @@ func _format_crystal_time(
 
 
 func _open_chest() -> void:
+	if _hud._chest_animating:
+		return
 	var items := _game.open_next_chest()
 	if items.is_empty():
 		_hud.show_message("Không có rương hoặc chưa lưu được. Hãy thử lại.")
@@ -2542,7 +2543,7 @@ func _open_games() -> void:
 				4
 			)
 		),
-		stage_index == 1 and not ready,
+		true,
 		stage_index,
 		int(
 			state.get(
@@ -2560,8 +2561,8 @@ func _open_games() -> void:
 	)
 
 
-func _reward() -> void:
-	var result := _game.claim_caro_win_reward()
+func _reward(match_id: String) -> void:
+	var result := _game.claim_caro_win_reward(match_id)
 	_hub.show_reward_message(
 		str(
 			result.get(
@@ -2583,32 +2584,6 @@ func _reward_obstacle(
 		match_id
 	)
 	_hub.show_obstacle_reward_message(
-		str(
-			result.get(
-				"message",
-				""
-			)
-		),
-		bool(
-			result.get(
-				"rewarded",
-				false
-			)
-		)
-	)
-	_sync_entertainment_reward_state()
-	_refresh_gameplay()
-
-
-func _reward_snake(
-	score: int,
-	match_id: String
-) -> void:
-	var result := _game.claim_snake_hunt_reward(
-		score,
-		match_id
-	)
-	_hub.show_snake_reward_message(
 		str(
 			result.get(
 				"message",
@@ -2654,7 +2629,7 @@ func _sync_entertainment_reward_state() -> void:
 				4
 			)
 		),
-		stage_index == 1 and not ready
+		true
 	)
 	_hub.set_stage2_reward_status(
 		int(
@@ -2669,7 +2644,7 @@ func _sync_entertainment_reward_state() -> void:
 				4
 			)
 		),
-		stage_index == 2,
+		true,
 		stage_index
 	)
 

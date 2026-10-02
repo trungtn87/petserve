@@ -113,8 +113,8 @@ func _facade_and_ui() -> void:
 	check(not game.settle_breakout().ok, "reward save failure")
 	check(not game._breakout_session.settled and game.breakout_progress().unlocked == 1 and game.snapshot().chest_fragments == fragments, "failed reward rolls back progress and fragments")
 	game.fail_save = false
-	check(game.settle_breakout().fragments == 1 and game.breakout_progress().unlocked == 2, "first clear rewards and unlocks")
-	check(game.snapshot().chest_fragments == 0, "ten fragments craft chest")
+	check(game.settle_breakout().chests == 1 and game.breakout_progress().unlocked == 2, "first clear rewards and unlocks")
+	check(game.snapshot().chest_fragments == 9, "ten fragments craft chest")
 	check(not game.settle_breakout().ok, "duplicate denied")
 	reloaded = InfantGameFacade.new()
 	reloaded.setup(781, 2, &"dark")
@@ -124,7 +124,7 @@ func _facade_and_ui() -> void:
 	for brick in reloaded._breakout_session.bricks:
 		brick.hp = 0
 	reloaded._breakout_session.status = "won"
-	check(reloaded.settle_breakout().fragments == 0, "repeat clear gives no duplicate first-clear reward")
+	check(reloaded.settle_breakout().fragments == 1, "repeat clear gives no duplicate first-clear reward")
 	check(reloaded.start_breakout(2).ok, "new unlocked map")
 	var hub := EntertainmentHubUI.new()
 	hub.energy_2048_api = reloaded

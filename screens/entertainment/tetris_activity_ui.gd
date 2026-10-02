@@ -96,7 +96,7 @@ func _build_ui() -> void:
 	add_child(_confirm)
 	_help = AcceptDialog.new()
 	_help.title = "Tetris • Chơi vô hạn"
-	_help.dialog_text = "Xếp khối để lấp đầy hàng ngang.\nXóa 1/2/3/4 hàng: 100/300/500/800 × cấp.\nCombo: +50 × số combo × cấp.\nChuỗi xóa 4 hàng: +50% điểm cơ bản.\n\nMỗi 6 hàng tăng cấp; tối đa cấp 10.\nTốc độ tối đa: 0,12 giây/ô. Không giới hạn thời gian.\nXem trước 2 khối, bóng vị trí rơi.\nCụm trái: ← → di chuyển, ↓ xuống nhanh, ↑ thả ngay.\nNút tròn bên phải: xoay khối.\n\n2.000 điểm = 1 mảnh, không giới hạn thưởng.\n10 mảnh tự ghép rương trong Kho.\nVượt top 1: +1 rương, tối đa 1 lần/ngày.\nKỷ lục ban đầu cần vượt: 5.000 điểm.\nThưởng khi thua; rời ván không nhận thưởng.\n\nBàn phím: ← → di chuyển, ↓ xuống, ↑/Space thả ngay,\nX xoay khối, P tạm dừng."
+	_help.dialog_text = "Xếp khối để lấp đầy hàng ngang.\nXóa 1/2/3/4 hàng: 100/300/500/800 × cấp.\nCombo: +50 × số combo × cấp.\nChuỗi xóa 4 hàng: +50% điểm cơ bản.\n\nMỗi 6 hàng tăng cấp; tối đa cấp 10.\nTốc độ tối đa: 0,12 giây/ô. Không giới hạn thời gian.\nXem trước 2 khối, bóng vị trí rơi.\nCụm trái: ← → di chuyển, ↓ xuống nhanh, ↑ thả ngay.\nNút tròn bên phải: xoay khối.\n\n1 rương/game/ngày. Chơi thêm 1 mảnh/ván, tối đa 10 mảnh/ngày.\n10 mảnh tự ghép rương trong Kho.\nKỷ lục được lưu trong bảng xếp hạng.\nKỷ lục ban đầu cần vượt: 5.000 điểm.\nThưởng khi thua; rời ván không nhận thưởng.\n\nBàn phím: ← → di chuyển, ↓ xuống, ↑/Space thả ngay,\nX xoay khối, P tạm dừng."
 	add_child(_help)
 	_ranking = AcceptDialog.new()
 	_ranking.title = "TOP 10 • TRÊN THIẾT BỊ"
@@ -198,7 +198,7 @@ func _sync() -> void:
 	_score.text = "%d điểm • Cấp %d • %d hàng • Top %d" % [_state.score, _state.level, _state.lines, _state.best_score]
 	var playing: bool = _state.status == "playing"
 	var settled := bool(_state.settled)
-	_reward.text = "%d mảnh • Mỗi 2.000 điểm +1 mảnh" % int(_state.fragments)
+	_reward.text = "1 rương/ngày • Chơi thêm: 1 mảnh/ván, tối đa 10"
 	_handheld.set_enabled(playing and not _blocked())
 	_claim.visible = not playing and not settled
 	_new.visible = settled

@@ -203,16 +203,7 @@ func _sync_reward() -> void:
 		and _reward_claimed < _reward_max
 	)
 
-	if chest_available:
-		var remaining := maxi(0, _reward_max - _reward_claimed)
-		_reward_label.text = (
-			"Rương chung Né vật rơi + Snake còn %d/%d"
-			% [remaining, _reward_max]
-		)
-	else:
-		_reward_label.text = (
-			"Hết/ngoài Stage thưởng rương • thắng = 1 mảnh"
-		)
+	_reward_label.text = "1 rương/game/ngày • Chơi thêm 1 mảnh/ván, tối đa 10 mảnh"
 
 	_reward_button.text = (
 		"NHẬN RƯƠNG HOẠT ĐỘNG"

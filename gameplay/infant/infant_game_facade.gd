@@ -56,6 +56,12 @@ func setup(
 	else:
 		_meta["schema"] = META_SCHEMA
 
+	if not _meta.has("daily_game_rewards_v2"):
+		var daily := AtomicJson.read("user://daily_rewards_v2.json")
+		if daily is Dictionary:
+			_meta["daily_game_rewards_v2"] = daily.get("daily_game_rewards_v2", {})
+			_meta["last_daily_chest_day"] = daily.get("last_daily_chest_day", "")
+
 	var legacy_claim := _legacy.apply_pending_to_meta(
 		_meta,
 		run_id
@@ -86,10 +92,7 @@ func setup(
 	_chests.ensure_hatch_chest(
 		run_id
 	)
-	if _stage_index < StageLifecycle.FINAL_STAGE:
-		_chests.ensure_daily_chest(
-			_stage_index
-		)
+	_chests.ensure_daily_chest(_stage_index)
 	_skills.setup(
 		_meta,
 		run_id,
@@ -108,7 +111,6 @@ func setup(
 	if (
 		previous_stage >= 1
 		and _stage_index == previous_stage + 1
-		and _stage_index < StageLifecycle.FINAL_STAGE
 	):
 		_chests.ensure_evolution_chest(
 			run_id,
@@ -168,6 +170,8 @@ func setup(
 func tick(
 	delta: float
 ) -> void:
+	var daily_before := str(_meta.get("last_daily_chest_day", ""))
+	_chests.ensure_daily_chest(_stage_index)
 	var should_save := _lifecycle.tick(
 		delta
 	)
@@ -177,7 +181,7 @@ func tick(
 		)
 	)
 
-	if should_save or crystallization_changed:
+	if should_save or crystallization_changed or daily_before != str(_meta.get("last_daily_chest_day", "")):
 		save()
 
 
@@ -349,7 +353,7 @@ func snapshot() -> Dictionary:
 	return state
 
 
-func claim_caro_win_reward() -> Dictionary:
+func claim_caro_win_reward(match_id: String = "") -> Dictionary:
 	var lifecycle_state := (
 		_lifecycle.snapshot()
 	)
@@ -375,7 +379,8 @@ func claim_caro_win_reward() -> Dictionary:
 		_entertainment.claim_caro_win(
 			_run_id,
 			stage_index,
-			chest_reward_enabled
+			chest_reward_enabled,
+			match_id
 		)
 	)
 
@@ -415,52 +420,6 @@ func claim_obstacle_run_reward(
 	)
 	var result := (
 		_entertainment.claim_obstacle_run(
-			_run_id,
-			maxi(
-				0,
-				score
-			),
-			match_id,
-			stage_index
-		)
-	)
-
-	if bool(
-		result.get(
-			"rewarded",
-			false
-		)
-	):
-		if not save():
-			_restore(
-				before
-			)
-			return {
-				"ok": false,
-				"rewarded": false,
-				"message": "Chưa lưu được phần thưởng. Hãy thử lại.",
-			}
-
-	return result
-
-func claim_snake_hunt_reward(
-	score: int,
-	match_id: String
-) -> Dictionary:
-	var lifecycle_state := (
-		_lifecycle.snapshot()
-	)
-	var stage_index := int(
-		lifecycle_state.get(
-			"stage_index",
-			1
-		)
-	)
-	var before := _meta.duplicate(
-		true
-	)
-	var result := (
-		_entertainment.claim_snake_hunt(
 			_run_id,
 			maxi(
 				0,
@@ -1784,27 +1743,17 @@ func settle_tetris() -> Dictionary:
 	var day := Time.get_date_string_from_system()
 	var result := TetrisRecords.record(records, _tetris_session, day, now)
 	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-	var amount := _tetris_session.fragments()
-	var crafted := _chests.add_salvage_fragments(amount, _run_id, stage)
-	if int(result.bonus_chests) > 0:
-		_chests.add_salvage_fragments(ChestService.FRAGMENTS_PER_RECYCLED_CHEST, _run_id, stage)
+	var reward := _entertainment.claim_game(_run_id, stage, "tetris", _tetris_session.match_id)
 	if not save():
 		_restore(before)
 		return {"ok": false, "message": "Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
 	_tetris_session.settled = true
 	result["ok"] = true
-	result["fragments"] = amount
-	result["crafted"] = crafted
+	result.merge(reward, true)
 	result["state"] = tetris_snapshot()
-	result["message"] = "Nhận %d mảnh rương" % amount
-	if crafted > 0:
-		result.message += " • Đã ghép %d rương" % crafted
 	if bool(result.broken_record):
 		result.message += " • Kỷ lục mới!"
-	if int(result.bonus_chests) > 0:
-		result.message += " • Thưởng top 1: +1 rương"
-	elif bool(result.broken_record):
-		result.message += " • Hôm nay đã nhận rương top 1"
+
 	return result
 
 
@@ -1845,13 +1794,11 @@ func settle_tank(state: Dictionary, slot: int) -> Dictionary:
 	ids.append(state.match_id)
 	_meta["tank_claimed_ids"] = ids
 	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-	var fragments := maxi(0,int(players[slot].score)) / 1000
-	var crafted := _chests.add_salvage_fragments(fragments + (10 if bonus else 0),_run_id,stage)
+	var reward := _entertainment.claim_game(_run_id, stage, "tank", str(state.match_id))
 	if not save():
 		_restore(before)
 		return {"ok":false,"message":"Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
-	return {"ok":true,"fragments":fragments,"bonus_chests":1 if bonus else 0,"crafted":crafted,
-		"message":"Nhận %d mảnh%s%s" % [fragments," • Kỷ lục mới!" if broken else ""," • +1 rương top 1" if bonus else ""]}
+	return reward
 
 
 func sudoku_snapshot() -> Dictionary:
@@ -1890,13 +1837,13 @@ func settle_sudoku() -> Dictionary:
 	var stored := session.snapshot()
 	stored["run_id"] = _run_id
 	_meta["sudoku"] = stored
-	var amount: int = SudokuRules.REWARDS[session.level]
 	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-	_chests.add_salvage_fragments(amount * ChestService.FRAGMENTS_PER_RECYCLED_CHEST, _run_id, stage)
+	var reward := _entertainment.claim_game(_run_id, stage, "sudoku", session.match_id)
 	if not save():
 		_restore(before)
 		return {"ok": false, "message": "Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
-	return {"ok": true, "state": sudoku_snapshot(), "chests": amount, "message": "Đã nhận %d rương." % amount}
+	reward["state"] = sudoku_snapshot()
+	return reward
 
 func _commit_sudoku(session: SudokuSession) -> Dictionary:
 	var before := _meta.duplicate(true)
@@ -1979,9 +1926,8 @@ func settle_breakout() -> Dictionary:
 		cleared.append(level)
 	_meta["breakout_cleared"] = cleared
 	_meta["breakout_unlocked"] = mini(BreakoutMaps.COUNT, maxi(int(breakout_progress().unlocked), level + 1))
-	if first:
-		var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-		_chests.add_salvage_fragments(1, _run_id, stage)
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var reward := _entertainment.claim_game(_run_id, stage, "breakout", _breakout_session.match_id)
 	_breakout_session.settled = true
 	var stored := breakout_snapshot()
 	stored["run_id"] = _run_id
@@ -1990,5 +1936,21 @@ func settle_breakout() -> Dictionary:
 		_restore(before)
 		_breakout_session.settled = false
 		return {"ok": false, "message": "Chưa lưu được kết quả. Bấm Nhận thưởng để thử lại."}
-	return {"ok": true, "state": breakout_snapshot(), "progress": breakout_progress(), "fragments": 1 if first else 0,
-		"message": "Vượt màn! +1 mảnh rương." if first else "Đã vượt lại màn này • Thưởng lần đầu đã nhận."}
+	reward["state"] = breakout_snapshot()
+	reward["progress"] = breakout_progress()
+	return reward
+
+func claim_jigsaw_reward(match_id: String) -> Dictionary:
+	var session := JigsawSession.new()
+	if not session.restore(AtomicJson.read(JigsawSession.SAVE_PATH)) or not session.complete():
+		return {"ok": false, "message": "Chưa hoàn thành ghép hình."}
+	var expected := "%s:%s:%s" % [session.image_path, session.level, session.seed_value]
+	if match_id != expected:
+		return {"ok": false, "message": "Ván ghép hình không hợp lệ."}
+	var before := _meta.duplicate(true)
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var result := _entertainment.claim_game(_run_id, stage, "jigsaw", match_id)
+	if bool(result.get("ok", false)) and not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được thưởng. Hãy thử lại."}
+	return result

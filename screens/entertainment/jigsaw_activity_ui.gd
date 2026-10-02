@@ -3,6 +3,7 @@ extends Control
 
 signal back_requested
 signal match_finished(result: StringName)
+var game_api: InfantGameFacade
 var palette: Dictionary = {}
 var current_image_path := ""
 var _session := JigsawSession.new()
@@ -113,6 +114,8 @@ func open_activity() -> void:
 		if selected_path >= 0:
 			_images.select(selected_path)
 		_sync()
+		if _session.complete():
+			_claim_reward()
 	elif not _paths.is_empty():
 		_restart()
 	else:
@@ -294,6 +297,7 @@ func _place(index: int) -> void:
 	if _session.complete() and not _announced:
 		_announced = true
 		match_finished.emit(&"win")
+		_claim_reward()
 
 func _button(text: String, callback: Callable) -> Button:
 	var button := Button.new()
@@ -311,3 +315,14 @@ func _label(text: String, font_size: int) -> Label:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_size_override("font_size", font_size)
 	return label
+
+func _claim_reward() -> void:
+	if game_api == null:
+		return
+	var id := "%s:%s:%s" % [_session.image_path, _session.level, _session.seed_value]
+	var result := game_api.claim_jigsaw_reward(id)
+	_message.text = str(result.get("message", ""))
+	if not bool(result.get("ok", false)) and str(result.get("message", "")).begins_with("Chưa lưu"):
+		var retry := _button("Nhận thưởng lại", func() -> void: _claim_reward())
+		add_child(retry)
+		retry.position = Vector2(8, 4)

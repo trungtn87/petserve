@@ -1,525 +1,81 @@
 class_name MiniGameRewardService
 extends RefCounted
 
-
 const GAME_CARO_3X3: StringName = &"caro_3x3"
-# Keep the legacy storage key so existing claims and chest IDs retain the shared cap.
 const GAME_OBSTACLE_RUN: StringName = &"maze_hunt"
-const GAME_SNAKE_HUNT: StringName = &"snake_hunt"
-
-const MAX_INFANT_CARO_REWARDS: int = 4
-const MAX_STAGE2_ACTIVITY_REWARDS: int = 4
-const META_KEY: String = "mini_game_rewards"
-
-
+const MAX_INFANT_CARO_REWARDS := 1
+const MAX_STAGE2_ACTIVITY_REWARDS := 1
+const MAX_DAILY_FRAGMENTS := 10
+const META_KEY := "daily_game_rewards_v2"
 var _meta: Dictionary = {}
 var _chests: ChestService
 
-
-func setup(
-	meta: Dictionary,
-	chests: ChestService,
-	run_id: int
-) -> void:
+func setup(meta: Dictionary, chests: ChestService, _run_id: int) -> void:
 	_meta = meta
 	_chests = chests
-	_ensure_run(
-		run_id
-	)
 
+func _day() -> String:
+	return Time.get_date_string_from_system()
 
-func snapshot(
-	run_id: int
-) -> Dictionary:
-	_ensure_run(
-		run_id
-	)
+func _game_state(game_id: String) -> Dictionary:
+	var state: Dictionary = _meta.get(META_KEY, {})
+	var game: Dictionary = state.get(game_id, {})
+	# Do not reset quotas when the device clock moves backwards.
+	if _day() > str(game.get("day", "")):
+		return {"day": _day(), "chest": false, "fragments": 0, "ids": []}
+	return game.duplicate(true)
 
-	var state: Dictionary = _meta.get(
-		META_KEY,
-		{}
-	)
-	var caro: Dictionary = state.get(
-		String(GAME_CARO_3X3),
-		{}
-	)
-	var caro_claimed := clampi(
-		int(
-			caro.get(
-				"claimed",
-				0
-			)
-		),
-		0,
-		MAX_INFANT_CARO_REWARDS
-	)
-	var obstacle_claimed := _game_claimed(
-		state,
-		GAME_OBSTACLE_RUN
-	)
-	var snake_claimed := _game_claimed(
-		state,
-		GAME_SNAKE_HUNT
-	)
-	var stage2_claimed := mini(
-		MAX_STAGE2_ACTIVITY_REWARDS,
-		obstacle_claimed
-		+ snake_claimed
-	)
-
-	return {
-		"caro_rewards_claimed": caro_claimed,
-		"caro_rewards_max": MAX_INFANT_CARO_REWARDS,
-		"caro_rewards_remaining": (
-			MAX_INFANT_CARO_REWARDS
-			- caro_claimed
-		),
-		"obstacle_rewards_claimed": obstacle_claimed,
-		"snake_rewards_claimed": snake_claimed,
-		"stage2_activity_rewards_claimed": (
-			stage2_claimed
-		),
-		"stage2_activity_rewards_max": (
-			MAX_STAGE2_ACTIVITY_REWARDS
-		),
-		"stage2_activity_rewards_remaining": (
-			MAX_STAGE2_ACTIVITY_REWARDS
-			- stage2_claimed
-		),
-	}
-
-
-func claim_caro_win(
-	run_id: int,
-	stage_index: int = 1,
-	chest_reward_enabled: bool = true
-) -> Dictionary:
-	_ensure_run(
-		run_id
-	)
-
-	var state: Dictionary = _meta.get(
-		META_KEY,
-		{}
-	)
-	var caro: Dictionary = state.get(
-		String(GAME_CARO_3X3),
-		{}
-	)
-	var claimed := clampi(
-		int(
-			caro.get(
-				"claimed",
-				0
-			)
-		),
-		0,
-		MAX_INFANT_CARO_REWARDS
-	)
-
-	if (
-		not chest_reward_enabled
-		or stage_index != 1
-		or claimed >= MAX_INFANT_CARO_REWARDS
-	):
-		var reason := "Ngoài giai đoạn thưởng Rương Ấu thể"
-
-		if (
-			chest_reward_enabled
-			and stage_index == 1
-			and claimed >= MAX_INFANT_CARO_REWARDS
-		):
-			reason = "Đã nhận đủ 4 Rương Ấu thể từ Caro"
-
-		return _grant_fallback_fragment(
-			run_id,
-			stage_index,
-			reason
-		)
-
-	var reward_index := claimed + 1
-
-	if not _chests.ensure_infant_activity_chest(
-		run_id,
-		String(GAME_CARO_3X3),
-		reward_index
-	):
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Không thể tạo Rương Ấu thể.",
-		}
-
-	caro["claimed"] = reward_index
-	caro["last_reward_at_unix"] = int(
-		Time.get_unix_time_from_system()
-	)
-	state[String(GAME_CARO_3X3)] = caro
-	_meta[META_KEY] = state
-
-	return {
-		"ok": true,
-		"rewarded": true,
-		"message": "Thắng Caro • nhận 1 Rương Ấu thể.",
-		"claimed": reward_index,
-		"max": MAX_INFANT_CARO_REWARDS,
-	}
-
-
-func claim_obstacle_run(
-	run_id: int,
-	score: int,
-	match_id: String,
-	stage_index: int = 2
-) -> Dictionary:
-	return _claim_stage2_activity(
-		run_id,
-		GAME_OBSTACLE_RUN,
-		"Né vật rơi",
-		score,
-		obstacle_reward_tier(
-			score
-		),
-		match_id,
-		stage_index
-	)
-
-
-func claim_snake_hunt(
-	run_id: int,
-	score: int,
-	match_id: String,
-	stage_index: int = 2
-) -> Dictionary:
-	return _claim_stage2_activity(
-		run_id,
-		GAME_SNAKE_HUNT,
-		"Snake Hunt",
-		score,
-		snake_reward_tier(
-			score
-		),
-		match_id,
-		stage_index
-	)
-
-
-func obstacle_reward_tier(
-	score: int
-) -> int:
-	if score >= 3000:
-		return 4
-	if score >= 2000:
-		return 3
-	if score >= 1000:
-		return 2
-	return 1
-
-
-func snake_reward_tier(
-	score: int
-) -> int:
-	if score >= 1900:
-		return 4
-	if score >= 1400:
-		return 3
-	if score >= 1000:
-		return 2
-	return 1
-
-
-func _claim_stage2_activity(
-	run_id: int,
-	game_id: StringName,
-	game_label: String,
-	score: int,
-	tier: int,
-	match_id: String,
-	stage_index: int = 2
-) -> Dictionary:
-	_ensure_run(
-		run_id
-	)
-
-	var normalized_match_id := match_id.strip_edges()
-
-	if normalized_match_id.is_empty():
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Ván chơi không có mã hợp lệ.",
-		}
-
-	var state: Dictionary = _meta.get(
-		META_KEY,
-		{}
-	)
-	var game: Dictionary = state.get(
-		String(game_id),
-		{}
-	)
-	var game_claimed := maxi(
-		0,
-		int(
-			game.get(
-				"claimed",
-				0
-			)
-		)
-	)
-	var ids_value: Variant = game.get(
-		"claimed_match_ids",
-		[]
-	)
-	var claimed_match_ids: Array = (
-		(ids_value as Array).duplicate(true)
-		if typeof(ids_value) == TYPE_ARRAY
-		else []
-	)
-
-	if claimed_match_ids.has(
-		normalized_match_id
-	):
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Phần thưởng của ván này đã được nhận.",
-		}
-
-	var total_claimed := _stage2_total_claimed(
-		state
-	)
-	var reward_index := total_claimed + 1
-	var reward_tier := clampi(
-		tier,
-		1,
-		4
-	)
-	var chest_reward := (
-		stage_index == 2
-		and total_claimed < MAX_STAGE2_ACTIVITY_REWARDS
-	)
-	var crafted := 0
-
-	if chest_reward:
-		if not _chests.ensure_stage_activity_chest(
-			run_id,
-			2,
-			String(game_id),
-			reward_index,
-			reward_tier
-		):
-			return {
-				"ok": false,
-				"rewarded": false,
-				"message": (
-					"Không thể tạo Rương Hoạt động Stage 2."
-				),
-			}
-
-		game["claimed"] = game_claimed + 1
+func claim_game(run_id: int, stage: int, game_id: String, match_id: String) -> Dictionary:
+	if match_id.strip_edges().is_empty():
+		return {"ok": false, "rewarded": false, "message": "Ván chơi không hợp lệ."}
+	var game := _game_state(game_id)
+	var ids: Array = game.get("ids", [])
+	if ids.has(match_id):
+		return {"ok": false, "rewarded": false, "message": "Ván này đã nhận thưởng."}
+	var result := {"ok": true, "rewarded": true, "chests": 0, "fragments": 0, "crafted": 0, "bonus_chests": 0}
+	if not bool(game.get("chest", false)):
+		_chests.ensure_game_daily_chest(game_id, str(game.day), stage)
+		game["chest"] = true
+		result["chests"] = 1
+		result["reward_type"] = "chest"
+		result["message"] = "Nhận 1 rương hôm nay • Các chế độ dùng chung phần thưởng."
+	elif int(game.get("fragments", 0)) < MAX_DAILY_FRAGMENTS:
+		game["fragments"] = int(game.get("fragments", 0)) + 1
+		result["fragments"] = 1
+		result["crafted"] = _chests.add_salvage_fragments(1, run_id, stage)
+		result["reward_type"] = "fragment"
+		result["message"] = "Nhận 1 mảnh rương • %d/10 mảnh hôm nay." % int(game.fragments)
 	else:
-		crafted = _chests.add_salvage_fragments(
-			1,
-			run_id,
-			stage_index
-		)
-
-	claimed_match_ids.append(
-		normalized_match_id
-	)
-	game["claimed_match_ids"] = claimed_match_ids
-	game["best_score"] = maxi(
-		int(
-			game.get(
-				"best_score",
-				0
-			)
-		),
-		maxi(
-			0,
-			score
-		)
-	)
-	game["last_reward_at_unix"] = int(
-		Time.get_unix_time_from_system()
-	)
-	state[String(game_id)] = game
+		result["rewarded"] = false
+		result["message"] = "Game này đã nhận 1 rương và 10 mảnh hôm nay."
+	# Store only rewarded match IDs; capped matches cannot produce rewards anyway.
+	if bool(result.rewarded):
+		ids.append(match_id)
+	game["ids"] = ids
+	var state: Dictionary = _meta.get(META_KEY, {})
+	state[game_id] = game
 	_meta[META_KEY] = state
+	result["claimed"] = 1
+	result["max"] = 1
+	return result
 
-	if chest_reward:
-		return {
-			"ok": true,
-			"rewarded": true,
-			"reward_type": "chest",
-			"message": (
-				"%s • nhận Rương Hoạt động Tier %d."
-				% [
-					game_label,
-					reward_tier,
-				]
-			),
-			"claimed": reward_index,
-			"max": MAX_STAGE2_ACTIVITY_REWARDS,
-			"tier": reward_tier,
-			"score": maxi(
-				0,
-				score
-			),
-		}
+func snapshot(_run_id: int) -> Dictionary:
+	var caro := int(bool(_game_state("caro_3x3").get("chest", false)))
+	var obstacle := int(bool(_game_state("maze_hunt").get("chest", false)))
+	return {"caro_rewards_claimed": caro, "caro_rewards_max": 1, "caro_rewards_remaining": 1-caro,
+		"obstacle_rewards_claimed": obstacle,
+		"stage2_activity_rewards_claimed": obstacle, "stage2_activity_rewards_max": 1,
+		"stage2_activity_rewards_remaining": 1-obstacle, "daily_game_rewards": _meta.get(META_KEY, {}).duplicate(true)}
 
-	var message := (
-		"%s • ngoài Stage 2 • nhận 1 mảnh rương."
-		% game_label
-	)
+func claim_caro_win(run_id: int, stage_index: int = 1, _enabled: bool = true, match_id: String = "") -> Dictionary:
+	return claim_game(run_id, stage_index, "caro_3x3", match_id)
 
-	if stage_index == 2:
-		message = (
-			"%s • đã hết 4 Rương Hoạt động Stage 2 • nhận 1 mảnh rương."
-			% game_label
-		)
+func claim_obstacle_run(run_id: int, _score: int, match_id: String, stage_index: int = 2) -> Dictionary:
+	return claim_game(run_id, stage_index, "maze_hunt", match_id)
 
-	if crafted > 0:
-		message += (
-			" • Đủ 10 mảnh, đã ghép %d Rương Tái Chế."
-			% crafted
-		)
+func obstacle_reward_tier(score: int) -> int:
+	return clampi(1 + score / 1000, 1, 4)
 
-	return {
-		"ok": true,
-		"rewarded": true,
-		"reward_type": "fragment",
-		"fragments": 1,
-		"crafted": crafted,
-		"message": message,
-		"claimed": mini(
-			total_claimed,
-			MAX_STAGE2_ACTIVITY_REWARDS
-		),
-		"max": MAX_STAGE2_ACTIVITY_REWARDS,
-		"tier": reward_tier,
-		"score": maxi(
-			0,
-			score
-		),
-	}
-
-
-func _grant_fallback_fragment(
-	run_id: int,
-	stage_index: int,
-	reason: String
-) -> Dictionary:
-	var crafted := _chests.add_salvage_fragments(
-		1,
-		run_id,
-		stage_index
-	)
-	var message := "%s • nhận 1 mảnh rương." % reason
-
-	if crafted > 0:
-		message += (
-			" • Đủ 10 mảnh, đã ghép %d Rương Tái Chế."
-			% crafted
-		)
-
-	return {
-		"ok": true,
-		"rewarded": true,
-		"reward_type": "fragment",
-		"fragments": 1,
-		"crafted": crafted,
-		"message": message,
-	}
-
-func _stage2_total_claimed(
-	state: Dictionary
-) -> int:
-	return mini(
-		MAX_STAGE2_ACTIVITY_REWARDS,
-		_game_claimed(
-			state,
-			GAME_OBSTACLE_RUN
-		)
-		+ _game_claimed(
-			state,
-			GAME_SNAKE_HUNT
-		)
-	)
-
-
-func _game_claimed(
-	state: Dictionary,
-	game_id: StringName
-) -> int:
-	var game: Dictionary = state.get(
-		String(game_id),
-		{}
-	)
-	return maxi(
-		0,
-		int(
-			game.get(
-				"claimed",
-				0
-			)
-		)
-	)
-
-
-func _ensure_run(
-	run_id: int
-) -> void:
-	var state: Dictionary = _meta.get(
-		META_KEY,
-		{}
-	)
-
-	if int(
-		state.get(
-			"run_id",
-			-1
-		)
-	) == run_id:
-		var changed := false
-
-		for game_id in [
-			GAME_CARO_3X3,
-			GAME_OBSTACLE_RUN,
-			GAME_SNAKE_HUNT,
-		]:
-			if not state.has(
-				String(game_id)
-			):
-				state[String(game_id)] = {
-					"claimed": 0,
-					"claimed_match_ids": [],
-				}
-				changed = true
-
-		if changed:
-			_meta[META_KEY] = state
-		return
-
-	var new_state: Dictionary = {
-		"run_id": run_id,
-	}
-
-	for game_id in [
-		GAME_CARO_3X3,
-		GAME_OBSTACLE_RUN,
-		GAME_SNAKE_HUNT,
-	]:
-		new_state[String(game_id)] = {
-			"claimed": 0,
-			"claimed_match_ids": [],
-		}
-
-	_meta[META_KEY] = new_state
-
-
-# Only the currently saved, finished session is eligible. Its settled flag is
-# committed in the same metadata save as the fragments/chests by the facade.
 func claim_energy_2048(run_id: int, stage_index: int, match_id: String) -> Dictionary:
 	var data: Dictionary = _meta.get("energy_2048", {})
 	var session := Energy2048Session.new()
@@ -527,12 +83,11 @@ func claim_energy_2048(run_id: int, stage_index: int, match_id: String) -> Dicti
 		return {"ok": false, "message": "Không tìm thấy ván 2048 hợp lệ."}
 	if session.match_id != match_id or session.status == "playing" or session.settled:
 		return {"ok": false, "message": "Ván chưa kết thúc hoặc đã nhận thưởng."}
-	var amount := Energy2048Rules.fragments(Energy2048Rules.largest(session.board))
-	var crafted := _chests.add_salvage_fragments(amount, run_id, stage_index)
+	var result := claim_game(run_id, stage_index, "2048", match_id)
+	if not bool(result.get("ok", false)):
+		return result
 	session.settled = true
 	var stored := session.snapshot()
 	stored["run_id"] = run_id
 	_meta["energy_2048"] = stored
-	return {"ok": true, "rewarded": amount > 0, "fragments": amount, "crafted": crafted,
-		"message": ("Nhận %d mảnh rương." % amount if amount > 0 else "Chưa đạt ô 128. Thử lại nhé!")
-			+ (" Đã ghép %d rương — mở trong Kho." % crafted if crafted > 0 else "")}
+	return result

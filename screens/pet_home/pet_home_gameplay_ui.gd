@@ -206,14 +206,25 @@ func open_inventory(filter_type: StringName = &"") -> void:
 	_layout_overlay()
 	_overlay.visible = true
 
+var _chest_animating := false
+
 func show_chest_rewards(items: Array[Dictionary]) -> void:
-	_hide_item_detail()
-	_title.text = "RƯƠNG"
-	_filters.visible = false
-	_fill(items, false)
-	_layout_overlay()
-	_overlay.visible = true
-	refresh_status(_facade.snapshot())
+	if _chest_animating:
+		return
+	_chest_animating = true
+	var effect := preload("res://screens/pet_home/chest_open_effect.gd").new()
+	add_child(effect)
+	effect.z_index = 100
+	effect.finished.connect(func() -> void:
+		_chest_animating = false
+		_hide_item_detail()
+		_title.text = "RƯƠNG"
+		_filters.visible = false
+		_fill(items, false)
+		_layout_overlay()
+		_overlay.visible = true
+		refresh_status(_facade.snapshot())
+	)
 
 func show_message(message: String) -> void:
 	_toast.text = message
@@ -1483,6 +1494,8 @@ func _hide_toast() -> void:
 
 
 func _emit_chest_open() -> void:
+	if _chest_animating:
+		return
 	chest_open_requested.emit()
 
 

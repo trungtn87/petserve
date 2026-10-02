@@ -169,8 +169,8 @@ func run() -> void:
 	var rewards := MiniGameRewardService.new()
 	rewards.setup(old_meta, old_chests, 99)
 	check(
-		int(rewards.snapshot(99).stage2_activity_rewards_claimed) == 4,
-		"old save retains shared reward cap"
+		int(rewards.snapshot(99).stage2_activity_rewards_claimed) == 0,
+		"legacy life cap does not lock daily rewards"
 	)
 	var old_cap_fallback := rewards.claim_obstacle_run(
 		99,
@@ -179,9 +179,9 @@ func run() -> void:
 	)
 	check(
 		old_cap_fallback.get("rewarded", false)
-		and old_cap_fallback.get("reward_type", "") == "fragment"
-		and old_chests.fragment_count() == 1,
-		"old cap falls back to one chest fragment"
+		and old_cap_fallback.get("reward_type", "") == "chest"
+		and old_chests.fragment_count() == 0,
+		"legacy save receives first daily chest"
 	)
 
 	var facade := InfantGameFacade.new()
@@ -192,8 +192,8 @@ func run() -> void:
 	)
 	check(
 		stage_one_fallback.get("rewarded", false)
-		and stage_one_fallback.get("reward_type", "") == "fragment",
-		"stage one dodge win falls back to one fragment"
+		and stage_one_fallback.get("reward_type", "") == "chest",
+		"stage one can receive daily game chest"
 	)
 	check(
 		facade.advance_to_stage(2),
@@ -231,25 +231,11 @@ func run() -> void:
 		"match dedup persists"
 	)
 	check(
-		reloaded.claim_snake_hunt_reward(
-			1200,
-			"snake_1"
-		).get("rewarded", false),
-		"snake shares pool"
-	)
-	check(
 		reloaded.claim_obstacle_run_reward(
 			3200,
 			"dodge_2"
 		).get("rewarded", false),
 		"dodge third reward"
-	)
-	check(
-		reloaded.claim_snake_hunt_reward(
-			1200,
-			"snake_2"
-		).get("rewarded", false),
-		"snake fourth reward"
 	)
 	var capped_fallback := reloaded.claim_obstacle_run_reward(
 		3200,

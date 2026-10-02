@@ -117,6 +117,9 @@ jobs:
           export XDG_DATA_HOME=/tmp/petverse-test-crystallization
           godot --headless --path . tools/test_element_crystallization.tscn
 
+      - name: Daily chest quotas, evolution rewards and opening animation
+        run: timeout 90 godot --headless --path . res://tools/test_daily_rewards.tscn
+
       - name: Breakout 30 maps, collisions, persistence, rewards and touch UI
         run: timeout 90 godot --headless --path . res://tools/test_breakout.tscn
 

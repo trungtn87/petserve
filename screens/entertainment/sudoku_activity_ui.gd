@@ -36,7 +36,7 @@ func _ready() -> void:
 	root.add_child(settings)
 	_difficulty = OptionButton.new()
 	for level in 3:
-		_difficulty.add_item("%s • %d rương" % [SudokuRules.NAMES[level], SudokuRules.REWARDS[level]])
+		_difficulty.add_item(SudokuRules.NAMES[level])
 	_difficulty.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_difficulty.custom_minimum_size.y = 40
 	settings.add_child(_difficulty)
@@ -82,7 +82,7 @@ func _ready() -> void:
 	_help = AcceptDialog.new()
 	_help.title = "Cách chơi Sudoku"
 	_help.ok_button_text = "Đã hiểu"
-	_help.dialog_text = "Điền số 1–9 vào ô trống.\nMỗi hàng, cột và vùng 3×3 có đủ 9 số, không trùng.\n\nChạm ô rồi chọn số. Số cho sẵn không thể sửa.\nGhi chú: ghi nhiều số nhỏ để suy luận.\nSố đỏ: đang trùng trong hàng, cột hoặc vùng.\nXóa và Hoàn tác giúp sửa số hoặc ghi chú.\n\nKhông giới hạn thời gian hay số lần sai.\nThoát game vẫn giữ ván dở và ghi chú.\nDễ/Vừa/Khó thưởng 1/2/3 rương.\nMỗi ván chỉ nhận thưởng một lần."
+	_help.dialog_text = "Điền số 1–9 vào ô trống.\nMỗi hàng, cột và vùng 3×3 có đủ 9 số, không trùng.\n\nChạm ô rồi chọn số. Số cho sẵn không thể sửa.\nGhi chú: ghi nhiều số nhỏ để suy luận.\nSố đỏ: đang trùng trong hàng, cột hoặc vùng.\nXóa và Hoàn tác giúp sửa số hoặc ghi chú.\n\nKhông giới hạn thời gian hay số lần sai.\nThoát game vẫn giữ ván dở và ghi chú.\nMọi độ khó dùng chung: 1 rương/ngày. Chơi thêm 1 mảnh/ván, tối đa 10 mảnh/ngày.\nMỗi ván chỉ nhận thưởng một lần."
 	add_child(_help)
 
 func open_activity() -> void:
@@ -113,7 +113,7 @@ func _sync() -> void:
 	var filled := 81 - (_state.board as Array).count(0)
 	var done := bool(_state.complete)
 	var settled := bool(_state.settled)
-	_progress.text = "%s • %d/81 ô • %d rương" % [SudokuRules.NAMES[int(_state.level)], filled, SudokuRules.REWARDS[int(_state.level)]]
+	_progress.text = "%s • %d/81 ô • Thưởng hằng ngày" % [SudokuRules.NAMES[int(_state.level)], filled]
 	_claim.visible = done and not settled
 	_undo.disabled = settled or (_state.history as Array).is_empty()
 	_notes.disabled = done

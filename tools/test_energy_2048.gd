@@ -114,13 +114,13 @@ func _test_rewards() -> void:
 	check(not rewards.claim_energy_2048(2048, 2, "forged").ok, "wrong match ID rejected")
 	check(not rewards.claim_energy_2048(999, 2, data.match_id).ok, "old life cannot claim")
 	var result := rewards.claim_energy_2048(2048, 2, data.match_id)
-	check(result.ok and result.fragments == 3 and result.crafted == 1, "loss awards only top milestone and crafts chest")
-	check(chests.fragment_count() == 1 and chests.pending_count() == 1, "existing fragments combine correctly")
+	check(result.ok and result.chests == 1 and result.fragments == 0, "loss awards only top milestone and crafts chest")
+	check(chests.fragment_count() == 8 and chests.pending_count() == 1, "existing fragments combine correctly")
 	check(not rewards.claim_energy_2048(2048, 2, data.match_id).ok, "duplicate claim rejected")
 	meta = JSON.parse_string(JSON.stringify(meta))
 	chests.setup(meta, ItemGenerator.new())
 	rewards.setup(meta, chests, 2048)
-	check(not rewards.claim_energy_2048(2048, 2, data.match_id).ok and chests.fragment_count() == 1, "reload cannot duplicate reward")
+	check(not rewards.claim_energy_2048(2048, 2, data.match_id).ok and chests.fragment_count() == 8, "reload cannot duplicate reward")
 	check(int(rewards.snapshot(2048).stage2_activity_rewards_claimed) == 0, "2048 leaves existing stage2 shared cap untouched")
 
 func _test_facade() -> void:
@@ -137,7 +137,7 @@ func _test_facade() -> void:
 	check(game.energy_2048_snapshot() == initial.state and game.snapshot().chest_fragments == 9, "failed reward restores board and fragments")
 	game.fail_save = false
 	var awarded := game.finish_energy_2048()
-	check(awarded.ok and awarded.fragments == 1 and awarded.crafted == 1, "retry awards once")
+	check(awarded.ok and awarded.chests == 1 and awarded.fragments == 0, "retry awards once")
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(2048, 2, &"dark")
 	check(not reloaded.finish_energy_2048().ok, "facade reward survives reload without duplication")
@@ -180,7 +180,7 @@ func _test_ui() -> void:
 	check(game.energy_2048_snapshot().board == screen._state.board, "touch swipe persists displayed board")
 	screen._board._elapsed = 1.0
 	screen._request_finish()
-	check(screen._confirm.visible and "1 mảnh" in screen._confirm.dialog_text, "early finish asks for confirmation with exact reward")
+	check(screen._confirm.visible and "thưởng hôm nay" in screen._confirm.dialog_text, "early finish asks for confirmation with exact reward")
 	screen._confirm.hide()
 	screen._claim()
 	check(screen._state.settled and screen._restart.visible and not screen._finish.visible, "successful reward changes to new-game action")

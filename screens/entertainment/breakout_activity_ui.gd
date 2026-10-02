@@ -89,7 +89,7 @@ func _ready() -> void:
 	_help = AcceptDialog.new()
 	_help.title = "Đỡ bóng phá gạch"
 	_help.ok_button_text = "Đã hiểu"
-	_help.dialog_text = "Kéo ngón tay trong sân để di chuyển thanh đỡ.\nChạm sân hoặc bấm Phóng bóng để bắt đầu.\nBóng rơi: mất một mạng. Mỗi màn có 3 mạng.\n\nPhá hết gạch màu để mở màn tiếp.\nSố trên gạch là số lần cần đánh trúng.\nGạch xám là thép, không cần phá.\n\nVật phẩm rơi:\nW: thanh đỡ rộng trong 12 giây.\nS: bóng chậm trong 10 giây.\n+: thêm một mạng, tối đa 5 mạng.\n\n30 màn khó dần, có thể chơi lại màn đã mở.\nVượt mỗi màn lần đầu: +1 mảnh rương.\nThoát giữ màn dở. Bấm Tiếp tục khi quay lại."
+	_help.dialog_text = "Kéo ngón tay trong sân để di chuyển thanh đỡ.\nChạm sân hoặc bấm Phóng bóng để bắt đầu.\nBóng rơi: mất một mạng. Mỗi màn có 3 mạng.\n\nPhá hết gạch màu để mở màn tiếp.\nSố trên gạch là số lần cần đánh trúng.\nGạch xám là thép, không cần phá.\n\nVật phẩm rơi:\nW: thanh đỡ rộng trong 12 giây.\nS: bóng chậm trong 10 giây.\n+: thêm một mạng, tối đa 5 mạng.\n\n30 màn khó dần, có thể chơi lại màn đã mở.\nVượt màn: 1 rương/game/ngày. Chơi thêm 1 mảnh/lần, tối đa 10 mảnh/ngày.\nThoát giữ màn dở. Bấm Tiếp tục khi quay lại."
 	add_child(_help)
 
 func open_activity() -> void:

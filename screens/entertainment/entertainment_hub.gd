@@ -8,18 +8,14 @@ const CaroActivityScript = preload(
 const ObstacleRunActivityScript = preload(
 	"res://screens/entertainment/obstacle_run_activity_ui.gd"
 )
-const SnakeHuntActivityScript = preload(
-	"res://screens/entertainment/snake_hunt_activity_ui.gd"
-)
 
 
 signal breakout_reward_received
 signal sudoku_reward_received
 signal tetris_reward_received
 signal energy_2048_reward_received
-signal caro_win_reward_requested
+signal caro_win_reward_requested(match_id: String)
 signal obstacle_reward_requested(score: int, match_id: String)
-signal snake_reward_requested(score: int, match_id: String)
 signal match_finished(result: StringName)
 
 
@@ -47,9 +43,7 @@ var _stage2_reward_enabled: bool = false
 var _hub_screen: Control
 var _caro_activity
 var _obstacle_activity
-var _snake_activity
 var _obstacle_card: Button
-var _snake_card: Button
 var _reward_label: Label
 
 
@@ -112,8 +106,6 @@ func close_hub() -> void:
 	if _obstacle_activity != null:
 		_obstacle_activity.close_activity()
 
-	if _snake_activity != null:
-		_snake_activity.close_activity()
 
 	if _energy_2048_activity != null:
 		_energy_2048_activity.close_activity()
@@ -174,17 +166,6 @@ func show_obstacle_reward_message(
 ) -> void:
 	if _obstacle_activity != null:
 		_obstacle_activity.show_reward_message(
-			message,
-			rewarded
-		)
-
-
-func show_snake_reward_message(
-	message: String,
-	rewarded: bool = false
-) -> void:
-	if _snake_activity != null:
-		_snake_activity.show_reward_message(
 			message,
 			rewarded
 		)
@@ -311,9 +292,6 @@ func _build_ui() -> void:
 	_build_obstacle_activity(
 		body
 	)
-	_build_snake_activity(
-		body
-	)
 	_build_energy_2048_activity(body)
 	_build_breakout_activity()
 
@@ -425,21 +403,11 @@ func _build_hub_screen(
 		_obstacle_card
 	)
 
-	_snake_card = _activity_card(
-		"Snake Hunt",
-		"Rắn săn mồi",
-		true,
-		_open_snake,
-		"●"
-	)
-	grid.add_child(
-		_snake_card
-	)
 
 	grid.add_child(
 		_activity_card(
 			"2048",
-			"Ghép ô • Nhận mảnh rương",
+			"Ghép ô • Thưởng hằng ngày",
 			true,
 			_open_energy_2048,
 			"▦"
@@ -452,7 +420,7 @@ func _build_hub_screen(
 
 	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
 
-	grid.add_child(_activity_card("Tetris", "Vô hạn • Điểm đổi mảnh rương", true, _open_tetris, "▥"))
+	grid.add_child(_activity_card("Tetris", "Vô hạn • Bảng xếp hạng", true, _open_tetris, "▥"))
 
 	grid.add_child(_activity_card("Tank", "20 map • 1 hoặc 2 người", true, _open_tank, "✦"))
 
@@ -517,29 +485,6 @@ func _build_obstacle_activity(
 		_show_hub_screen
 	)
 	_obstacle_activity.match_finished.connect(
-		_on_match_finished
-	)
-
-
-func _build_snake_activity(
-	parent: Control
-) -> void:
-	_snake_activity = SnakeHuntActivityScript.new()
-	_snake_activity.palette = palette
-	parent.add_child(
-		_snake_activity
-	)
-	_snake_activity.set_anchors_and_offsets_preset(
-		Control.PRESET_FULL_RECT
-	)
-	_snake_activity.visible = false
-	_snake_activity.reward_requested.connect(
-		_on_snake_reward_requested
-	)
-	_snake_activity.back_requested.connect(
-		_show_hub_screen
-	)
-	_snake_activity.match_finished.connect(
 		_on_match_finished
 	)
 
@@ -680,21 +625,6 @@ func _open_obstacle() -> void:
 		_obstacle_activity.open_activity()
 
 
-func _open_snake() -> void:
-	_hide_activities()
-
-	if _hub_screen != null:
-		_hub_screen.visible = false
-
-	if _snake_activity != null:
-		_snake_activity.set_reward_status(
-			_stage2_reward_claimed,
-			_stage2_reward_max,
-			_stage2_reward_enabled
-		)
-		_snake_activity.open_activity()
-
-
 func _show_hub_screen() -> void:
 	_hide_activities()
 
@@ -726,8 +656,6 @@ func _hide_activities() -> void:
 	if _obstacle_activity != null:
 		_obstacle_activity.close_activity()
 
-	if _snake_activity != null:
-		_snake_activity.close_activity()
 
 
 func _sync_reward_state() -> void:
@@ -740,7 +668,6 @@ func _sync_reward_state() -> void:
 
 	for activity in [
 		_obstacle_activity,
-		_snake_activity,
 	]:
 		if activity != null:
 			activity.set_reward_status(
@@ -754,38 +681,7 @@ func _sync_reward_state() -> void:
 
 
 func _update_stage2_card_subtitles() -> void:
-	var remaining := maxi(
-		0,
-		_stage2_reward_max
-		- clampi(
-			_stage2_reward_claimed,
-			0,
-			_stage2_reward_max
-		)
-	)
-	var subtitle := ""
-
-	if _stage_index == 2:
-		subtitle = (
-			"Rương chung còn %d/%d"
-			% [
-				remaining,
-				_stage2_reward_max,
-			]
-			if remaining > 0
-			else "Hết rương • thắng = 1 mảnh"
-		)
-	else:
-		subtitle = "Ngoài Stage 2 • thắng = 1 mảnh"
-
-	_set_card_subtitle(
-		_obstacle_card,
-		subtitle
-	)
-	_set_card_subtitle(
-		_snake_card,
-		subtitle
-	)
+	_set_card_subtitle(_obstacle_card, "1 rương/ngày • Tối đa 10 mảnh")
 
 
 func _set_card_subtitle(
@@ -808,62 +704,11 @@ func _update_hub_reward_label() -> void:
 	if _reward_label == null:
 		return
 
-	var lines: Array[String] = []
-	var caro_claimed := clampi(
-		_caro_reward_claimed,
-		0,
-		_caro_reward_max
-	)
-
-	if _caro_reward_enabled:
-		lines.append(
-			"Gomoku: Rương Ấu thể %d/%d"
-			% [
-				caro_claimed,
-				_caro_reward_max,
-			]
-		)
-	else:
-		lines.append(
-			"Gomoku: ngoài Stage/rương đã hết • thắng = 1 mảnh"
-		)
-
-	var stage2_claimed := clampi(
-		_stage2_reward_claimed,
-		0,
-		_stage2_reward_max
-	)
-	var stage2_remaining := maxi(
-		0,
-		_stage2_reward_max
-		- stage2_claimed
-	)
-
-	if _stage_index == 2:
-		if stage2_remaining > 0:
-			lines.append(
-				"Né vật rơi + Snake: Rương chung còn %d/%d"
-				% [
-					stage2_remaining,
-					_stage2_reward_max,
-				]
-			)
-		else:
-			lines.append(
-				"Né vật rơi + Snake: hết rương • thắng = 1 mảnh"
-			)
-	else:
-		lines.append(
-			"Né vật rơi + Snake: ngoài Stage 2 • thắng = 1 mảnh"
-		)
-
-	_reward_label.text = "\n".join(
-		lines
-	)
+	_reward_label.text = "Mỗi game: 1 rương/ngày, dùng chung mọi chế độ.\nChơi thêm: 1 mảnh/ván, tối đa 10 mảnh/game/ngày. Không khóa Stage."
 
 
-func _on_caro_reward_requested() -> void:
-	caro_win_reward_requested.emit()
+func _on_caro_reward_requested(match_id: String) -> void:
+	caro_win_reward_requested.emit(match_id)
 
 
 func _on_obstacle_reward_requested(
@@ -871,16 +716,6 @@ func _on_obstacle_reward_requested(
 	match_id: String
 ) -> void:
 	obstacle_reward_requested.emit(
-		score,
-		match_id
-	)
-
-
-func _on_snake_reward_requested(
-	score: int,
-	match_id: String
-) -> void:
-	snake_reward_requested.emit(
 		score,
 		match_id
 	)
@@ -1027,5 +862,6 @@ func _build_jigsaw_activity(parent: Control) -> void:
 func _open_jigsaw() -> void:
 	_hide_activities()
 	_hub_screen.visible = false
+	_jigsaw_activity.game_api = energy_2048_api
 	_jigsaw_activity.current_image_path = pet_image_path
 	_jigsaw_activity.open_activity()

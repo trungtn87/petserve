@@ -61,6 +61,11 @@ func delete_meta() -> void:
 		if current.has(key) and not AtomicJson.write("user://" + key + ".json", current[key]):
 			push_error("Không thể giữ bảng kỷ lục Tank. Chưa xóa dữ liệu đời cũ.")
 			return
+	var daily := {"daily_game_rewards_v2": current.get("daily_game_rewards_v2", {}),
+		"last_daily_chest_day": current.get("last_daily_chest_day", "")}
+	if not AtomicJson.write("user://daily_rewards_v2.json", daily):
+		push_error("Không thể giữ hạn mức thưởng hôm nay. Chưa xóa dữ liệu đời cũ.")
+		return
 	AtomicJson.erase(META_PATH)
 
 

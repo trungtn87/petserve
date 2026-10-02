@@ -1,6 +1,6 @@
 class_name CaroActivityUI
 extends Control
-signal reward_requested
+signal reward_requested(match_id: String)
 signal back_requested
 signal match_finished(result: StringName)
 const CHANNEL := "gomoku-v1"
@@ -123,7 +123,7 @@ func show_reward_message(message: String) -> void:
 func _update_reward_label() -> void:
 	if _reward_label == null:
 		return
-	_reward_label.text = "Chơi 2 người • Không tính thưởng" if _mode != 0 else ("Rương Ấu thể %d/%d" % [_reward_claimed,_reward_max] if _reward_enabled and _reward_claimed < _reward_max else "Thắng pet = 1 mảnh rương")
+	_reward_label.text = "Mỗi ngày: 1 rương/game • Chơi thêm: 1 mảnh/ván, tối đa 10 mảnh"
 
 func _change_mode(index: int) -> void:
 	if _mode == 2:
@@ -136,6 +136,8 @@ func _change_mode(index: int) -> void:
 
 func _reset_round() -> void:
 	_ticket += 1
+	if _mode != 2:
+		_round_id = "gomoku_" + Crypto.new().generate_random_bytes(16).hex_encode()
 	_game.reset()
 	_thinking = false
 	_finished = false
@@ -211,9 +213,9 @@ func _after_move() -> void:
 	_board.selected = -1
 	if _game.result() != TicTacToeGame.RESULT_PLAYING and not _finished:
 		_finished = true
-		if _mode == 0 and _game.result() == TicTacToeGame.RESULT_PLAYER:
+		if _game.result() != TicTacToeGame.RESULT_DRAW:
 			_message_label.text = "Đang nhận thưởng..."
-			reward_requested.emit()
+			reward_requested.emit(_round_id)
 		match_finished.emit(_game.result())
 	_render_board()
 

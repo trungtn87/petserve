@@ -407,8 +407,8 @@ func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 				"stage2_activity_rewards_remaining",
 				-1
 			)
-		) == 3,
-		"shared Stage 2 activity counter must expose three chests remaining"
+		) == 0,
+		"daily obstacle chest has been claimed"
 	)
 
 	SaveManager.delete_meta()

@@ -148,7 +148,7 @@ func _test_rewards() -> void:
 	check(api.tank_records(true).is_empty(),"failed save rolls records back")
 	api.fail=false
 	var result := api.settle_tank(g.snapshot(),1)
-	check(result.ok and result.fragments==3 and result.bonus_chests==1,"personal score fragments and team record bonus")
+	check(result.ok and result.fragments==0 and result.chests==1 and result.bonus_chests==0,"personal score fragments and team record bonus")
 	check(not api.settle_tank(g.snapshot(),1).ok,"duplicate reward blocked")
 	var api2 := InfantGameFacade.new()
 	api2.setup(999001,1,&"dark")

@@ -134,6 +134,9 @@ func ensure_daily_chest(
 			int(date.get("day", 0)),
 		]
 	)
+	var last_day := str(_meta.get("last_daily_chest_day", ""))
+	if day_key <= last_day:
+		return true
 	var uid := "daily_%s" % day_key
 	var queue: Array = _meta.get(
 		"chest_queue",
@@ -152,8 +155,10 @@ func ensure_daily_chest(
 				""
 			)
 		) == uid:
+			_meta["last_daily_chest_day"] = day_key
 			return true
 
+	_meta["last_daily_chest_day"] = day_key
 	queue.append({
 		"uid": uid,
 		"chest_type": String(CHEST_DAILY),
@@ -177,7 +182,7 @@ func ensure_evolution_chest(
 	if (
 		from_stage < 1
 		or to_stage != from_stage + 1
-		or to_stage >= StageLifecycle.FINAL_STAGE
+		or to_stage > StageLifecycle.FINAL_STAGE
 	):
 		return false
 
@@ -1413,3 +1418,14 @@ func _reward_uids(rewards: Array[Dictionary]) -> Array[String]:
 		result.append(String(reward.get("uid", "")))
 
 	return result
+
+
+func ensure_game_daily_chest(game_id: String, day: String, stage: int) -> void:
+	var uid := "game_daily_%s_%s" % [game_id, day]
+	var queue: Array = _meta.get("chest_queue", [])
+	for chest in queue:
+		if chest is Dictionary and str(chest.get("uid", "")) == uid:
+			return
+	queue.append({"uid": uid, "chest_type": String(CHEST_RECYCLED), "game_id": game_id,
+		"day_key": day, "stage_index": clampi(stage, 1, StageLifecycle.FINAL_STAGE), "opened": false})
+	_meta["chest_queue"] = queue

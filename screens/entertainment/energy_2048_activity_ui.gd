@@ -75,7 +75,7 @@ func _build_ui() -> void:
 	_help = AcceptDialog.new()
 	_help.title = "Cách chơi 2048"
 	_help.ok_button_text = "Đã hiểu"
-	_help.dialog_text = "Vuốt 4 hướng để dồn ô.\nHai ô cùng số ghép thành ô gấp đôi.\nMỗi ô ghép tối đa 1 lần mỗi lượt.\n\nÔ lớn nhất → mảnh rương:\n128 → 1  |  256 → 2  |  512 → 3\n1024 → 5  |  2048 → 10\nChỉ nhận mốc cao nhất, không cộng dồn.\nĐủ 10 mảnh tự ghép thành 1 rương.\n\nHết đường đi vẫn nhận thưởng.\nRời màn hình giữ nguyên ván chơi."
+	_help.dialog_text = "Vuốt 4 hướng để dồn ô.\nHai ô cùng số ghép thành ô gấp đôi.\nMỗi ô ghép tối đa 1 lần mỗi lượt.\n\nMỗi ngày: 1 rương. Chơi thêm: 1 mảnh/ván, tối đa 10 mảnh/ngày.\nĐủ 10 mảnh tự ghép thành 1 rương.\n\nHết đường đi vẫn nhận thưởng.\nRời màn hình giữ nguyên ván chơi."
 	add_child(_help)
 
 func _label(text: String, font_size: int) -> Label:
@@ -115,7 +115,7 @@ func _move(direction: Vector2i) -> void:
 	if bool(result.get("ok", false)) and _state.get("status", "") == "playing":
 		var current := Energy2048Rules.fragments(Energy2048Rules.largest(_state.get("board", [])))
 		if current > previous:
-			_message.text = "Đạt mốc mới! Thưởng hiện tại: %d mảnh." % current
+			_message.text = "Đạt mốc mới!"
 
 func _apply(result: Dictionary) -> void:
 	if not bool(result.get("ok", false)):
@@ -136,9 +136,9 @@ func _sync() -> void:
 	_goal.text = "Đã đạt 2048!"
 	for milestone in Energy2048Rules.MILESTONES:
 		if largest < milestone:
-			_goal.text = "Đạt ô %d → %d mảnh rương" % [milestone, Energy2048Rules.fragments(milestone)]
+			_goal.text = "Mục tiêu: ô %d" % milestone
 			break
-	_reward.text = ("Đã nhận: %d mảnh" if settled else "Thưởng hiện tại: %d mảnh") % amount
+	_reward.text = "Đã nhận thưởng" if settled else "1 rương/ngày • Thêm 1 mảnh/ván, tối đa 10"
 	_finish.visible = not settled
 	_finish.text = "KẾT THÚC & NHẬN THƯỞNG" if status == "playing" else "NHẬN THƯỞNG"
 	_restart.visible = settled
@@ -158,7 +158,7 @@ func _request_finish() -> void:
 		_claim()
 		return
 	var amount := Energy2048Rules.fragments(Energy2048Rules.largest(_state.board))
-	_confirm.dialog_text = "Kết thúc ván và nhận %d mảnh rương?\nBạn không thể chơi tiếp ván này." % amount
+	_confirm.dialog_text = "Kết thúc ván và nhận thưởng hôm nay?\nBạn không thể chơi tiếp ván này."
 	_confirm.popup_centered(Vector2i(270, 0))
 
 func _claim() -> void:
