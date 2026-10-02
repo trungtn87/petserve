@@ -28,24 +28,28 @@ func _run() -> void:
 		if stage >= 2:
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT, "production reference mode")
 			_check(not lab.request.source_image_path.is_empty(), "previous stage image supplied as reference")
-			if stage == 2:
-				_check(positive.contains("[REFERENCE IMAGE]"), "Stage 2 reference-image prompt")
-				_check(positive.contains("[STAGE 2 GROWTH]"), "Stage 2 growth prompt")
-				_check(not positive.contains("Stage 1 ancestry cues:"), "Stage 1 is not verbally reconstructed")
+			if stage in [2, 3, 4]:
+				_check(positive.contains("[REFERENCE IMAGE]"), "Stage %d reference-image prompt" % stage)
+				_check(positive.contains("[STAGE %d GROWTH]" % stage), "Stage %d growth prompt" % stage)
+				_check(
+					positive.contains("Use the supplied Stage %d image" % (stage - 1)),
+					"Stage %d uses previous stage as visual source" % stage
+				)
+				_check(not positive.contains("Stage 1 ancestry cues:"), "previous stage is not verbally reconstructed")
+				_check(not positive.contains("TARGET IMAGE:"), "old target-form prompt removed for Stage %d" % stage)
+				_check(not positive.contains("Approximate silhouette ratios:"), "numeric morphology removed for Stage %d" % stage)
 			lab.render_mode.select(1)
 			lab._prepare()
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE and lab.request.source_image_path.is_empty(), "fresh mode removes reference")
 			_check(lab.request.positive_prompt == positive and lab.request.seed == seed_value, "A/B same exact brief and seed")
 		if stage == 4:
-			_check(positive.contains("PRIMARY IMAGE:"), "primary image prompt")
-			_check(positive.contains("ELEMENT:"), "element block")
-			_check(positive.contains("STAGE:"), "stage block")
-			_check(positive.contains("[GENE TRAITS]"), "simple Gene trait block")
-			_check(positive.contains("Keep all requested Gene traits visible on the same pet."), "Gene reminder")
-			_check(positive.contains("INDIVIDUAL FRAME:"), "inherited frame cue")
-			_check(not positive.contains("Approximate silhouette ratios:"), "numeric anatomy forcing removed")
+			_check(positive.contains("[STAGE 4 GROWTH]"), "Stage 4 mature growth block")
+			_check(positive.contains("[GENE TRAITS]"), "Stage 4 accumulated Gene block")
+			_check(positive.contains("[BACKGROUND]"), "Stage 4 background continuity")
+			_check(positive.contains("mature Stage 4 form"), "Stage 4 mature form instruction")
+			_check(not positive.contains("INDIVIDUAL FRAME:"), "Stage 4 does not verbally rebuild inherited frame")
 			_check(not positive.contains("FAILURE CONDITION"), "meta failure block removed")
-			print("Stage 4 simplified prompt characters: ", positive.length())
+			print("Stage 4 reference prompt characters: ", positive.length())
 		_check(lab.session.accept(PetRenderResult.ok(path, &"test", &"fixture", {"seed": seed_value})), "commit stage %d" % stage)
 	var identity := lab.session.identity as PetIdentity
 	var builder := Builder.new()

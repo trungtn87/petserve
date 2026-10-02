@@ -1153,11 +1153,22 @@ func _build_reference_stage_request(
 	var visuals := visual_catalog.load_default()
 	var edit_strength := NATURAL_EDIT_STRENGTH
 
-	if target_stage == 2:
-		edit_strength = maxf(
-			edit_strength,
-			STAGE_TWO_EDIT_STRENGTH
-		)
+	match target_stage:
+		2:
+			edit_strength = maxf(
+				edit_strength,
+				0.30
+			)
+		3:
+			edit_strength = maxf(
+				edit_strength,
+				0.34
+			)
+		4:
+			edit_strength = maxf(
+				edit_strength,
+				0.38
+			)
 
 	if deltas.is_empty():
 		positive_prompt += (

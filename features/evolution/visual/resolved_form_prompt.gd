@@ -40,9 +40,10 @@ func build(
 		identity.element()
 	)
 
-	if target_stage == 2:
-		return _build_stage_two_reference_prompt(
+	if target_stage in [2, 3, 4]:
+		return _build_reference_stage_prompt(
 			identity,
+			target_stage,
 			scores,
 			mythic
 		)
@@ -159,8 +160,9 @@ func build(
 	return "\n\n".join(lines)
 
 
-func _build_stage_two_reference_prompt(
+func _build_reference_stage_prompt(
 	identity: PetIdentity,
+	target_stage: int,
 	scores: Dictionary,
 	mythic: Dictionary
 ) -> String:
@@ -168,27 +170,34 @@ func _build_stage_two_reference_prompt(
 	var element_name := PetElementCatalog.prompt_name(
 		identity.element()
 	)
+	var previous_stage := target_stage - 1
 	var lines: Array[String] = []
 
 	lines.append(
 		"[REFERENCE IMAGE]\n"
-		+ "Use the supplied Stage 1 image as the canonical visual reference for this exact pet. "
-		+ "Evolve that same individual. Do not recreate or reinterpret Stage 1 from a written description. "
-		+ "Take the pet's face, species identity, colors, markings, elemental appearance and overall design directly from the reference image."
+		+ (
+			"Use the supplied Stage %d image as the canonical visual reference for this exact pet. "
+			+ "Evolve that same individual into Stage %d. "
+			+ "Do not recreate or reinterpret the previous stage from a written description. "
+			+ "Take the pet's face, species identity, colors, markings, elemental appearance and overall design directly from the reference image."
+		) % [
+			previous_stage,
+			target_stage,
+		]
 	)
 
 	lines.append(
-		"[STAGE 2 GROWTH]\n"
-		+ "Grow the same pet into a clearly older juvenile Stage 2 form. "
-		+ "The physical growth must be obvious: a more developed torso and chest, longer or more mature limb proportions where natural, "
-		+ "and a less baby-like overall body while still remaining youthful and cute. "
-		+ "Allow a new natural pose. Make the change read as body growth, not camera zoom, extra glow or added decoration."
+		"[STAGE %d GROWTH]\n%s"
+		% [
+			target_stage,
+			_growth_prompt(target_stage),
+		]
 	)
 
 	var gene_prompt := GenePromptResolver.new().build_from_scores(
 		scores,
 		identity.element(),
-		2,
+		target_stage,
 		identity.species()
 	)
 
@@ -226,15 +235,45 @@ func _build_stage_two_reference_prompt(
 
 	lines.append(
 		"[FINAL]\n"
-		+ "Keep the same overall art style as the reference image. "
+		+ "Keep the same overall art style and individual identity as the reference image. "
 		+ "Show one complete full-body "
 		+ species
 		+ " with all requested Gene traits visible on the same pet. "
-		+ "Keep substantial environment visible around the pet. No text, UI, logo or watermark."
+		+ "Keep substantial environment visible around the pet. "
+		+ "Do not fake growth by zooming the camera closer. No text, UI, logo or watermark."
 	)
 
 	return "\n\n".join(lines)
 
+
+func _growth_prompt(
+	target_stage: int
+) -> String:
+	match target_stage:
+		2:
+			return (
+				"Grow the same pet into a clearly older juvenile form. "
+				+ "Physical growth must be obvious: a more developed torso and chest, more mature limb proportions where natural, "
+				+ "and a less baby-like overall body while still remaining youthful and cute. "
+				+ "Allow a new natural pose. Make the change read as body growth, not camera zoom, extra glow or added decoration."
+			)
+		3:
+			return (
+				"Grow the same pet into a clearly more mature adolescent form. "
+				+ "Develop the body further from the reference: longer and more confident proportions, a fuller torso and chest, "
+				+ "more mature limbs and a face that reads older while still belonging to the same individual. "
+				+ "Allow a new natural pose. The Stage 3 change must be visible in the physical form, not only in effects, glow or decoration."
+			)
+		4:
+			return (
+				"Grow the same pet into its mature Stage 4 form. "
+				+ "Complete the natural development of its body proportions, torso, chest, limbs, head-to-body balance and overall silhouette. "
+				+ "Make this the most developed physical form of the same individual while preserving its recognizable identity. "
+				+ "Do not add unrelated anatomy just to make it look more evolved. "
+				+ "Allow a new natural pose. The final development must read through the body and accumulated Gene traits, not camera zoom or extra effects."
+			)
+		_:
+			return ""
 
 func resolve_traits(
 	identity: PetIdentity,
