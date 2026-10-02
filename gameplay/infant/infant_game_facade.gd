@@ -1749,3 +1749,82 @@ func _commit_energy_2048(session: Energy2048Session) -> Dictionary:
 		_restore(before)
 		return {"ok": false, "message": "Chưa lưu được ván 2048. Hãy thử lại."}
 	return {"ok": true, "state": energy_2048_snapshot()}
+
+
+# Tetris runs in memory: leaving the activity forfeits the unfinished match.
+# Only this facade owns the score used for settlement; UI never submits a score.
+var _tetris_session: TetrisSession
+
+func tetris_records() -> Dictionary:
+	if not _meta.has("tetris_records"):
+		_meta["tetris_records"] = TetrisRecords.load_archive()
+	return (_meta["tetris_records"] as Dictionary).duplicate(true)
+
+func tetris_snapshot() -> Dictionary:
+	if _tetris_session == null:
+		return {}
+	var state := _tetris_session.snapshot()
+	state["best_score"] = TetrisRecords.top_score(tetris_records())
+	return state
+
+func start_tetris() -> Dictionary:
+	if _tetris_session != null and not _tetris_session.settled:
+		return {"ok": false, "message": "Hãy hoàn thành hoặc rời ván hiện tại trước."}
+	_tetris_session = TetrisSession.new()
+	_tetris_session.start()
+	return {"ok": true, "state": tetris_snapshot()}
+
+func abandon_tetris() -> void:
+	_tetris_session = null
+
+func tick_tetris(delta: float) -> Dictionary:
+	if _tetris_session == null:
+		return {}
+	var changed := _tetris_session.tick(delta)
+	return {"ok": true, "changed": changed, "state": tetris_snapshot()} if changed else {"ok": true, "changed": false}
+
+func action_tetris(action: String) -> Dictionary:
+	if _tetris_session == null or _tetris_session.status != "playing":
+		return {"ok": false}
+	match action:
+		"left": _tetris_session.move_horizontal(-1)
+		"right": _tetris_session.move_horizontal(1)
+		"rotate": _tetris_session.rotate_piece()
+		"down": _tetris_session.soft_drop()
+		"drop": _tetris_session.hard_drop()
+		"hold": _tetris_session.hold_piece()
+		_: return {"ok": false}
+	return {"ok": true, "state": tetris_snapshot()}
+
+func settle_tetris() -> Dictionary:
+	if _tetris_session == null or _tetris_session.status != "lost" or _tetris_session.settled:
+		return {"ok": false, "message": "Ván chưa kết thúc hoặc đã nhận thưởng."}
+	tetris_records()
+	var before := _meta.duplicate(true)
+	var records: Dictionary = _meta["tetris_records"]
+	var now := int(Time.get_unix_time_from_system())
+	var day := Time.get_date_string_from_system()
+	var result := TetrisRecords.record(records, _tetris_session, day, now)
+	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
+	var amount := _tetris_session.fragments()
+	var crafted := _chests.add_salvage_fragments(amount, _run_id, stage)
+	if int(result.bonus_chests) > 0:
+		_chests.add_salvage_fragments(ChestService.FRAGMENTS_PER_RECYCLED_CHEST, _run_id, stage)
+	if not save():
+		_restore(before)
+		return {"ok": false, "message": "Chưa lưu được thưởng. Bấm Nhận thưởng để thử lại."}
+	_tetris_session.settled = true
+	result["ok"] = true
+	result["fragments"] = amount
+	result["crafted"] = crafted
+	result["state"] = tetris_snapshot()
+	result["message"] = "Nhận %d mảnh rương" % amount
+	if crafted > 0:
+		result.message += " • Đã ghép %d rương" % crafted
+	if bool(result.broken_record):
+		result.message += " • Kỷ lục mới!"
+	if int(result.bonus_chests) > 0:
+		result.message += " • Thưởng top 1: +1 rương"
+	elif bool(result.broken_record):
+		result.message += " • Hôm nay đã nhận rương top 1"
+	return result

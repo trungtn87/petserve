@@ -13,6 +13,7 @@ const SnakeHuntActivityScript = preload(
 )
 
 
+signal tetris_reward_received
 signal energy_2048_reward_received
 signal caro_win_reward_requested
 signal obstacle_reward_requested(score: int, match_id: String)
@@ -23,6 +24,7 @@ signal match_finished(result: StringName)
 var palette: Dictionary = {}
 var energy_2048_api: InfantGameFacade
 var _energy_2048_activity: Energy2048ActivityUI
+var _tetris_activity: TetrisActivityUI
 
 var _is_open: bool = false
 var _stage_index: int = 1
@@ -85,6 +87,9 @@ func open_hub(
 
 
 func close_hub() -> void:
+	if _tetris_activity != null:
+		_tetris_activity.close_activity()
+
 	if _caro_activity != null:
 		_caro_activity.close_activity()
 
@@ -290,6 +295,7 @@ func _build_ui() -> void:
 		body
 	)
 	_build_energy_2048_activity(body)
+	_build_tetris_activity(body)
 
 
 func _build_hub_screen(
@@ -406,6 +412,8 @@ func _build_hub_screen(
 			"▦"
 		)
 	)
+
+	grid.add_child(_activity_card("Tetris", "Vô hạn • Điểm đổi mảnh rương", true, _open_tetris, "▥"))
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -662,6 +670,9 @@ func _show_hub_screen() -> void:
 
 
 func _hide_activities() -> void:
+	if _tetris_activity != null:
+		_tetris_activity.close_activity()
+
 	if _energy_2048_activity != null:
 		_energy_2048_activity.close_activity()
 
@@ -875,3 +886,20 @@ func _open_energy_2048() -> void:
 	_hub_screen.visible = false
 	_energy_2048_activity.game_api = energy_2048_api
 	_energy_2048_activity.open_activity()
+
+
+func _build_tetris_activity(parent: Control) -> void:
+	_tetris_activity = TetrisActivityUI.new()
+	_tetris_activity.palette = palette
+	parent.add_child(_tetris_activity)
+	_tetris_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_tetris_activity.visible = false
+	_tetris_activity.back_requested.connect(_show_hub_screen)
+	_tetris_activity.reward_received.connect(func() -> void: tetris_reward_received.emit())
+	_tetris_activity.match_finished.connect(_on_match_finished)
+
+func _open_tetris() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_tetris_activity.game_api = energy_2048_api
+	_tetris_activity.open_activity()

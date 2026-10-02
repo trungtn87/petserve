@@ -53,6 +53,13 @@ func has_meta_save() -> bool:
 
 
 func delete_meta() -> void:
+	# Archive device-wide Tetris records before removing per-life inventory.
+	# If archival fails, keep the old metadata so the existing reset flow retries.
+	var current := load_meta()
+	if current.has("tetris_records"):
+		if not AtomicJson.write(TetrisRecords.ARCHIVE_PATH, current["tetris_records"]):
+			push_error("Không thể giữ bảng kỷ lục Tetris. Chưa xóa dữ liệu đời cũ.")
+			return
 	if FileAccess.file_exists(META_PATH):
 		DirAccess.remove_absolute(
 			ProjectSettings.globalize_path(META_PATH)

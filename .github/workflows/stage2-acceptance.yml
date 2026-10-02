@@ -80,6 +80,9 @@ jobs:
       - name: Stage 2 lifecycle
         run: godot --headless --path . res://tools/test_m8_stage_cycle.tscn
 
+      - name: Tetris endless gameplay, rewards, leaderboard and mobile UI
+        run: timeout 90 godot --headless --path . res://tools/test_tetris.tscn
+
       - name: 2048 rules, persistence, rewards and mobile UI
         run: godot --headless --path . res://tools/test_energy_2048.tscn
 
