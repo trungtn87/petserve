@@ -13,8 +13,46 @@ var pending_stage: int = 0
 var initial_plan: Dictionary = {}
 var serial: int = 0
 
-func reset(element: StringName, seed_value: int) -> void:
-	identity = PetIdentityFactory.new().create_initial(seed_value, element)
+func reset(
+	element: StringName,
+	seed_value: int,
+	species: StringName = &"cat"
+) -> void:
+	identity = PetIdentityFactory.new().create(
+		seed_value,
+		element,
+		species,
+		0
+	)
+	_clear_run_state()
+
+
+func reset_random(seed_value: int) -> Dictionary:
+	var random_service := RandomService.new()
+	var egg_state := EggGenerator.new(random_service).create(seed_value)
+	if egg_state == null:
+		return {"ok": false, "error": "Không random được hệ từ EggGenerator."}
+
+	var species := PetSpeciesCatalog.pick_for_seed(seed_value)
+	identity = PetIdentityFactory.new().create(
+		seed_value,
+		StringName(egg_state.egg_type),
+		species,
+		0
+	)
+	if identity == null or not identity.is_valid():
+		return {"ok": false, "error": "Không tạo được random PetIdentity."}
+
+	_clear_run_state()
+	return {
+		"ok": true,
+		"seed": seed_value,
+		"species": String(identity.species()),
+		"element": String(identity.element()),
+	}
+
+
+func _clear_run_state() -> void:
 	snapshots.clear()
 	gene_snapshots.clear()
 	save.delete_data()
@@ -32,6 +70,48 @@ func available_genes(source_stage: int) -> Array[GeneDefinition]:
 				continue
 			result.append(gene)
 	return result
+
+func random_gene_selections(source_stage: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if identity == null or not identity.is_valid():
+		return result
+
+	var pool: Array[GeneDefinition] = available_genes(source_stage)
+	if pool.is_empty():
+		return result
+
+	var desired_count := clampi(source_stage + 1, 2, 3)
+	var rng := RandomService.new().create_stream(
+		identity.lineage_seed(),
+		"image_lab_gene_stage_%d" % source_stage,
+		identity.generation()
+	)
+	var used_loci: Dictionary = {}
+
+	while not pool.is_empty() and result.size() < desired_count:
+		var index := rng.randi_range(0, pool.size() - 1)
+		var definition: GeneDefinition = pool[index]
+		pool.remove_at(index)
+		if definition == null or used_loci.has(definition.locus()):
+			continue
+		used_loci[definition.locus()] = true
+		result.append({
+			"gene_id": String(definition.id()),
+			"rarity": _random_gene_rarity(rng),
+			"count": 1,
+		})
+
+	return result
+
+
+func _random_gene_rarity(rng: RandomNumberGenerator) -> String:
+	var roll := rng.randi_range(0, 99)
+	if roll >= 90:
+		return "legendary"
+	if roll >= 55:
+		return "epic"
+	return "rare"
+
 
 func prepare(target_stage: int, selections: Array[Dictionary]) -> Dictionary:
 	pending_stage = 0
