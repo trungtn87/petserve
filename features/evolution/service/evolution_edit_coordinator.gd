@@ -1048,7 +1048,7 @@ func build_stage_regenerate_request(
 
 	var negative_prompt := (
 		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
-		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
+		+ "close-up portrait, extreme close-up, bust shot, pet filling the entire frame, pet taller than 64 percent of image height, tiny distant pet, pet smaller than 45 percent of image height, humanoid pose, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
 		+ "plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, "
 		+ "heavy accessories, text, UI, logo, watermark"
@@ -1687,7 +1687,7 @@ func _stage_two_base_prompt(
 			identity.element()
 		)
 		+ " Preserve the element-themed PetHome habitat from the reference image. Full body visible. "
-		+ "Keep the complete pet in the lower-middle area at about 38 to 44 percent of image height. "
+		+ "Keep the complete pet in the lower-middle area at about 50 to 56 percent of image height. "
 		+ "Leave generous environment visible above and around the pet and keep the upper 30 percent calm for UI. "
 		+ "Keep the pet grounded with a soft contact shadow. No text or UI."
 	)
@@ -1826,13 +1826,13 @@ func _stage_two_species_prompt(
 func _stage_two_composition_prompt() -> String:
 	return (
 		"Use a vertical 9:16 medium-wide environmental character shot with the camera pulled back, never a close-up, product portrait or character showcase shot. "
-		+ "The habitat remains the main composition and the pet is a clear focal subject living naturally inside it. "
+		+ "The pet is the main composition and clear focal subject; the habitat remains complete but visually secondary around it. "
 		+ "Keep the complete pet comfortably inside the frame from head to tail, including feet and all visible appendages. "
-		+ "LOCKED PETHOME SCALE: the visible pet height should occupy about 38 to 44 percent of total image height. "
+		+ "LOCKED PETHOME SCALE: the visible pet height should occupy about 50 to 56 percent of total image height. "
 		+ "Place the pet in the lower-middle area, centered slightly below the vertical midpoint. "
-		+ "Place the lowest visible pet point around 88 to 90 percent of total image height and the highest visible pet point around 46 to 52 percent. "
+		+ "Place the lowest visible pet point around 88 to 92 percent of total image height and the highest visible pet point around 34 to 42 percent. "
 		+ "Do not enlarge the pet because it is older; Stage progression changes anatomy, proportions, fur maturity and elemental detail, not on-screen character size. "
-		+ "Keep at least about 55 to 60 percent of the image reading clearly as environment, with foreground, midground and background depth. "
+		+ "Keep about 40 to 48 percent of the image reading clearly as environment, with foreground, midground and background depth. "
 		+ "Leave generous environmental space around the silhouette and keep the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
 		+ "Keep the pet physically grounded on a readable surface with a soft natural contact shadow. "
 		+ "Do not zoom in, do not crop ears, feet, body or tail, do not place the paws on the bottom edge, and do not replace the PetHome with a studio backdrop."
@@ -1849,7 +1849,7 @@ func _pethome_scale_lock_section() -> String:
 func _stage_two_negative_prompt() -> String:
 	return (
 		"close-up portrait, extreme close-up, bust shot, character showcase, character poster, giant pet, oversized character, "
-		+ "pet filling the frame, pet occupying most of the image, pet taller than 48 percent of image height, zoomed-in camera, "
+		+ "pet filling the entire frame, pet taller than 64 percent of image height, tiny distant pet, pet smaller than 45 percent of image height, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
 		+ "plain white background, white studio background, gray studio background, transparent backdrop, empty backdrop, product photo, missing environment, "
 		+ "color-swap-only element design, upright bipedal cat, cat standing on two hind legs, anthropomorphic cat pose, humanoid torso, mascot pose, arms, hands, "
