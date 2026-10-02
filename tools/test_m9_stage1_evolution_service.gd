@@ -162,25 +162,25 @@ func _test_natural_stage_one_plan() -> void:
 			"polished stylized 3D fantasy pet illustration"
 		)
 		and request.positive_prompt.contains(
-			"INDIVIDUAL FRAME:"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
 			"AGE AND BODY: Juvenile:"
 		)
 		and request.positive_prompt.contains(
-			"Visible bodily maturation is required even without new Genes"
+			"Show clear natural maturation of the inherited individual instead"
 		)
 		and request.positive_prompt.contains(
-			"distinct tail and chest outline"
+			"MATURATION: Stage 2 — early development"
 		)
 		and request.positive_prompt.contains(
-			"Use sparse organic elemental cues"
+			"elemental effects restrained and secondary"
 		)
 		and request.positive_prompt.contains(
-			"no horns or wings"
+			"SPECIES LOCK:"
 		)
 		and request.positive_prompt.contains(
-			"full body and tail within frame"
+			"full body and authorized appendages inside frame"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -455,25 +455,25 @@ func _test_gene_stage_one_plan() -> void:
 			"polished stylized 3D fantasy pet illustration"
 		)
 		and request.positive_prompt.contains(
-			"INDIVIDUAL FRAME:"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
 			"AGE AND BODY: Juvenile:"
 		)
 		and request.positive_prompt.contains(
-			"Visible bodily maturation is required even without new Genes"
+			"Show clear natural maturation of the inherited individual instead"
 		)
 		and request.positive_prompt.contains(
-			"distinct tail and chest outline"
+			"MATURATION: Stage 2 — early development"
 		)
 		and request.positive_prompt.contains(
-			"Use sparse organic elemental cues"
+			"elemental effects restrained and secondary"
 		)
 		and request.positive_prompt.contains(
-			"PRIORITY FEATURES:"
+			"DEVELOPMENT PRIORITIES"
 		)
 		and request.positive_prompt.contains(
-			"full body and tail within frame"
+			"full body and authorized appendages inside frame"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -885,13 +885,13 @@ func _test_stage_two_natural_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"If a reference is supplied, use it for face and color recognition"
+			"REFERENCE CONTINUITY:"
 		)
 		and request.positive_prompt.contains(
-			"INDIVIDUAL FRAME:"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
-			"Visible bodily maturation is required even without new Genes"
+			"Show clear natural maturation of the inherited individual instead"
 		)
 		and request.positive_prompt.contains(
 			"SCENE: uncluttered natural"
@@ -1035,13 +1035,13 @@ func _test_stage_two_gene_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"Tail:"
+			"existing single tail"
 		)
 		and request.positive_prompt.contains(
-			"PRIORITY FEATURES:"
+			"DEVELOPMENT PRIORITIES"
 		)
 		and request.positive_prompt.contains(
-			"authorized Gene shapes develop"
+			"selected development priorities"
 		),
 		"Stage 2 Gene plan must edit the reference image from the lifetime Gene score plan"
 	)
