@@ -678,7 +678,7 @@ func _mane_instruction(
 	elif family == FAMILY_HOOFED:
 		noun = "species-native mane or neck ruff"
 
-	var quality := {
+	var quality: String = String({
 		"astral": "a restrained flowing mystical organization",
 		"full": "a fuller but still anatomically integrated volume",
 		"layered": "clear overlapping layers",
@@ -687,11 +687,9 @@ func _mane_instruction(
 	}.get(
 		direction,
 		""
-	)
+	))
 
-	if String(
-		quality
-	).is_empty():
+	if quality.is_empty():
 		return ""
 
 	return (
