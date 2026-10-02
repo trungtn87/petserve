@@ -55,7 +55,7 @@ func _run() -> void:
 		"species": String(species),
 		"element": String(element),
 		"lineage_seed": lineage_seed,
-		"model": String(config.model_id()),
+		"model": String(config.model_id),
 		"stages": [],
 	}
 
