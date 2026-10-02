@@ -68,31 +68,32 @@ func build(
 	spec.style_id = style.style_id()
 
 	spec.identity_section = (
-		"Create one young "
+		"IDENTITY LOCK: create exactly one young fantasy "
 		+ String(identity.species())
-		+ " pet. Element: "
+		+ " pet. ELEMENT LOCK: "
 		+ PetElementCatalog.prompt_name(
 			identity.element()
 		)
-		+ "."
+		+ ". This is not an ordinary real-world "
+		+ String(identity.species())
+		+ "; the elemental identity must be visible directly on the creature."
 	)
 
 	spec.style_section = (
-	"Premium fantasy pet illustration, premium fantasy game character art, "
-	+ "polished stylized 3D appearance, evolved chibi proportions, "
-	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
-	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
-	+ "harmonious collectible game-pet design. "
-	+ "ELEMENT READABILITY: the creature itself must communicate its element at first glance even if the background is ignored. "
-	+ "Use anatomy-safe body-integrated color zones, markings, surface materials, fur/plumage/scale flow and small magical accents on the pet itself. "
-	+ "Elemental features must feel organically grown from or naturally integrated into the body design, "
-	+ "not like random objects, stickers or loose decorations placed on the pet. "
-	+ "Keep the elemental palette rich, visible and controlled; never make the environment carry the element by itself. "
-	+ "Element traits: "
-	+ _simple_element_traits(
-		identity.element()
+		"Premium polished stylized 3D fantasy game-pet art, collectible character quality, clean readable silhouette, soft cinematic rim light. "
+		+ "ELEMENT BODY LOCK: the pet itself must communicate "
+		+ PetElementCatalog.prompt_name(identity.element())
+		+ " at first glance even if the entire background is removed. "
+		+ "Use clear anatomy-safe color zones, markings, surface material cues, fur/plumage/scale flow and small body-integrated magical accents. "
+		+ "Do not make a normal animal and place it in an elemental scene. "
+		+ "ELEMENT TRAITS: "
+		+ _simple_element_traits(
+			identity.element()
+		)
+		+ ". FAILURE CONDITION: if the creature still looks like an ordinary realistic "
+		+ String(identity.species())
+		+ " with the element expressed mainly by the scenery, the render is wrong."
 	)
-)
 
 	spec.form_section = (
 		"Stage 1. Young juvenile fantasy "
@@ -102,7 +103,7 @@ func build(
 		+ species_profile.infant_form
 		+ " "
 		+ species_profile.species_anatomy
-		+ " Keep fantasy details subtle."
+		+ " Keep fantasy anatomy species-safe, but make the elemental identity clearly visible on the pet."
 	)
 
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
@@ -155,7 +156,12 @@ func build(
 		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, extreme close-up, bust shot, pet filling the entire frame, pet taller than 64 percent of image height, tiny distant pet, pet smaller than 45 percent of image height, humanoid pose, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
-		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
+		+ "heavy accessories, fully adult animal, old animal, ordinary realistic "
+		+ String(identity.species())
+		+ ", plain natural "
+		+ String(identity.species())
+		+ ", generic real-world animal, documentary animal photo, farm-animal photo, plain natural coat with no elemental signature, element visible only in background, "
+		+ "plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
@@ -170,72 +176,72 @@ func _simple_element_traits(
 	match element:
 		&"wood":
 			return (
-				"soft cream and warm light-brown fur with fresh green accents, "
-				+ "small living sprouts growing naturally from the head and ear fur, "
-				+ "leaf-like fur tufts, layered leafy chest fluff, "
-				+ "subtle vine-like markings blended into the coat, "
-				+ "and a soft bud-shaped leafy tail tip. "
+				"warm cream and light-brown body colors with clearly readable fresh-green zones, "
+				+ "small but visible living sprouts integrated into existing head or ear covering, "
+				+ "leaf-like surface tufts, layered leafy chest texture, "
+				+ "clear vine or vein markings blended into the body surface, "
+				+ "and a readable bud-shaped leafy tail-tip treatment where species anatomy allows. "
 				+ "Plant features should look naturally grown as part of the pet, "
 				+ "not like loose leaves stuck onto the fur"
 			)
 
 		&"earth":
 			return (
-				"warm cream, beige and earthy brown fur with subtle mineral tones, "
-				+ "small smooth pebbles and polished natural crystals emerging gently from the fur, "
+				"warm cream, beige and earthy-brown body colors with clearly readable mineral tones, "
+				+ "small smooth mineral or polished crystal accents integrated into existing body surfaces, "
 				+ "especially around the forehead, chest and back, "
-				+ "soft stone-like markings blended into the coat and a grounded fluffy silhouette. "
+				+ "readable stone-grain markings and a grounded heavy surface rhythm. "
 				+ "Mineral details should feel organically embedded in the body design, "
 				+ "not like rocks randomly thrown onto the pet"
 			)
 
 		&"fire":
 			return (
-				"soft cream, peach and warm orange fur with glowing ember accents, "
-				+ "small controlled flames naturally forming at the ear tips and tail tip, "
-				+ "subtle glowing flame-shaped markings on the forehead and cheeks, "
-				+ "and delicate warm ember lines flowing through the fur. "
+				"cream, peach and warm-orange body colors with clearly visible ember accents, "
+				+ "small controlled living-flame highlights on existing tips or contours, "
+				+ "readable glowing flame-shaped markings on the forehead and face, "
+				+ "and warm ember lines flowing through the body surface. "
 				+ "Fire should feel like magical living fur energy, "
 				+ "not like the pet is burning uncontrollably"
 			)
 
 		&"light":
 			return (
-				"soft ivory and warm pearl-white fur with pale golden accents, "
-				+ "a small luminous star-shaped forehead mark, "
-				+ "soft golden light woven naturally through the ear fur and tail, "
-				+ "a restrained elegant halo-like glow around the silhouette, "
-				+ "and tiny gentle light particles. "
+				"ivory and warm pearl-white body colors with clearly readable pale-gold zones, "
+				+ "a visible luminous star or radiant-arc forehead mark, "
+				+ "golden light woven naturally through existing surface flow and tail, "
+				+ "an elegant controlled halo-like edge glow close to the silhouette, "
+				+ "and a few gentle light particles. "
 				+ "The light should feel soft, pure and magical, not overly bright or angelic"
 			)
 
 		&"metal":
 			return (
-				"silver-white and very pale cool-gray fur with clean icy-blue accents, "
-				+ "small polished metallic crystal facets growing naturally from the forehead and fur, "
-				+ "subtle silver leaf-like plates blended into the chest and leg fur, "
-				+ "fine metallic strands around the tail and a refined cool reflective sheen. "
+				"silver-white and pale cool-gray body colors with clearly readable icy-blue accents, "
+				+ "small polished metallic or crystal facets integrated into the forehead and body surface, "
+				+ "clean geometric silver surface separations around chest and legs, "
+				+ "fine metallic-looking strands around the tail and a refined reflective sheen. "
 				+ "Metal details should feel elegant and organically integrated, "
 				+ "not like armor or mechanical equipment"
 			)
 
 		&"water":
 			return (
-				"pearl-white and soft aqua fur with clear turquoise accents, "
-				+ "small translucent water-drop crystals naturally forming on the forehead and fur, "
-				+ "soft wave-like fur tufts, flowing aqua gradients along the cheeks and tail, "
-				+ "and a few delicate suspended bubbles and droplets. "
+				"pearl-white and aqua body colors with strong readable turquoise zones, "
+				+ "small translucent water-drop accents integrated into the forehead and body surface, "
+				+ "wave-like surface flow, flowing aqua gradients along the face and tail, "
+				+ "ripple-like markings, moist reflective highlights and a few close-body droplets. "
 				+ "Water should feel naturally infused into the fur and body, "
 				+ "not like the pet is simply wet"
 			)
 
 		&"dark":
 			return (
-				"smoky blue-black, charcoal-indigo and muted violet fur with restrained cyan-violet highlights, "
-				+ "a subtle crescent or astral forehead mark, "
-				+ "soft shadow-like fur gradients, faint luminous eye accents, "
-				+ "restrained mist woven around the tail and silhouette, "
-				+ "and a few elegant dark magical markings blended into the coat. "
+				"smoky blue-black, charcoal-indigo and muted-violet body colors with clearly readable cyan-violet highlights, "
+				+ "a visible crescent or astral forehead sigil, "
+				+ "readable shadow-gradient surface markings and luminous eye accents, "
+				+ "controlled dark mist woven close to the mane or ruff, tail and lower legs where anatomically appropriate, "
+				+ "and elegant dark magical markings visibly integrated into the body surface. "
 				+ "Dark energy should feel mysterious and integrated into the pet, "
 				+ "not like galaxy texture or random purple effects covering the body"
 			)
