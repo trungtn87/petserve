@@ -12,8 +12,10 @@ func _ready() -> void:
 
 func _draw() -> void:
 	var step := minf(size.x, size.y) / 15.0
+	var origin := (size - Vector2.ONE * step * 15) * 0.5
+	draw_set_transform(origin)
 	var pad := step * 0.5
-	draw_rect(Rect2(Vector2.ZERO, Vector2.ONE * step * 15), Color("dcc392"))
+	draw_style_box(ArcadeTheme.box(Color("dcc392"), Color("a68b60"), 8), Rect2(Vector2.ZERO, Vector2.ONE * step * 15))
 	for i in 15:
 		var pos := pad + i * step
 		draw_line(Vector2(pad,pos), Vector2(pad + 14*step,pos), Color("78654b"))
@@ -24,13 +26,17 @@ func _draw() -> void:
 	for i in cells.size():
 		var center := Vector2(pad + (i % 15)*step, pad + (i / 15)*step)
 		if cells[i] != 0:
+			draw_circle(center + Vector2(0, 1.5), step*0.43, Color(0, 0, 0, 0.18))
 			draw_circle(center,step*0.41, Color("20232a") if cells[i] == 1 else Color("fafafa"))
+			draw_circle(center - Vector2.ONE * step*0.12, step*0.12, Color(1, 1, 1, 0.14) if cells[i] == 1 else Color.WHITE)
 			if winning.has(i):
 				draw_arc(center,step*0.44,0,TAU,24,Color("26a454"),2)
 			elif i == last_move:
 				draw_circle(center,2,Color("ed6555"))
 		elif i == selected:
 			draw_arc(center,step*0.4,0,TAU,24,Color("d24b3e"),2)
+
+	draw_set_transform(Vector2.ZERO)
 
 func _gui_input(event: InputEvent) -> void:
 	if not enabled:
@@ -43,6 +49,9 @@ func _gui_input(event: InputEvent) -> void:
 	else:
 		return
 	var step := minf(size.x,size.y) / 15.0
+	point -= (size - Vector2.ONE * step * 15) * 0.5
+	if point.x < 0 or point.y < 0:
+		return
 	var x := int(point.x / step)
 	var y := int(point.y / step)
 	if x in range(15) and y in range(15):

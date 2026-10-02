@@ -22,10 +22,13 @@ var _claim_pending: bool = false
 var _last_result: StringName = &""
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	set_process(false)
 	_build_ui()
 
 func open_activity() -> void:
+	AudioService.play("open")
 	if _game == null:
 		_game = ObstacleRunGame.new()
 	else:

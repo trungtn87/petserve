@@ -30,6 +30,8 @@ var _announced := false
 const PAGE_SIZE := 3
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	var root := VBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_theme_constant_override("separation", 4)
@@ -104,6 +106,7 @@ func _ready() -> void:
 	add_child(_ghost)
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_discover_images()
 	if _session.image_path.is_empty():

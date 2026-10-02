@@ -48,6 +48,8 @@ var _reward_label: Label
 
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
@@ -65,6 +67,7 @@ func open_hub(
 	stage2_max: int = 4,
 	stage2_enabled: bool = false
 ) -> void:
+	AudioService.play("open")
 	_caro_reward_claimed = caro_claimed
 	_caro_reward_max = maxi(
 		0,
@@ -88,6 +91,8 @@ func open_hub(
 
 
 func close_hub() -> void:
+	if _is_open:
+		AudioService.play("close")
 	if _breakout_activity != null:
 		_breakout_activity.close_activity()
 
@@ -572,6 +577,7 @@ func _activity_card(
 
 	var subtitle := Label.new()
 	subtitle.text = subtitle_text
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override(
 		"font_size",
@@ -626,6 +632,8 @@ func _open_obstacle() -> void:
 
 
 func _show_hub_screen() -> void:
+	if _is_open and _hub_screen != null and not _hub_screen.visible:
+		AudioService.play("close")
 	_hide_activities()
 
 	if _hub_screen != null:
@@ -737,13 +745,13 @@ func _style(
 		Color(
 			palette.get(
 				"panel",
-				Color("171229")
+				ArcadeTheme.BG
 			),
 			bg.a
 		),
 		palette.get(
 			"accent",
-			Color("a98af4")
+			ArcadeTheme.ACCENT
 		)
 	)
 

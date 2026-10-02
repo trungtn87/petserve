@@ -29,6 +29,8 @@ var _new_round_button: Button
 var _zoom := false
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = false
 	if connection == null:
@@ -71,7 +73,7 @@ func _build_ui() -> void:
 		_mode_select.add_item(text)
 	_mode_select.item_selected.connect(_change_mode)
 	root.add_child(_mode_select)
-	root.add_child(_label("Đen đi trước • ≥5 quân liên tiếp thắng\nChạm chọn ô rồi bấm Đặt quân"))
+	root.add_child(_label("Chọn ô → Đặt quân • ≥5 quân thắng"))
 	_reward_label = _label("")
 	root.add_child(_reward_label)
 	_status_label = _label("")
@@ -95,6 +97,7 @@ func _build_ui() -> void:
 	actions.add_child(_new_round_button)
 
 func open_activity() -> void:
+	AudioService.play("open")
 	_is_open = true
 	visible = true
 	_start_new_round()
@@ -123,7 +126,7 @@ func show_reward_message(message: String) -> void:
 func _update_reward_label() -> void:
 	if _reward_label == null:
 		return
-	_reward_label.text = "Mỗi ngày: 1 rương/game • Chơi thêm: 1 mảnh/ván, tối đa 10 mảnh"
+	_reward_label.text = "1 rương/ngày • Thêm tối đa 10 mảnh"
 
 func _change_mode(index: int) -> void:
 	if _mode == 2:

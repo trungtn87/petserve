@@ -21,6 +21,8 @@ var _announced := ""
 var _numbers: Array[Button] = []
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	var root := VBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_theme_constant_override("separation", 5)
@@ -86,6 +88,7 @@ func _ready() -> void:
 	add_child(_help)
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_message.text = "Chạm ô trống rồi chọn số • Không giới hạn thời gian."
 	if game_api != null:

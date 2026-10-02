@@ -34,13 +34,15 @@ var _confirm: ConfirmationDialog
 var _ranking: AcceptDialog
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	if connection == null:
 		connection = get_node_or_null("/root/LocalConnection")
 	if connection != null:
 		connection.message_received.connect(_on_message)
 		connection.status_changed.connect(_connection_changed)
 	var background := ColorRect.new()
-	background.color = Color("131925")
+	background.color = ArcadeTheme.BG
 	background.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(background)
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -116,6 +118,7 @@ func _button(text: String, callback: Callable) -> Button:
 	return b
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_reset_inputs()
 	if connection != null and connection.connected():

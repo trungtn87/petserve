@@ -28,9 +28,12 @@ var _soft_elapsed := 0.0
 var _announced_match := ""
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	_build_ui()
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_paused = false
 	_pause.text = "Dừng"

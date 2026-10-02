@@ -176,5 +176,5 @@ func _restore() -> void:
 	restored.emit()
 	LocalConnection.disconnect_session()
 	RunManager.restore_or_prepare()
-	AudioServer.set_bus_mute(0, not bool(AtomicJson.read("user://settings_v1.json").get("sound", true)))
+	AudioService.reload_settings()
 	get_tree().change_scene_to_file("res://scenes/main.tscn")

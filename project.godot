@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7")
 [autoload]
 
 BackupService="*res://core/backup/backup_service.gd"
+AudioService="*res://core/audio_service.gd"
 RandomManager="*res://core/random_manager.gd"
 SaveManager="*res://core/save_manager.gd"
 RunManager="*res://core/run_manager.gd"

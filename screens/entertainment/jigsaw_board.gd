@@ -38,7 +38,7 @@ func _gui_input(event: InputEvent) -> void:
 func _draw() -> void:
 	if session == null or texture == null:
 		return
-	draw_rect(Rect2(Vector2.ZERO, size), Color("241b39"))
+	draw_rect(Rect2(Vector2.ZERO, size), Color("182636"))
 	if show_reference:
 		draw_texture_rect(texture, Rect2(Vector2.ZERO, size), false, Color(1, 1, 1, .35))
 	var cell := cell_size()
@@ -51,4 +51,4 @@ func _draw() -> void:
 			draw_colored_polygon(polygon, Color.WHITE, session.uv(index), texture)
 		polygon.append(polygon[0])
 		draw_polyline(polygon, Color(1, 1, 1, .16), .7, true)
-	draw_rect(Rect2(Vector2.ZERO, size), Color("a98af4"), false, 1.5)
+	draw_rect(Rect2(Vector2.ZERO, size), Color("79d8cb"), false, 1.5)

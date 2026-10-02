@@ -20,9 +20,12 @@ var _help: AcceptDialog
 var _announced_match := ""
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	_build_ui()
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_message.text = "Vuốt để ghép ô • Không giới hạn thời gian."
 	if game_api != null:

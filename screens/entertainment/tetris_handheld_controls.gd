@@ -123,39 +123,39 @@ func _input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	var shell := StyleBoxFlat.new()
-	shell.bg_color = Color("282433")
-	shell.border_color = Color("544b65")
+	shell.bg_color = Color("223548")
+	shell.border_color = Color("3b536b")
 	shell.set_border_width_all(1)
 	shell.set_corner_radius_all(18)
 	draw_style_box(shell, Rect2(Vector2.ZERO, size))
 	# The center joins four separate touch regions into a familiar D-pad cross.
 	var center := Rect2(46, 38, PAD_SIZE, PAD_SIZE)
 	var key_style := StyleBoxFlat.new()
-	key_style.bg_color = Color("14121b")
+	key_style.bg_color = Color("0c141f")
 	key_style.set_corner_radius_all(5)
 	draw_style_box(key_style, center)
-	draw_circle(center.get_center(), 5, Color("36303f"))
+	draw_circle(center.get_center(), 5, Color("314b63"))
 	var rects := _rects()
 	for action in rects:
 		var rect: Rect2 = rects[action]
 		var pushed := _pressed(str(action))
-		var color := Color("ae84e8") if pushed else Color("403749")
+		var color := Color("79d8cb") if pushed else Color("34536b")
 		if not enabled:
-			color = Color("302c37")
+			color = Color("24394b")
 		var offset := Vector2(0, 2) if pushed else Vector2.ZERO
 		if action == "rotate":
-			draw_circle(rect.get_center() + Vector2(0,4), ROTATE_SIZE * 0.5, Color("15111e"))
+			draw_circle(rect.get_center() + Vector2(0,4), ROTATE_SIZE * 0.5, Color("0b141e"))
 			draw_circle(rect.get_center() + offset, ROTATE_SIZE * 0.5, color)
-			draw_arc(rect.get_center() + offset, ROTATE_SIZE * 0.5 - 2, 0, TAU, 64, Color("a68bbd"), 1.5, true)
+			draw_arc(rect.get_center() + offset, ROTATE_SIZE * 0.5 - 2, 0, TAU, 64, Color("92b6c8"), 1.5, true)
 			_text("↻", Rect2(rect.position + offset, rect.size), 39)
 		else:
 			var shadow := StyleBoxFlat.new()
-			shadow.bg_color = Color("100e16")
+			shadow.bg_color = Color("0a111b")
 			shadow.set_corner_radius_all(7)
 			draw_style_box(shadow, Rect2(rect.position + Vector2(0,3), rect.size))
 			var key := StyleBoxFlat.new()
 			key.bg_color = color
-			key.border_color = Color("746480")
+			key.border_color = Color("5f8198")
 			key.set_border_width_all(1)
 			key.set_corner_radius_all(7)
 			draw_style_box(key, Rect2(rect.position + offset, rect.size))
@@ -170,4 +170,4 @@ func _text(value: String, rect: Rect2, font_size: int) -> void:
 	var font := get_theme_default_font()
 	var extent := font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var origin := rect.get_center() + Vector2(-extent.x * 0.5, (font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5)
-	draw_string(font, origin, value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color("eee4fb") if enabled else Color("81788c"))
+	draw_string(font, origin, value, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color("edf4fc") if enabled else Color("73869a"))

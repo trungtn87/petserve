@@ -23,11 +23,11 @@ func _draw() -> void:
 		return
 	var rect := board_rect()
 	var unit := rect.size.x / 10.0
-	draw_rect(rect, Color("100c1c"))
+	draw_rect(rect, Color("0c141f"))
 	for x in range(11):
-		draw_line(rect.position + Vector2(x * unit, 0), rect.position + Vector2(x * unit, rect.size.y), Color("2d2540"))
+		draw_line(rect.position + Vector2(x * unit, 0), rect.position + Vector2(x * unit, rect.size.y), Color("203145"))
 	for y in range(21):
-		draw_line(rect.position + Vector2(0, y * unit), rect.position + Vector2(rect.size.x, y * unit), Color("2d2540"))
+		draw_line(rect.position + Vector2(0, y * unit), rect.position + Vector2(rect.size.x, y * unit), Color("203145"))
 	var board: Array = state.get("board", [])
 	for index in board.size():
 		if int(board[index]) > 0:
@@ -39,12 +39,12 @@ func _draw() -> void:
 			_cell(rect, state.ghost + cell, Color(COLORS[kind], 0.35), true)
 		for cell in session.cells(kind, int(state.rotation)):
 			_cell(rect, state.position + cell, COLORS[kind], false)
-	draw_rect(rect, Color("ac8fe8"), false, 1.0)
+	draw_rect(rect, Color("5d8892"), false, 1.0)
 	var side := rect.position.x
 	if side >= 42:
 		var preview_unit := minf(12.0, (side - 8) / 4.0)
 		var right := Vector2(rect.end.x + (side - 4 * preview_unit) * 0.5, rect.position.y + 36)
-		draw_string(ThemeDB.fallback_font, right + Vector2(0,-10), "TIẾP", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("c9bcdf"))
+		draw_string(ThemeDB.fallback_font, right + Vector2(0,-10), "TIẾP", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("afc1d3"))
 		var next: Array = state.next
 		_preview_piece(int(next[0]), right, preview_unit)
 		_preview_piece(int(next[1]), right + Vector2(0,60), preview_unit)
@@ -57,7 +57,8 @@ func _cell(rect: Rect2, point: Vector2i, color: Color, ghost: bool) -> void:
 	if ghost:
 		draw_rect(tile, color, false, 1.5)
 	else:
-		draw_rect(tile, color)
+		draw_style_box(ArcadeTheme.box(color.darkened(0.42), Color.TRANSPARENT, 3), Rect2(tile.position + Vector2(0, 1), tile.size))
+		draw_style_box(ArcadeTheme.box(color, color.lightened(0.15), 3), tile.grow(-0.5))
 	if not ghost:
 		draw_line(tile.position + Vector2(1,1), tile.position + Vector2(tile.size.x-1,1), color.lightened(0.3), 1.0)
 

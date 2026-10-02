@@ -1552,6 +1552,7 @@ func _prepare_section(
 	title: String,
 	section_id: StringName = &""
 ) -> void:
+	AudioService.play("open")
 	_active_section = section_id
 	_crystal_slot_views.clear()
 	_crystal_unlocked_slots = 0
@@ -1624,6 +1625,7 @@ func _add_info_row(
 
 
 func _close_section() -> void:
+	AudioService.play("close")
 	_active_section = &""
 	_crystal_slot_views.clear()
 	_crystal_unlocked_slots = 0
@@ -3918,18 +3920,43 @@ func _achievement_thumbnail(
 
 func _open_settings() -> void:
 	_prepare_section("Cài đặt")
-	var sound := CheckButton.new()
-	sound.text = "Âm thanh"
-	sound.button_pressed = not AudioServer.is_bus_mute(0)
-	sound.toggled.connect(func(enabled: bool):
-		AudioServer.set_bus_mute(0, not enabled)
-		AtomicJson.write("user://settings_v1.json", {"sound": enabled})
-	)
-	_section_body.add_child(sound)
+	_audio_toggle("Âm thanh", "sound", true)
+	_audio_toggle("Hiệu ứng bấm / mở / đóng", "effects", true)
+	_audio_volume("Âm lượng hiệu ứng", "effects_volume", 0.65)
+	_audio_toggle("Nhạc nền", "music", true)
+	_audio_volume("Âm lượng nhạc", "music_volume", 0.45)
 	_section_button("Kết nối 2 người • Wi-Fi / Bluetooth", _open_local_connection)
 	_section_button("Dữ liệu • Sao lưu / Khôi phục", _open_backup)
 	_section_button("Lưu tiến trình", func(): _hud.show_message("Đã lưu" if _game.save() else "Chưa lưu được. Hãy thử lại."))
 	_section_overlay.visible = true
+
+
+func _audio_toggle(label: String, key: String, fallback: bool) -> void:
+	var toggle := CheckButton.new()
+	toggle.text = label
+	toggle.button_pressed = bool(AudioService.settings.get(key, fallback))
+	toggle.toggled.connect(func(enabled: bool) -> void:
+		if not AudioService.set_setting(key, enabled):
+			_hud.show_message("Chưa lưu được cài đặt âm thanh.")
+	)
+	_section_body.add_child(toggle)
+
+func _audio_volume(label: String, key: String, fallback: float) -> void:
+	var title := Label.new()
+	var slider := HSlider.new()
+	slider.min_value = 0
+	slider.max_value = 100
+	slider.step = 5
+	slider.value = float(AudioService.settings.get(key, fallback)) * 100
+	slider.custom_minimum_size.y = 32
+	title.text = "%s • %d%%" % [label, int(slider.value)]
+	slider.value_changed.connect(func(value: float) -> void:
+		title.text = "%s • %d%%" % [label, int(value)]
+		if not AudioService.set_setting(key, value / 100.0):
+			_hud.show_message("Chưa lưu được cài đặt âm thanh.")
+	)
+	_section_body.add_child(title)
+	_section_body.add_child(slider)
 
 
 func _open_local_connection() -> void:

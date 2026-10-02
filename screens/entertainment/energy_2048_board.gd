@@ -75,9 +75,9 @@ func _draw() -> void:
 func _draw_tile(rect: Rect2, value: int) -> void:
 	var style := StyleBoxFlat.new()
 	style.set_corner_radius_all(7)
-	var accent: Color = palette.get("accent", Color("a98af4"))
+	var accent: Color = palette.get("accent", Color("79d8cb"))
 	var level := log(float(maxi(2, value))) / log(2.0)
-	style.bg_color = Color("292338") if value == 0 else Color("342749").lerp(accent.darkened(0.12), (level - 1.0) / 10.0)
+	style.bg_color = ArcadeTheme.SURFACE if value == 0 else [Color("304b66"), Color("3b6280"), Color("336e79"), Color("397e76"), Color("568961"), Color("859557"), Color("d0ad65"), Color("e7b16f"), Color("dc9470"), Color("cd7f92"), Color("a994d5")][clampi(int(level) - 1, 0, 10)]
 	if value >= 128:
 		style.set_border_width_all(1)
 		style.border_color = accent
@@ -89,7 +89,7 @@ func _draw_tile(rect: Rect2, value: int) -> void:
 	var text := str(value)
 	var width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	var baseline := (rect.size.y - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)
-	draw_string(font, rect.position + Vector2((rect.size.x - width) * 0.5, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color.WHITE)
+	draw_string(font, rect.position + Vector2((rect.size.x - width) * 0.5, baseline), text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color("101923") if value >= 128 else ArcadeTheme.TEXT)
 
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:

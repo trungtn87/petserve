@@ -28,8 +28,10 @@ var _announced := ""
 var _save_error := ""
 
 func _ready() -> void:
+	palette = ArcadeTheme.palette()
+	ArcadeTheme.polish.call_deferred(self)
 	var background := ColorRect.new()
-	background.color = Color("171229")
+	background.color = ArcadeTheme.BG
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	var root := VBoxContainer.new()
@@ -93,6 +95,7 @@ func _ready() -> void:
 	add_child(_help)
 
 func open_activity() -> void:
+	AudioService.play("open")
 	visible = true
 	_running = true
 	_clock = 0

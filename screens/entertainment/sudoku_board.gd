@@ -39,20 +39,20 @@ func _draw() -> void:
 	var cell := area.size.x / 9.0
 	var font := ThemeDB.fallback_font
 	var font_size := maxi(12, int(cell * 0.64))
-	var accent: Color = palette.get("accent", Color("a98af4"))
+	var accent: Color = palette.get("accent", Color("79d8cb"))
 	for index in 81:
 		var box := Rect2(area.position + Vector2(index % 9, index / 9) * cell, Vector2.ONE * cell)
 		var value: int = state.board[index]
-		var bg := Color("211b35")
+		var bg := Color("172637")
 		if selected >= 0 and SudokuRules.peers(index, selected):
-			bg = Color("35304b")
+			bg = Color("253c50")
 		if selected >= 0 and value > 0 and value == int(state.board[selected]):
-			bg = Color("4b3866")
+			bg = Color("325965")
 		if index == selected:
 			bg = accent.darkened(0.45)
 		draw_rect(box, bg)
 		if value > 0:
-			var color := Color.WHITE if int(state.puzzle[index]) > 0 else Color("beadff")
+			var color := Color.WHITE if int(state.puzzle[index]) > 0 else Color("79d8cb")
 			if SudokuRules.conflicts(state.board, index):
 				color = Color("ff7d87")
 			var text := str(value)
@@ -63,9 +63,9 @@ func _draw() -> void:
 			for number in 9:
 				if int(state.notes[index]) & (1 << number):
 					var pos := box.position + Vector2(number % 3, number / 3) * cell / 3.0
-					draw_string(font, pos + Vector2(cell / 12.0, font.get_ascent(small)), str(number + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, small, Color("c2b7d8"))
+					draw_string(font, pos + Vector2(cell / 12.0, font.get_ascent(small)), str(number + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, small, Color("afc1d3"))
 	for line in 10:
-		var color := accent if line % 3 == 0 else Color("53485e")
+		var color := accent if line % 3 == 0 else Color("3b536b")
 		var width := 2.0 if line % 3 == 0 else 1.0
 		draw_line(area.position + Vector2(line * cell, 0), area.position + Vector2(line * cell, area.size.y), color, width)
 		draw_line(area.position + Vector2(0, line * cell), area.position + Vector2(area.size.x, line * cell), color, width)

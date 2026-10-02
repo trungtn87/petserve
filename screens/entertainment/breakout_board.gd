@@ -53,8 +53,8 @@ func _gui_input(event: InputEvent) -> void:
 func _draw() -> void:
 	var area := _area()
 	var scale_value := area.size.x / BreakoutMaps.WIDTH
-	draw_rect(area, Color("16151e"))
-	draw_rect(area, Color("665880"), false, 1.5)
+	draw_rect(area, Color("0c141f"))
+	draw_rect(area, Color("3b536b"), false, 1.5)
 	if state.is_empty():
 		return
 	for brick in state.bricks:
@@ -73,7 +73,7 @@ func _draw() -> void:
 			draw_line(rect.position + Vector2(5, 5) * scale_value, rect.end - Vector2(5, 5) * scale_value, Color("c4c7d0"), 2)
 	var width := float(state.paddle_width)
 	var paddle := Rect2(area.position + Vector2(float(state.paddle_x) - width / 2, BreakoutSession.PADDLE_Y) * scale_value, Vector2(width, 8) * scale_value)
-	draw_style_box(PetHomeTheme.panel_style(Color("ede7ff"), Color("cbb2ff")), paddle)
+	draw_style_box(PetHomeTheme.panel_style(Color("bcece3"), ArcadeTheme.ACCENT), paddle)
 	draw_circle(area.position + Vector2(float(state.ball[0]), float(state.ball[1])) * scale_value, BreakoutSession.RADIUS * scale_value, Color("fff7df"))
 	for drop in state.drops:
 		var center := area.position + Vector2(float(drop.x), float(drop.y)) * scale_value
