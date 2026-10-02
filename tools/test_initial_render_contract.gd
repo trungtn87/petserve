@@ -147,7 +147,7 @@ func _initialize() -> void:
 			"56 to 62 percent"
 		)
 		and request.positive_prompt.contains(
-			"camera pulled back"
+			"Camera is pulled back"
 		)
 		and request.negative_prompt.contains(
 			"pet taller than 48 percent"
