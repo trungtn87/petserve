@@ -1225,7 +1225,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v14_stage_3"
+			"_pethome_v15_stage_3"
 		)
 		and request_two.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
@@ -1337,7 +1337,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v14_stage_4"
+			"_pethome_v15_stage_4"
 		)
 		and request_three.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
@@ -1470,7 +1470,7 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		final_request != null
 		and final_request.output_key.ends_with(
-			"_pethome_v14_stage_5"
+			"_pethome_v15_stage_5"
 		)
 		and final_request.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
