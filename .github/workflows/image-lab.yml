@@ -24,6 +24,8 @@ jobs:
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_lineage_morphology.gd
       - name: All seven elements through Final and UI
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_image_lab.gd
+      - name: Random PetHome identity and Gene stages 1-4
+        run: timeout 90 godot --headless --path . --script tools/image_lab/test_random_four_stage.gd
       - name: Resolved shape and A/B preset
         run: timeout 90 godot --headless --path . --script tools/image_lab/test_resolved_form.gd
       - name: Startup
