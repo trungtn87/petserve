@@ -25,8 +25,13 @@ func _run() -> void:
 			break
 		var positive: String = lab.request.positive_prompt
 		var seed_value: int = lab.request.seed
-		if stage >= 3:
+		if stage >= 2:
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT, "production reference mode")
+			_check(not lab.request.source_image_path.is_empty(), "previous stage image supplied as reference")
+			if stage == 2:
+				_check(positive.contains("[REFERENCE IMAGE]"), "Stage 2 reference-image prompt")
+				_check(positive.contains("[STAGE 2 GROWTH]"), "Stage 2 growth prompt")
+				_check(not positive.contains("Stage 1 ancestry cues:"), "Stage 1 is not verbally reconstructed")
 			lab.render_mode.select(1)
 			lab._prepare()
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE and lab.request.source_image_path.is_empty(), "fresh mode removes reference")

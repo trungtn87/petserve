@@ -29,8 +29,8 @@ func _run() -> void:
 			if stage > 1:
 				var game_request: PetRenderRequest = session.service.build_request(session.save.load_data())
 				_check(game_request != null and game_request.positive_prompt == request.positive_prompt and game_request.negative_prompt == request.negative_prompt and game_request.mode == request.mode and game_request.seed == request.seed and game_request.source_image_path == request.source_image_path, "exact production request except output cache key")
-			if stage >= 3:
-				_check(request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT and request.source_image_path == path, "reference edit for stage 3+")
+			if stage >= 2:
+				_check(request.mode == PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT and request.source_image_path == path, "reference edit for stage 2+")
 			var result := PetRenderResult.ok(path, &"contract_test", &"no_ai", {"seed": request.seed})
 			_check(session.accept(result), "accept stage %d" % stage)
 			if stage > 1:

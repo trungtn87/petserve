@@ -844,7 +844,7 @@ func build_stage_regenerate_request(
 				"error": "PetHome Scene Profile full-regenerate không hợp lệ.",
 			}
 
-	if target_stage >= 3:
+	if target_stage >= 2:
 		return _build_reference_stage_request(
 			identity,
 			previous_genome,
@@ -1152,6 +1152,12 @@ func _build_reference_stage_request(
 	var visual_catalog := MutationVisualCatalog.new()
 	var visuals := visual_catalog.load_default()
 	var edit_strength := NATURAL_EDIT_STRENGTH
+
+	if target_stage == 2:
+		edit_strength = maxf(
+			edit_strength,
+			STAGE_TWO_EDIT_STRENGTH
+		)
 
 	if deltas.is_empty():
 		positive_prompt += (

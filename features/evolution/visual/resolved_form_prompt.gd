@@ -39,6 +39,14 @@ func build(
 	var element_name := PetElementCatalog.prompt_name(
 		identity.element()
 	)
+
+	if target_stage == 2:
+		return _build_stage_two_reference_prompt(
+			identity,
+			scores,
+			mythic
+		)
+
 	var lines: Array[String] = []
 
 	lines.append(
@@ -146,6 +154,83 @@ func build(
 			+ "Show the complete pet and the elemental habitat together. "
 			+ "Do not omit the environment or any strongly expressed Gene trait. No text, UI, logo or watermark."
 		)
+	)
+
+	return "\n\n".join(lines)
+
+
+func _build_stage_two_reference_prompt(
+	identity: PetIdentity,
+	scores: Dictionary,
+	mythic: Dictionary
+) -> String:
+	var species := String(identity.species())
+	var element_name := PetElementCatalog.prompt_name(
+		identity.element()
+	)
+	var lines: Array[String] = []
+
+	lines.append(
+		"[REFERENCE IMAGE]\n"
+		+ "Use the supplied Stage 1 image as the canonical visual reference for this exact pet. "
+		+ "Evolve that same individual. Do not recreate or reinterpret Stage 1 from a written description. "
+		+ "Take the pet's face, species identity, colors, markings, elemental appearance and overall design directly from the reference image."
+	)
+
+	lines.append(
+		"[STAGE 2 GROWTH]\n"
+		+ "Grow the same pet into a clearly older juvenile Stage 2 form. "
+		+ "The physical growth must be obvious: a more developed torso and chest, longer or more mature limb proportions where natural, "
+		+ "and a less baby-like overall body while still remaining youthful and cute. "
+		+ "Allow a new natural pose. Make the change read as body growth, not camera zoom, extra glow or added decoration."
+	)
+
+	var gene_prompt := GenePromptResolver.new().build_from_scores(
+		scores,
+		identity.element(),
+		2,
+		identity.species()
+	)
+
+	if not gene_prompt.is_empty():
+		lines.append(gene_prompt)
+
+	var mythic_active := String(
+		mythic.get(
+			"mode",
+			"none"
+		)
+	) in [
+		"awaken",
+		"continue",
+	]
+
+	if mythic_active:
+		lines.append(
+			"[MYTHIC]\n"
+			+ String(
+				mythic.get(
+					"prompt",
+					""
+				)
+			)
+		)
+
+	lines.append(
+		"[BACKGROUND]\n"
+		+ "Keep the same general habitat identity shown in the reference image. "
+		+ "The background must remain clearly visible and naturally match the "
+		+ element_name
+		+ " element. Do not replace it with a plain white, gray or empty studio background."
+	)
+
+	lines.append(
+		"[FINAL]\n"
+		+ "Keep the same overall art style as the reference image. "
+		+ "Show one complete full-body "
+		+ species
+		+ " with all requested Gene traits visible on the same pet. "
+		+ "Keep substantial environment visible around the pet. No text, UI, logo or watermark."
 	)
 
 	return "\n\n".join(lines)

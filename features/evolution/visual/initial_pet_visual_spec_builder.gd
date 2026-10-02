@@ -106,8 +106,13 @@ func build(
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
 
 	spec.scene_section = (
-		"Simple natural fantasy background matching the same element. "
-		+ "Keep it uncluttered and atmospheric."
+		"Show the pet inside a clearly visible "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ "-themed fantasy environment. "
+		+ "The background must be present and should naturally match the pet's element. "
+		+ "Do not use a plain white, gray or empty studio background."
 	)
 
 	spec.composition_section = (
@@ -133,7 +138,8 @@ func build(
 		+ String(identity.species())
 		+ ", old "
 		+ String(identity.species())
-		+ ", text, UI, logo, watermark"
+		+ ", plain white background, gray studio background, empty background, isolated character cutout, missing environment, "
+		+ "text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():

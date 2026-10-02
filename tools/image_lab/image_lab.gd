@@ -62,7 +62,7 @@ func _ready() -> void:
 		target.add_item("Stage %d" % stage if stage < 5 else "Final (sau Stage 4)")
 	controls.add_child(target)
 	_label("Chế độ thử ảnh", controls)
-	render_mode.add_item("Theo game: ảnh tham chiếu từ Stage 3")
+	render_mode.add_item("Theo game: dùng ảnh Stage trước làm mẫu")
 	render_mode.add_item("Thử dựng ảnh mới: cùng hình thái đích")
 	controls.add_child(render_mode)
 	render_mode.item_selected.connect(func(_index: int): _invalidate())
@@ -249,7 +249,7 @@ func _prepare() -> void:
 		status.text = str(plan.get("error", "Không tạo được câu lệnh."))
 		return
 	request = plan.request
-	if render_mode.selected == 1 and target.selected >= 2:
+	if render_mode.selected == 1 and target.selected >= 1:
 		request.mode = PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		request.source_image_path = ""
 		request.target_region = &""
