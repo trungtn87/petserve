@@ -90,7 +90,9 @@ func snapshot(
 
 
 func claim_caro_win(
-	run_id: int
+	run_id: int,
+	stage_index: int = 1,
+	chest_reward_enabled: bool = true
 ) -> Dictionary:
 	_ensure_run(
 		run_id
@@ -115,12 +117,25 @@ func claim_caro_win(
 		MAX_INFANT_CARO_REWARDS
 	)
 
-	if claimed >= MAX_INFANT_CARO_REWARDS:
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Đã nhận đủ 4 Rương Ấu thể từ Caro.",
-		}
+	if (
+		not chest_reward_enabled
+		or stage_index != 1
+		or claimed >= MAX_INFANT_CARO_REWARDS
+	):
+		var reason := "Ngoài giai đoạn thưởng Rương Ấu thể"
+
+		if (
+			chest_reward_enabled
+			and stage_index == 1
+			and claimed >= MAX_INFANT_CARO_REWARDS
+		):
+			reason = "Đã nhận đủ 4 Rương Ấu thể từ Caro"
+
+		return _grant_fallback_fragment(
+			run_id,
+			stage_index,
+			reason
+		)
 
 	var reward_index := claimed + 1
 
@@ -154,7 +169,8 @@ func claim_caro_win(
 func claim_obstacle_run(
 	run_id: int,
 	score: int,
-	match_id: String
+	match_id: String,
+	stage_index: int = 2
 ) -> Dictionary:
 	return _claim_stage2_activity(
 		run_id,
@@ -164,14 +180,16 @@ func claim_obstacle_run(
 		obstacle_reward_tier(
 			score
 		),
-		match_id
+		match_id,
+		stage_index
 	)
 
 
 func claim_snake_hunt(
 	run_id: int,
 	score: int,
-	match_id: String
+	match_id: String,
+	stage_index: int = 2
 ) -> Dictionary:
 	return _claim_stage2_activity(
 		run_id,
@@ -181,7 +199,8 @@ func claim_snake_hunt(
 		snake_reward_tier(
 			score
 		),
-		match_id
+		match_id,
+		stage_index
 	)
 
 
@@ -215,7 +234,8 @@ func _claim_stage2_activity(
 	game_label: String,
 	score: int,
 	tier: int,
-	match_id: String
+	match_id: String,
+	stage_index: int = 2
 ) -> Dictionary:
 	_ensure_run(
 		run_id
@@ -234,19 +254,6 @@ func _claim_stage2_activity(
 		META_KEY,
 		{}
 	)
-	var total_claimed := _stage2_total_claimed(
-		state
-	)
-
-	if total_claimed >= MAX_STAGE2_ACTIVITY_REWARDS:
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": (
-				"Đã nhận đủ 4 Rương Hoạt động ở Stage 2."
-			),
-		}
-
 	var game: Dictionary = state.get(
 		String(game_id),
 		{}
@@ -279,28 +286,45 @@ func _claim_stage2_activity(
 			"message": "Phần thưởng của ván này đã được nhận.",
 		}
 
+	var total_claimed := _stage2_total_claimed(
+		state
+	)
 	var reward_index := total_claimed + 1
+	var reward_tier := clampi(
+		tier,
+		1,
+		4
+	)
+	var chest_reward := (
+		stage_index == 2
+		and total_claimed < MAX_STAGE2_ACTIVITY_REWARDS
+	)
+	var crafted := 0
 
-	if not _chests.ensure_stage_activity_chest(
-		run_id,
-		2,
-		String(game_id),
-		reward_index,
-		clampi(
-			tier,
+	if chest_reward:
+		if not _chests.ensure_stage_activity_chest(
+			run_id,
+			2,
+			String(game_id),
+			reward_index,
+			reward_tier
+		):
+			return {
+				"ok": false,
+				"rewarded": false,
+				"message": (
+					"Không thể tạo Rương Hoạt động Stage 2."
+				),
+			}
+
+		game["claimed"] = game_claimed + 1
+	else:
+		crafted = _chests.add_salvage_fragments(
 			1,
-			4
+			run_id,
+			stage_index
 		)
-	):
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": (
-				"Không thể tạo Rương Hoạt động Stage 2."
-			),
-		}
 
-	game["claimed"] = game_claimed + 1
 	claimed_match_ids.append(
 		normalized_match_id
 	)
@@ -323,33 +347,90 @@ func _claim_stage2_activity(
 	state[String(game_id)] = game
 	_meta[META_KEY] = state
 
+	if chest_reward:
+		return {
+			"ok": true,
+			"rewarded": true,
+			"reward_type": "chest",
+			"message": (
+				"%s • nhận Rương Hoạt động Tier %d."
+				% [
+					game_label,
+					reward_tier,
+				]
+			),
+			"claimed": reward_index,
+			"max": MAX_STAGE2_ACTIVITY_REWARDS,
+			"tier": reward_tier,
+			"score": maxi(
+				0,
+				score
+			),
+		}
+
+	var message := (
+		"%s • ngoài Stage 2 • nhận 1 mảnh rương."
+		% game_label
+	)
+
+	if stage_index == 2:
+		message = (
+			"%s • đã hết 4 Rương Hoạt động Stage 2 • nhận 1 mảnh rương."
+			% game_label
+		)
+
+	if crafted > 0:
+		message += (
+			" • Đủ 10 mảnh, đã ghép %d Rương Tái Chế."
+			% crafted
+		)
+
 	return {
 		"ok": true,
 		"rewarded": true,
-		"message": (
-			"%s • nhận Rương Hoạt động Tier %d."
-			% [
-				game_label,
-				clampi(
-					tier,
-					1,
-					4
-				),
-			]
+		"reward_type": "fragment",
+		"fragments": 1,
+		"crafted": crafted,
+		"message": message,
+		"claimed": mini(
+			total_claimed,
+			MAX_STAGE2_ACTIVITY_REWARDS
 		),
-		"claimed": reward_index,
 		"max": MAX_STAGE2_ACTIVITY_REWARDS,
-		"tier": clampi(
-			tier,
-			1,
-			4
-		),
+		"tier": reward_tier,
 		"score": maxi(
 			0,
 			score
 		),
 	}
 
+
+func _grant_fallback_fragment(
+	run_id: int,
+	stage_index: int,
+	reason: String
+) -> Dictionary:
+	var crafted := _chests.add_salvage_fragments(
+		1,
+		run_id,
+		stage_index
+	)
+	var message := "%s • nhận 1 mảnh rương." % reason
+
+	if crafted > 0:
+		message += (
+			" • Đủ 10 mảnh, đã ghép %d Rương Tái Chế."
+			% crafted
+		)
+
+	return {
+		"ok": true,
+		"rewarded": true,
+		"reward_type": "fragment",
+		"fragments": 1,
+		"crafted": crafted,
+		"message": message,
+	}
 
 func _stage2_total_claimed(
 	state: Dictionary

@@ -51,21 +51,53 @@ func run() -> void:
 	check(not game.use_item(uid).ok, "item cannot be consumed twice")
 	for i in range(4):
 		check(game.claim_caro_win_reward().get("rewarded", false), "caro reward " + str(i))
-	check(not game.claim_caro_win_reward().get("rewarded", false), "reward cap")
+	var caro_fallback := game.claim_caro_win_reward()
+	check(
+		caro_fallback.get("rewarded", false)
+		and caro_fallback.get("reward_type", "") == "fragment"
+		and int(game.snapshot().chest_fragments) == 1,
+		"caro reward cap falls back to one fragment"
+	)
 	var reloaded := InfantGameFacade.new()
 	reloaded.setup(456)
 	check(int(reloaded.snapshot().caro_rewards_claimed) == 4, "reward cap persists")
 	check(int(reloaded.snapshot().inventory_count) == 7, "inventory persists")
-	check(not reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_locked").get("rewarded", false), "obstacle reward locked in stage one")
-	check(not reloaded.claim_snake_hunt_reward(900, "snake_stage1_locked").get("rewarded", false), "snake reward locked in stage one")
+	var obstacle_stage1 := reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_fragment")
+	check(
+		obstacle_stage1.get("rewarded", false)
+		and obstacle_stage1.get("reward_type", "") == "fragment",
+		"obstacle outside stage two falls back to fragment"
+	)
+	check(
+		not reloaded.claim_obstacle_run_reward(900, "obstacle_stage1_fragment").get("rewarded", false),
+		"same obstacle match cannot claim fallback twice"
+	)
+	var snake_stage1 := reloaded.claim_snake_hunt_reward(900, "snake_stage1_fragment")
+	check(
+		snake_stage1.get("rewarded", false)
+		and snake_stage1.get("reward_type", "") == "fragment"
+		and int(reloaded.snapshot().chest_fragments) == 3,
+		"snake outside stage two falls back to fragment"
+	)
 	check(reloaded.advance_to_stage(2), "advance to stage two")
 	check(reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "obstacle shared reward 1")
 	check(not reloaded.claim_obstacle_run_reward(1200, "obstacle_match_1").get("rewarded", false), "same obstacle match cannot reward twice")
 	check(reloaded.claim_snake_hunt_reward(1100, "snake_match_1").get("rewarded", false), "snake shared reward 2")
 	check(reloaded.claim_obstacle_run_reward(2200, "obstacle_match_2").get("rewarded", false), "obstacle shared reward 3")
 	check(reloaded.claim_snake_hunt_reward(1800, "snake_match_2").get("rewarded", false), "snake shared reward 4")
-	check(not reloaded.claim_obstacle_run_reward(4000, "obstacle_match_cap").get("rewarded", false), "stage two shared reward cap obstacle")
-	check(not reloaded.claim_snake_hunt_reward(4000, "snake_match_cap").get("rewarded", false), "stage two shared reward cap snake")
+	var obstacle_cap := reloaded.claim_obstacle_run_reward(4000, "obstacle_match_cap")
+	check(
+		obstacle_cap.get("rewarded", false)
+		and obstacle_cap.get("reward_type", "") == "fragment",
+		"stage two shared reward cap obstacle falls back to fragment"
+	)
+	var snake_cap := reloaded.claim_snake_hunt_reward(4000, "snake_match_cap")
+	check(
+		snake_cap.get("rewarded", false)
+		and snake_cap.get("reward_type", "") == "fragment"
+		and int(reloaded.snapshot().chest_fragments) == 5,
+		"stage two shared reward cap snake falls back to fragment"
+	)
 	check(int(reloaded.snapshot().stage2_activity_rewards_claimed) == 4, "stage two shared reward cap persists")
 	check(int(reloaded.snapshot().obstacle_rewards_claimed) == 2, "obstacle contribution persists")
 	check(int(reloaded.snapshot().snake_rewards_claimed) == 2, "snake contribution persists")

@@ -353,33 +353,29 @@ func claim_caro_win_reward() -> Dictionary:
 	var lifecycle_state := (
 		_lifecycle.snapshot()
 	)
-
-	if (
-		int(
-			lifecycle_state.get(
-				"stage_index",
-				1
-			)
-		) != 1
-		or bool(
+	var stage_index := int(
+		lifecycle_state.get(
+			"stage_index",
+			1
+		)
+	)
+	var chest_reward_enabled := (
+		stage_index == 1
+		and not bool(
 			lifecycle_state.get(
 				"ready_to_evolve",
 				false
 			)
 		)
-	):
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Thưởng Caro giới hạn ở giai đoạn Ấu thể.",
-		}
-
+	)
 	var before := _meta.duplicate(
 		true
 	)
 	var result := (
 		_entertainment.claim_caro_win(
-			_run_id
+			_run_id,
+			stage_index,
+			chest_reward_enabled
 		)
 	)
 
@@ -400,7 +396,6 @@ func claim_caro_win_reward() -> Dictionary:
 			}
 
 	return result
-
 
 func claim_obstacle_run_reward(
 	score: int,
@@ -415,14 +410,6 @@ func claim_obstacle_run_reward(
 			1
 		)
 	)
-
-	if stage_index != 2:
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Rương Vượt chướng ngại chỉ nhận được trong Stage 2.",
-		}
-
 	var before := _meta.duplicate(
 		true
 	)
@@ -433,7 +420,8 @@ func claim_obstacle_run_reward(
 				0,
 				score
 			),
-			match_id
+			match_id,
+			stage_index
 		)
 	)
 
@@ -454,7 +442,6 @@ func claim_obstacle_run_reward(
 			}
 
 	return result
-
 
 func claim_snake_hunt_reward(
 	score: int,
@@ -469,14 +456,6 @@ func claim_snake_hunt_reward(
 			1
 		)
 	)
-
-	if stage_index != 2:
-		return {
-			"ok": false,
-			"rewarded": false,
-			"message": "Rương Snake Hunt chỉ nhận được trong Stage 2.",
-		}
-
 	var before := _meta.duplicate(
 		true
 	)
@@ -487,7 +466,8 @@ func claim_snake_hunt_reward(
 				0,
 				score
 			),
-			match_id
+			match_id,
+			stage_index
 		)
 	)
 
@@ -508,7 +488,6 @@ func claim_snake_hunt_reward(
 			}
 
 	return result
-
 
 func inventory(
 	filter_type: StringName = &""

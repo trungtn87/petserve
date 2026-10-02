@@ -190,13 +190,20 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 			% run_id
 		)
 		_expect(
-			not bool(
+			bool(
 				fifth.get(
 					"rewarded",
-					true
+					false
 				)
-			),
-			"fifth Vượt chướng ngại/Snake reward must be blocked by the shared cap"
+			)
+			and String(
+				fifth.get(
+					"reward_type",
+					""
+				)
+			) == "fragment"
+			and chests.fragment_count() == 1,
+			"fifth Vượt chướng ngại/Snake reward must fall back to one chest fragment"
 		)
 
 		_expect(
