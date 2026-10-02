@@ -1066,7 +1066,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v14_stage_%d"
+		+ "_pethome_v15_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",
