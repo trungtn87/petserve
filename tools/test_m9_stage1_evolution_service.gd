@@ -156,7 +156,7 @@ func _test_natural_stage_one_plan() -> void:
 			"_pethome_v14_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"TARGET IMAGE: one cat, Stage 2"
+			"TARGET: the same individual cat at Stage 2"
 		)
 		and request.positive_prompt.contains(
 			"polished stylized 3D fantasy pet illustration"
@@ -165,7 +165,7 @@ func _test_natural_stage_one_plan() -> void:
 			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
-			"AGE AND BODY: Juvenile:"
+			"MATURATION: Stage 2 — early development"
 		)
 		and request.positive_prompt.contains(
 			"Show clear natural maturation of the inherited individual instead"
@@ -449,7 +449,7 @@ func _test_gene_stage_one_plan() -> void:
 			"_pethome_v14_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"TARGET IMAGE: one cat, Stage 2"
+			"TARGET: the same individual cat at Stage 2"
 		)
 		and request.positive_prompt.contains(
 			"polished stylized 3D fantasy pet illustration"
@@ -458,7 +458,7 @@ func _test_gene_stage_one_plan() -> void:
 			"INHERITED INDIVIDUAL:"
 		)
 		and request.positive_prompt.contains(
-			"AGE AND BODY: Juvenile:"
+			"MATURATION: Stage 2 — early development"
 		)
 		and request.positive_prompt.contains(
 			"Show clear natural maturation of the inherited individual instead"
