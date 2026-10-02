@@ -461,12 +461,6 @@ func _test_gene_stage_one_plan() -> void:
 			"MATURATION: Stage 2 — early development"
 		)
 		and request.positive_prompt.contains(
-			"Show clear natural maturation of the inherited individual instead"
-		)
-		and request.positive_prompt.contains(
-			"MATURATION: Stage 2 — early development"
-		)
-		and request.positive_prompt.contains(
 			"elemental effects restrained and secondary"
 		)
 		and request.positive_prompt.contains(
