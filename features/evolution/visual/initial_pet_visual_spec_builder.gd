@@ -83,9 +83,11 @@ func build(
 	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
 	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
 	+ "harmonious collectible game-pet design. "
-	+ "Elemental features must feel organically grown from or naturally integrated into the fur and body design, "
+	+ "ELEMENT READABILITY: the creature itself must communicate its element at first glance even if the background is ignored. "
+	+ "Use anatomy-safe body-integrated color zones, markings, surface materials, fur/plumage/scale flow and small magical accents on the pet itself. "
+	+ "Elemental features must feel organically grown from or naturally integrated into the body design, "
 	+ "not like random objects, stickers or loose decorations placed on the pet. "
-	+ "Keep the elemental palette rich but controlled. "
+	+ "Keep the elemental palette rich, visible and controlled; never make the environment carry the element by itself. "
 	+ "Element traits: "
 	+ _simple_element_traits(
 		identity.element()
