@@ -70,9 +70,8 @@ func _test_session() -> void:
 	check(not session.move_horizontal(-1), "left wall collision")
 	session.position = Vector2i(3,0)
 	check(session.ghost_position().y == 18, "ghost predicts bottom for O")
-	check(session.hold_piece() and not session.hold_piece(), "hold once per piece")
 	session.hard_drop()
-	check(session.score == 0 and not session.hold_used, "hard drop awards no points and unlocks hold")
+	check(session.score == 0, "hard drop awards no points")
 	session.start()
 	for amount in range(1,5):
 		_fill_rows(session, amount)
@@ -183,6 +182,8 @@ func _test_facade() -> void:
 	check(next_life.settle_tetris().bonus_chests == 0, "daily cap survives life reset")
 
 func _test_ui() -> void:
+	get_window().size = Vector2i(360, 640)
+	get_window().content_scale_size = Vector2i(360, 640)
 	SaveManager.save_meta({"tetris_records": {}})
 	var game := InfantGameFacade.new()
 	game.setup(125,1,&"water")
@@ -211,8 +212,38 @@ func _test_ui() -> void:
 	screen._process(1.0)
 	check(game.tetris_snapshot() == before and screen._ranking.visible, "ranking modal freezes game")
 	screen._ranking.hide()
-	screen._action("hold")
-	check(game._tetris_session.hold_used, "touch hold")
+	screen._process(0.0)
+	check(not game.action_tetris("hold").ok, "hold function removed")
+	check(screen._handheld._rects().size() == 5, "four directions plus one rotation button")
+	check(screen._handheld._rects().rotate.size.x >= 80, "large rotation button")
+	check(screen._handheld.get_global_rect().end.y <= hub.get_global_rect().end.y and screen._handheld.get_global_rect().end.x <= 360, "handheld fits phone")
+	var turn := game._tetris_session.rotation
+	game._tetris_session.piece = 2
+	var pad := screen._handheld
+	var press := InputEventScreenTouch.new()
+	press.index = 1
+	press.pressed = true
+	press.position = pad.get_global_transform_with_canvas() * pad._rects().left.get_center()
+	pad._input(press)
+	var rotate := InputEventScreenTouch.new()
+	rotate.index = 2
+	rotate.pressed = true
+	rotate.position = pad.get_global_transform_with_canvas() * pad._rects().rotate.get_center()
+	pad._input(rotate)
+	check(game._tetris_session.rotation != turn and screen._horizontal == -1, "multitouch rotates while moving")
+	press.pressed = false
+	pad._input(press)
+	check(screen._horizontal == 0, "finger release stops movement")
+	rotate.pressed = false
+	pad._input(rotate)
+	var drop := InputEventScreenTouch.new()
+	drop.index = 3
+	drop.pressed = true
+	drop.position = pad.get_global_transform_with_canvas() * pad._rects().drop.get_center()
+	pad._input(drop)
+	check(game._tetris_session.board.count(0) == 196, "up direction hard drops")
+	drop.pressed = false
+	pad._input(drop)
 	screen._request_back()
 	check(screen._confirm.visible, "back confirms reward forfeiture")
 	screen._confirm.hide()

@@ -1771,7 +1771,6 @@ func action_tetris(action: String) -> Dictionary:
 		"rotate": _tetris_session.rotate_piece()
 		"down": _tetris_session.soft_drop()
 		"drop": _tetris_session.hard_drop()
-		"hold": _tetris_session.hold_piece()
 		_: return {"ok": false}
 	return {"ok": true, "state": tetris_snapshot()}
 

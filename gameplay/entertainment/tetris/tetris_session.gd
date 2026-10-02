@@ -25,8 +25,6 @@ var last_clear_four := false
 var piece := 0
 var rotation := 0
 var position := Vector2i(3, 0)
-var held := -1
-var hold_used := false
 var queue: Array[int] = []
 var status := "idle"
 var settled := false
@@ -44,8 +42,6 @@ func start() -> void:
 	lines = 0
 	combo = -1
 	last_clear_four = false
-	held = -1
-	hold_used = false
 	queue.clear()
 	status = "playing"
 	settled = false
@@ -137,19 +133,6 @@ func hard_drop() -> void:
 	position = ghost_position()
 	_lock_piece()
 
-func hold_piece() -> bool:
-	if status != "playing" or hold_used:
-		return false
-	var old_piece := piece
-	if held < 0:
-		_fill_queue()
-		_spawn(queue.pop_front())
-	else:
-		_spawn(held)
-	held = old_piece
-	hold_used = true
-	return true
-
 func tick(delta: float) -> bool:
 	if status != "playing" or delta <= 0.0:
 		return false
@@ -182,7 +165,6 @@ func _lock_piece() -> void:
 		var point := position + cell
 		board[point.y * WIDTH + point.x] = piece + 1
 	_clear_lines()
-	hold_used = false
 	_fill_queue()
 	_spawn(queue.pop_front())
 
@@ -240,6 +222,6 @@ func abandon() -> void:
 func snapshot() -> Dictionary:
 	return {"board": board.duplicate(), "score": score, "lines": lines,
 		"level": level(), "piece": piece, "rotation": rotation,
-		"position": position, "ghost": ghost_position(), "held": held,
+		"position": position, "ghost": ghost_position(),
 		"next": queue.slice(0, 2), "status": status, "settled": settled,
-		"match_id": match_id, "fragments": fragments(), "hold_used": hold_used}
+		"match_id": match_id, "fragments": fragments()}

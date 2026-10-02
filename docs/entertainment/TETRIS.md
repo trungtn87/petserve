@@ -1,7 +1,7 @@
 # Tetris — endless entertainment
 
 Available in PetHome → Giải trí at every pet stage. Board: 10 × 20;
-seven-bag randomization, two next previews, one hold, ghost landing preview.
+seven-bag randomization, two next previews, ghost landing preview. No hold mechanic.
 No time limit, victory target, revive or reward cap. A blocked spawn loses.
 
 ## Difficulty and score
@@ -48,9 +48,11 @@ archive, preserving both top scores and the daily bonus date.
 
 ## Controls and validation
 
-Touch: hold left/right for repeat (180 ms delay, 70 ms repeat), rotate, hold,
-hold down for soft drop (35 ms repeat), separate hard drop button.
-Keyboard: arrows, Space hard drop, C hold, P pause.
+Touch: handheld console controls: four-way D-pad on the left and one large
+round rotation button on the right. Left/right repeat (180 ms delay, 70 ms
+repeat), down soft drops (35 ms repeat), up hard drops. Independent finger
+tracking supports movement plus rotation simultaneously.
+Keyboard: left/right move, down soft drop, up/Space hard drop, X rotate, P pause.
 
 Run import first, then:
 
@@ -58,7 +60,7 @@ Run import first, then:
 godot --headless --path . res://tools/test_tetris.tscn
 ```
 
-Tests cover bag fairness, collision/ghost/hold, clears/combo/chain, endless
+Tests cover bag fairness, collision/ghost/handheld controls, clears/combo/chain, endless
 level cap, lock reset limit, score reward, top-ten/daily rules, failed save
 rollback, duplicate rejection, life reset continuity and 360×640 mobile UI.
 Both existing acceptance/build workflows include this test.

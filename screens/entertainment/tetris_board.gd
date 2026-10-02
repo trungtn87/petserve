@@ -43,11 +43,8 @@ func _draw() -> void:
 	var side := rect.position.x
 	if side >= 42:
 		var preview_unit := minf(12.0, (side - 8) / 4.0)
-		var left := Vector2((side - 4 * preview_unit) * 0.5, rect.position.y + 36)
-		var right := Vector2(rect.end.x + (side - 4 * preview_unit) * 0.5, left.y)
-		draw_string(ThemeDB.fallback_font, left + Vector2(0,-10), "GIỮ", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("c9bcdf"))
+		var right := Vector2(rect.end.x + (side - 4 * preview_unit) * 0.5, rect.position.y + 36)
 		draw_string(ThemeDB.fallback_font, right + Vector2(0,-10), "TIẾP", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("c9bcdf"))
-		_preview_piece(int(state.held), left, preview_unit)
 		var next: Array = state.next
 		_preview_piece(int(next[0]), right, preview_unit)
 		_preview_piece(int(next[1]), right + Vector2(0,60), preview_unit)

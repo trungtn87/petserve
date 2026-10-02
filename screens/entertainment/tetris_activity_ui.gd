@@ -5,13 +5,11 @@ signal back_requested
 signal reward_received
 signal match_finished(result: StringName)
 
-const NAMES := ["I", "O", "T", "S", "Z", "J", "L"]
 var palette: Dictionary = {}
 var game_api: InfantGameFacade
 var _state: Dictionary = {}
 var _board: TetrisBoard
 var _score: Label
-var _preview: Label
 var _reward: Label
 var _message: Label
 var _new: Button
@@ -20,7 +18,7 @@ var _pause: Button
 var _confirm: ConfirmationDialog
 var _help: AcceptDialog
 var _ranking: AcceptDialog
-var _controls: Array[Button] = []
+var _handheld: TetrisHandheldControls
 var _paused := false
 var _horizontal := 0
 var _repeat_elapsed := 0.0
@@ -74,39 +72,15 @@ func _build_ui() -> void:
 	header.add_child(_pause)
 	_score = _label("", 12)
 	root.add_child(_score)
-	_preview = _label("", 11)
-	root.add_child(_preview)
 	_board = TetrisBoard.new()
 	_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_board)
 	_reward = _label("", 11)
 	root.add_child(_reward)
-	var directions := HBoxContainer.new()
-	directions.add_theme_constant_override("separation", 8)
-	root.add_child(directions)
-	var left := _button("◀", func() -> void: pass)
-	left.button_down.connect(func() -> void: _begin_horizontal(-1))
-	left.button_up.connect(func() -> void: _horizontal = 0)
-	var right := _button("▶", func() -> void: pass)
-	right.button_down.connect(func() -> void: _begin_horizontal(1))
-	right.button_up.connect(func() -> void: _horizontal = 0)
-	var rotate := _button("Xoay ↻", func() -> void: _action("rotate"))
-	for button in [left, rotate, right]:
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		directions.add_child(button)
-		_controls.append(button)
-	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 8)
-	root.add_child(actions)
-	var hold := _button("Giữ", func() -> void: _action("hold"))
-	var down := _button("Xuống ▼", func() -> void: pass)
-	down.button_down.connect(func() -> void: _soft_held = true; _soft_elapsed = 0.0; _action("down"))
-	down.button_up.connect(func() -> void: _soft_held = false)
-	var drop := _button("THẢ NGAY", func() -> void: _action("drop"))
-	for button in [hold, down, drop]:
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		actions.add_child(button)
-		_controls.append(button)
+	_handheld = TetrisHandheldControls.new()
+	_handheld.action_pressed.connect(_on_handheld_pressed)
+	_handheld.action_released.connect(_on_handheld_released)
+	root.add_child(_handheld)
 	_claim = _button("NHẬN THƯỞNG", _settle)
 	root.add_child(_claim)
 	_new = _button("CHƠI VÁN MỚI", _new_match)
@@ -122,7 +96,7 @@ func _build_ui() -> void:
 	add_child(_confirm)
 	_help = AcceptDialog.new()
 	_help.title = "Tetris • Chơi vô hạn"
-	_help.dialog_text = "Xếp khối để lấp đầy hàng ngang.\nXóa 1/2/3/4 hàng: 100/300/500/800 × cấp.\nCombo: +50 × số combo × cấp.\nChuỗi xóa 4 hàng: +50% điểm cơ bản.\n\nMỗi 6 hàng tăng cấp; tối đa cấp 10.\nTốc độ tối đa: 0,12 giây/ô. Không giới hạn thời gian.\nGiữ 1 khối, xem trước 2 khối, bóng vị trí rơi.\n\n2.000 điểm = 1 mảnh, không giới hạn thưởng.\n10 mảnh tự ghép rương trong Kho.\nVượt top 1: +1 rương, tối đa 1 lần/ngày.\nKỷ lục ban đầu cần vượt: 5.000 điểm.\nThưởng khi thua; rời ván không nhận thưởng.\n\nBàn phím: ← → di chuyển, ↑ xoay, ↓ xuống,\nSpace thả ngay, C giữ khối, P tạm dừng."
+	_help.dialog_text = "Xếp khối để lấp đầy hàng ngang.\nXóa 1/2/3/4 hàng: 100/300/500/800 × cấp.\nCombo: +50 × số combo × cấp.\nChuỗi xóa 4 hàng: +50% điểm cơ bản.\n\nMỗi 6 hàng tăng cấp; tối đa cấp 10.\nTốc độ tối đa: 0,12 giây/ô. Không giới hạn thời gian.\nXem trước 2 khối, bóng vị trí rơi.\nCụm trái: ← → di chuyển, ↓ xuống nhanh, ↑ thả ngay.\nNút tròn bên phải: xoay khối.\n\n2.000 điểm = 1 mảnh, không giới hạn thưởng.\n10 mảnh tự ghép rương trong Kho.\nVượt top 1: +1 rương, tối đa 1 lần/ngày.\nKỷ lục ban đầu cần vượt: 5.000 điểm.\nThưởng khi thua; rời ván không nhận thưởng.\n\nBàn phím: ← → di chuyển, ↓ xuống, ↑/Space thả ngay,\nX xoay khối, P tạm dừng."
 	add_child(_help)
 	_ranking = AcceptDialog.new()
 	_ranking.title = "TOP 10 • TRÊN THIẾT BỊ"
@@ -149,6 +123,7 @@ func _blocked() -> bool:
 	return _paused or _confirm.visible or _help.visible or _ranking.visible
 
 func _process(delta: float) -> void:
+	_handheld.set_enabled(is_visible_in_tree() and not _blocked() and _state.get("status", "") == "playing")
 	if not is_visible_in_tree() or game_api == null or _blocked() or _state.get("status", "") != "playing":
 		return
 	if _horizontal != 0:
@@ -176,6 +151,26 @@ func _begin_horizontal(direction: int) -> void:
 func _release_inputs() -> void:
 	_horizontal = 0
 	_soft_held = false
+	if _handheld != null:
+		_handheld.release_all()
+
+func _on_handheld_pressed(action: String) -> void:
+	if _blocked():
+		return
+	match action:
+		"left": _begin_horizontal(-1)
+		"right": _begin_horizontal(1)
+		"down":
+			_soft_held = true
+			_soft_elapsed = 0.0
+			_action("down")
+		_: _action(action)
+
+func _on_handheld_released(action: String) -> void:
+	if action == "left" and _horizontal == -1 or action == "right" and _horizontal == 1:
+		_horizontal = 0
+	if action == "down":
+		_soft_held = false
 
 func _action(action: String) -> void:
 	if game_api != null and not _blocked():
@@ -201,15 +196,10 @@ func _sync() -> void:
 		return
 	_board.show_state(_state)
 	_score.text = "%d điểm • Cấp %d • %d hàng • Top %d" % [_state.score, _state.level, _state.lines, _state.best_score]
-	var held := int(_state.held)
-	var next: Array = _state.next
-	_preview.text = "Giữ: %s  |  Tiếp: %s  %s" % [NAMES[held] if held >= 0 else "—", NAMES[int(next[0])], NAMES[int(next[1])]]
 	var playing: bool = _state.status == "playing"
 	var settled := bool(_state.settled)
 	_reward.text = "%d mảnh • Mỗi 2.000 điểm +1 mảnh" % int(_state.fragments)
-	for button in _controls:
-		button.disabled = not playing
-	_controls[3].disabled = not playing or bool(_state.hold_used)
+	_handheld.set_enabled(playing and not _blocked())
 	_claim.visible = not playing and not settled
 	_new.visible = settled
 	_pause.disabled = not playing
@@ -274,10 +264,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	match key.keycode:
 		KEY_LEFT: _begin_horizontal(-1)
 		KEY_RIGHT: _begin_horizontal(1)
-		KEY_UP: _action("rotate")
+		KEY_UP: _action("drop")
 		KEY_DOWN: _soft_held = true; _action("down")
 		KEY_SPACE: _action("drop")
-		KEY_C: _action("hold")
+		KEY_X: _action("rotate")
 		KEY_P: _toggle_pause()
 		_: return
 	get_viewport().set_input_as_handled()
