@@ -153,34 +153,34 @@ func _test_natural_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v17_species_stage_2"
+			"_pethome_v18_source47_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"TARGET: the same individual cat at Stage 2"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"polished stylized 3D fantasy pet illustration"
+			"polished stylized 3D appearance"
 		)
 		and request.positive_prompt.contains(
-			"INHERITED INDIVIDUAL:"
+			"Inherited frame:"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2:"
+			"Stage 2:"
 		)
 		and request.positive_prompt.contains(
-			"Show clear natural maturation of the inherited individual instead"
+			"Preserve face recognition and elemental palette"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2:"
+			"Stage 2:"
 		)
 		and request.positive_prompt.contains(
-			"elemental effects restrained and secondary"
+			"Magical effects should support the anatomy"
 		)
 		and request.positive_prompt.contains(
-			"SPECIES LOCK:"
+			"Species anatomy and code-authorized mutations"
 		)
 		and request.positive_prompt.contains(
-			"full body and authorized appendages inside frame"
+			"Full body visible"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -446,28 +446,28 @@ func _test_gene_stage_one_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE
 		and request.source_image_path.is_empty()
 		and request.output_key.ends_with(
-			"_pethome_v17_species_stage_2"
+			"_pethome_v18_source47_stage_2"
 		)
 		and request.positive_prompt.contains(
-			"TARGET: the same individual cat at Stage 2"
+			"Create one slightly older cat pet"
 		)
 		and request.positive_prompt.contains(
-			"polished stylized 3D fantasy pet illustration"
+			"polished stylized 3D appearance"
 		)
 		and request.positive_prompt.contains(
-			"INHERITED INDIVIDUAL:"
+			"Inherited frame:"
 		)
 		and request.positive_prompt.contains(
-			"MATURATION: Stage 2:"
+			"Stage 2:"
 		)
 		and request.positive_prompt.contains(
-			"elemental effects restrained and secondary"
+			"Magical effects should support the anatomy"
 		)
 		and request.positive_prompt.contains(
-			"DEVELOPMENT PRIORITIES"
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		)
 		and request.positive_prompt.contains(
-			"full body and authorized appendages inside frame"
+			"Full body visible"
 		)
 		and request.negative_prompt.contains(
 			"extra tail"
@@ -879,16 +879,16 @@ func _test_stage_two_natural_plan() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == image_path
 		and request.positive_prompt.contains(
-			"REFERENCE CONTINUITY:"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request.positive_prompt.contains(
-			"INHERITED INDIVIDUAL:"
+			"Inherited frame:"
 		)
 		and request.positive_prompt.contains(
-			"Show clear natural maturation of the inherited individual instead"
+			"Preserve face recognition and elemental palette"
 		)
 		and request.positive_prompt.contains(
-			"SCENE: uncluttered natural"
+			"[PETHOME ENVIRONMENT LOCK]"
 		),
 		"Natural Stage 2 must use the Stage 2 image as reference without inventing a Gene"
 	)
@@ -1032,10 +1032,10 @@ func _test_stage_two_gene_plan() -> void:
 			"existing single tail"
 		)
 		and request.positive_prompt.contains(
-			"DEVELOPMENT PRIORITIES"
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		)
 		and request.positive_prompt.contains(
-			"selected development priorities"
+			"Natural maturation"
 		),
 		"Stage 2 Gene plan must edit the reference image from the lifetime Gene score plan"
 	)

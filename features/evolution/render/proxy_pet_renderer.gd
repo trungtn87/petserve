@@ -497,13 +497,15 @@ func _load_image_buffer(
 func _compose_prompt(
 	request: PetRenderRequest
 ) -> String:
-	# FLUX.2 Klein on Workers AI exposes one text prompt field, not a
-	# separately conditioned negative-prompt field. Appending phrases such
-	# as "white background" or "close-up portrait" after "STRICTLY AVOID"
-	# still feeds those visual concepts to the model and can produce exactly
-	# the unwanted composition. Keep exclusions in validation/debug data,
-	# while the actual model prompt uses positive, explicit constraints.
-	return request.positive_prompt.strip_edges()
+	var prompt := request.positive_prompt.strip_edges()
+
+	if not request.negative_prompt.strip_edges().is_empty():
+		prompt += (
+			"\n\nSTRICTLY AVOID:\n"
+			+ request.negative_prompt.strip_edges()
+		)
+
+	return prompt
 
 
 func _output_path(

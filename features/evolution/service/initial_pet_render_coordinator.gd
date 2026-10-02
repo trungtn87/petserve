@@ -119,7 +119,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v15_species_morphology"
+		+ "_pethome_infant_v16_source47_style"
 	)
 
 	if not request.is_valid():

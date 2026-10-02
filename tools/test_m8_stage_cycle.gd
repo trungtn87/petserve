@@ -1225,19 +1225,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_two != null
 		and request_two.output_key.ends_with(
-			"_pethome_v17_species_stage_3"
+			"_pethome_v18_source47_stage_3"
 		)
 		and request_two.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_two.source_image_path == "user://m8_pet.png"
 		and request_two.positive_prompt.contains(
-			"REFERENCE CONTINUITY:"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request_two.positive_prompt.contains(
-			"INHERITED INDIVIDUAL:"
+			"Inherited frame:"
 		)
 		and request_two.positive_prompt.contains(
-			"SCENE: uncluttered natural"
+			"[PETHOME ENVIRONMENT LOCK]"
 		)
 		and not request_two.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1337,19 +1337,19 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		request_three != null
 		and request_three.output_key.ends_with(
-			"_pethome_v17_species_stage_4"
+			"_pethome_v18_source47_stage_4"
 		)
 		and request_three.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_three.source_image_path == "user://m8_pet.png"
 		and request_three.positive_prompt.contains(
-			"REFERENCE CONTINUITY:"
+			"[REFERENCE EVOLUTION RULE]"
 		)
 		and request_three.positive_prompt.contains(
-			"INHERITED INDIVIDUAL:"
+			"Inherited frame:"
 		)
 		and request_three.positive_prompt.contains(
-			"SCENE: uncluttered natural"
+			"[PETHOME ENVIRONMENT LOCK]"
 		)
 		and not request_three.positive_prompt.contains(
 			"28 to 32 percent"
@@ -1470,13 +1470,13 @@ func _test_evolution_two_and_three() -> void:
 	check(
 		final_request != null
 		and final_request.output_key.ends_with(
-			"_pethome_v17_species_stage_5"
+			"_pethome_v18_source47_stage_5"
 		)
 		and final_request.mode
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and final_request.source_image_path == "user://m8_pet.png"
 		and final_request.positive_prompt.contains(
-			"REFERENCE CONTINUITY:"
+			"[REFERENCE EVOLUTION RULE]"
 		),
 		"Final Evolution edits the Stage 4 visual into Final Form"
 	)

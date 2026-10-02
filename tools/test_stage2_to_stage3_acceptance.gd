@@ -160,7 +160,7 @@ func _test_natural_zero_gene() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"REFERENCE CONTINUITY: if a previous-stage image is supplied, preserve face identity"
+			"Use the supplied previous-stage image as the canonical reference"
 		),
 		"natural Stage 2 -> 3 uses the Stage 2 image as reference"
 	)
@@ -414,10 +414,10 @@ func _test_two_loci_and_retry_guards() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"DEVELOPMENT PRIORITIES"
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		)
 		and request.positive_prompt.contains(
-			"DEVELOPMENT PRIORITIES"
+			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		),
 		"two-locus evolution edits the Stage 2 reference with both Gene changes"
 	)
@@ -614,7 +614,7 @@ func _test_locked_stage4_egg_mythic() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request.source_image_path == _source_path
 		and request.positive_prompt.contains(
-			"AUTHORIZED MYTHIC ANATOMY:"
+			"[CODE-LOCKED MYTHIC RESULT]"
 		)
 		and request.positive_prompt.contains(
 			String(

@@ -80,9 +80,12 @@ func build(
 	spec.style_section = (
 	"Premium fantasy pet illustration, premium fantasy game character art, "
 	+ "polished stylized 3D appearance, evolved chibi proportions, "
-	+ "cute youthful species-appropriate proportions, large expressive eyes where anatomically suitable, soft premium surface detail, "
+	+ "cute youthful stylized game-pet proportions, large glossy expressive eyes, soft rounded body forms and premium native surface detail, "
 	+ "smooth clean shading, delicate soft rim lighting, clean readable silhouette, "
 	+ "harmonious collectible game-pet design. "
+	+ "The young pet is a small full-body stylized character inside an illustrated colorful fantasy habitat. "
+	+ "Wide environmental view with the character at about 40 percent of canvas height and scenery filling the rest. "
+	+ "Visible ground, midground habitat and distant background surround the pet. "
 	+ "Elemental features must feel organically grown from or naturally integrated into the species-native surface and body design, "
 	+ "not like random objects, stickers or loose decorations placed on the pet. "
 	+ "Keep the elemental palette rich but controlled. "
@@ -100,7 +103,8 @@ func build(
 		+ species_profile.infant_form
 		+ " "
 		+ species_profile.species_anatomy
-		+ " Keep fantasy details subtle."
+		+ " Render a soft collectible fantasy game character with a clearly enlarged youthful head, glossy expressive eyes and simplified sculpted body forms. "
+		+ "The elemental color and grown surface motifs are visible on the creature itself."
 	)
 
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
@@ -146,11 +150,10 @@ func build(
 	)
 
 	spec.negative_prompt = (
-		species_profile.forbidden_advanced_features
-		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
-		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
-		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
-		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
+		style.negative_prompt() + ", " + species_profile.forbidden_advanced_features
+		+ ", extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
+		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
+		+ "heavy accessories, fully adult animal, old animal, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():

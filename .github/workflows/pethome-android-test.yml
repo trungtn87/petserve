@@ -78,6 +78,9 @@ jobs:
         run: |
           godot --headless --editor --path . --quit
 
+      - name: Exact source prompt assembly and transport for twelve species
+        run: timeout 90 godot --headless --path . --script tools/test_source_prompt_contract.gd
+
       - name: Test twelve species morphology from 47d8688
         run: timeout 120 godot --headless --path . --script tools/test_species_morphology.gd
 

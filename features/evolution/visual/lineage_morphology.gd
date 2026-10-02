@@ -16,9 +16,9 @@ const SPECIES := {
 	"bird": {"base": [1.12, 0.65, 0.95, 0.55, 0.0], "growth": [0.08, 0.07, 0.07], "response": [0.45, 0.5, 0.65], "tail_max": 1.30, "ears_max": 0.0, "surface": "layered feathers", "face": "avian brow and short beak without external ears"},
 	"dragon": {"base": [1.80, 0.85, 1.02, 1.20, 0.0], "growth": [0.19, 0.10, 0.11], "response": [1.1, 0.75, 1.0], "tail_max": 1.90, "ears_max": 0.0, "surface": "juvenile dragon scales", "face": "dragon jaw and brow ridges without mammalian ears"},
 	"phoenix": {"base": [1.30, 0.85, 0.98, 0.95, 0.0], "growth": [0.12, 0.09, 0.08], "response": [0.7, 0.6, 0.7], "tail_max": 2.0, "ears_max": 0.0, "surface": "flowing phoenix plumage", "face": "noble beak and small crown crest without external ears"},
-	"horse": {"base": [1.85, 1.70, 0.98, 0.75, 1.0], "growth": [0.16, 0.16, 0.10], "response": [0.85, 0.75, 0.8], "tail_max": 1.25, "ears_max": 1.35, "surface": "smooth equine coat and natural mane", "face": "elongated equine muzzle"},
-	"qilin": {"base": [1.70, 1.50, 0.98, 0.90, 1.0], "growth": [0.15, 0.15, 0.10], "response": [0.85, 0.75, 0.8], "tail_max": 1.45, "ears_max": 1.35, "surface": "fine coat, cloud mane and sparse native scales", "face": "refined sacred-beast muzzle and inherited horn plan"},
-	"deer": {"base": [1.62, 1.65, 0.82, 0.16, 1.0], "growth": [0.14, 0.17, 0.07], "response": [0.8, 0.8, 0.6], "tail_max": 0.32, "ears_max": 1.45, "surface": "short cervid coat", "face": "small cervid muzzle and soft ears"},
+	"horse": {"base": [1.30, 0.95, 0.90, 0.75, 1.0], "growth": [0.20, 0.18, 0.10], "response": [0.85, 0.75, 0.8], "tail_max": 1.25, "ears_max": 1.35, "surface": "smooth equine coat and natural mane", "face": "short soft juvenile equine muzzle, rounded cheeks and large expressive eyes"},
+	"qilin": {"base": [1.35, 1.05, 0.98, 0.90, 1.0], "growth": [0.19, 0.19, 0.10], "response": [0.85, 0.75, 0.8], "tail_max": 1.45, "ears_max": 1.35, "surface": "fine coat, cloud mane and sparse native scales", "face": "refined sacred-beast muzzle and inherited horn plan"},
+	"deer": {"base": [1.25, 1.12, 0.82, 0.16, 1.0], "growth": [0.19, 0.20, 0.07], "response": [0.8, 0.8, 0.6], "tail_max": 0.32, "ears_max": 1.45, "surface": "short cervid coat", "face": "small cervid muzzle and soft ears"},
 }
 const FRAME_KEYS := ["compact_grounded", "tall_light", "long_flexible", "balanced_athletic"]
 const FRAMES := [

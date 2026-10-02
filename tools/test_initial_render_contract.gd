@@ -149,8 +149,8 @@ func _initialize() -> void:
 		and request.positive_prompt.contains(
 			"Camera is pulled back"
 		)
-		and request.negative_prompt.contains(
-			"pet taller than 48 percent"
+		and request.positive_prompt.contains(
+			"40 percent of canvas height"
 		),
 		"Stage 1 must keep the pet medium-small inside PetHome with stable UI-safe framing"
 	)
@@ -171,8 +171,8 @@ func _initialize() -> void:
 		and request.positive_prompt.contains(
 			scene_profile.motif_description
 		)
-		and request.negative_prompt.contains(
-			"plain white background"
+		and request.positive_prompt.contains(
+			"Visible ground, midground habitat and distant background"
 		)
 		and request.positive_prompt.contains(
 			"no text and no interface graphics"

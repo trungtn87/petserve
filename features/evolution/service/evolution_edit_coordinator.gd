@@ -201,7 +201,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v17_species_stage_%d"
+		+ "_pethome_v18_source47_stage_%d"
 		% target_stage
 	)
 
@@ -1050,7 +1050,6 @@ func build_stage_regenerate_request(
 		"extra tail, duplicate tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, extreme close-up, bust shot, pet filling the frame, oversized pet, pet taller than 48 percent of image height, zoomed-in camera, humanoid pose, "
 		+ "cropped ears, cropped feet, cropped body, cropped tail, floating pet, missing contact with ground, "
-		+ "plain white background, white studio background, gray studio background, empty backdrop, transparent backdrop, product photo, missing environment, "
 		+ "heavy accessories, text, UI, logo, watermark"
 	)
 
@@ -1085,7 +1084,7 @@ func build_stage_regenerate_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v17_species_stage_%d"
+		+ "_pethome_v18_source47_stage_%d"
 		% target_stage
 	)
 
@@ -1864,7 +1863,7 @@ func _stage_one_output_key(
 ) -> String:
 	return (
 		identity.pet_id()
-		+ "_pethome_v17_species_stage_%d"
+		+ "_pethome_v18_source47_stage_%d"
 		% target_stage
 	)
 

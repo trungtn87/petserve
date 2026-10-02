@@ -3,7 +3,7 @@ extends RefCounted
 
 
 const FINAL_STAGE: int = 5
-const PENDING_SCHEMA: int = 16
+const PENDING_SCHEMA: int = 17
 
 
 var _save := EvolutionSaveService.new()
@@ -428,21 +428,16 @@ func _prepare_resolved_stage(
 			"Evolution render request bị rỗng."
 		)
 
-	var resolved_prompt := preload(
-		"res://features/evolution/visual/resolved_form_prompt.gd"
-	).new().build(
+	request.positive_prompt = preload(
+		"res://features/evolution/visual/source_gene_prompt_composer.gd"
+	).new().compose(
+		request.positive_prompt,
 		identity,
 		target_stage,
-		gene_state.gene_scores_snapshot(),
-		mythic_resolution
+		gene_state.gene_scores_snapshot()
 	)
-
-	if resolved_prompt.is_empty():
-		return _error(
-			"Không tạo được resolved-form evolution prompt."
-		)
-
-	request.positive_prompt = resolved_prompt
+	if request.positive_prompt.is_empty():
+		return _error("Không tạo được source Gene evolution prompt.")
 
 	var gene_score_prompt := GenePromptResolver.new().build(
 		gene_state,
@@ -1066,7 +1061,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_v17_species_stage_%d"
+		+ "_pethome_v18_source47_stage_%d"
 		% int(
 			pending.get(
 				"to_stage",

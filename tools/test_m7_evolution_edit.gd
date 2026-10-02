@@ -139,7 +139,7 @@ func run() -> void:
 		)
 		check(
 			request.output_key.ends_with(
-				"_pethome_v17_species_stage_2"
+				"_pethome_v18_source47_stage_2"
 			),
 			"stage output key"
 		)

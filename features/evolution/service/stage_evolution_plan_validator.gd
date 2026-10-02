@@ -2,7 +2,7 @@ class_name StageEvolutionPlanValidator
 extends RefCounted
 
 
-const PLAN_SCHEMA: int = 16
+const PLAN_SCHEMA: int = 17
 const FINAL_STAGE: int = 5
 
 
@@ -126,7 +126,7 @@ func validate(
 		or request.output_key
 			!= (
 				identity.pet_id()
-				+ "_pethome_v17_species_stage_%d"
+				+ "_pethome_v18_source47_stage_%d"
 				% to_stage
 			)
 	):
@@ -480,19 +480,16 @@ func validate(
 	) as PetRenderRequest
 
 	if expected_request != null:
-		var resolved_prompt := preload(
-			"res://features/evolution/visual/resolved_form_prompt.gd"
-		).new().build(
+		expected_request.positive_prompt = preload(
+			"res://features/evolution/visual/source_gene_prompt_composer.gd"
+		).new().compose(
+			expected_request.positive_prompt,
 			identity,
 			to_stage,
-			gene_scores,
-			mythic
+			gene_scores
 		)
-
-		if resolved_prompt.is_empty():
-			return "Không rebuild được resolved-form prompt."
-
-		expected_request.positive_prompt = resolved_prompt
+		if expected_request.positive_prompt.is_empty():
+			return "Không rebuild được source Gene evolution prompt."
 
 		var normal_prompt := _normal_mutation_prompt(
 			expected_normal

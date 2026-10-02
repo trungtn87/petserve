@@ -34,8 +34,8 @@ func _run() -> void:
 		if stage == 4:
 			_check(positive.contains("rounded tips") and positive.contains("ear silhouettes"), "merged ears")
 			_check(positive.contains("Gene emphasis: tail") and positive.contains("native tail assembly/torso"), "tail pose and width")
-			_check(positive.begins_with("TARGET:"), "target comes first")
-			_check(not positive.contains("GENE-ONLY PET CHANGE"), "legacy repetitive prompt removed")
+			_check(positive.begins_with("Premium fantasy game character art"), "target comes first")
+			_check(positive.contains("[GENE-ONLY PET CHANGE]") and positive.contains("[ACCUMULATED GENE SCORE PHENOTYPE]"), "source coordinator and all accumulated Genes preserved")
 			print("Stage 4 resolved prompt characters: ", positive.length())
 		_check(lab.session.accept(PetRenderResult.ok(path, &"test", &"fixture", {"seed": seed_value})), "commit stage %d" % stage)
 	var identity := lab.session.identity as PetIdentity

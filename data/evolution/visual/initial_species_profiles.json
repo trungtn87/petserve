@@ -73,15 +73,15 @@
   },
   {
     "species": "horse",
-    "infant_form": "A very young mythical elemental foal: clear equine body, long youthful legs, readable neck, small horse head, two ears, simple mane, four hooves and one natural flowing tail. Keep the foal graceful and youthful rather than miniature-adult.",
-    "composition": "Keep the whole foal inside the frame and make the equine neck, long legs, mane and single tail immediately readable. Use a premium mobile-game PetHome environment with natural depth.",
+    "infant_form": "A very young mythical elemental foal designed as a soft chibi game pet: compact rounded torso, enlarged rounded youthful horse head, short soft equine muzzle, very large glossy expressive eyes, two upright ears, short youthful legs with four rounded hooves, a flowing sculpted mane and one natural tail. Preserve equine features inside these deliberately stylized infant proportions.",
+    "composition": "Keep the whole stylized foal inside the environment and make its enlarged youthful head, four hooves, mane and single tail readable. Use a premium illustrated mobile-game PetHome habitat with depth.",
     "forbidden_advanced_features": "No horn by default, no antlers, no wings, no scales, no extra legs, no split tail and no saddle or equipment.",
     "species_anatomy": "Clearly recognizable equine anatomy: one horse head, two ears, four long legs with hooves and exactly one tail.",
     "freestyle_pose": "Choose a natural foal pose: standing, light step, playful trot preparation, head turn or resting."
   },
   {
     "species": "qilin",
-    "infant_form": "A very young mythical elemental qilin: elegant sacred hoofed beast with four slender legs, refined divine-beast head, two ears, a small central horn or restrained paired horn buds, soft cloud-like mane, one flowing tail and a few subtle natural scale patches.",
+    "infant_form": "A very young mythical elemental qilin: elegant sacred hoofed beast with four youthful hoofed legs, enlarged rounded divine-beast head with large glossy expressive eyes, two ears, a small central horn or restrained paired horn buds, soft cloud-like mane, one flowing tail and a few subtle natural scale patches.",
     "composition": "Keep the full qilin inside the frame. The silhouette must read as a sacred hoofed beast rather than a horse with a random horn. Show horn, mane, legs and tail cleanly while preserving UI-safe space.",
     "forbidden_advanced_features": "No giant antlers, no multiple horns beyond the defined pair or single central horn, no wings, no dragon body takeover, no armor and no extra limbs.",
     "species_anatomy": "Clearly recognizable qilin anatomy: one divine-beast head, four hoofed legs, two ears, one tail and a restrained sacred horn structure.",
@@ -89,7 +89,7 @@
   },
   {
     "species": "deer",
-    "infant_form": "A very young mythical elemental deer fawn: slim four-legged body, fine youthful legs, small refined head, two soft ears, one short natural tail and either no antlers or only tiny juvenile antler buds. Keep the silhouette light and woodland-like.",
+    "infant_form": "A very young mythical elemental deer fawn: slim four-legged body, fine youthful legs, enlarged soft youthful head and large glossy expressive eyes, two soft ears, one short natural tail and either no antlers or only tiny juvenile antler buds. Keep the silhouette light and woodland-like.",
     "composition": "Keep the entire fawn inside the frame and make the slim deer legs, small head, ears and short tail easy to distinguish from a horse. Use a premium PetHome fantasy environment with open natural depth.",
     "forbidden_advanced_features": "No large mature antlers at Stage 1, no horse mane, no wings, no scales, no extra limbs, no split tail and no heavy armor.",
     "species_anatomy": "Clearly recognizable deer anatomy: one small cervid head, two ears, four fine legs and one short tail.",
