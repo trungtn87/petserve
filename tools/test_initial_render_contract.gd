@@ -138,25 +138,43 @@ func _initialize() -> void:
 
 	_expect(
 		request.positive_prompt.contains(
-			"25 to 30 percent"
+			"28 to 32 percent"
 		)
 		and request.positive_prompt.contains(
 			"lower third"
 		)
 		and request.positive_prompt.contains(
-			"Background occupies most of the image"
+			"65 to 70 percent"
+		)
+		and request.positive_prompt.contains(
+			"camera pulled back"
 		),
 		"Stage 1 must keep the pet small inside PetHome"
 	)
 
 	_expect(
 		request.positive_prompt.contains(
-			"Simple natural fantasy background"
+			"MANDATORY PETHOME ENVIRONMENT"
+		)
+		and request.positive_prompt.contains(
+			scene_profile.environment_theme
+		)
+		and request.positive_prompt.contains(
+			scene_profile.palette_description
+		)
+		and request.positive_prompt.contains(
+			scene_profile.lighting_theme
+		)
+		and request.positive_prompt.contains(
+			scene_profile.motif_description
+		)
+		and request.negative_prompt.contains(
+			"plain white background"
 		)
 		and request.positive_prompt.contains(
 			"No text or UI"
 		),
-		"Stage 1 background must stay simple and UI-safe"
+		"Stage 1 must render the actual element PetHome scene and reject blank/studio backgrounds"
 	)
 
 	_expect(
