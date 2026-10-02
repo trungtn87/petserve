@@ -106,8 +106,21 @@ func build(
 	spec.form_section += preload("res://features/evolution/visual/lineage_morphology.gd").new().build(identity, 1)
 
 	spec.scene_section = (
-		"Simple natural fantasy background matching the same element. "
-		+ "Keep it uncluttered and atmospheric."
+		"MANDATORY PETHOME ENVIRONMENT. Render a complete natural fantasy habitat clearly belonging to the "
+		+ PetElementCatalog.prompt_name(
+			identity.element()
+		)
+		+ " element. Environment identity: "
+		+ scene_profile.environment_theme
+		+ ". Palette: "
+		+ scene_profile.palette_description
+		+ ". Lighting: "
+		+ scene_profile.lighting_theme
+		+ ". Element motif: "
+		+ scene_profile.motif_description
+		+ ". Show readable foreground, midground and background depth. "
+		+ "The habitat must remain visible across the full canvas and must immediately communicate the element. "
+		+ "Never use a white, empty, transparent, product-photo or studio backdrop."
 	)
 
 	spec.composition_section = (
@@ -118,10 +131,14 @@ func build(
 	)
 
 	spec.ui_safe_section = (
-		"Vertical 9:16 mobile scene. "
-		+ "Pet about 25 to 30 percent of image height in the lower third. "
-		+ "Background occupies most of the image. "
-		+ "Keep the upper area calm for UI. No text or UI."
+		"Vertical 9:16 mobile environmental establishing shot with the camera pulled back. "
+		+ "The environment is the main composition and the pet is a smaller focal subject living inside it. "
+		+ "Keep the full pet bottom-center in the lower third. "
+		+ "The visible pet height should occupy only about 28 to 32 percent of total image height. "
+		+ "Place the lowest visible pet point around 88 to 90 percent of image height and keep the highest visible pet point below roughly 58 to 60 percent. "
+		+ "At least about 65 to 70 percent of the image must read as environment, with clear space above and around the pet. "
+		+ "Keep the upper 30 percent calm and low-detail for UI, especially the upper-left status area. "
+		+ "Do not zoom in, do not crop the pet, do not let the pet fill the frame. No text or UI."
 	)
 
 	spec.future_space_section = (
@@ -132,7 +149,7 @@ func build(
 		species_profile.forbidden_advanced_features
 		+ ", duplicate anatomy, duplicate tail, extra tail, split tail, extra limb, extra ear, multiple pets, "
 		+ "close-up portrait, pet filling the frame, oversized pet, humanoid pose, "
-		+ "heavy accessories, fully adult animal, old animal, text, UI, logo, watermark"
+		+ "heavy accessories, fully adult animal, old animal, plain white background, white studio background, empty backdrop, transparent backdrop, product photo, missing environment, text, UI, logo, watermark"
 	)
 
 	if not spec.is_valid():
