@@ -86,7 +86,7 @@ func _validate_selections(
 	source_stage: int,
 	selections: Array[Dictionary]
 ) -> void:
-	var allowed := session.available_genes(source_stage)
+	var allowed: Array[GeneDefinition] = session.available_genes(source_stage)
 	var catalog := GeneCatalog.new()
 	var seen_loci: Dictionary = {}
 
