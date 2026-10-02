@@ -107,10 +107,12 @@ func build_from_scores(
 			var preserve := definition.preserve_hint()
 
 			if species_adapter != null:
-				var translated := species_adapter.translate(
-					species,
-					definition.locus(),
-					definition.direction()
+				var translated: String = String(
+					species_adapter.translate(
+						species,
+						definition.locus(),
+						definition.direction()
+					)
 				)
 
 				if not translated.is_empty():
