@@ -433,7 +433,8 @@ func validate(
 	var expected_gene_prompt := GenePromptResolver.new().build_from_scores(
 		gene_scores,
 		identity.element(),
-		to_stage
+		to_stage,
+		identity.species()
 	)
 	var stored_gene_prompt := String(
 		pending.get(
