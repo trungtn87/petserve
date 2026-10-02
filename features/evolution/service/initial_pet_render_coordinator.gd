@@ -119,7 +119,7 @@ func build_request(
 	)
 	request.output_key = (
 		identity.pet_id()
-		+ "_pethome_infant_v13_scene_scale"
+		+ "_pethome_infant_v14_habitat_frame"
 	)
 
 	if not request.is_valid():
