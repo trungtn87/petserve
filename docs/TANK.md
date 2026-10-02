@@ -1,12 +1,12 @@
 # Tank bảo vệ căn cứ
 
 Trong Giải trí → Tank, chọn **1 người** để chơi ngay. Mỗi ván bắt đầu với
-3 mạng. Giữ bốn phím bên trái để di chuyển, giữ nút BẮN bên phải để bắn;
+3 mạng khi chơi đôi, 5 mạng khi chơi đơn. Giữ bốn phím bên trái để di chuyển, giữ nút BẮN bên phải để bắn;
 hỗ trợ hai ngón đồng thời. Bàn phím: phím mũi tên và Space.
 
 ## Bản đồ và độ khó
 
-20 map 13×13 thiết kế sẵn trong `gameplay/entertainment/tank/tank_maps.json`:
+20 map 16×16 thiết kế sẵn trong `gameplay/entertainment/tank/tank_maps.json`:
 4 Phố gạch, 4 Pháo đài, 4 Sông hồ, 4 Rừng, 4 Hỗn hợp.
 Vào trận bốc ngẫu nhiên; mỗi lần qua màn bốc một map chưa dùng. Hết 20 map
 thì xáo lại, tránh lặp ngay map vừa chơi. Độ khó phụ thuộc số màn, không phụ
@@ -14,8 +14,8 @@ thuộc map bốc trúng; số địch, tốc độ và nhịp xuất hiện tă
 nguyên. Không giới hạn số màn hoặc thời gian.
 
 Gạch phá được, thép cần súng cấp tối đa, nước chặn xe nhưng đạn đi qua,
-bụi cây trong suốt một phần để dễ thấy xe. Căn cứ ★ bị bắn trúng hoặc tất cả
-người chơi hết mạng là kết thúc. Đạn người chơi cũng có thể phá căn cứ.
+bụi cây trong suốt một phần để dễ thấy xe. Căn cứ ★ hết HP hoặc tất cả
+người chơi hết mạng là kết thúc. Đạn người chơi có thể phá căn cứ trong chế độ đôi; chơi đơn được bảo vệ khỏi đạn của mình.
 Xe địch có loại thường, nhanh, bắn và giáp 3 phát. Địch tìm đường tới căn cứ
 và bắn xuyên tường gạch. Mỗi xe địch thứ 5 mang vật phẩm.
 
@@ -64,3 +64,41 @@ Kiểm tra 20 map và đường đi, bốc không trùng, va chạm, vật phẩ
 chuyển màn, thưởng/rollback/nhận trùng, hai ENet peer thực sự, thao tác
 P2, đồng bộ map/tạm dừng/kết thúc và mất kết nối. Bluetooth dùng cùng
 kênh đã triển khai; cần kiểm tra thực tế trên hai điện thoại Android.
+
+
+## Điều chỉnh chơi đơn
+
+Chơi đơn: 5 mạng, súng cấp 1 ban đầu, tối đa 2 viên đạn cùng lúc, mất một
+cấp súng khi chết nhưng giữ ít nhất cấp 1. Màn đầu 8 địch thường, tối đa
+2 địch trên sân tới màn 5, sau đó 3; chờ 4 giây trước xe đầu tiên. Nhịp
+xuất hiện 3,6 giây giảm dần đến 2,25 giây ở màn 10; số địch tăng tới 14.
+Tốc độ xe và nhịp bắn thấp hơn chế độ đôi; vật phẩm mỗi xe thứ 3.
+
+Giữ 20 map ngẫu nhiên. Với chơi đơn, hai hàng 12–13 được dọn thành đường
+ngang để chuyển cánh phòng thủ, thêm gạch ở ba đường bắn dọc tại hàng 11.
+Căn cứ 3 HP hồi đầy khi qua màn, có 2,5 giây miễn sát thương sau mỗi phát
+trúng, không nhận sát thương từ đạn người chơi. 15 giây đầu mỗi màn gia
+cố tường và bảo vệ căn cứ. HUD hiển thị HP căn cứ. Thông số mạng sống, số địch và tốc độ của chế độ đôi giữ nguyên.
+
+
+## Bố cục cổ điển và vùng hiển thị
+
+20 bố cục mới có tường gạch dài, nhiều đường ngang nối các hành lang,
+khối thép, hồ nước, rừng và công sự trung tâm. Tank hiển thị toàn màn hình
+thay cho vùng nhỏ trong bảng Giải trí. Map rộng 16×16 ô, vị trí căn cứ ở
+hàng cuối; hai máy dùng đúng cùng bố cục.
+
+Chơi đơn có thêm hành vi tuần tra ở khu vực trên map; địch không liên tục
+chọn đường ngắn nhất tới căn cứ. Xe địch không xuyên qua xe người chơi
+hoặc xe địch khác; hai người đồng đội vẫn đi xuyên nhau để tránh chặn lối.
+Vật phẩm giữ đủ 5 loại, xe mang vật phẩm có điểm trắng; chơi đơn xuất hiện
+mỗi xe thứ 3. Súng ba cấp thay đổi tốc độ đạn, số viên đồng thời và khả năng
+phá thép; khi chết chơi đơn vẫn giữ ít nhất cấp 1.
+
+Kiểm thử chơi đơn: bot phòng thủ chuyển cánh, quay nòng và bắn, quay lại
+vị trí phòng thủ sau hồi sinh, vượt màn đầu trên 20/20 map với seed cố định.
+Đây là mô phỏng, không đại diện tỷ lệ thắng của người chơi cảm ứng.
+
+Tham khảo bố cục từ ảnh Battle City người dùng cung cấp. Bài viết tham khảo
+là devlog, không phải đặc tả luật game:
+https://ctrl-alt-delete.hashnode.dev/a-look-back-at-an-8-year-old-2d-tank-game

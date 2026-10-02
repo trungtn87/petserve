@@ -21,6 +21,8 @@ var remaining := 0
 var spawn_clock := 0.0
 var frozen := 0.0
 var fort := 0.0
+var base_hp := 1
+var base_grace := 0.0
 var accumulator := 0.0
 var serial := 0
 var inputs := [{"dir": -1, "fire": false}, {"dir": -1, "fire": false}]
@@ -38,8 +40,8 @@ func start(two_players: bool = false, seed_value: int = 0) -> void:
 	players.clear()
 	inputs = [{"dir": -1, "fire": false}, {"dir": -1, "fire": false}]
 	for slot in (2 if duo else 1):
-		players.append({"x": 4.5 + slot * 4, "y": 12.5, "dir": 0, "lives": 3,
-			"score": 0, "gun": 0, "shield": 3.0, "cool": 0.0})
+		players.append({"x": 6.5 + slot * 4, "y": 15.5, "dir": 0, "lives": 3 if duo else 5,
+			"score": 0, "gun": 0 if duo else 1, "shield": 3.0, "cool": 0.0})
 	_next_wave()
 
 func _next_wave() -> void:
@@ -58,17 +60,27 @@ func _next_wave() -> void:
 			deck[19] = old
 	map_index = int(deck.pop_back())
 	tiles = TankMaps.cells(map_index)
+	if not duo:
+		# A clear defensive cross-lane lets one tank cover both flanks.
+		for y in [12, 13]:
+			for x in 16:
+				tiles[y * 16 + x] = 0
+		# Break up the three long firing lanes without sealing off the map.
+		for x in [0, 8, 15]:
+			tiles[11 * 16 + x] = 1
+	base_hp = 1 if duo else 3
+	base_grace = 0.0
 	enemies.clear()
 	bullets.clear()
 	pickups.clear()
 	effects.clear()
-	remaining = 10 + mini(wave, 10) * 2 + (6 if duo else 0)
-	spawn_clock = 1.0
+	remaining = 16 + mini(wave, 10) * 2 if duo else 8 + mini(6, (wave - 1) * 2 / 3)
+	spawn_clock = 1.0 if duo else 4.0
 	frozen = 0.0
-	fort = 0.0
+	fort = 0.0 if duo else 15.0
 	for i in players.size():
-		players[i].x = 4.5 + i * 4
-		players[i].y = 12.5
+		players[i].x = 6.5 + i * 4
+		players[i].y = 15.5
 		players[i].shield = 3.0
 
 func set_input(slot: int, direction: int, fire: bool) -> void:
@@ -86,6 +98,7 @@ func tick(delta: float) -> void:
 func _step(dt: float) -> void:
 	frozen = maxf(0, frozen - dt)
 	fort = maxf(0, fort - dt)
+	base_grace = maxf(0, base_grace - dt)
 	for effect in effects:
 		effect.time -= dt
 	effects = effects.filter(func(e: Dictionary) -> bool: return float(e.time) > 0)
@@ -106,9 +119,9 @@ func _step(dt: float) -> void:
 				_power(p, int(item.kind), i)
 				pickups.erase(item)
 	spawn_clock -= dt
-	if remaining > 0 and enemies.size() < (6 if duo else 4) and spawn_clock <= 0:
+	if remaining > 0 and enemies.size() < enemy_limit() and spawn_clock <= 0:
 		_spawn()
-		spawn_clock = maxf(0.65, 2.4 - mini(wave, 10) * 0.15)
+		spawn_clock = spawn_interval()
 	if frozen <= 0:
 		for e in enemies:
 			e.cool = maxf(0, float(e.cool) - dt)
@@ -131,31 +144,34 @@ func _step(dt: float) -> void:
 		_next_wave()
 
 func _spawn() -> void:
-	var x := [0.5, 6.5, 12.5][rng.randi_range(0, 2)] as float
+	var x := [0.5, 8.5, 15.5][rng.randi_range(0, 2)] as float
 	for e in enemies:
 		if Vector2(e.x, e.y).distance_to(Vector2(x, 0.5)) < 1.0:
 			return
-	var kind := rng.randi_range(0, mini(3, 1 + wave / 3))
+	var kind := rng.randi_range(0, mini(3, 1 + wave / 3) if duo else mini(3, (wave - 1) / 3))
 	serial += 1
 	enemies.append({"id": serial, "x": x, "y": 0.5, "dir": 2, "hp": 3 if kind == 3 else 1,
-		"kind": kind, "speed": (2.0 if kind == 1 else 1.2) + mini(wave, 10) * 0.06,
-		"turn": 0.0, "cool": 0.7, "carrier": serial % 5 == 0})
+		"kind": kind, "speed": ((2.0 if kind == 1 else 1.2) + mini(wave, 10) * 0.06) if duo else (1.3 if kind == 1 else 0.9) + mini(wave, 10) * 0.03,
+		"turn": 0.0, "cool": 0.7, "carrier": serial % (5 if duo else 3) == 0})
 	remaining -= 1
 
 func _enemy_direction(e: Dictionary) -> int:
 	# Follow a shortest route to the base; brick is traversable in planning and shot on contact.
+	# Most early solo turns patrol corridors instead of rushing the objective.
+	if not duo and float(e.y) < 10.0 and rng.randf() < 0.55:
+		return int(e.dir) if rng.randf() < 0.5 else rng.randi_range(0,3)
 	var start_cell := Vector2i(int(e.x), int(e.y))
 	var queue: Array = [start_cell]
 	var first: Dictionary = {start_cell: -1}
 	while not queue.is_empty():
 		var cell: Vector2i = queue.pop_front()
-		if cell == Vector2i(6, 12):
+		if cell == Vector2i(8, 15):
 			return int(first[cell]) if int(first[cell]) >= 0 else 2
 		for d in [2, 1, 3, 0]:
 			var next := cell + Vector2i(DIRS[d])
-			if next.x < 0 or next.x >= 13 or next.y < 0 or next.y >= 13 or first.has(next):
+			if next.x < 0 or next.x >= 16 or next.y < 0 or next.y >= 16 or first.has(next):
 				continue
-			if int(tiles[next.y * 13 + next.x]) in [2, 3]:
+			if int(tiles[next.y * 16 + next.x]) in [2, 3]:
 				continue
 			first[next] = d if cell == start_cell else first[cell]
 			queue.append(next)
@@ -172,9 +188,19 @@ func _move(tank: Dictionary, amount: float) -> bool:
 	var next := pos + d * amount
 	for corner in [Vector2(-0.32,-0.32), Vector2(0.32,-0.32), Vector2(-0.32,0.32), Vector2(0.32,0.32)]:
 		var point: Vector2 = next + corner
-		if point.x < 0 or point.y < 0 or point.x >= 13 or point.y >= 13:
+		if point.x < 0 or point.y < 0 or point.x >= 16 or point.y >= 16:
 			return false
-		if int(tiles[int(point.y) * 13 + int(point.x)]) in [1, 2, 3, 5]:
+		if int(tiles[int(point.y) * 16 + int(point.x)]) in [1, 2, 3, 5]:
+			return false
+	# Enemy tanks cannot drive through players or other enemies. Allies may overlap.
+	for other in enemies + players:
+		if other == tank or (not tank.has("id") and not other.has("id")):
+			continue
+		if other.has("lives") and int(other.lives) <= 0:
+			continue
+		var center := Vector2(other.x, other.y)
+		var offset := next - center
+		if absf(offset.x) < 0.68 and absf(offset.y) < 0.68 and next.distance_squared_to(center) < pos.distance_squared_to(center):
 			return false
 	tank.x = next.x
 	tank.y = next.y
@@ -187,31 +213,46 @@ func _fire(tank: Dictionary, owner: int, gun: int) -> void:
 	for b in bullets:
 		if int(b.owner) == owner and (owner >= 0 or int(b.source) == int(tank.id)):
 			count += 1
-	if count >= (2 if gun >= 2 else 1):
+	if count >= (2 if gun >= 2 or (owner >= 0 and not duo) else 1):
 		return
 	var dir: Vector2 = DIRS[int(tank.dir)]
 	bullets.append({"x": float(tank.x) + dir.x * 0.43, "y": float(tank.y) + dir.y * 0.43,
 		"dir": int(tank.dir), "owner": owner, "source": int(tank.get("id", 0)), "gun": gun})
-	tank.cool = 0.25 if owner >= 0 else maxf(0.4, (1.0 if int(tank.get("kind",0)) == 2 else 1.4) - mini(wave, 10) * 0.07)
+	if owner >= 0:
+		tank.cool = 0.25
+	elif duo:
+		tank.cool = maxf(0.4, (1.0 if int(tank.get("kind",0)) == 2 else 1.4) - mini(wave, 10) * 0.07)
+	else:
+		tank.cool = maxf(1.2, (1.8 if int(tank.get("kind",0)) == 2 else 2.2) - mini(wave, 10) * 0.05)
 
 func _update_bullets(dt: float) -> void:
 	var dead: Array = []
 	for b in bullets:
 		for sub in 2:
 			var d: Vector2 = DIRS[int(b.dir)]
-			b.x += d.x * (10.0 if int(b.gun) > 0 else 7.0) * dt * 0.5
-			b.y += d.y * (10.0 if int(b.gun) > 0 else 7.0) * dt * 0.5
-			if b.x < 0 or b.y < 0 or b.x >= 13 or b.y >= 13:
+			var speed := 10.0 if int(b.gun) > 0 else 7.0
+			if int(b.owner) < 0 and not duo:
+				speed = 7.0 if int(b.gun) > 0 else 5.0
+			b.x += d.x * speed * dt * 0.5
+			b.y += d.y * speed * dt * 0.5
+			if b.x < 0 or b.y < 0 or b.x >= 16 or b.y >= 16:
 				dead.append(b)
 				break
-			var cell := int(b.y) * 13 + int(b.x)
+			var cell := int(b.y) * 16 + int(b.x)
 			var tile := int(tiles[cell])
 			if tile in [1, 2, 5]:
 				if tile == 1 or (tile == 2 and int(b.gun) >= 3):
-					if not (fort > 0 and cell in [148,149,150,161,163]):
+					if not (fort > 0 and cell in [231,232,233,247,249]):
 						tiles[cell] = 0
 				if tile == 5:
-					status = "lost"
+					if duo:
+						base_hp = 0
+					elif int(b.owner) < 0 and fort <= 0 and base_grace <= 0:
+						base_hp -= 1
+						base_grace = 2.5
+						_explode(8.5, 15.5)
+					if base_hp <= 0:
+						status = "lost"
 				dead.append(b)
 				break
 			var targets: Array = enemies.duplicate() if int(b.owner) >= 0 else players
@@ -227,10 +268,10 @@ func _update_bullets(dt: float) -> void:
 							_kill(t, int(b.owner))
 					elif float(t.shield) <= 0:
 						t.lives -= 1
-						t.gun = 0
+						t.gun = 0 if duo else maxi(1, int(t.gun) - 1)
 						_explode(float(t.x), float(t.y))
-						t.x = 4.5 + players.find(t) * 4
-						t.y = 12.5
+						t.x = 6.5 + players.find(t) * 4
+						t.y = 15.5
 						t.shield = 3.0
 					break
 			if hit:
@@ -265,7 +306,7 @@ func _power(p: Dictionary, kind: int, owner: int) -> void:
 				_kill(e, owner)
 		4:
 			fort = 10.0
-			for cell in [148,149,150,161,163]:
+			for cell in [231,232,233,247,249]:
 				tiles[cell] = 1
 
 func team_score() -> int:
@@ -278,4 +319,11 @@ func snapshot() -> Dictionary:
 	return {"match_id": match_id, "status": status, "duo": duo, "wave": wave, "map_index": map_index,
 		"tiles": tiles.duplicate(), "players": players.duplicate(true), "enemies": enemies.duplicate(true),
 		"bullets": bullets.duplicate(true), "pickups": pickups.duplicate(true), "effects": effects.duplicate(true),
-		"remaining": remaining, "fort": fort, "frozen": frozen, "team_score": team_score()}
+		"remaining": remaining, "base_hp": base_hp, "fort": fort, "frozen": frozen, "team_score": team_score()}
+
+
+func enemy_limit() -> int:
+	return 6 if duo else (2 if wave <= 5 else 3)
+
+func spawn_interval() -> float:
+	return maxf(0.65, 2.4 - mini(wave, 10) * 0.15) if duo else maxf(2.2, 3.6 - mini(wave - 1, 9) * 0.15)

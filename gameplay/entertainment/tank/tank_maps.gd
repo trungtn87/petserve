@@ -1,8 +1,8 @@
 class_name TankMaps
 extends RefCounted
 
-const WIDTH := 13
-const HEIGHT := 13
+const WIDTH := 16
+const HEIGHT := 16
 const SYMBOLS := {".": 0, "B": 1, "S": 2, "W": 3, "G": 4, "H": 5}
 
 static func all_maps() -> Array:

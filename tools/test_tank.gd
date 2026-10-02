@@ -35,22 +35,22 @@ func _test_maps() -> void:
 	var unique: Dictionary = {}
 	for i in 20:
 		var cells := TankMaps.cells(i)
-		check(cells.size()==169 and cells.count(5)==1,"valid 13x13 map and one base")
+		check(cells.size()==256 and cells.count(5)==1,"valid 16x16 map and one base")
 		unique[str(maps[i].rows)] = true
 		# Steel/water are impassable; brick may be destroyed to approach the base.
-		for start in [0,6,12,160,164]:
+		for start in [0,8,15,246,250]:
 			var seen: Dictionary = {start:true}
 			var queue: Array = [start]
 			while not queue.is_empty():
 				var cell: int = queue.pop_front()
 				for d in TankSession.DIRS:
-					var x := cell%13+int(d.x)
-					var y := cell/13+int(d.y)
-					var next := y*13+x
-					if x>=0 and x<13 and y>=0 and y<13 and not seen.has(next) and int(cells[next]) not in [2,3]:
+					var x := cell%16+int(d.x)
+					var y := cell/16+int(d.y)
+					var next := y*16+x
+					if x>=0 and x<16 and y>=0 and y<16 and not seen.has(next) and int(cells[next]) not in [2,3]:
 						seen[next]=true
 						queue.append(next)
-			check(seen.has(162),"spawn can reach base in every map")
+			check(seen.has(248),"spawn can reach base in every map")
 	check(unique.size()==20,"all maps distinct")
 	var game := TankSession.new()
 	game.start(false,123)
@@ -73,17 +73,22 @@ func _test_simulation() -> void:
 	check(g._move(g.players[0],0.05),"players never block each other")
 	g.players[0].x=4.5
 	g.players[0].y=4.5
-	g.tiles[3*13+4]=1
+	g.enemies=[{"id":999,"x":4.5,"y":3.8,"dir":2}]
+	check(not g._move(g.enemies[0],0.05),"enemy cannot drive through player")
+	g.enemies.clear()
+	g.players[0].x=4.5
+	g.players[0].y=4.5
+	g.tiles[3*16+4]=1
 	g.bullets=[{"x":4.5,"y":4.05,"dir":0,"owner":0,"source":0,"gun":0}]
 	g._update_bullets(0.05)
-	check(g.tiles[3*13+4]==0 and g.bullets.is_empty(),"bullet breaks brick and stops")
-	g.tiles[3*13+4]=2
+	check(g.tiles[3*16+4]==0 and g.bullets.is_empty(),"bullet breaks brick and stops")
+	g.tiles[3*16+4]=2
 	g.bullets=[{"x":4.5,"y":4.05,"dir":0,"owner":0,"source":0,"gun":0}]
 	g._update_bullets(0.05)
-	check(g.tiles[3*13+4]==2,"normal bullet cannot destroy steel")
+	check(g.tiles[3*16+4]==2,"normal bullet cannot destroy steel")
 	g.bullets=[{"x":4.5,"y":4.05,"dir":0,"owner":0,"source":0,"gun":3}]
 	g._update_bullets(0.05)
-	check(g.tiles[3*13+4]==0,"fully upgraded bullet destroys steel")
+	check(g.tiles[3*16+4]==0,"fully upgraded bullet destroys steel")
 	g.players[1].shield=0
 	g.bullets=[{"x":4.5,"y":4.8,"dir":0,"owner":0,"source":0,"gun":0}]
 	g._update_bullets(0.05)
@@ -92,8 +97,8 @@ func _test_simulation() -> void:
 	g.players[0].shield=0
 	g._update_bullets(0.05)
 	check(g.players[0].lives==2 and g.players[0].shield>0,"enemy hit respawns with shield")
-	g.tiles[162]=5
-	g.bullets=[{"x":6.5,"y":11.99,"dir":2,"owner":-1,"source":1,"gun":0}]
+	g.tiles[248]=5
+	g.bullets=[{"x":8.5,"y":14.99,"dir":2,"owner":-1,"source":1,"gun":0}]
 	g._update_bullets(0.05)
 	check(g.status=="lost","base destruction ends match")
 	g.start(true,8)
@@ -108,12 +113,12 @@ func _test_simulation() -> void:
 	var before_score: int=g.players[1].score
 	g._power(g.players[1],3,1)
 	check(g.enemies.is_empty() and g.players[1].score>before_score,"bomb grants collector kill points")
-	g.tiles[148]=0
+	g.tiles[231]=0
 	g._power(g.players[0],4,0)
-	check(g.fort==10.0 and g.tiles[148]==1,"fort repairs base walls")
-	g.bullets=[{"x":5.5,"y":10.99,"dir":2,"owner":-1,"source":1,"gun":0}]
+	check(g.fort==10.0 and g.tiles[231]==1,"fort repairs base walls")
+	g.bullets=[{"x":7.5,"y":13.99,"dir":2,"owner":-1,"source":1,"gun":0}]
 	g._update_bullets(0.05)
-	check(g.tiles[148]==1,"fort prevents brick destruction")
+	check(g.tiles[231]==1,"fort prevents brick destruction")
 	g.start(false,10)
 	g.remaining=0
 	g.enemies.clear()

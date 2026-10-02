@@ -12,21 +12,21 @@ func show_state(value: Dictionary) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var unit := minf(size.x, size.y) / 13.0
-	var offset := (size - Vector2.ONE * unit * 13) / 2
-	draw_rect(Rect2(offset, Vector2.ONE * unit * 13), Color("131d28"))
+	var unit := minf(size.x, size.y) / 16.0
+	var offset := (size - Vector2.ONE * unit * 16) / 2
+	draw_rect(Rect2(offset, Vector2.ONE * unit * 16), Color("131d28"))
 	if state.is_empty():
 		return
 	for cell in state.tiles.size():
 		var type := int(state.tiles[cell])
-		var r := Rect2(offset + Vector2(cell % 13, cell / 13) * unit, Vector2.ONE * unit)
+		var r := Rect2(offset + Vector2(cell % 16, cell / 16) * unit, Vector2.ONE * unit)
 		match type:
 			1:
 				draw_rect(r.grow(-0.8), Color("cf7049"))
 				for y in [0.33,0.66]:
 					draw_line(r.position + Vector2(0,unit*y),r.position+Vector2(unit,unit*y),Color("713e30"),1)
 				draw_line(r.position+Vector2(unit*0.5,0),r.position+Vector2(unit*0.5,unit),Color("713e30"),1)
-				if float(state.fort) > 0 and cell in [148,149,150,161,163]:
+				if float(state.fort) > 0 and cell in [231,232,233,247,249]:
 					draw_rect(r.grow(-1),Color("81e9f0"),false,2)
 			2:
 				draw_rect(r.grow(-1),Color("a6b9c8"))
@@ -38,6 +38,8 @@ func _draw() -> void:
 			5:
 				draw_rect(r.grow(-1),Color("ecdcab"))
 				_text("★",r.get_center(),unit*0.8,Color("332b26"))
+				if float(state.fort) > 0:
+					draw_rect(r.grow(-0.5),Color("81e9f0"),false,2)
 	for i in state.players.size():
 		var p: Dictionary = state.players[i]
 		if int(p.lives) > 0:
@@ -53,11 +55,11 @@ func _draw() -> void:
 	# Foliage stays translucent so small tanks remain readable.
 	for cell in state.tiles.size():
 		if int(state.tiles[cell]) == 4:
-			var center := offset+Vector2(cell%13+0.5,float(cell/13)+0.5)*unit
+			var center := offset+Vector2(cell%16+0.5,float(cell/16)+0.5)*unit
 			draw_circle(center,unit*0.45,Color(0.2,0.65,0.34,0.48))
 	for effect in state.effects:
 		draw_circle(offset+Vector2(effect.x,effect.y)*unit,unit*(0.5-float(effect.time)),Color("ffc27c"))
-	draw_rect(Rect2(offset,Vector2.ONE*unit*13),Color("6c839a"),false,1)
+	draw_rect(Rect2(offset,Vector2.ONE*unit*16),Color("6c839a"),false,1)
 
 func _tank(t: Dictionary, offset: Vector2, unit: float, color: Color, number: String) -> void:
 	var center := offset+Vector2(t.x,t.y)*unit

@@ -942,7 +942,7 @@ func _open_connection() -> void:
 
 func _build_tank_activity(parent: Control) -> void:
 	_tank_activity = TankActivityUI.new()
-	parent.add_child(_tank_activity)
+	add_child(_tank_activity)
 	_tank_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_tank_activity.visible = false
 	_tank_activity.back_requested.connect(_show_hub_screen)

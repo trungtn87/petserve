@@ -39,9 +39,18 @@ func _ready() -> void:
 	if connection != null:
 		connection.message_received.connect(_on_message)
 		connection.status_changed.connect(_connection_changed)
+	var background := ColorRect.new()
+	background.color = Color("131925")
+	background.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(background)
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var root := VBoxContainer.new()
 	add_child(root)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.offset_left = 8
+	root.offset_right = -8
+	root.offset_top = 8
+	root.offset_bottom = -8
 	root.add_theme_constant_override("separation",5)
 	var header := HBoxContainer.new()
 	root.add_child(header)
@@ -62,7 +71,7 @@ func _ready() -> void:
 	_board = TankBoard.new()
 	board_space.add_child(_board)
 	_board.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_message = _label("3 mạng • Bảo vệ ★ • 1.000 điểm = 1 mảnh")
+	_message = _label("Chơi đơn 5 mạng • Căn cứ 3 HP • Bảo vệ ★ • 1.000 điểm = 1 mảnh")
 	root.add_child(_message)
 	var modes := HBoxContainer.new()
 	root.add_child(modes)
@@ -251,7 +260,7 @@ func _on_message(channel: String, data: Dictionary) -> void:
 		_abort("Người kia đã rời ván. Không nhận thưởng.")
 
 func _valid_state(value: Variant) -> bool:
-	if not value is Dictionary or value.get("duo") != true or not value.get("tiles") is Array or value.tiles.size() != 169:
+	if not value is Dictionary or value.get("duo") != true or not value.get("tiles") is Array or value.tiles.size() != 256:
 		return false
 	if not value.get("players") is Array or value.players.size() != 2 or int(value.get("map_index",-1)) not in range(20):
 		return false
@@ -286,6 +295,7 @@ func _render() -> void:
 		var p: Dictionary = _state.players[i]
 		stats += "P%d: %d♥ %dđ  " % [i+1,int(p.lives),int(p.score)]
 	_info.text = "Màn %d • %s\n%s • Địch %d" % [int(_state.wave),str(_maps[int(_state.map_index)].name),stats,int(_state.remaining)+_state.enemies.size()]
+	_info.text += " • Căn cứ %d HP" % int(_state.get("base_hp",1))
 	_pause.text = "Tiếp" if _paused else "Dừng"
 	if _running:
 		_message.text = "Đang tạm dừng" if _paused else "Bảo vệ ★ • + súng / S khiên / F đóng băng / B bom / H căn cứ"
