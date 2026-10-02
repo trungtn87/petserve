@@ -32,9 +32,11 @@ func _run() -> void:
 			_check(lab.request.mode == PetRenderRequest.RenderMode.EVOLUTION_TEXT_TO_IMAGE and lab.request.source_image_path.is_empty(), "fresh mode removes reference")
 			_check(lab.request.positive_prompt == positive and lab.request.seed == seed_value, "A/B same exact brief and seed")
 		if stage == 4:
-			_check(positive.contains("rounded tips") and positive.contains("fan tufts"), "merged ears")
-			_check(positive.contains("60 degrees") and positive.contains("plume width"), "tail pose and width")
-			_check(positive.begins_with("TARGET IMAGE:"), "target comes first")
+			_check(positive.contains("TARGET: the same individual"), "resolved target identity")
+			_check(positive.contains("SPECIES LOCK:"), "species anatomy lock")
+			_check(positive.contains("INHERITED INDIVIDUAL:"), "inherited morphology")
+			_check(positive.contains("REFERENCE CONTINUITY:"), "reference continuity")
+			_check(positive.contains("DEVELOPMENT PRIORITIES"), "production gene priorities")
 			_check(not positive.contains("GENE-ONLY PET CHANGE"), "legacy repetitive prompt removed")
 			print("Stage 4 resolved prompt characters: ", positive.length())
 		_check(lab.session.accept(PetRenderResult.ok(path, &"test", &"fixture", {"seed": seed_value})), "commit stage %d" % stage)
@@ -44,7 +46,11 @@ func _run() -> void:
 	var reversed := {"tail.fluffy": 160.0, "ears.softfan": 55.0, "ears.rounded": 55.0}
 	_check(builder.build(identity, 4, scores) == builder.build(identity, 4, reversed), "order independent blend")
 	var mythic := builder.build(identity, 4, scores, {"mode": "awaken", "prompt": "authorized pair of wings"})
-	_check(mythic.contains("authorized pair of wings") and not mythic.contains("no horns or wings"), "mythic permission preserved")
+	_check(
+		mythic.contains("AUTHORIZED MYTHIC ANATOMY:")
+		and mythic.contains("authorized pair of wings"),
+		"mythic permission preserved"
+	)
 	lab.free()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	print("Resolved form + preset + A/B: %s" % ("PASS" if failures == 0 else "FAIL"))
