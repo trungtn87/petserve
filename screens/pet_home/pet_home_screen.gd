@@ -40,10 +40,8 @@ var _section_tabs: HBoxContainer
 var _section_tab_buttons: Dictionary = {}
 var _section_body: VBoxContainer
 var _active_section: StringName = &""
-var _crystal_status_value: Label
-var _crystal_stage_value: Label
-var _crystal_timer_value: Label
-var _crystal_running: bool = false
+var _crystal_slot_views: Dictionary = {}
+var _crystal_unlocked_slots: int = 0
 
 
 func _ready() -> void:
@@ -1554,9 +1552,8 @@ func _prepare_section(
 	section_id: StringName = &""
 ) -> void:
 	_active_section = section_id
-	_crystal_status_value = null
-	_crystal_stage_value = null
-	_crystal_timer_value = null
+	_crystal_slot_views.clear()
+	_crystal_unlocked_slots = 0
 	_section_title.text = title
 	if _section_tabs != null:
 		_section_tabs.visible = false
@@ -1627,9 +1624,8 @@ func _add_info_row(
 
 func _close_section() -> void:
 	_active_section = &""
-	_crystal_status_value = null
-	_crystal_stage_value = null
-	_crystal_timer_value = null
+	_crystal_slot_views.clear()
+	_crystal_unlocked_slots = 0
 	_section_overlay.visible = false
 
 
@@ -1794,25 +1790,27 @@ func _open_storage() -> void:
 	_prepare_section("Kho tài nguyên")
 	var state := _game.snapshot()
 	var crystal := _crystallization_snapshot()
-	var crystal_text := "Sẵn sàng"
-
-	if bool(crystal.get("running", false)):
-		crystal_text = (
-			"Giai đoạn %s • %s"
-			% [
-				_crystal_stage_name(
-					int(crystal.get("stage", 1))
-				),
-				_format_crystal_time(
-					int(
-						crystal.get(
-							"remaining_seconds",
-							0
-						)
-					)
-				),
-			]
+	var unlocked_slots := int(
+		crystal.get(
+			"unlocked_slots",
+			1
 		)
+	)
+	var running_count := int(
+		crystal.get(
+			"running_count",
+			0
+		)
+	)
+	var crystal_text := (
+		"Đang chạy %d/%d ô"
+		% [
+			running_count,
+			unlocked_slots,
+		]
+		if running_count > 0
+		else "Sẵn sàng • %d ô" % unlocked_slots
+	)
 
 	_add_info_row("Rương", str(state.get("pending_chests", 0)))
 	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
@@ -1836,19 +1834,23 @@ func _open_crystallization() -> void:
 		&"crystallization"
 	)
 	var crystal := _crystallization_snapshot()
-	var running := bool(
-		crystal.get(
-			"running",
-			false
-		)
-	)
-	_crystal_running = running
 	var element_id := StringName(
 		crystal.get(
 			"element_id",
 			"neutral"
 		)
 	)
+	var unlocked_slots := clampi(
+		int(
+			crystal.get(
+				"unlocked_slots",
+				1
+			)
+		),
+		1,
+		4
+	)
+	_crystal_unlocked_slots = unlocked_slots
 
 	_add_info_row(
 		"Nguyên tố",
@@ -1856,79 +1858,404 @@ func _open_crystallization() -> void:
 			element_id
 		)
 	)
-	_crystal_status_value = _add_info_row(
-		"Trạng thái",
-		(
-			"Đang kết tinh"
-			if running
-			else "Sẵn sàng"
+
+	var hint := Label.new()
+	hint.text = (
+		"Mỗi giai đoạn thú cưng mở thêm 1 ô kết tinh. "
+		+ "Mỗi ô chạy và hủy độc lập."
+	)
+	hint.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	hint.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	hint.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
 		)
 	)
-	_crystal_stage_value = _add_info_row(
-		"Giai đoạn",
-		(
-			_crystal_stage_name(
-				int(
-					crystal.get(
-						"stage",
-						1
-					)
-				)
-			)
-			if running
-			else "—"
-		)
-	)
-	_crystal_timer_value = _add_info_row(
-		"Còn lại",
-		(
-			_format_crystal_time(
-				int(
-					crystal.get(
-						"remaining_seconds",
-						0
-					)
-				)
-			)
-			if running
-			else "—"
-		)
+	_section_body.add_child(
+		hint
 	)
 
-
-	var last_value: Variant = crystal.get(
-		"last_result",
-		{}
+	var grid := GridContainer.new()
+	grid.name = "CrystallizationSlots"
+	grid.columns = 2
+	grid.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
 	)
-	if typeof(last_value) == TYPE_DICTIONARY:
-		var last := last_value as Dictionary
-		if not last.is_empty():
-			_add_info_row(
-				"Kết quả gần nhất",
-				String(
-					last.get(
-						"display_name",
-						"Vật phẩm"
-					)
-				)
+	grid.add_theme_constant_override(
+		"h_separation",
+		8
+	)
+	grid.add_theme_constant_override(
+		"v_separation",
+		8
+	)
+	_section_body.add_child(
+		grid
+	)
+
+	var slots_value: Variant = crystal.get(
+		"slots",
+		[]
+	)
+	var slots: Array = []
+	if typeof(slots_value) == TYPE_ARRAY:
+		slots = slots_value as Array
+
+	for slot_index in range(4):
+		var slot: Dictionary = {}
+		if (
+			slot_index < slots.size()
+			and typeof(
+				slots[slot_index]
+			) == TYPE_DICTIONARY
+		):
+			slot = (
+				slots[slot_index]
+				as Dictionary
 			)
 
-	if running:
-		_section_button(
-			"HỦY KẾT TINH",
-			_cancel_crystallization
-		)
-	else:
-		_section_button(
-			"BẮT ĐẦU KẾT TINH",
-			_start_crystallization
+		_build_crystallization_slot_card(
+			grid,
+			slot_index,
+			slot,
+			slot_index < unlocked_slots
 		)
 
 	_section_overlay.visible = true
 
 
-func _start_crystallization() -> void:
-	var result := _game.start_crystallization()
+func _build_crystallization_slot_card(
+	parent: GridContainer,
+	slot_index: int,
+	slot: Dictionary,
+	unlocked: bool
+) -> void:
+	var running := (
+		unlocked
+		and bool(
+			slot.get(
+				"running",
+				false
+			)
+		)
+	)
+
+	var panel := PanelContainer.new()
+	panel.name = (
+		"CrystallizationSlot%d"
+		% (slot_index + 1)
+	)
+	panel.custom_minimum_size = Vector2(
+		0,
+		178
+	)
+	panel.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = (
+		0.94
+		if unlocked
+		else 0.48
+	)
+	var accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	var border := accent
+	border.a = (
+		0.72
+		if unlocked
+		else 0.18
+	)
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			border,
+			12
+		)
+	)
+	parent.add_child(
+		panel
+	)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		9
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		9
+	)
+	panel.add_child(
+		margin
+	)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(
+		"separation",
+		5
+	)
+	margin.add_child(
+		box
+	)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override(
+		"separation",
+		5
+	)
+	box.add_child(
+		header
+	)
+
+	var title := Label.new()
+	title.text = "Ô %d" % (slot_index + 1)
+	title.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	title.add_theme_font_size_override(
+		"font_size",
+		15
+	)
+	title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	header.add_child(
+		title
+	)
+
+	var status := Label.new()
+	status.text = _crystal_slot_status(
+		running,
+		unlocked
+	)
+	status.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_RIGHT
+	)
+	status.add_theme_font_size_override(
+		"font_size",
+		9
+	)
+	status.add_theme_color_override(
+		"font_color",
+		(
+			accent
+			if unlocked
+			else _theme.get(
+				"muted",
+				Color.WHITE
+			)
+		)
+	)
+	header.add_child(
+		status
+	)
+
+	var stage_label := Label.new()
+	stage_label.text = (
+		"Giai đoạn %s"
+		% _crystal_stage_name(
+			int(
+				slot.get(
+					"stage",
+					1
+				)
+			)
+		)
+		if running
+		else (
+			"Mở ở giai đoạn %s"
+			% _crystal_stage_name(
+				slot_index + 1
+			)
+			if not unlocked
+			else "Giai đoạn —"
+		)
+	)
+	stage_label.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	stage_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	box.add_child(
+		stage_label
+	)
+
+	var timer := Label.new()
+	timer.text = (
+		_format_crystal_time(
+			int(
+				slot.get(
+					"remaining_seconds",
+					0
+				)
+			)
+		)
+		if running
+		else "—"
+	)
+	timer.add_theme_font_size_override(
+		"font_size",
+		16
+	)
+	timer.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	box.add_child(
+		timer
+	)
+
+	var last_result := Label.new()
+	last_result.text = (
+		_crystal_last_result_text(
+			slot
+		)
+		if unlocked
+		else ""
+	)
+	last_result.custom_minimum_size.y = 18
+	last_result.clip_text = true
+	last_result.add_theme_font_size_override(
+		"font_size",
+		9
+	)
+	last_result.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	box.add_child(
+		last_result
+	)
+
+	var spacer := Control.new()
+	spacer.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	box.add_child(
+		spacer
+	)
+
+	var action := Button.new()
+	action.focus_mode = Control.FOCUS_NONE
+	action.custom_minimum_size.y = 38
+	if not unlocked:
+		action.text = (
+			"KHÓA • STAGE %s"
+			% _crystal_stage_name(
+				slot_index + 1
+			)
+		)
+		action.disabled = true
+	elif running:
+		action.text = "HỦY"
+		action.pressed.connect(
+			_cancel_crystallization.bind(
+				slot_index
+			)
+		)
+	else:
+		action.text = "BẮT ĐẦU"
+		action.pressed.connect(
+			_start_crystallization.bind(
+				slot_index
+			)
+		)
+	box.add_child(
+		action
+	)
+
+	_crystal_slot_views[
+		slot_index
+	] = {
+		"running": running,
+		"status": status,
+		"stage": stage_label,
+		"timer": timer,
+		"last_result": last_result,
+	}
+
+
+func _crystal_slot_status(
+	running: bool,
+	unlocked: bool
+) -> String:
+	if not unlocked:
+		return "CHƯA MỞ"
+	if running:
+		return "ĐANG KẾT TINH"
+	return "SẴN SÀNG"
+
+
+func _crystal_last_result_text(
+	slot: Dictionary
+) -> String:
+	var value: Variant = slot.get(
+		"last_result",
+		{}
+	)
+	if typeof(value) != TYPE_DICTIONARY:
+		return "Gần nhất: —"
+
+	var last := value as Dictionary
+	if last.is_empty():
+		return "Gần nhất: —"
+
+	return (
+		"Gần nhất: %s"
+		% String(
+			last.get(
+				"display_name",
+				"Vật phẩm"
+			)
+		)
+	)
+
+
+func _start_crystallization(
+	slot_index: int
+) -> void:
+	var result := _game.start_crystallization(
+		slot_index
+	)
 	_hud.show_message(
 		String(
 			result.get(
@@ -1943,8 +2270,12 @@ func _start_crystallization() -> void:
 		_refresh_gameplay()
 
 
-func _cancel_crystallization() -> void:
-	var result := _game.cancel_crystallization()
+func _cancel_crystallization(
+	slot_index: int
+) -> void:
+	var result := _game.cancel_crystallization(
+		slot_index
+	)
 	_hud.show_message(
 		String(
 			result.get(
@@ -1967,54 +2298,136 @@ func _refresh_crystallization_section() -> void:
 		return
 
 	var crystal := _crystallization_snapshot()
-	var running := bool(
-		crystal.get(
-			"running",
-			false
-		)
+	var unlocked_slots := clampi(
+		int(
+			crystal.get(
+				"unlocked_slots",
+				1
+			)
+		),
+		1,
+		4
 	)
 
-	if running != _crystal_running:
-		_crystal_running = running
+	if unlocked_slots != _crystal_unlocked_slots:
 		call_deferred(
 			"_open_crystallization"
 		)
 		return
 
-	if _crystal_status_value != null:
-		_crystal_status_value.text = (
-			"Đang kết tinh"
-			if running
-			else "Sẵn sàng"
-		)
+	var slots_value: Variant = crystal.get(
+		"slots",
+		[]
+	)
+	if typeof(slots_value) != TYPE_ARRAY:
+		return
 
-	if _crystal_stage_value != null:
-		_crystal_stage_value.text = (
-			_crystal_stage_name(
-				int(
-					crystal.get(
-						"stage",
-						1
-					)
+	var slots := slots_value as Array
+	for slot_index in range(4):
+		if (
+			slot_index >= slots.size()
+			or typeof(
+				slots[slot_index]
+			) != TYPE_DICTIONARY
+		):
+			continue
+
+		var view_value: Variant = (
+			_crystal_slot_views.get(
+				slot_index,
+				{}
+			)
+		)
+		if typeof(view_value) != TYPE_DICTIONARY:
+			continue
+
+		var view := view_value as Dictionary
+		var slot := slots[slot_index] as Dictionary
+		var unlocked := (
+			slot_index
+			< unlocked_slots
+		)
+		var running := (
+			unlocked
+			and bool(
+				slot.get(
+					"running",
+					false
 				)
 			)
-			if running
-			else "—"
 		)
 
-	if _crystal_timer_value != null:
-		_crystal_timer_value.text = (
-			_format_crystal_time(
-				int(
-					crystal.get(
-						"remaining_seconds",
-						0
+		if bool(
+			view.get(
+				"running",
+				false
+			)
+		) != running:
+			call_deferred(
+				"_open_crystallization"
+			)
+			return
+
+		var status := view.get(
+			"status"
+		) as Label
+		var stage_label := view.get(
+			"stage"
+		) as Label
+		var timer := view.get(
+			"timer"
+		) as Label
+		var last_result := view.get(
+			"last_result"
+		) as Label
+
+		if status != null:
+			status.text = _crystal_slot_status(
+				running,
+				unlocked
+			)
+		if stage_label != null:
+			stage_label.text = (
+				"Giai đoạn %s"
+				% _crystal_stage_name(
+					int(
+						slot.get(
+							"stage",
+							1
+						)
 					)
 				)
+				if running
+				else (
+					"Mở ở giai đoạn %s"
+					% _crystal_stage_name(
+						slot_index + 1
+					)
+					if not unlocked
+					else "Giai đoạn —"
+				)
 			)
-			if running
-			else "—"
-		)
+		if timer != null:
+			timer.text = (
+				_format_crystal_time(
+					int(
+						slot.get(
+							"remaining_seconds",
+							0
+						)
+					)
+				)
+				if running
+				else "—"
+			)
+		if last_result != null:
+			last_result.text = (
+				_crystal_last_result_text(
+					slot
+				)
+				if unlocked
+				else ""
+			)
 
 
 func _crystallization_snapshot() -> Dictionary:
@@ -2041,6 +2454,8 @@ func _crystal_stage_name(
 			return "II"
 		3:
 			return "III"
+		4:
+			return "IV"
 		_:
 			return "—"
 
@@ -2064,6 +2479,7 @@ func _format_crystal_time(
 		minutes,
 		secs,
 	]
+
 
 func _open_chest() -> void:
 	var items := _game.open_next_chest()

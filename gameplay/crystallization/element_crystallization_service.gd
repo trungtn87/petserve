@@ -44,25 +44,52 @@ func update_context(pet_stage: int, element_id: StringName) -> void:
 func unlocked_slots() -> int:
     return clampi(_pet_stage, 1, MAX_SLOTS)
 
-func start(now_unix: int = -1) -> Dictionary:
+func start(now_unix: int = -1, requested_slot: int = -1) -> Dictionary:
     _ensure_state()
     var state := _state()
     var slots := _slots(state)
     var capacity := unlocked_slots()
+    var limit := mini(capacity, slots.size())
     var now := _now(now_unix)
+    var target_slots: Array[int] = []
+
+    if requested_slot >= 0:
+        if requested_slot >= limit:
+            return {
+                "ok": false,
+                "message": "Ô kết tinh %d chưa được mở ở giai đoạn hiện tại." % (requested_slot + 1),
+                "state": snapshot(now),
+            }
+        if StringName((slots[requested_slot] as Dictionary).get("status", "")) != STATUS_IDLE:
+            return {
+                "ok": false,
+                "message": "Ô kết tinh %d đang chạy." % (requested_slot + 1),
+                "state": snapshot(now),
+            }
+        target_slots.append(requested_slot)
+    else:
+        for slot_index in range(limit):
+            if StringName((slots[slot_index] as Dictionary).get("status", "")) == STATUS_IDLE:
+                target_slots.append(slot_index)
+
+    if target_slots.is_empty():
+        return {"ok": false, "message": "Tất cả ô kết tinh đang chạy.", "state": snapshot(now)}
+
     var started_slots: Array[int] = []
-    for slot_index in range(mini(capacity, slots.size())):
-        if StringName((slots[slot_index] as Dictionary).get("status", "")) != STATUS_IDLE:
-            continue
+    for slot_index in target_slots:
         var cycle := int(_meta.get(CYCLE_KEY, 0)) + 1
         _meta[CYCLE_KEY] = cycle
         slots[slot_index] = _running_slot(slot_index, cycle, now)
         started_slots.append(slot_index)
-    if started_slots.is_empty():
-        return {"ok": false, "message": "Tất cả ô kết tinh đang chạy.", "state": snapshot(now)}
+
     state["slots"] = slots
     _meta[STATE_KEY] = state
-    return {"ok": true, "started_slots": started_slots, "message": "Đã bắt đầu %d ô kết tinh." % started_slots.size(), "state": snapshot(now)}
+    var message := (
+        "Đã bắt đầu kết tinh ở ô %d." % (started_slots[0] + 1)
+        if started_slots.size() == 1
+        else "Đã bắt đầu %d ô kết tinh." % started_slots.size()
+    )
+    return {"ok": true, "started_slots": started_slots, "message": message, "state": snapshot(now)}
 
 func cancel(now_unix: int = -1, slot_index: int = -1) -> Dictionary:
     _ensure_state()

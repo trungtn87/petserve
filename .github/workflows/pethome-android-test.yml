@@ -108,6 +108,12 @@ jobs:
           export XDG_DATA_HOME=/tmp/petverse-test-legacy
           godot --headless --path . tools/test_legacy_item_inheritance.tscn
 
+      - name: Test independent element crystallization slots
+        shell: bash
+        run: |
+          export XDG_DATA_HOME=/tmp/petverse-test-crystallization
+          godot --headless --path . tools/test_element_crystallization.tscn
+
       - name: Export Android debug APK
         shell: bash
         env:

@@ -518,9 +518,14 @@ func inventory(
 	)
 
 
-func start_crystallization() -> Dictionary:
+func start_crystallization(
+	slot_index: int = -1
+) -> Dictionary:
 	var before := _meta.duplicate(true)
-	var result := _crystallization.start()
+	var result := _crystallization.start(
+		-1,
+		slot_index
+	)
 
 	if not bool(
 		result.get(
@@ -540,9 +545,14 @@ func start_crystallization() -> Dictionary:
 	return result
 
 
-func cancel_crystallization() -> Dictionary:
+func cancel_crystallization(
+	slot_index: int = -1
+) -> Dictionary:
 	var before := _meta.duplicate(true)
-	var result := _crystallization.cancel()
+	var result := _crystallization.cancel(
+		-1,
+		slot_index
+	)
 
 	if not bool(
 		result.get(

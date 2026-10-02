@@ -73,5 +73,33 @@ func run() -> void:
     check(int(full.get("running_count", 0)) == 4, "stage 4 must support four simultaneous slots")
     check(int(full.get("available_slots", -1)) == 0, "all four slots must be occupied")
 
+    # Mỗi ô phải có thể bắt đầu/hủy độc lập từ UI.
+    var targeted_meta: Dictionary = {}
+    var targeted := ElementCrystallizationService.new()
+    targeted.setup(targeted_meta, generator, definitions, policy, 9917, 2, &"earth")
+    var targeted_time := 200000
+
+    var start_slot_two := targeted.start(targeted_time, 1)
+    check(bool(start_slot_two.get("ok", false)), "slot 2 must start independently")
+    var targeted_state := targeted.snapshot(targeted_time)
+    var targeted_slots := targeted_state.get("slots", []) as Array
+    check(int(targeted_state.get("running_count", 0)) == 1, "targeted start must run exactly one slot")
+    check(not bool((targeted_slots[0] as Dictionary).get("running", false)), "slot 1 must remain idle")
+    check(bool((targeted_slots[1] as Dictionary).get("running", false)), "slot 2 must be running")
+
+    var locked_slot := targeted.start(targeted_time, 2)
+    check(not bool(locked_slot.get("ok", true)), "stage 2 must reject locked slot 3")
+
+    var start_slot_one := targeted.start(targeted_time + 1, 0)
+    check(bool(start_slot_one.get("ok", false)), "slot 1 must start independently")
+    check(int(targeted.snapshot(targeted_time + 1).get("running_count", 0)) == 2, "both unlocked slots can run together")
+
+    var cancel_slot_two := targeted.cancel(targeted_time + 2, 1)
+    check(bool(cancel_slot_two.get("ok", false)), "slot 2 must cancel independently")
+    targeted_state = targeted.snapshot(targeted_time + 2)
+    targeted_slots = targeted_state.get("slots", []) as Array
+    check(bool((targeted_slots[0] as Dictionary).get("running", false)), "cancelling slot 2 must not stop slot 1")
+    check(not bool((targeted_slots[1] as Dictionary).get("running", false)), "cancelled slot 2 must become idle")
+
     print("ELEMENT CRYSTALLIZATION failures=", failures)
     get_tree().quit(1 if failures else 0)
