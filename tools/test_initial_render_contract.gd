@@ -141,7 +141,7 @@ func _initialize() -> void:
 			"38 to 44 percent"
 		)
 		and request.positive_prompt.contains(
-			"lower-middle area"
+			"lower-middle"
 		)
 		and request.positive_prompt.contains(
 			"55 to 60 percent"
