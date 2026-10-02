@@ -1231,10 +1231,10 @@ func _test_evolution_two_and_three() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_two.source_image_path == "user://m8_pet.png"
 		and request_two.positive_prompt.contains(
-			"If a reference is supplied, use it for face and color recognition"
+			"REFERENCE CONTINUITY:"
 		)
 		and request_two.positive_prompt.contains(
-			"INDIVIDUAL FRAME:"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request_two.positive_prompt.contains(
 			"SCENE: uncluttered natural"
@@ -1343,10 +1343,10 @@ func _test_evolution_two_and_three() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and request_three.source_image_path == "user://m8_pet.png"
 		and request_three.positive_prompt.contains(
-			"If a reference is supplied, use it for face and color recognition"
+			"REFERENCE CONTINUITY:"
 		)
 		and request_three.positive_prompt.contains(
-			"INDIVIDUAL FRAME:"
+			"INHERITED INDIVIDUAL:"
 		)
 		and request_three.positive_prompt.contains(
 			"SCENE: uncluttered natural"
@@ -1476,7 +1476,7 @@ func _test_evolution_two_and_three() -> void:
 			== PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
 		and final_request.source_image_path == "user://m8_pet.png"
 		and final_request.positive_prompt.contains(
-			"If a reference is supplied, use it for face and color recognition"
+			"REFERENCE CONTINUITY:"
 		),
 		"Final Evolution edits the Stage 4 visual into Final Form"
 	)
