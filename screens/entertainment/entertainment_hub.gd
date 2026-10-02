@@ -399,8 +399,8 @@ func _build_hub_screen(
 
 	grid.add_child(
 		_activity_card(
-			"Caro 3×3",
-			"Đấu với pet",
+			"Gomoku 15×15",
+			"1 người / 2 người",
 			true,
 			_open_caro,
 			"▦"
@@ -805,7 +805,7 @@ func _update_hub_reward_label() -> void:
 
 	if _caro_reward_enabled:
 		lines.append(
-			"Caro: Rương Ấu thể %d/%d"
+			"Gomoku: Rương Ấu thể %d/%d"
 			% [
 				caro_claimed,
 				_caro_reward_max,
@@ -813,7 +813,7 @@ func _update_hub_reward_label() -> void:
 		)
 	else:
 		lines.append(
-			"Caro: ngoài Stage/rương đã hết • thắng = 1 mảnh"
+			"Gomoku: ngoài Stage/rương đã hết • thắng = 1 mảnh"
 		)
 
 	var stage2_claimed := clampi(
