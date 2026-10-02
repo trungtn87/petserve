@@ -164,29 +164,36 @@ func run() -> void:
 			"snake_hunt": {"claimed": 1},
 		},
 	}
+	var old_chests := ChestService.new()
+	old_chests.setup(old_meta, ItemGenerator.new())
 	var rewards := MiniGameRewardService.new()
-	rewards.setup(old_meta, null, 99)
+	rewards.setup(old_meta, old_chests, 99)
 	check(
 		int(rewards.snapshot(99).stage2_activity_rewards_claimed) == 4,
 		"old save retains shared reward cap"
 	)
+	var old_cap_fallback := rewards.claim_obstacle_run(
+		99,
+		3200,
+		"new_match"
+	)
 	check(
-		not rewards.claim_obstacle_run(
-			99,
-			3200,
-			"new_match"
-		).get("rewarded", false),
-		"old cap blocks a new dodge reward"
+		old_cap_fallback.get("rewarded", false)
+		and old_cap_fallback.get("reward_type", "") == "fragment"
+		and old_chests.fragment_count() == 1,
+		"old cap falls back to one chest fragment"
 	)
 
 	var facade := InfantGameFacade.new()
 	check(facade.setup(99123), "facade setup")
+	var stage_one_fallback := facade.claim_obstacle_run_reward(
+		3200,
+		"locked"
+	)
 	check(
-		not facade.claim_obstacle_run_reward(
-			3200,
-			"locked"
-		).get("rewarded", false),
-		"stage one has no reward"
+		stage_one_fallback.get("rewarded", false)
+		and stage_one_fallback.get("reward_type", "") == "fragment",
+		"stage one dodge win falls back to one fragment"
 	)
 	check(
 		facade.advance_to_stage(2),
@@ -244,12 +251,14 @@ func run() -> void:
 		).get("rewarded", false),
 		"snake fourth reward"
 	)
+	var capped_fallback := reloaded.claim_obstacle_run_reward(
+		3200,
+		"dodge_3"
+	)
 	check(
-		not reloaded.claim_obstacle_run_reward(
-			3200,
-			"dodge_3"
-		).get("rewarded", false),
-		"shared pool capped at four"
+		capped_fallback.get("rewarded", false)
+		and capped_fallback.get("reward_type", "") == "fragment",
+		"shared pool keeps four chests then falls back to fragment"
 	)
 
 	get_tree().root.size = Vector2i(360, 640)
@@ -311,7 +320,7 @@ func run() -> void:
 	activity.reward_requested.connect(
 		func(_score: int, id: String) -> void:
 			claims.append(id)
-			activity.show_reward_message("Đã nhận rương")
+			activity.show_reward_message("Đã nhận rương", true)
 			activity.set_reward_status(1, 4, true)
 	)
 	activity._on_reward_pressed()
