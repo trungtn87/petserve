@@ -15,6 +15,8 @@ var status := Label.new()
 var info := Label.new()
 var source := TextureRect.new()
 var output := TextureRect.new()
+var source_label: Label
+var output_label: Label
 var generate := Button.new()
 var controls: VBoxContainer
 var render_mode := OptionButton.new()
@@ -28,11 +30,19 @@ func _ready() -> void:
 	add_child(renderer)
 	var scroll := ScrollContainer.new()
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
+	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	scroll.add_child(margin)
 	controls = VBoxContainer.new()
 	controls.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	controls.add_theme_constant_override("separation", 10)
-	scroll.add_child(controls)
+	controls.add_theme_constant_override("separation", 8)
+	margin.add_child(controls)
 	_label("AI IMAGE LAB • PetVerse", controls)
 	_label("Flow mặc định: random đúng PetHome (loài + hệ từ run seed), rồi tạo Stage 1 → 4. Stage 2–4 nhận bộ Gene random hợp lệ nhưng prompt/render vẫn dùng nguyên production pipeline.", controls)
 	for index in range(ELEMENTS.size()):
@@ -44,9 +54,9 @@ func _ready() -> void:
 	seed_input.max_value = 2147483646
 	seed_input.value = int(Time.get_unix_time_from_system()) % 2147483646 + 1
 	controls.add_child(seed_input)
-	_button("Random pet + hệ mới (đúng flow PetHome)", _new_lineage, controls)
-	_button("Tạo tự động Stage 1 → 4 (random Gene)", _run_random_four_stages, controls)
-	_button("Manual: dùng hệ + seed hiện tại", _reset, controls)
+	_button("Random pet + hệ mới", _new_lineage, controls)
+	_button("Auto Stage 1 → 4 • random Gene", _run_random_four_stages, controls)
+	_button("Manual hệ + seed hiện tại", _reset, controls)
 	_label("Ảnh muốn tạo", controls)
 	for stage in range(1, 6):
 		target.add_item("Stage %d" % stage if stage < 5 else "Final (sau Stage 4)")
@@ -75,20 +85,22 @@ func _ready() -> void:
 	controls.add_child(generate)
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	controls.add_child(status)
-	_label("Ảnh trước tiến hóa", controls)
+	source_label = _label("Ảnh trước tiến hóa", controls)
 	_image_box(source)
-	_label("Ảnh kết quả", controls)
+	output_label = _label("Ảnh kết quả", controls)
 	_image_box(output)
 	_button("Mở thư mục ảnh và prompt", func(): OS.shell_open(ProjectSettings.globalize_path("user://pet_renders")), controls)
 	_new_lineage()
 	if config == null or not config.is_configured():
 		status.text = "Chưa cấu hình proxy tạo ảnh trong data/evolution/render/proxy_dev.json."
 
-func _label(text: String, parent: Node) -> void:
+func _label(text: String, parent: Node) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(label)
+	return label
 
 func _button(text: String, action: Callable, parent: Node) -> void:
 	var button := Button.new()
@@ -97,7 +109,8 @@ func _button(text: String, action: Callable, parent: Node) -> void:
 	parent.add_child(button)
 
 func _image_box(rect: TextureRect) -> void:
-	rect.custom_minimum_size = Vector2(0, 420)
+	rect.custom_minimum_size = Vector2(0, 340)
+	rect.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	controls.add_child(rect)
@@ -177,6 +190,10 @@ func _refresh() -> void:
 		source.texture = _texture(session.snapshots[stage - 1].current_visual.image_path)
 	if session.snapshots.has(stage):
 		output.texture = _texture(session.snapshots[stage].current_visual.image_path)
+	var show_source := source.texture != null
+	source.visible = show_source
+	if source_label != null:
+		source_label.visible = show_source
 	for index in range(1, 5):
 		target.set_item_disabled(index, not session.snapshots.has(index))
 
