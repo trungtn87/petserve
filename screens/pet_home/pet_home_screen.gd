@@ -11,6 +11,9 @@ const PetHomeDrawerScript = preload(
 const PetHomeLogoScript = preload(
 	"res://screens/pet_home/pet_home_logo.gd"
 )
+const PetHomeMenuIconScript = preload(
+	"res://screens/pet_home/pet_home_menu_icon.gd"
+)
 const PetSceneProfileScript = preload(
 	"res://features/evolution/domain/pet_scene_profile.gd"
 )
@@ -33,6 +36,7 @@ var _name_label: Label
 var _growth_bar: ProgressBar
 var _fullness_bar: ProgressBar
 var _menu_button: Button
+var _menu_notice_badge: Label
 var _drawer
 var _section_overlay: Control
 var _section_title: Label
@@ -40,6 +44,8 @@ var _section_tabs: HBoxContainer
 var _section_tab_buttons: Dictionary = {}
 var _section_body: VBoxContainer
 var _active_section: StringName = &""
+var _section_return_to_menu: bool = false
+var _hub_return_to_menu: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 
@@ -318,48 +324,221 @@ func _build_main_hud() -> void:
 		accent
 	)
 
-	_menu_button = Button.new()
-	_menu_button.name = "MenuButton"
-	_menu_button.text = "☰"
-	_menu_button.focus_mode = Control.FOCUS_NONE
-	_menu_button.anchor_left = 0.855
-	_menu_button.anchor_top = 0.900
-	_menu_button.anchor_right = 0.955
-	_menu_button.anchor_bottom = 0.965
-	_menu_button.add_theme_font_size_override(
-		"font_size",
-		19
+
+	_build_bottom_actions(
+		panel_color,
+		accent
 	)
-	_menu_button.add_theme_color_override(
+
+func _build_bottom_actions(
+	panel_color: Color,
+	accent: Color
+) -> void:
+	var panel := PanelContainer.new()
+	panel.name = "PetHomeBottomActions"
+	panel.anchor_left = 0.025
+	panel.anchor_top = 1.0
+	panel.anchor_right = 0.975
+	panel.anchor_bottom = 1.0
+	panel.offset_top = -76.0
+	panel.offset_bottom = -8.0
+	var bg := panel_color
+	bg.a = 0.90
+	var border := accent
+	border.a = 0.50
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			bg,
+			border,
+			18
+		)
+	)
+	add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_top", 5)
+	margin.add_theme_constant_override("margin_right", 5)
+	margin.add_theme_constant_override("margin_bottom", 5)
+	panel.add_child(margin)
+
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 6)
+	margin.add_child(row)
+
+	_add_bottom_action(
+		row,
+		&"food",
+		"Ăn uống",
+		_open_food_shortcut,
+		accent,
+		panel_color
+	)
+	_add_bottom_action(
+		row,
+		&"entertainment",
+		"Chơi đùa",
+		_open_play_shortcut,
+		accent,
+		panel_color
+	)
+	_menu_button = _add_bottom_action(
+		row,
+		&"menu",
+		"Menu",
+		_on_menu_pressed,
+		accent,
+		panel_color
+	)
+	_menu_button.tooltip_text = "Menu"
+
+
+func _add_bottom_action(
+	parent: HBoxContainer,
+	action_id: StringName,
+	label_text: String,
+	callback: Callable,
+	accent: Color,
+	panel_color: Color
+) -> Button:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.custom_minimum_size = Vector2(0, 58)
+	var card_bg := panel_color.lightened(0.055)
+	card_bg.a = 0.94
+	var card_border := accent
+	card_border.a = 0.34
+	card.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			card_bg,
+			card_border,
+			14
+		)
+	)
+	parent.add_child(card)
+
+	var host := Control.new()
+	host.custom_minimum_size = Vector2(0, 58)
+	card.add_child(host)
+
+	var content := VBoxContainer.new()
+	content.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	content.offset_top = 2.0
+	content.offset_bottom = -2.0
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_theme_constant_override(
+		"separation",
+		0
+	)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	host.add_child(content)
+
+	var icon = PetHomeMenuIconScript.new()
+	icon.custom_minimum_size = Vector2(34, 34)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.configure(
+		action_id,
+		accent,
+		accent.lightened(0.22)
+	)
+	content.add_child(icon)
+
+	var label := Label.new()
+	label.text = label_text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override(
+		"font_size",
+		11
+	)
+	label.add_theme_color_override(
 		"font_color",
 		_theme.get(
 			"text",
 			Color.WHITE
 		)
 	)
-	var menu_bg := panel_color
-	menu_bg.a = 0.80
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(label)
 
-	_menu_button.add_theme_stylebox_override(
-		"normal",
-		PetHomeThemeScript.panel_style(
-			menu_bg,
-			accent,
-			13
+	var hitbox := Button.new()
+	hitbox.name = String(action_id).to_pascal_case() + "Button"
+	hitbox.text = ""
+	hitbox.flat = true
+	hitbox.focus_mode = Control.FOCUS_NONE
+	hitbox.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	hitbox.mouse_default_cursor_shape = (
+		Control.CURSOR_POINTING_HAND
+	)
+	hitbox.pressed.connect(callback)
+	host.add_child(hitbox)
+
+	if action_id == &"menu":
+		_menu_notice_badge = Label.new()
+		_menu_notice_badge.text = "!"
+		_menu_notice_badge.visible = false
+		_menu_notice_badge.mouse_filter = (
+			Control.MOUSE_FILTER_IGNORE
 		)
-	)
-	_menu_button.add_theme_stylebox_override(
-		"hover",
-		PetHomeThemeScript.panel_style(
-			panel_color.lightened(0.08),
-			accent,
-			13
+		_menu_notice_badge.horizontal_alignment = (
+			HORIZONTAL_ALIGNMENT_CENTER
 		)
-	)
-	_menu_button.pressed.connect(
-		_on_menu_pressed
-	)
-	add_child(_menu_button)
+		_menu_notice_badge.vertical_alignment = (
+			VERTICAL_ALIGNMENT_CENTER
+		)
+		_menu_notice_badge.add_theme_font_size_override(
+			"font_size",
+			12
+		)
+		_menu_notice_badge.add_theme_color_override(
+			"font_color",
+			Color.WHITE
+		)
+		_menu_notice_badge.add_theme_stylebox_override(
+			"normal",
+			PetHomeThemeScript.panel_style(
+				Color("#EF3F45"),
+				Color("#FF777C"),
+				10
+			)
+		)
+		_menu_notice_badge.set_anchors_preset(
+			Control.PRESET_TOP_RIGHT
+		)
+		_menu_notice_badge.offset_left = -24.0
+		_menu_notice_badge.offset_top = 2.0
+		_menu_notice_badge.offset_right = -2.0
+		_menu_notice_badge.offset_bottom = 24.0
+		host.add_child(_menu_notice_badge)
+
+	return hitbox
+
+
+func _open_food_shortcut() -> void:
+	_section_return_to_menu = false
+	_hub_return_to_menu = false
+	if _drawer != null and _drawer.is_open():
+		_drawer.close_drawer()
+	if _hud != null:
+		_hud.open_inventory(
+			ItemGenerator.TYPE_FOOD
+		)
+
+
+func _open_play_shortcut() -> void:
+	_section_return_to_menu = false
+	_hub_return_to_menu = false
+	if _drawer != null and _drawer.is_open():
+		_drawer.close_drawer()
+	_open_games()
 
 
 func _add_meter(
@@ -674,6 +853,8 @@ func _on_menu_pressed() -> void:
 	if _drawer.is_open():
 		_drawer.close_drawer()
 	else:
+		_section_return_to_menu = false
+		_hub_return_to_menu = false
 		_drawer.open_drawer()
 
 
@@ -681,6 +862,12 @@ func _on_drawer_action(
 	action_id: StringName
 ) -> void:
 	_drawer.close_drawer()
+	_section_return_to_menu = (
+		action_id != &"entertainment"
+	)
+	_hub_return_to_menu = (
+		action_id == &"entertainment"
+	)
 	match action_id:
 		&"pet_info":
 			_open_pet_info()
@@ -1631,6 +1818,11 @@ func _close_section() -> void:
 	_crystal_unlocked_slots = 0
 	_section_overlay.visible = false
 
+	if _section_return_to_menu:
+		_section_return_to_menu = false
+		if _drawer != null:
+			_drawer.open_drawer()
+
 
 func _setup_gameplay() -> void:
 	var identity: PetIdentity = _data.get("_identity_object")
@@ -1670,6 +1862,7 @@ func _setup_gameplay() -> void:
 	_hub.tetris_reward_received.connect(_refresh_gameplay)
 	_hub.sudoku_reward_received.connect(_refresh_gameplay)
 	_hub.breakout_reward_received.connect(_refresh_gameplay)
+	_hub.closed.connect(_on_entertainment_closed)
 	_refresh_gameplay()
 
 func _process(delta: float) -> void:
@@ -1755,9 +1948,20 @@ func _refresh_gameplay() -> void:
 	var crystal_ready := false
 	if typeof(crystal_value) == TYPE_DICTIONARY:
 		crystal_ready = int((crystal_value as Dictionary).get("ready_count", 0)) > 0
+	var menu_notice := (
+		crystal_ready
+		or int(state.get("food_percent", 0)) <= 25
+		or bool(state.get("hibernating", false))
+		or (naturally_ready and not final_form)
+	)
+	if _menu_notice_badge != null:
+		_menu_notice_badge.visible = menu_notice
 	if _menu_button != null:
-		_menu_button.text = "☰ •" if crystal_ready else "☰"
-		_menu_button.tooltip_text = "Có thành phẩm kết tinh chờ nhận" if crystal_ready else "Menu"
+		_menu_button.tooltip_text = (
+			"Có việc cần xử lý"
+			if menu_notice
+			else "Menu"
+		)
 	_refresh_crystallization_section()
 
 func _notification(what: int) -> void:
@@ -2621,6 +2825,15 @@ func _open_games() -> void:
 		),
 		stage_index == 2
 	)
+
+
+func _on_entertainment_closed() -> void:
+	if not _hub_return_to_menu:
+		return
+
+	_hub_return_to_menu = false
+	if _drawer != null:
+		_drawer.open_drawer()
 
 
 func _reward(match_id: String) -> void:
