@@ -1751,6 +1751,13 @@ func _refresh_gameplay() -> void:
 		)
 	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
+	var crystal_value: Variant = state.get("crystallization", {})
+	var crystal_ready := false
+	if typeof(crystal_value) == TYPE_DICTIONARY:
+		crystal_ready = int((crystal_value as Dictionary).get("ready_count", 0)) > 0
+	if _menu_button != null:
+		_menu_button.text = "☰ •" if crystal_ready else "☰"
+		_menu_button.tooltip_text = "Có thành phẩm kết tinh chờ nhận" if crystal_ready else "Menu"
 	_refresh_crystallization_section()
 
 func _notification(what: int) -> void:
@@ -1807,14 +1814,24 @@ func _open_storage() -> void:
 			0
 		)
 	)
+	var ready_count := int(
+		crystal.get(
+			"ready_count",
+			0
+		)
+	)
 	var crystal_text := (
-		"Đang chạy %d/%d ô"
-		% [
-			running_count,
-			unlocked_slots,
-		]
-		if running_count > 0
-		else "Sẵn sàng • %d ô" % unlocked_slots
+		"%d thành phẩm chờ nhận" % ready_count
+		if ready_count > 0
+		else (
+			"Đang chạy %d/%d ô"
+			% [
+				running_count,
+				unlocked_slots,
+			]
+			if running_count > 0
+			else "Sẵn sàng • %d ô" % unlocked_slots
+		)
 	)
 
 	_add_info_row("Rương", str(state.get("pending_chests", 0)))
@@ -1951,6 +1968,15 @@ func _build_crystallization_slot_card(
 			)
 		)
 	)
+	var ready_to_claim := (
+		unlocked
+		and bool(
+			slot.get(
+				"ready_to_claim",
+				false
+			)
+		)
+	)
 
 	var panel := PanelContainer.new()
 	panel.name = (
@@ -2058,6 +2084,7 @@ func _build_crystallization_slot_card(
 	var status := Label.new()
 	status.text = _crystal_slot_status(
 		running,
+		ready_to_claim,
 		unlocked
 	)
 	status.horizontal_alignment = (
@@ -2190,6 +2217,13 @@ func _build_crystallization_slot_card(
 			)
 		)
 		action.disabled = true
+	elif ready_to_claim:
+		action.text = "NHẬN THÀNH PHẨM"
+		action.pressed.connect(
+			_claim_crystallization.bind(
+				slot_index
+			)
+		)
 	elif running:
 		action.text = "HỦY"
 		action.pressed.connect(
@@ -2212,6 +2246,7 @@ func _build_crystallization_slot_card(
 		slot_index
 	] = {
 		"running": running,
+		"ready_to_claim": ready_to_claim,
 		"status": status,
 		"stage": stage_label,
 		"timer": timer,
@@ -2221,10 +2256,13 @@ func _build_crystallization_slot_card(
 
 func _crystal_slot_status(
 	running: bool,
+	ready_to_claim: bool,
 	unlocked: bool
 ) -> String:
 	if not unlocked:
 		return "CHƯA MỞ"
+	if ready_to_claim:
+		return "CHỜ NHẬN"
 	if running:
 		return "ĐANG KẾT TINH"
 	return "SẴN SÀNG"
@@ -2270,6 +2308,20 @@ func _start_crystallization(
 		)
 	)
 
+	if bool(result.get("ok", false)):
+		_open_crystallization()
+		_refresh_gameplay()
+
+
+func _claim_crystallization(
+	slot_index: int
+) -> void:
+	var result := _game.claim_crystallization(
+		slot_index
+	)
+	_hud.show_message(
+		String(result.get("message", ""))
+	)
 	if bool(result.get("ok", false)):
 		_open_crystallization()
 		_refresh_gameplay()
@@ -2361,13 +2413,20 @@ func _refresh_crystallization_section() -> void:
 				)
 			)
 		)
-
-		if bool(
-			view.get(
-				"running",
-				false
+		var ready_to_claim := (
+			unlocked
+			and bool(
+				slot.get(
+					"ready_to_claim",
+					false
+				)
 			)
-		) != running:
+		)
+
+		if (
+			bool(view.get("running", false)) != running
+			or bool(view.get("ready_to_claim", false)) != ready_to_claim
+		):
 			call_deferred(
 				"_open_crystallization"
 			)
@@ -2389,6 +2448,7 @@ func _refresh_crystallization_section() -> void:
 		if status != null:
 			status.text = _crystal_slot_status(
 				running,
+				ready_to_claim,
 				unlocked
 			)
 		if stage_label != null:

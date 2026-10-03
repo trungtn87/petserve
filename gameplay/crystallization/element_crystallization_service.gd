@@ -5,6 +5,7 @@ const STATE_KEY: String = "element_crystallization"
 const CYCLE_KEY: String = "element_crystallization_cycles"
 const STATUS_IDLE: StringName = &"idle"
 const STATUS_RUNNING: StringName = &"running"
+const STATUS_READY: StringName = &"ready_to_claim"
 const STAGE_ONE: int = 1
 const STAGE_TWO: int = 2
 const STAGE_THREE: int = 3
@@ -61,9 +62,14 @@ func start(now_unix: int = -1, requested_slot: int = -1) -> Dictionary:
                 "state": snapshot(now),
             }
         if StringName((slots[requested_slot] as Dictionary).get("status", "")) != STATUS_IDLE:
+            var occupied_status := StringName((slots[requested_slot] as Dictionary).get("status", ""))
             return {
                 "ok": false,
-                "message": "Ô kết tinh %d đang chạy." % (requested_slot + 1),
+                "message": (
+                    "Ô kết tinh %d có thành phẩm chờ nhận." % (requested_slot + 1)
+                    if occupied_status == STATUS_READY
+                    else "Ô kết tinh %d đang chạy." % (requested_slot + 1)
+                ),
                 "state": snapshot(now),
             }
         target_slots.append(requested_slot)
@@ -73,7 +79,7 @@ func start(now_unix: int = -1, requested_slot: int = -1) -> Dictionary:
                 target_slots.append(slot_index)
 
     if target_slots.is_empty():
-        return {"ok": false, "message": "Tất cả ô kết tinh đang chạy.", "state": snapshot(now)}
+        return {"ok": false, "message": "Không có ô trống. Hãy nhận thành phẩm đã hoàn tất trước.", "state": snapshot(now)}
 
     var started_slots: Array[int] = []
     for slot_index in target_slots:
@@ -115,25 +121,48 @@ func process(now_unix: int = -1) -> Dictionary:
     var now := _now(now_unix)
     var state := _state()
     var slots := _slots(state)
-    var rewards: Array[Dictionary] = []
     var changed := false
+    var became_ready := 0
     for index in range(slots.size()):
         var slot := slots[index] as Dictionary
+        var was_ready := StringName(slot.get("status", "")) == STATUS_READY
         var result := _process_slot(slot, now)
         if bool(result.get("changed", false)):
             changed = true
-        var reward_value: Variant = result.get("reward", {})
-        if typeof(reward_value) == TYPE_DICTIONARY and not (reward_value as Dictionary).is_empty():
-            rewards.append((reward_value as Dictionary).duplicate(true))
+        if not was_ready and StringName(slot.get("status", "")) == STATUS_READY:
+            became_ready += 1
         slots[index] = slot
     state["slots"] = slots
     _meta[STATE_KEY] = state
     var message := ""
-    if not rewards.is_empty():
-        message = "Kết tinh hoàn tất: %d vật phẩm." % rewards.size()
+    if became_ready > 0:
+        message = "Kết tinh hoàn tất • có %d thành phẩm chờ nhận." % became_ready
     elif changed:
         message = "Kết tinh đã chuyển giai đoạn."
-    return {"changed": changed, "rewards": rewards, "message": message, "state": snapshot(now)}
+    return {"changed": changed, "rewards": [], "ready_count": became_ready, "message": message, "state": snapshot(now)}
+
+func claim(slot_index: int = -1, now_unix: int = -1) -> Dictionary:
+    _ensure_state()
+    var state := _state()
+    var slots := _slots(state)
+    var target := slot_index
+    if target < 0:
+        target = _first_ready_slot(slots)
+    if target < 0 or target >= slots.size():
+        return {"ok": false, "message": "Không có thành phẩm kết tinh chờ nhận.", "state": snapshot(now_unix)}
+    var slot := slots[target] as Dictionary
+    if StringName(slot.get("status", "")) != STATUS_READY:
+        return {"ok": false, "message": "Ô kết tinh %d chưa có thành phẩm để nhận." % (target + 1), "state": snapshot(now_unix)}
+    var reward_value: Variant = slot.get("pending_reward", {})
+    if typeof(reward_value) != TYPE_DICTIONARY or (reward_value as Dictionary).is_empty():
+        return {"ok": false, "message": "Thành phẩm kết tinh không hợp lệ.", "state": snapshot(now_unix)}
+    var reward := (reward_value as Dictionary).duplicate(true)
+    var last_result := _last_result(slot)
+    var cycle := int(slot.get("cycle", 0))
+    slots[target] = _idle_slot(target, last_result, cycle)
+    state["slots"] = slots
+    _meta[STATE_KEY] = state
+    return {"ok": true, "slot_index": target, "reward": reward, "message": "Đã nhận thành phẩm: %s." % String(reward.get("display_name", "Vật phẩm")), "state": snapshot(now_unix)}
 
 func snapshot(now_unix: int = -1) -> Dictionary:
     _ensure_state()
@@ -142,6 +171,7 @@ func snapshot(now_unix: int = -1) -> Dictionary:
     var slots := _slots(state)
     var slot_snapshots: Array[Dictionary] = []
     var running_count := 0
+    var ready_count := 0
     var primary: Dictionary = {}
     var last_result: Dictionary = {}
     for index in range(slots.size()):
@@ -152,6 +182,8 @@ func snapshot(now_unix: int = -1) -> Dictionary:
             running_count += 1
             if primary.is_empty():
                 primary = snap
+        if bool(snap.get("ready_to_claim", false)):
+            ready_count += 1
         var candidate := _last_result(slot)
         if not candidate.is_empty() and (last_result.is_empty() or int(candidate.get("completed_at_unix", 0)) > int(last_result.get("completed_at_unix", 0))):
             last_result = candidate
@@ -160,7 +192,9 @@ func snapshot(now_unix: int = -1) -> Dictionary:
         "unlocked_slots": capacity,
         "max_slots": MAX_SLOTS,
         "running_count": running_count,
-        "available_slots": maxi(0, capacity - running_count),
+        "ready_count": ready_count,
+        "has_ready_reward": ready_count > 0,
+        "available_slots": maxi(0, capacity - running_count - ready_count),
         "slots": slot_snapshots,
         "last_result": last_result,
         "element_id": String(_element_id),
@@ -200,13 +234,13 @@ func _process_slot(slot: Dictionary, now: int) -> Dictionary:
                 break
             _annotate_reward(reward, stage, slot)
             _complete(slot, reward, stage, stage_finished_at)
-            return {"changed": true, "reward": reward}
+            return {"changed": true, "reward": {}}
         var gene_reward := _generate_gene_reward(slot, stage)
         if gene_reward.is_empty():
             break
         _annotate_reward(gene_reward, STAGE_THREE, slot)
         _complete(slot, gene_reward, STAGE_THREE, stage_finished_at)
-        return {"changed": true, "reward": gene_reward}
+        return {"changed": true, "reward": {}}
     return {"changed": changed, "reward": {}}
 
 func _generate_gene_reward(state: Dictionary, stage: int) -> Dictionary:
@@ -243,8 +277,15 @@ func _complete(state: Dictionary, item: Dictionary, stage: int, completed_at_uni
     var slot_index := int(state.get("slot_index", 0))
     var cycle := int(state.get("cycle", 0))
     var last := {"uid": String(item.get("uid", "")), "display_name": String(item.get("display_name", "Vật phẩm")), "item_type": String(item.get("item_type", "")), "element_id": String(reward_element), "crystallization_stage": stage, "crystallization_slot": slot_index, "completed_at_unix": completed_at_unix}
-    state.clear()
-    state.merge(_idle_slot(slot_index, last, cycle), true)
+    state["status"] = String(STATUS_READY)
+    state["stage"] = 0
+    state["stage_started_at_unix"] = 0
+    state["finish_at_unix"] = 0
+    state["last_result"] = last
+    state["pending_reward"] = item.duplicate(true)
+    state["completed_at_unix"] = completed_at_unix
+    state["cycle"] = cycle
+    state["slot_index"] = slot_index
 
 func _should_advance(state: Dictionary, stage: int) -> bool:
     var rng := RandomNumberGenerator.new()
@@ -317,8 +358,13 @@ func _ensure_state() -> void:
         var slot := slots[index] as Dictionary
         slot["slot_index"] = index
         var status := StringName(slot.get("status", ""))
-        if status != STATUS_IDLE and status != STATUS_RUNNING:
+        if status != STATUS_IDLE and status != STATUS_RUNNING and status != STATUS_READY:
             slots[index] = _idle_slot(index, _last_result(slot), int(slot.get("cycle", 0)))
+            continue
+        if status == STATUS_READY:
+            var pending_value: Variant = slot.get("pending_reward", {})
+            if typeof(pending_value) != TYPE_DICTIONARY or (pending_value as Dictionary).is_empty():
+                slots[index] = _idle_slot(index, _last_result(slot), int(slot.get("cycle", 0)))
             continue
         if status == STATUS_RUNNING:
             var stage := int(slot.get("stage", 0))
@@ -354,10 +400,17 @@ func _running_slot(slot_index: int, cycle: int, now: int) -> Dictionary:
     return {"slot_index": slot_index, "status": String(STATUS_RUNNING), "stage": STAGE_ONE, "element_id": String(_element_id), "pet_stage_at_start": _pet_stage, "started_at_unix": now, "stage_started_at_unix": now, "finish_at_unix": now + _stage_duration(STAGE_ONE), "roll_seed": _seed_for_cycle(cycle, now, slot_index), "cycle": cycle, "last_result": {}}
 
 func _slot_snapshot(slot: Dictionary, now: int) -> Dictionary:
-    var running := StringName(slot.get("status", "")) == STATUS_RUNNING
+    var status := StringName(slot.get("status", ""))
+    var running := status == STATUS_RUNNING
+    var ready := status == STATUS_READY
     var stage := int(slot.get("stage", 0))
     var finish_at := int(slot.get("finish_at_unix", 0))
-    return {"slot_index": int(slot.get("slot_index", 0)), "status": String(slot.get("status", String(STATUS_IDLE))), "running": running, "stage": stage, "element_id": String(_state_element(slot)), "pet_stage_at_start": int(slot.get("pet_stage_at_start", 0)), "started_at_unix": int(slot.get("started_at_unix", 0)), "stage_started_at_unix": int(slot.get("stage_started_at_unix", 0)), "finish_at_unix": finish_at, "remaining_seconds": maxi(0, finish_at - now) if running else 0, "stage_duration_seconds": _stage_duration(stage) if running else 0, "cycle": int(slot.get("cycle", 0)), "last_result": _last_result(slot)}
+    var pending_summary: Dictionary = {}
+    var pending_value: Variant = slot.get("pending_reward", {})
+    if ready and typeof(pending_value) == TYPE_DICTIONARY:
+        var pending := pending_value as Dictionary
+        pending_summary = {"uid": String(pending.get("uid", "")), "display_name": String(pending.get("display_name", "Vật phẩm")), "item_type": String(pending.get("item_type", ""))}
+    return {"slot_index": int(slot.get("slot_index", 0)), "status": String(slot.get("status", String(STATUS_IDLE))), "running": running, "ready_to_claim": ready, "pending_result": pending_summary, "stage": stage, "element_id": String(_state_element(slot)), "pet_stage_at_start": int(slot.get("pet_stage_at_start", 0)), "started_at_unix": int(slot.get("started_at_unix", 0)), "stage_started_at_unix": int(slot.get("stage_started_at_unix", 0)), "finish_at_unix": finish_at, "remaining_seconds": maxi(0, finish_at - now) if running else 0, "stage_duration_seconds": _stage_duration(stage) if running else 0, "cycle": int(slot.get("cycle", 0)), "last_result": _last_result(slot)}
 
 func _first_idle_slot(slots: Array, capacity: int) -> int:
     for index in range(mini(capacity, slots.size())):
@@ -368,5 +421,11 @@ func _first_idle_slot(slots: Array, capacity: int) -> int:
 func _first_running_slot(slots: Array) -> int:
     for index in range(slots.size()):
         if StringName((slots[index] as Dictionary).get("status", "")) == STATUS_RUNNING:
+            return index
+    return -1
+
+func _first_ready_slot(slots: Array) -> int:
+    for index in range(slots.size()):
+        if StringName((slots[index] as Dictionary).get("status", "")) == STATUS_READY:
             return index
     return -1

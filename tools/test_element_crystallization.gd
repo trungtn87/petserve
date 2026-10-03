@@ -42,8 +42,19 @@ func run() -> void:
 
     var final_time := start_time + 12 * 60 * 60
     var finish := service.process(final_time)
-    check((finish.get("rewards", []) as Array).size() == 1, "stage 1 running slot must resolve exactly one reward")
-    check(int(service.snapshot(final_time).get("running_count", -1)) == 0, "finished slot must return idle")
+    check((finish.get("rewards", []) as Array).is_empty(), "completion must not auto-harvest reward")
+    var waiting := service.snapshot(final_time)
+    check(int(waiting.get("running_count", -1)) == 0, "finished slot must stop running")
+    check(int(waiting.get("ready_count", 0)) == 1, "finished slot must wait for manual claim")
+    var waiting_slots := waiting.get("slots", []) as Array
+    check(bool((waiting_slots[0] as Dictionary).get("ready_to_claim", false)), "slot must expose ready-to-claim state")
+    var blocked_start := service.start(final_time + 1, 0)
+    check(not bool(blocked_start.get("ok", true)), "ready slot must not restart before claim")
+    var claim := service.claim(0, final_time + 1)
+    check(bool(claim.get("ok", false)), "player must manually claim finished crystallization")
+    var claimed_reward: Variant = claim.get("reward", {})
+    check(typeof(claimed_reward) == TYPE_DICTIONARY and not (claimed_reward as Dictionary).is_empty(), "manual claim must return persisted reward")
+    check(int(service.snapshot(final_time + 1).get("ready_count", -1)) == 0, "claim must clear ready state")
 
     # Sau khi đã ở pet stage 2, một lần bắt đầu lấp hai slot đã mở.
     var stage2_start := service.start(final_time + 1)

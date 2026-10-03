@@ -510,6 +510,37 @@ func cancel_crystallization(
 	return result
 
 
+func claim_crystallization(
+	slot_index: int = -1
+) -> Dictionary:
+	var before := _meta.duplicate(true)
+	var result := _crystallization.claim(
+		slot_index
+	)
+	if not bool(result.get("ok", false)):
+		return result
+	var reward_value: Variant = result.get("reward", {})
+	if (
+		typeof(reward_value) != TYPE_DICTIONARY
+		or (reward_value as Dictionary).is_empty()
+	):
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Thành phẩm kết tinh không hợp lệ.",
+		}
+	_inventory.add_items([
+		(reward_value as Dictionary).duplicate(true)
+	])
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được thành phẩm. Hãy thử nhận lại.",
+		}
+	return result
+
+
 func open_next_chest() -> Array[Dictionary]:
 	var before := _meta.duplicate(
 		true
