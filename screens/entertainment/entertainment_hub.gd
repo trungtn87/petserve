@@ -10,6 +10,7 @@ const ObstacleRunActivityScript = preload(
 )
 
 
+signal closed
 signal breakout_reward_received
 signal sudoku_reward_received
 signal tetris_reward_received
@@ -91,7 +92,8 @@ func open_hub(
 
 
 func close_hub() -> void:
-	if _is_open:
+	var was_open := _is_open
+	if was_open:
 		AudioService.play("close")
 	if _breakout_activity != null:
 		_breakout_activity.close_activity()
@@ -117,6 +119,8 @@ func close_hub() -> void:
 
 	visible = false
 	_is_open = false
+	if was_open:
+		closed.emit()
 
 
 func is_open() -> bool:
