@@ -14,6 +14,9 @@ const PetHomeLogoScript = preload(
 const PetHomeMenuIconScript = preload(
 	"res://screens/pet_home/pet_home_menu_icon.gd"
 )
+const PetHomeArtScript = preload(
+	"res://screens/pet_home/pet_home_art.gd"
+)
 const PetSceneProfileScript = preload(
 	"res://features/evolution/domain/pet_scene_profile.gd"
 )
@@ -46,6 +49,7 @@ var _section_body: VBoxContainer
 var _active_section: StringName = &""
 var _section_return_to_menu: bool = false
 var _hub_return_to_menu: bool = false
+var _hud_return_to_menu: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 
@@ -440,15 +444,27 @@ func _add_bottom_action(
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.add_child(content)
 
-	var icon = PetHomeMenuIconScript.new()
-	icon.custom_minimum_size = Vector2(34, 34)
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon.configure(
-		action_id,
-		accent,
-		accent.lightened(0.22)
-	)
-	content.add_child(icon)
+	if action_id in [&"food", &"entertainment"]:
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(38, 38)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon.texture = PetHomeArtScript.icon(
+			8 if action_id == &"food" else 4
+		)
+		content.add_child(icon)
+	else:
+		var icon = PetHomeMenuIconScript.new()
+		icon.custom_minimum_size = Vector2(34, 34)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.configure(
+			action_id,
+			accent,
+			accent.lightened(0.22)
+		)
+		content.add_child(icon)
 
 	var label := Label.new()
 	label.text = label_text
@@ -525,6 +541,7 @@ func _add_bottom_action(
 func _open_food_shortcut() -> void:
 	_section_return_to_menu = false
 	_hub_return_to_menu = false
+	_hud_return_to_menu = false
 	if _drawer != null and _drawer.is_open():
 		_drawer.close_drawer()
 	if _hud != null:
@@ -536,6 +553,7 @@ func _open_food_shortcut() -> void:
 func _open_play_shortcut() -> void:
 	_section_return_to_menu = false
 	_hub_return_to_menu = false
+	_hud_return_to_menu = false
 	if _drawer != null and _drawer.is_open():
 		_drawer.close_drawer()
 	_open_games()
@@ -862,13 +880,31 @@ func _on_drawer_action(
 	action_id: StringName
 ) -> void:
 	_drawer.close_drawer()
-	_section_return_to_menu = (
-		action_id != &"entertainment"
-	)
+	_section_return_to_menu = action_id in [
+		&"crystallization",
+		&"pet_info",
+		&"chest",
+		&"evolution",
+		&"achievement",
+		&"settings",
+	]
 	_hub_return_to_menu = (
 		action_id == &"entertainment"
 	)
+	_hud_return_to_menu = action_id in [
+		&"inventory",
+		&"gene",
+	]
+
 	match action_id:
+		&"inventory":
+			_hud.open_inventory()
+		&"crystallization":
+			_open_crystallization()
+		&"gene":
+			_hud.open_inventory(
+				ItemGenerator.TYPE_GENE
+			)
 		&"pet_info":
 			_open_pet_info()
 		&"chest":
@@ -1849,6 +1885,7 @@ func _setup_gameplay() -> void:
 	_hud.bind(_game)
 	_hud.item_use_requested.connect(_use_item)
 	_hud.item_salvage_requested.connect(_salvage_item)
+	_hud.overlay_closed.connect(_on_hud_overlay_closed)
 	_hub = EntertainmentHubUI.new()
 	_hub.palette = _theme
 	add_child(_hub)
@@ -1945,14 +1982,24 @@ func _refresh_gameplay() -> void:
 	)
 	_fullness_bar.tooltip_text = "Thức ăn còn %d phút" % int(int(state.get("food_seconds", 0)) / 60)
 	var crystal_value: Variant = state.get("crystallization", {})
-	var crystal_ready := false
+	var crystal_ready_count := 0
 	if typeof(crystal_value) == TYPE_DICTIONARY:
-		crystal_ready = int((crystal_value as Dictionary).get("ready_count", 0)) > 0
+		crystal_ready_count = int(
+			(crystal_value as Dictionary).get(
+				"ready_count",
+				0
+			)
+		)
+	var crystal_ready := crystal_ready_count > 0
+	var evolution_ready := (
+		naturally_ready
+		and not final_form
+	)
 	var menu_notice := (
 		crystal_ready
-		or int(state.get("food_percent", 0)) <= 25
+		or int(state.get("food_percent", 0)) <= 20
 		or bool(state.get("hibernating", false))
-		or (naturally_ready and not final_form)
+		or evolution_ready
 	)
 	if _menu_notice_badge != null:
 		_menu_notice_badge.visible = menu_notice
@@ -1961,6 +2008,11 @@ func _refresh_gameplay() -> void:
 			"Có việc cần xử lý"
 			if menu_notice
 			else "Menu"
+		)
+	if _drawer != null:
+		_drawer.set_notifications(
+			crystal_ready_count,
+			evolution_ready
 		)
 	_refresh_crystallization_section()
 
@@ -2832,6 +2884,15 @@ func _on_entertainment_closed() -> void:
 		return
 
 	_hub_return_to_menu = false
+	if _drawer != null:
+		_drawer.open_drawer()
+
+
+func _on_hud_overlay_closed() -> void:
+	if not _hud_return_to_menu:
+		return
+
+	_hud_return_to_menu = false
 	if _drawer != null:
 		_drawer.open_drawer()
 
