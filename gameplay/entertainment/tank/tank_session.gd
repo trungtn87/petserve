@@ -1,6 +1,7 @@
 class_name TankSession
 extends RefCounted
 ## Authority-only simulation. All snapshots contain JSON-compatible primitives.
+## 1P/2P share the same gameplay balance; duo only changes player count/network ownership.
 const DIRS := [Vector2.UP, Vector2.RIGHT, Vector2.DOWN, Vector2.LEFT]
 const STEP := 1.0 / 60.0
 var rng := RandomNumberGenerator.new()
@@ -40,8 +41,8 @@ func start(two_players: bool = false, seed_value: int = 0) -> void:
 	players.clear()
 	inputs = [{"dir": -1, "fire": false}, {"dir": -1, "fire": false}]
 	for slot in (2 if duo else 1):
-		players.append({"x": 6.5 + slot * 4, "y": 15.5, "dir": 0, "lives": 3 if duo else 5,
-			"score": 0, "gun": 0 if duo else 1, "shield": 3.0, "cool": 0.0})
+		players.append({"x": 6.5 + slot * 4, "y": 15.5, "dir": 0, "lives": 5,
+			"score": 0, "gun": 1, "shield": 3.0, "cool": 0.0})
 	_next_wave()
 
 func _next_wave() -> void:
@@ -60,24 +61,23 @@ func _next_wave() -> void:
 			deck[19] = old
 	map_index = int(deck.pop_back())
 	tiles = TankMaps.cells(map_index)
-	if not duo:
-		# A clear defensive cross-lane lets one tank cover both flanks.
-		for y in [12, 13]:
-			for x in 16:
-				tiles[y * 16 + x] = 0
-		# Break up the three long firing lanes without sealing off the map.
-		for x in [0, 8, 15]:
-			tiles[11 * 16 + x] = 1
-	base_hp = 1 if duo else 3
+	# Both modes use the same defensive layout. Duo adds a second player, not
+	# additional map pressure.
+	for y in [12, 13]:
+		for x in 16:
+			tiles[y * 16 + x] = 0
+	for x in [0, 8, 15]:
+		tiles[11 * 16 + x] = 1
+	base_hp = 3
 	base_grace = 0.0
 	enemies.clear()
 	bullets.clear()
 	pickups.clear()
 	effects.clear()
-	remaining = 16 + mini(wave, 10) * 2 if duo else 8 + mini(6, (wave - 1) * 2 / 3)
-	spawn_clock = 1.0 if duo else 4.0
+	remaining = 8 + mini(6, (wave - 1) * 2 / 3)
+	spawn_clock = 4.0
 	frozen = 0.0
-	fort = 0.0 if duo else 15.0
+	fort = 15.0
 	for i in players.size():
 		players[i].x = 6.5 + i * 4
 		players[i].y = 15.5
@@ -148,17 +148,17 @@ func _spawn() -> void:
 	for e in enemies:
 		if Vector2(e.x, e.y).distance_to(Vector2(x, 0.5)) < 1.0:
 			return
-	var kind := rng.randi_range(0, mini(3, 1 + wave / 3) if duo else mini(3, (wave - 1) / 3))
+	var kind := rng.randi_range(0, mini(3, (wave - 1) / 3))
 	serial += 1
 	enemies.append({"id": serial, "x": x, "y": 0.5, "dir": 2, "hp": 3 if kind == 3 else 1,
-		"kind": kind, "speed": ((2.0 if kind == 1 else 1.2) + mini(wave, 10) * 0.06) if duo else (1.3 if kind == 1 else 0.9) + mini(wave, 10) * 0.03,
-		"turn": 0.0, "cool": 0.7, "carrier": serial % (5 if duo else 3) == 0})
+		"kind": kind, "speed": (1.3 if kind == 1 else 0.9) + mini(wave, 10) * 0.03,
+		"turn": 0.0, "cool": 0.7, "carrier": serial % 3 == 0})
 	remaining -= 1
 
 func _enemy_direction(e: Dictionary) -> int:
 	# Follow a shortest route to the base; brick is traversable in planning and shot on contact.
-	# Most early solo turns patrol corridors instead of rushing the objective.
-	if not duo and float(e.y) < 10.0 and rng.randf() < 0.55:
+	# Early waves patrol corridors instead of rushing the objective, in both modes.
+	if float(e.y) < 10.0 and rng.randf() < 0.55:
 		return int(e.dir) if rng.randf() < 0.5 else rng.randi_range(0,3)
 	var start_cell := Vector2i(int(e.x), int(e.y))
 	var queue: Array = [start_cell]
@@ -213,15 +213,13 @@ func _fire(tank: Dictionary, owner: int, gun: int) -> void:
 	for b in bullets:
 		if int(b.owner) == owner and (owner >= 0 or int(b.source) == int(tank.id)):
 			count += 1
-	if count >= (2 if gun >= 2 or (owner >= 0 and not duo) else 1):
+	if count >= (2 if gun >= 2 else 1):
 		return
 	var dir: Vector2 = DIRS[int(tank.dir)]
 	bullets.append({"x": float(tank.x) + dir.x * 0.43, "y": float(tank.y) + dir.y * 0.43,
 		"dir": int(tank.dir), "owner": owner, "source": int(tank.get("id", 0)), "gun": gun})
 	if owner >= 0:
 		tank.cool = 0.25
-	elif duo:
-		tank.cool = maxf(0.4, (1.0 if int(tank.get("kind",0)) == 2 else 1.4) - mini(wave, 10) * 0.07)
 	else:
 		tank.cool = maxf(1.2, (1.8 if int(tank.get("kind",0)) == 2 else 2.2) - mini(wave, 10) * 0.05)
 
@@ -231,7 +229,7 @@ func _update_bullets(dt: float) -> void:
 		for sub in 2:
 			var d: Vector2 = DIRS[int(b.dir)]
 			var speed := 10.0 if int(b.gun) > 0 else 7.0
-			if int(b.owner) < 0 and not duo:
+			if int(b.owner) < 0:
 				speed = 7.0 if int(b.gun) > 0 else 5.0
 			b.x += d.x * speed * dt * 0.5
 			b.y += d.y * speed * dt * 0.5
@@ -244,15 +242,12 @@ func _update_bullets(dt: float) -> void:
 				if tile == 1 or (tile == 2 and int(b.gun) >= 3):
 					if not (fort > 0 and cell in [231,232,233,247,249]):
 						tiles[cell] = 0
-				if tile == 5:
-					if duo:
-						base_hp = 0
-					elif int(b.owner) < 0 and fort <= 0 and base_grace <= 0:
-						base_hp -= 1
-						base_grace = 2.5
-						_explode(8.5, 15.5)
-					if base_hp <= 0:
-						status = "lost"
+				if tile == 5 and int(b.owner) < 0 and fort <= 0 and base_grace <= 0:
+					base_hp -= 1
+					base_grace = 2.5
+					_explode(8.5, 15.5)
+				if base_hp <= 0:
+					status = "lost"
 				dead.append(b)
 				break
 			var targets: Array = enemies.duplicate() if int(b.owner) >= 0 else players
@@ -268,7 +263,7 @@ func _update_bullets(dt: float) -> void:
 							_kill(t, int(b.owner))
 					elif float(t.shield) <= 0:
 						t.lives -= 1
-						t.gun = 0 if duo else maxi(1, int(t.gun) - 1)
+						t.gun = maxi(1, int(t.gun) - 1)
 						_explode(float(t.x), float(t.y))
 						t.x = 6.5 + players.find(t) * 4
 						t.y = 15.5
@@ -323,7 +318,7 @@ func snapshot() -> Dictionary:
 
 
 func enemy_limit() -> int:
-	return 6 if duo else (2 if wave <= 5 else 3)
+	return 2 if wave <= 5 else 3
 
 func spawn_interval() -> float:
-	return maxf(0.65, 2.4 - mini(wave, 10) * 0.15) if duo else maxf(2.2, 3.6 - mini(wave - 1, 9) * 0.15)
+	return maxf(2.2, 3.6 - mini(wave - 1, 9) * 0.15)
