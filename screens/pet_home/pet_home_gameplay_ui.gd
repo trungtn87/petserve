@@ -11,6 +11,7 @@ var palette: Dictionary = {}
 var dialogs_only: bool = false
 
 signal chest_open_requested
+signal overlay_closed
 signal item_use_requested(uid: String)
 signal item_salvage_requested(uid: String)
 signal entertainment_requested
@@ -1505,7 +1506,13 @@ func _open_inventory_all() -> void:
 
 func _close_overlay() -> void:
 	_hide_item_detail()
+	var was_visible := (
+		_overlay != null
+		and _overlay.visible
+	)
 	_overlay.visible = false
+	if was_visible:
+		overlay_closed.emit()
 
 
 func _emit_item_use(uid: String) -> void:
