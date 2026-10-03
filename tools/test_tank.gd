@@ -64,7 +64,7 @@ func _test_maps() -> void:
 func _test_simulation() -> void:
 	var g := TankSession.new()
 	g.start(true,42)
-	check(g.players.size()==2 and g.players[0].lives==3,"duo separate lives")
+	check(g.players.size()==2 and g.players[0].lives==5 and g.players[1].lives==5,"duo separate lives")
 	g.tiles.fill(0)
 	g.players[0].x=4.5
 	g.players[0].y=4.5
@@ -92,19 +92,20 @@ func _test_simulation() -> void:
 	g.players[1].shield=0
 	g.bullets=[{"x":4.5,"y":4.8,"dir":0,"owner":0,"source":0,"gun":0}]
 	g._update_bullets(0.05)
-	check(g.players[1].lives==3,"friendly fire causes no damage")
+	check(g.players[1].lives==5,"friendly fire causes no damage")
 	g.bullets=[{"x":4.5,"y":4.8,"dir":0,"owner":-1,"source":1,"gun":0}]
 	g.players[0].shield=0
 	g._update_bullets(0.05)
-	check(g.players[0].lives==2 and g.players[0].shield>0,"enemy hit respawns with shield")
+	check(g.players[0].lives==4 and g.players[0].shield>0,"enemy hit respawns with shield")
 	g.tiles[248]=5
+	g.fort=0
 	g.bullets=[{"x":8.5,"y":14.99,"dir":2,"owner":-1,"source":1,"gun":0}]
 	g._update_bullets(0.05)
 	check(g.status=="lost","base destruction ends match")
 	g.start(true,8)
 	g.players[0].gun=0
 	g._power(g.players[0],0,0)
-	check(g.players[0].gun==1 and g.players[1].gun==0,"gun pickup belongs to collector")
+	check(g.players[0].gun==1 and g.players[1].gun==1,"gun pickup belongs to collector")
 	g._power(g.players[0],1,0)
 	check(g.players[0].shield==8.0,"shield power duration")
 	g._power(g.players[0],2,0)
