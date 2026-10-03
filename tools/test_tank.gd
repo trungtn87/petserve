@@ -98,6 +98,7 @@ func _test_simulation() -> void:
 	g._update_bullets(0.05)
 	check(g.players[0].lives==4 and g.players[0].shield>0,"enemy hit respawns with shield")
 	g.tiles[248]=5
+	g.base_hp=1
 	g.fort=0
 	g.bullets=[{"x":8.5,"y":14.99,"dir":2,"owner":-1,"source":1,"gun":0}]
 	g._update_bullets(0.05)
