@@ -67,6 +67,7 @@ func _initialize() -> void:
 		check(g.tiles[11*16+x]==1,"duo uses solo firing-lane cover")
 	g.tiles.fill(0)
 	g.tiles[248]=5
+	g.fort=0
 	shoot_base(g,-1)
 	check(g.base_hp==2 and g.status=="playing","duo base takes first hit like solo")
 	g.base_grace=0
