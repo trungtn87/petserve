@@ -38,10 +38,14 @@ func _draw() -> void:
 	match action_id:
 		&"pet_info":
 			_draw_pet(center)
+		&"food":
+			_draw_food(center)
 		&"chest":
 			_draw_chest(center)
 		&"entertainment":
 			_draw_game(center)
+		&"menu":
+			_draw_menu_grid(center)
 		&"evolution":
 			_draw_crystal(center)
 		&"achievement":
@@ -85,6 +89,80 @@ func _draw_pet(center: Vector2) -> void:
 		2.8,
 		s
 	)
+
+
+func _draw_food(center: Vector2) -> void:
+	var bowl := PackedVector2Array([
+		center + Vector2(-12, 1),
+		center + Vector2(12, 1),
+		center + Vector2(9, 10),
+		center + Vector2(-9, 10),
+	])
+	draw_colored_polygon(
+		bowl,
+		Color(
+			secondary.r,
+			secondary.g,
+			secondary.b,
+			0.82
+		)
+	)
+	for index in range(bowl.size()):
+		draw_line(
+			bowl[index],
+			bowl[(index + 1) % bowl.size()],
+			accent,
+			1.6,
+			true
+		)
+	draw_arc(
+		center + Vector2(0, 1),
+		12.0,
+		PI,
+		TAU,
+		24,
+		accent,
+		2.0,
+		true
+	)
+	draw_circle(
+		center + Vector2(-5, -4),
+		3.2,
+		accent
+	)
+	draw_circle(
+		center + Vector2(1, -6),
+		3.8,
+		secondary
+	)
+	draw_circle(
+		center + Vector2(6, -3),
+		3.0,
+		accent
+	)
+
+
+func _draw_menu_grid(center: Vector2) -> void:
+	var cell_size := Vector2(8, 8)
+	var offsets := [
+		Vector2(-10, -10),
+		Vector2(2, -10),
+		Vector2(-10, 2),
+		Vector2(2, 2),
+	]
+	for offset in offsets:
+		var rect := Rect2(
+			center + offset,
+			cell_size
+		)
+		draw_style_box(
+			_box(
+				secondary,
+				accent,
+				2
+			),
+			rect
+		)
 
 
 func _draw_chest(center: Vector2) -> void:
