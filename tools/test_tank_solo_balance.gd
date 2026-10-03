@@ -10,9 +10,9 @@ func check(ok: bool, label: String) -> void:
 func _initialize() -> void:
 	var g := TankSession.new()
 	g.start(false,123)
-	check(g.players[0].lives==5 and g.players[0].gun==1,"solo starts with five lives and faster gun")
-	check(g.remaining==8 and g.enemy_limit()==2 and g.spawn_clock==4.0,"gentle first wave")
-	check(g.base_hp==3 and g.fort==15.0,"base protected at start")
+	check(g.players[0].lives==5 and g.players[0].gun==1,"solo starts with five lives and level-1 gun")
+	check(g.remaining==8 and g.enemy_limit()==2 and g.spawn_clock==4.0,"solo first wave balance")
+	check(g.base_hp==3 and g.fort==15.0,"solo base protection")
 	for i in 20:
 		for y in [12,13]:
 			for x in 16:
@@ -46,19 +46,49 @@ func _initialize() -> void:
 	g.tiles.fill(0)
 	g.bullets=[{"x":4.5,"y":4.7,"dir":0,"owner":-1,"source":1,"gun":0}]
 	g._update_bullets(0.05)
-	check(g.players[0].lives==4 and g.players[0].gun==1,"solo death retains usable gun")
+	check(g.players[0].lives==4 and g.players[0].gun==1,"death keeps at least level-1 gun")
 	g.wave=10
 	var cap := g.spawn_interval()
 	g._next_wave()
 	g.wave=50
-	check(g.spawn_interval()==cap and g.remaining==14,"solo difficulty capped")
+	check(g.spawn_interval()==cap and g.remaining==14,"difficulty caps after wave 10")
+
+	# Duo uses exactly the solo balance; only player count/network ownership differs.
 	g.start(true,20)
-	check(g.remaining==18 and g.enemy_limit()==6 and g.players[0].lives==3 and g.fort==0,"duo balance preserved")
+	check(g.players.size()==2,"duo has two players")
+	check(g.players[0].lives==5 and g.players[1].lives==5,"duo players start with five lives")
+	check(g.players[0].gun==1 and g.players[1].gun==1,"duo players start with level-1 guns")
+	check(g.remaining==8 and g.enemy_limit()==2 and g.spawn_clock==4.0,"duo matches solo first-wave pressure")
+	check(g.base_hp==3 and g.fort==15.0,"duo matches solo base protection")
+	for y in [12,13]:
+		for x in 16:
+			check(g.tiles[y*16+x]==0,"duo uses solo defensive cross-lane")
+	for x in [0,8,15]:
+		check(g.tiles[11*16+x]==1,"duo uses solo firing-lane cover")
 	g.tiles.fill(0)
 	g.tiles[248]=5
 	shoot_base(g,-1)
-	check(g.status=="lost","duo base remains one hit")
-	# A simple defender moves along the clear cross-lane, lines up and aims up/down, returning to its defensive row after respawn.
+	check(g.base_hp==2 and g.status=="playing","duo base takes first hit like solo")
+	g.base_grace=0
+	shoot_base(g,-1)
+	check(g.base_hp==1 and g.status=="playing","duo base takes second hit like solo")
+	g.base_grace=0
+	shoot_base(g,-1)
+	check(g.base_hp==0 and g.status=="lost","duo base takes third hit like solo")
+
+	# Same seed must produce the same first enemy stats in solo and duo.
+	var solo := TankSession.new()
+	solo.start(false,777)
+	solo._spawn()
+	var duo := TankSession.new()
+	duo.start(true,777)
+	duo._spawn()
+	check(solo.map_index==duo.map_index,"same seed selects same map")
+	check(solo.enemies[0].kind==duo.enemies[0].kind,"same seed selects same enemy type")
+	check(is_equal_approx(float(solo.enemies[0].speed),float(duo.enemies[0].speed)),"same seed gives same enemy speed")
+	check(solo.enemies[0].carrier==duo.enemies[0].carrier,"same seed gives same item-carrier rhythm")
+
+	# A simple defender moves along the clear cross-lane, lines up and aims up/down.
 	var wins := 0
 	for map_index in 20:
 		g.start(false,map_index+1)
@@ -95,7 +125,7 @@ func _initialize() -> void:
 
 	print("SOLO defender first-wave wins=",wins,"/20")
 	check(wins>=15,"simple defender can clear most random solo maps")
-	print("SOLO BALANCE checks=",checks," failures=",failures)
+	print("TANK BALANCE checks=",checks," failures=",failures)
 	quit(1 if failures else 0)
 
 func shoot_base(g: TankSession, owner: int) -> void:
