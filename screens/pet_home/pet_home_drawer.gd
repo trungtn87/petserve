@@ -2,588 +2,313 @@ class_name PetHomeDrawer
 extends Control
 
 
-const PetHomeThemeScript = preload(
-	"res://screens/pet_home/pet_home_theme.gd"
-)
-const PetHomeMenuIconScript = preload(
-	"res://screens/pet_home/pet_home_menu_icon.gd"
-)
-const PetHomeMenuDecorScript = preload(
-	"res://screens/pet_home/pet_home_menu_decor.gd"
+const PetHomeArtScript = preload(
+	"res://screens/pet_home/pet_home_art.gd"
 )
 
 
 signal action_requested(action_id: StringName)
 
 
-const PANEL_WIDTH: float = 164.0
-const PANEL_HEIGHT: float = 444.0
-const PANEL_TOP: float = 14.0
-const PANEL_RIGHT: float = 8.0
-const PANEL_GAP: float = 8.0
-
-
-var _theme: Dictionary = {}
-var _scrim: ColorRect
-var _panel: PanelContainer
-var _content: VBoxContainer
-var _cards: Array[Dictionary] = []
-var _is_open: bool = false
-var _animating: bool = false
+var _buttons: Dictionary = {}
+var _badges: Dictionary = {}
+var _is_open := false
 var _menu_button: Control
 
 
-func _ready() -> void:
-	set_anchors_preset(
-		Control.PRESET_FULL_RECT
-	)
-	offset_left = 0.0
-	offset_top = 0.0
-	offset_right = 0.0
-	offset_bottom = 0.0
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	visible = false
-
-	_build()
-
-	if not resized.is_connected(
-		_layout_panel
-	):
-		resized.connect(
-			_layout_panel
-		)
-
-	call_deferred(
-		"_layout_panel"
-	)
-
-
-func configure(
-	theme: Dictionary
-) -> void:
-	_theme = theme.duplicate(true)
-
-	if _panel != null:
-		_apply_theme()
+func configure(_palette: Dictionary) -> void:
+	pass
 
 
 func set_menu_button(button: Control) -> void:
+	# Giữ API cũ để PetHome hiện tại không phụ thuộc vị trí panel.
 	_menu_button = button
-	_layout_panel()
 
 
-func open_drawer() -> void:
-	if _is_open or _animating:
-		return
-
-	_is_open = true
-	_animating = true
-	visible = true
-	mouse_filter = Control.MOUSE_FILTER_STOP
-
-	_layout_panel()
-
-	_scrim.modulate.a = 0.0
-	_panel.modulate.a = 0.0
-	_panel.scale = Vector2(
-		0.97,
-		0.97
+func _ready() -> void:
+	set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
 	)
-	_panel.pivot_offset = Vector2(
-		_panel.size.x,
-		_panel.size.y
-	)
-
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(
-		_scrim,
-		"modulate:a",
-		1.0,
-		0.14
-	)
-	tween.tween_property(
-		_panel,
-		"modulate:a",
-		1.0,
-		0.18
-	)
-	tween.tween_property(
-		_panel,
-		"scale",
-		Vector2.ONE,
-		0.20
-	).set_trans(
-		Tween.TRANS_QUAD
-	).set_ease(
-		Tween.EASE_OUT
-	)
-	tween.finished.connect(
-		_on_open_finished,
-		CONNECT_ONE_SHOT
-	)
-
-
-func close_drawer() -> void:
-	if not _is_open or _animating:
-		return
-
-	_is_open = false
-	_animating = true
-
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(
-		_scrim,
-		"modulate:a",
-		0.0,
-		0.10
-	)
-	tween.tween_property(
-		_panel,
-		"modulate:a",
-		0.0,
-		0.12
-	)
-	tween.tween_property(
-		_panel,
-		"scale",
-		Vector2(
-			0.98,
-			0.98
-		),
-		0.12
-	)
-	tween.finished.connect(
-		_on_close_finished,
-		CONNECT_ONE_SHOT
-	)
-
-
-func is_open() -> bool:
-	return _is_open
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build()
+	hide()
 
 
 func _build() -> void:
-	_scrim = ColorRect.new()
-	_scrim.set_anchors_preset(
+	var scrim := ColorRect.new()
+	scrim.set_anchors_and_offsets_preset(
 		Control.PRESET_FULL_RECT
 	)
-	_scrim.color = Color(
-		0.01,
-		0.01,
-		0.03,
-		0.52
-	)
-	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_scrim.gui_input.connect(
-		_on_scrim_input
-	)
-	add_child(_scrim)
+	scrim.color = Color(0.04, 0.07, 0.08, 0.72)
+	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
+	scrim.gui_input.connect(_on_scrim_input)
+	add_child(scrim)
 
-	_panel = PanelContainer.new()
-	_panel.set_anchors_preset(
-		Control.PRESET_TOP_LEFT
+	var panel := PanelContainer.new()
+	panel.name = "MenuPanel"
+	panel.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
 	)
-	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(_panel)
+	panel.offset_left = 18.0
+	panel.offset_right = -18.0
+	panel.offset_top = 90.0
+	panel.offset_bottom = -80.0
+	panel.add_theme_stylebox_override(
+		"panel",
+		paper()
+	)
+	add_child(panel)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override(
-		"margin_left",
-		12
-	)
-	margin.add_theme_constant_override(
-		"margin_top",
-		14
-	)
-	margin.add_theme_constant_override(
-		"margin_right",
-		12
-	)
-	margin.add_theme_constant_override(
-		"margin_bottom",
-		14
-	)
-	_panel.add_child(margin)
-
-	_content = VBoxContainer.new()
-	_content.size_flags_horizontal = (
-		Control.SIZE_EXPAND_FILL
-	)
-	_content.size_flags_vertical = (
-		Control.SIZE_EXPAND_FILL
-	)
-	_content.add_theme_constant_override(
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override(
 		"separation",
-		6
+		14
 	)
-	margin.add_child(_content)
+	panel.add_child(column)
 
-	var decor = PetHomeMenuDecorScript.new()
-	decor.name = "Decor"
-	decor.custom_minimum_size = Vector2(
-		0,
-		42
-	)
-	_content.add_child(decor)
+	var header := HBoxContainer.new()
+	column.add_child(header)
 
-	_add_action(
-		&"pet_info",
-		"Thông tin thú cưng"
+	var title := Label.new()
+	title.text = "Menu"
+	title.add_theme_color_override(
+		"font_color",
+		Color("49331f")
 	)
-	_add_action(
-		&"chest",
-		"Kho tài nguyên"
-	)
-	_add_action(
-		&"entertainment",
-		"Giải trí"
-	)
-	_add_action(
-		&"achievement",
-		"Thành tích"
-	)
-	_add_action(
-		&"settings",
-		"Cài đặt"
-	)
-
-	var spacer := Control.new()
-	spacer.size_flags_vertical = (
-		Control.SIZE_EXPAND_FILL
-	)
-	_content.add_child(spacer)
-
-	var footer := Label.new()
-	footer.name = "Footer"
-	footer.text = "PETVERSE"
-	footer.horizontal_alignment = (
-		HORIZONTAL_ALIGNMENT_RIGHT
-	)
-	footer.add_theme_font_size_override(
+	title.add_theme_font_size_override(
 		"font_size",
-		8
+		24
 	)
-	footer.modulate.a = 0.40
-	_content.add_child(footer)
-
-	_apply_theme()
-
-
-func _add_action(
-	action_id: StringName,
-	label_text: String
-) -> void:
-	var card := PanelContainer.new()
-	card.name = (
-		String(action_id).to_pascal_case()
-		+ "Card"
-	)
-	card.custom_minimum_size = Vector2(
-		0,
-		46
-	)
-	card.size_flags_horizontal = (
+	title.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
-	_content.add_child(card)
+	header.add_child(title)
 
-	var padding := MarginContainer.new()
-	padding.add_theme_constant_override(
-		"margin_left",
-		8
+	var close := Button.new()
+	close.name = "Close"
+	close.text = "×"
+	close.focus_mode = Control.FOCUS_NONE
+	close.custom_minimum_size = Vector2(
+		44,
+		44
 	)
-	padding.add_theme_constant_override(
-		"margin_top",
-		5
+	close.add_theme_color_override(
+		"font_color",
+		Color("49331f")
 	)
-	padding.add_theme_constant_override(
-		"margin_right",
-		8
-	)
-	padding.add_theme_constant_override(
-		"margin_bottom",
-		5
-	)
-	card.add_child(padding)
+	close.pressed.connect(close_drawer)
+	header.add_child(close)
 
-	var row := HBoxContainer.new()
-	row.size_flags_horizontal = (
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = (
 		Control.SIZE_EXPAND_FILL
 	)
-	row.add_theme_constant_override(
-		"separation",
+	scroll.horizontal_scroll_mode = (
+		ScrollContainer.SCROLL_MODE_DISABLED
+	)
+	column.add_child(scroll)
+
+	var grid := GridContainer.new()
+	grid.name = "MenuGrid"
+	grid.columns = 3
+	grid.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	grid.add_theme_constant_override(
+		"h_separation",
 		7
 	)
-	padding.add_child(row)
-
-	var icon = PetHomeMenuIconScript.new()
-	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(
-		28,
-		28
+	grid.add_theme_constant_override(
+		"v_separation",
+		10
 	)
-	row.add_child(icon)
+	scroll.add_child(grid)
 
-	var label := Label.new()
-	label.name = "Label"
-	label.text = label_text
-	label.size_flags_horizontal = (
+	var entries := [
+		{"id": &"inventory", "label": "Kho đồ", "icon": 0},
+		{"id": &"crystallization", "label": "Kết tinh", "icon": 1},
+		{"id": &"gene", "label": "Gene", "icon": 2},
+		{"id": &"evolution", "label": "Tiến hóa", "icon": 3},
+		{"id": &"entertainment", "label": "Mini game", "icon": 4},
+		{"id": &"chest", "label": "Tài nguyên", "icon": 5},
+		{"id": &"pet_info", "label": "Thông tin pet", "icon": 6},
+		{"id": &"settings", "label": "Cài đặt", "icon": 7},
+	]
+
+	for entry in entries:
+		_add_entry(
+			grid,
+			entry
+		)
+
+
+func _add_entry(
+	grid: GridContainer,
+	entry: Dictionary
+) -> void:
+	var action_id := StringName(
+		entry.get(
+			"id",
+			&""
+		)
+	)
+	var button := Button.new()
+	button.name = (
+		String(action_id).to_pascal_case()
+		+ "Button"
+	)
+	button.text = ""
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(
+		0,
+		94
+	)
+	button.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
-	label.vertical_alignment = (
-		VERTICAL_ALIGNMENT_CENTER
+	button.add_theme_stylebox_override(
+		"normal",
+		paper(
+			Color("fff4dd")
+		)
 	)
-	label.add_theme_font_size_override(
-		"font_size",
-		11
+	button.add_theme_stylebox_override(
+		"hover",
+		paper(
+			Color("ffe3a2")
+		)
 	)
-	row.add_child(label)
-
-	var chevron := Label.new()
-	chevron.name = "Chevron"
-	chevron.text = "›"
-	chevron.vertical_alignment = (
-		VERTICAL_ALIGNMENT_CENTER
+	button.add_theme_stylebox_override(
+		"pressed",
+		paper(
+			Color("eac78f")
+		)
 	)
-	chevron.add_theme_font_size_override(
-		"font_size",
-		15
-	)
-	row.add_child(chevron)
-
-	var hitbox := Button.new()
-	hitbox.name = "Hitbox"
-	hitbox.text = ""
-	hitbox.flat = true
-	hitbox.focus_mode = Control.FOCUS_NONE
-	hitbox.set_anchors_preset(
-		Control.PRESET_FULL_RECT
-	)
-	hitbox.mouse_default_cursor_shape = (
-		Control.CURSOR_POINTING_HAND
-	)
-	hitbox.pressed.connect(
+	button.pressed.connect(
 		_emit_action.bind(
 			action_id
 		)
 	)
-	card.add_child(hitbox)
 
-	_cards.append({
-		"action_id": action_id,
-		"card": card,
-		"icon": icon,
-		"label": label,
-		"chevron": chevron,
-		"hitbox": hitbox,
-	})
-
-
-func _apply_theme() -> void:
-	if _theme.is_empty():
-		_theme = PetHomeThemeScript.for_element(
-			&"dark"
-		)
-
-	var panel_color: Color = _theme.get(
-		"panel",
-		Color("#171229")
-	)
-	panel_color = panel_color.lightened(
-		0.035
-	)
-	panel_color.a = 0.97
-
-	var accent: Color = _theme.get(
-		"accent",
-		Color("#A98AF4")
-	)
-	var text_color: Color = _theme.get(
-		"text",
-		Color.WHITE
-	)
-	var muted: Color = _theme.get(
-		"muted",
-		Color("#C3B2E8")
-	)
-	var secondary := accent.lightened(
-		0.22
-	)
-
-	var panel_border := accent
-	panel_border.a = 0.62
-
-	_panel.add_theme_stylebox_override(
-		"panel",
-		PetHomeThemeScript.panel_style(
-			panel_color,
-			panel_border,
-			24
-		)
-	)
-
-	var decor := _content.get_node_or_null(
-		"Decor"
-	)
-
-	if (
-		decor != null
-		and decor.has_method(
-			"configure"
-		)
-	):
-		decor.configure(
-			accent,
-			secondary
-		)
-
-	var footer := _content.get_node_or_null(
-		"Footer"
-	) as Label
-
-	if footer != null:
-		footer.add_theme_color_override(
-			"font_color",
-			muted
-		)
-
-	for item in _cards:
-		var card = item.get(
-			"card"
-		)
-		var icon = item.get(
-			"icon"
-		)
-		var label = item.get(
-			"label"
-		)
-		var chevron = item.get(
-			"chevron"
-		)
-		var action_id := StringName(
-			item.get(
-				"action_id",
-				&""
+	var icon := TextureRect.new()
+	icon.name = "Icon"
+	icon.texture = PetHomeArtScript.icon(
+		int(
+			entry.get(
+				"icon",
+				0
 			)
 		)
-
-		if card != null:
-			var card_bg := panel_color.lightened(
-				0.055
-			)
-			card_bg.a = 0.94
-			var border := accent
-			border.a = 0.38
-
-			card.add_theme_stylebox_override(
-				"panel",
-				PetHomeThemeScript.panel_style(
-					card_bg,
-					border,
-					18
-				)
-			)
-
-		if (
-			icon != null
-			and icon.has_method(
-				"configure"
-			)
-		):
-			icon.configure(
-				action_id,
-				accent,
-				secondary
-			)
-
-		if label is Label:
-			label.add_theme_color_override(
-				"font_color",
-				text_color
-			)
-
-		if chevron is Label:
-			chevron.add_theme_color_override(
-				"font_color",
-				muted
-			)
-
-
-func _layout_panel() -> void:
-	if _panel == null:
-		return
-
-	var viewport_width := maxf(
-		size.x,
-		1.0
 	)
-	var viewport_height := maxf(
-		size.y,
-		1.0
+	icon.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
 	)
+	icon.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	)
+	icon.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	icon.anchor_left = 0.5
+	icon.anchor_right = 0.5
+	icon.offset_left = -28.0
+	icon.offset_right = 28.0
+	icon.offset_top = 4.0
+	icon.offset_bottom = 60.0
+	button.add_child(icon)
 
-	var panel_width := minf(
-		maxf(PANEL_WIDTH, _panel.get_combined_minimum_size().x),
-		viewport_width - 16.0
+	var caption := Label.new()
+	caption.name = "Caption"
+	caption.text = String(
+		entry.get(
+			"label",
+			""
+		)
 	)
-	var panel_right := viewport_width - PANEL_RIGHT
-	var panel_bottom := viewport_height - 12.0
-	if is_instance_valid(_menu_button):
-		var button_rect := _menu_button.get_global_rect()
-		panel_right = button_rect.end.x - global_position.x
-		panel_bottom = button_rect.position.y - global_position.y - PANEL_GAP
-	var panel_height := minf(
-		PANEL_HEIGHT,
-		maxf(panel_bottom - PANEL_TOP, 1.0)
+	caption.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
 	)
+	caption.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	caption.add_theme_font_size_override(
+		"font_size",
+		12
+	)
+	caption.add_theme_color_override(
+		"font_color",
+		Color("49331f")
+	)
+	caption.anchor_right = 1.0
+	caption.offset_top = 64.0
+	caption.offset_bottom = 86.0
+	caption.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	button.add_child(caption)
 
-	_panel.position = Vector2(
-		maxf(panel_right - panel_width, 8.0),
-		maxf(panel_bottom - panel_height, PANEL_TOP)
+	var badge := PetHomeArtScript.badge(
+		button
 	)
-	_panel.size = Vector2(
-		panel_width,
-		panel_height
-	)
-	_panel.pivot_offset = _panel.size
+	badge.hide()
+
+	grid.add_child(button)
+	_buttons[action_id] = button
+	_badges[action_id] = badge
 
 
-func _input(
-	event: InputEvent
+static func paper(
+	color: Color = Color("f4e2bf")
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.border_color = Color("b99a70")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	style.content_margin_top = 10
+	style.content_margin_bottom = 10
+	return style
+
+
+func set_notifications(
+	crystallization_count: int,
+	evolution_ready: bool
 ) -> void:
-	if (
-		not _is_open
-		or not visible
-		or _panel == null
-	):
-		return
+	if _badges.has(&"crystallization"):
+		_badges[&"crystallization"].visible = (
+			crystallization_count > 0
+		)
+	if _badges.has(&"evolution"):
+		_badges[&"evolution"].visible = (
+			evolution_ready
+		)
 
-	var pressed := false
-	var pointer_position := Vector2.ZERO
 
-	if event is InputEventMouseButton:
-		var mouse_event := event as InputEventMouseButton
-		pressed = mouse_event.pressed
-		pointer_position = mouse_event.position
-	elif event is InputEventScreenTouch:
-		var touch_event := event as InputEventScreenTouch
-		pressed = touch_event.pressed
-		pointer_position = touch_event.position
-	else:
-		return
+func open_drawer() -> void:
+	_is_open = true
+	show()
+	mouse_filter = Control.MOUSE_FILTER_STOP
+	move_to_front()
 
-	if not pressed:
-		return
 
-	if _panel.get_global_rect().has_point(
-		pointer_position
-	):
-		return
+func close_drawer() -> void:
+	_is_open = false
+	hide()
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	close_drawer()
-	get_viewport().set_input_as_handled()
+
+func is_open() -> bool:
+	return _is_open and visible
+
+
+func _emit_action(
+	action_id: StringName
+) -> void:
+	action_requested.emit(
+		action_id
+	)
 
 
 func _on_scrim_input(
@@ -599,26 +324,3 @@ func _on_scrim_input(
 		and event.pressed
 	):
 		close_drawer()
-
-
-func _emit_action(
-	action_id: StringName
-) -> void:
-	action_requested.emit(
-		action_id
-	)
-
-	_is_open = false
-	_animating = false
-	visible = false
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-
-func _on_open_finished() -> void:
-	_animating = false
-
-
-func _on_close_finished() -> void:
-	_animating = false
-	visible = false
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
