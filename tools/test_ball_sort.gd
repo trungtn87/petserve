@@ -32,7 +32,21 @@ func _init() -> void:
 	_check(String(BallSortGame.config_for_level(30).get("rank", "")) == "EXPERT", "Mỗi 30 màn phải có Expert.")
 	_check(String(BallSortGame.config_for_level(20).get("rank", "")) == "HARD", "Mỗi 10 màn phải có Hard.")
 
-	print("PASS: Ball Sort drag-drop, generator, scaling and guaranteed solution")
+	var ui := BallSortActivityUI.new()
+	ui.size = Vector2(360, 640)
+	get_root().add_child(ui)
+	ui.open_activity()
+	var ui_solution := ui._game.debug_generated_solution()
+	for move in ui_solution:
+		ui._on_tube_drop_requested(
+			int(move.get("from", -1)),
+			int(move.get("to", -1))
+		)
+	await process_frame
+	_check(ui._level == 2, "Hoàn thành phải tự chuyển sang màn tiếp theo.")
+	ui.queue_free()
+
+	print("PASS: Ball Sort drag-drop, auto-next, generator, scaling and guaranteed solution")
 	quit()
 
 
