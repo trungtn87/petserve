@@ -21,7 +21,6 @@ func configure(_palette: Dictionary) -> void:
 
 
 func set_menu_button(button: Control) -> void:
-	# Giữ API cũ để PetHome hiện tại không phụ thuộc vị trí panel.
 	_menu_button = button
 
 
@@ -59,14 +58,36 @@ func _build() -> void:
 	)
 	add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		12
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		12
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		12
+	)
+	panel.add_child(margin)
+
 	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override(
 		"separation",
-		14
+		12
 	)
-	panel.add_child(column)
+	margin.add_child(column)
 
 	var header := HBoxContainer.new()
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(header)
 
 	var title := Label.new()
@@ -100,9 +121,9 @@ func _build() -> void:
 	header.add_child(close)
 
 	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = (
-		Control.SIZE_EXPAND_FILL
-	)
+	scroll.name = "MenuScroll"
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = (
 		ScrollContainer.SCROLL_MODE_DISABLED
 	)
@@ -114,6 +135,10 @@ func _build() -> void:
 	grid.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	grid.size_flags_vertical = (
+		Control.SIZE_SHRINK_BEGIN
+	)
+	grid.custom_minimum_size.y = 326.0
 	grid.add_theme_constant_override(
 		"h_separation",
 		7
@@ -160,8 +185,8 @@ func _add_entry(
 	button.text = ""
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(
-		0,
-		94
+		78,
+		102
 	)
 	button.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
@@ -190,6 +215,22 @@ func _add_entry(
 		)
 	)
 
+	var content := VBoxContainer.new()
+	content.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	content.offset_left = 4.0
+	content.offset_top = 6.0
+	content.offset_right = -4.0
+	content.offset_bottom = -6.0
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.add_theme_constant_override(
+		"separation",
+		2
+	)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(content)
+
 	var icon := TextureRect.new()
 	icon.name = "Icon"
 	icon.texture = PetHomeArtScript.icon(
@@ -200,6 +241,13 @@ func _add_entry(
 			)
 		)
 	)
+	icon.custom_minimum_size = Vector2(
+		44,
+		44
+	)
+	icon.size_flags_horizontal = (
+		Control.SIZE_SHRINK_CENTER
+	)
 	icon.expand_mode = (
 		TextureRect.EXPAND_IGNORE_SIZE
 	)
@@ -209,13 +257,7 @@ func _add_entry(
 	icon.mouse_filter = (
 		Control.MOUSE_FILTER_IGNORE
 	)
-	icon.anchor_left = 0.5
-	icon.anchor_right = 0.5
-	icon.offset_left = -28.0
-	icon.offset_right = 28.0
-	icon.offset_top = 4.0
-	icon.offset_bottom = 60.0
-	button.add_child(icon)
+	content.add_child(icon)
 
 	var caption := Label.new()
 	caption.name = "Caption"
@@ -225,27 +267,31 @@ func _add_entry(
 			""
 		)
 	)
+	caption.custom_minimum_size.y = 28
+	caption.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
 	caption.horizontal_alignment = (
 		HORIZONTAL_ALIGNMENT_CENTER
 	)
 	caption.vertical_alignment = (
 		VERTICAL_ALIGNMENT_CENTER
 	)
+	caption.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
 	caption.add_theme_font_size_override(
 		"font_size",
-		12
+		11
 	)
 	caption.add_theme_color_override(
 		"font_color",
 		Color("49331f")
 	)
-	caption.anchor_right = 1.0
-	caption.offset_top = 64.0
-	caption.offset_bottom = 86.0
 	caption.mouse_filter = (
 		Control.MOUSE_FILTER_IGNORE
 	)
-	button.add_child(caption)
+	content.add_child(caption)
 
 	var badge := PetHomeArtScript.badge(
 		button

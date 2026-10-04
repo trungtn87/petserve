@@ -447,27 +447,15 @@ func _add_bottom_action(
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.add_child(content)
 
-	if action_id in [&"food", &"entertainment"]:
-		var icon := TextureRect.new()
-		icon.custom_minimum_size = Vector2(38, 38)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icon.texture = PetHomeArtScript.icon(
-			8 if action_id == &"food" else 4
-		)
-		content.add_child(icon)
-	else:
-		var icon = PetHomeMenuIconScript.new()
-		icon.custom_minimum_size = Vector2(34, 34)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.configure(
-			action_id,
-			accent,
-			accent.lightened(0.22)
-		)
-		content.add_child(icon)
+	var icon = PetHomeMenuIconScript.new()
+	icon.custom_minimum_size = Vector2(34, 34)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.configure(
+		action_id,
+		accent,
+		accent.lightened(0.22)
+	)
+	content.add_child(icon)
 
 	var label := Label.new()
 	label.text = label_text
