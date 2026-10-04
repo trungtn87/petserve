@@ -2,27 +2,13 @@ class_name PetHomeArt
 extends RefCounted
 
 
-const ICONS = preload(
-	"res://assets/ui/menu_icons.png"
-)
-
-
+# menu_icons.png trong nhánh cũ bị hỏng khi import Android.
+# Giữ API icon() để các màn hình cũ không vỡ, nhưng không preload
+# asset lỗi nữa. Các menu chính dùng text/procedural icon.
 static func icon(
-	index: int
-) -> AtlasTexture:
-	var texture := AtlasTexture.new()
-	texture.atlas = ICONS
-	var cell := Vector2(
-		ICONS.get_size()
-	) / 3.0
-	texture.region = Rect2(
-		Vector2(
-			index % 3,
-			index / 3
-		) * cell,
-		cell
-	)
-	return texture
+	_index: int
+) -> Texture2D:
+	return null
 
 
 static func badge(
