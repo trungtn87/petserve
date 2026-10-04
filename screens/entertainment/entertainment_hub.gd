@@ -29,6 +29,7 @@ var _breakout_activity: BreakoutActivityUI
 var _sudoku_activity: SudokuActivityUI
 var _tetris_activity: TetrisActivityUI
 var _tank_activity: TankActivityUI
+var _ball_sort_activity: BallSortActivityUI
 
 var _is_open: bool = false
 var _stage_index: int = 1
@@ -106,6 +107,8 @@ func close_hub() -> void:
 		_tank_activity.close_activity()
 	if _tetris_activity != null:
 		_tetris_activity.close_activity()
+	if _ball_sort_activity != null:
+		_ball_sort_activity.close_activity()
 
 	if _caro_activity != null:
 		_caro_activity.close_activity()
@@ -308,6 +311,7 @@ func _build_ui() -> void:
 	_build_sudoku_activity(body)
 	_build_tetris_activity(body)
 	_build_tank_activity(body)
+	_build_ball_sort_activity(body)
 
 
 func _build_hub_screen(
@@ -432,6 +436,8 @@ func _build_hub_screen(
 	grid.add_child(_activity_card("Tetris", "Vô hạn • Bảng xếp hạng", true, _open_tetris, "▥"))
 
 	grid.add_child(_activity_card("Tank", "20 map • 1 hoặc 2 người", true, _open_tank, "✦"))
+
+	grid.add_child(_activity_card("Xếp tinh thể", "Map vô hạn • Càng về sau càng khó", true, _open_ball_sort, "●"))
 
 	_reward_label = Label.new()
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -659,6 +665,8 @@ func _hide_activities() -> void:
 		_tank_activity.close_activity()
 	if _tetris_activity != null:
 		_tetris_activity.close_activity()
+	if _ball_sort_activity != null:
+		_ball_sort_activity.close_activity()
 
 	if _energy_2048_activity != null:
 		_energy_2048_activity.close_activity()
@@ -884,3 +892,20 @@ func _open_jigsaw() -> void:
 	_jigsaw_activity.game_api = energy_2048_api
 	_jigsaw_activity.current_image_path = pet_image_path
 	_jigsaw_activity.open_activity()
+
+
+func _build_ball_sort_activity(parent: Control) -> void:
+	_ball_sort_activity = BallSortActivityUI.new()
+	_ball_sort_activity.palette = palette
+	parent.add_child(_ball_sort_activity)
+	_ball_sort_activity.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_ball_sort_activity.visible = false
+	_ball_sort_activity.back_requested.connect(_show_hub_screen)
+	_ball_sort_activity.match_finished.connect(_on_match_finished)
+
+
+func _open_ball_sort() -> void:
+	_hide_activities()
+	_hub_screen.visible = false
+	_ball_sort_activity.game_api = energy_2048_api
+	_ball_sort_activity.open_activity()

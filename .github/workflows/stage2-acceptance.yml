@@ -116,6 +116,9 @@ jobs:
       - name: Stage 2 reward contract
         run: XDG_DATA_HOME=/tmp/petverse-test-stage2_rewards godot --headless --path . res://tools/test_stage2_rewards.tscn
 
+      - name: Ball Sort generator and solvability
+        run: XDG_DATA_HOME=/tmp/petverse-test-ball_sort godot --headless --path . --script res://tools/test_ball_sort.gd
+
       - name: Stage 2 Gene resolver
         run: XDG_DATA_HOME=/tmp/petverse-test-m9_stage_evolution_resolver godot --headless --path . res://tools/test_m9_stage_evolution_resolver.tscn
 

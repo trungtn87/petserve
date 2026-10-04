@@ -12,6 +12,7 @@ const ObstacleRunRecordsScript = preload(
 
 const META_SCHEMA: int = 5
 const CRYSTALLIZATION_NOTICE_SECONDS: int = 8
+const BALL_SORT_PROGRESS_KEY := "ball_sort_progress_v1"
 
 
 var _meta: Dictionary = {}
@@ -1893,6 +1894,87 @@ func _commit_sudoku(session: SudokuSession) -> Dictionary:
 
 
 var _breakout_session: BreakoutSession
+
+
+func ball_sort_progress() -> Dictionary:
+	var raw: Variant = _meta.get(BALL_SORT_PROGRESS_KEY, {})
+	var stored: Dictionary = (
+		(raw as Dictionary).duplicate(true)
+		if typeof(raw) == TYPE_DICTIONARY
+		else {}
+	)
+	var best_raw: Variant = stored.get("best_moves", {})
+	var best_moves: Dictionary = (
+		(best_raw as Dictionary).duplicate(true)
+		if typeof(best_raw) == TYPE_DICTIONARY
+		else {}
+	)
+	return {
+		"unlocked": maxi(1, int(stored.get("unlocked", 1))),
+		"last_level": maxi(1, int(stored.get("last_level", 1))),
+		"best_moves": best_moves,
+	}
+
+
+func complete_ball_sort_level(level: int, moves: int) -> Dictionary:
+	var safe_level := maxi(1, level)
+	var safe_moves := maxi(1, moves)
+	var progress := ball_sort_progress()
+	var unlocked := int(progress.get("unlocked", 1))
+
+	if safe_level > unlocked:
+		return {
+			"ok": false,
+			"message": "Vượt màn trước để mở màn này.",
+			"progress": progress,
+		}
+
+	var before := _meta.duplicate(true)
+	var best_raw: Variant = progress.get("best_moves", {})
+	var best_moves: Dictionary = (
+		(best_raw as Dictionary).duplicate(true)
+		if typeof(best_raw) == TYPE_DICTIONARY
+		else {}
+	)
+	var key := str(safe_level)
+	var previous_best := maxi(0, int(best_moves.get(key, 0)))
+	var new_record := previous_best == 0 or safe_moves < previous_best
+
+	if new_record:
+		best_moves[key] = safe_moves
+
+	var new_unlocked := maxi(unlocked, safe_level + 1)
+	_meta[BALL_SORT_PROGRESS_KEY] = {
+		"unlocked": new_unlocked,
+		"last_level": safe_level,
+		"best_moves": best_moves,
+	}
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"message": "Chưa lưu được tiến trình Xếp tinh thể. Hãy thử lại.",
+			"progress": ball_sort_progress(),
+		}
+
+	var message := "Hoàn thành màn %d • %d bước • Mở khóa màn %d." % [
+		safe_level,
+		safe_moves,
+		new_unlocked,
+	]
+	if new_record and previous_best > 0:
+		message += " Kỷ lục mới!"
+
+	return {
+		"ok": true,
+		"message": message,
+		"new_record": new_record,
+		"best_moves": int(best_moves.get(key, safe_moves)),
+		"progress": ball_sort_progress(),
+	}
+
+
 
 func breakout_progress() -> Dictionary:
 	var cleared: Array[int] = []
