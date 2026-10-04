@@ -1069,10 +1069,10 @@ func _show_item_detail(
 			"common"
 		)
 	)
-	var quality := String(
+	var is_junk := bool(
 		item.get(
-			"quality",
-			"normal"
+			"is_junk",
+			false
 		)
 	)
 
@@ -1085,15 +1085,11 @@ func _show_item_detail(
 		)
 	)
 	_detail_meta.text = (
-		"%s • %s"
-		% [
-			_facade.rarity_label(
-				rarity
-			),
-			_facade.quality_label(
-				quality
-			),
-		]
+		"PHẾ PHẨM"
+		if is_junk
+		else _facade.rarity_label(
+			rarity
+		)
 	)
 	_detail_meta.add_theme_color_override(
 		"font_color",
@@ -1130,7 +1126,11 @@ func _show_item_detail(
 				gene_context
 			)
 
-	if detail_lines.is_empty():
+	if is_junk:
+		detail_lines = [
+			"Vật phẩm rác • không có rarity • chỉ dùng để phân giải.",
+		]
+	elif detail_lines.is_empty():
 		detail_lines.append(
 			"Không có thuộc tính phụ."
 		)
@@ -1148,9 +1148,13 @@ func _show_item_detail(
 	_detail_use_button.visible = allow_use
 	_detail_use_button.disabled = not usable
 	_detail_use_button.text = (
-		"DÙNG"
-		if usable
-		else "CHƯA THỂ DÙNG"
+		"PHẾ PHẨM"
+		if is_junk
+		else (
+			"DÙNG"
+			if usable
+			else "CHƯA THỂ DÙNG"
+		)
 	)
 	_detail_salvage_button.visible = allow_use
 	_detail_salvage_button.disabled = not allow_use
