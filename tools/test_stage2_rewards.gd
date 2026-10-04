@@ -5,6 +5,7 @@ var _failures: int = 0
 
 
 func _ready() -> void:
+	_test_standardized_consumables()
 	_test_evolution_one_guarantees_stage2_gene()
 	_test_stage2_activity_shared_pool_and_gene_guarantee()
 
@@ -18,6 +19,131 @@ func _ready() -> void:
 		% _failures
 	)
 	get_tree().quit(1)
+
+
+func _test_standardized_consumables() -> void:
+	var generator := ItemGenerator.new()
+
+	for rarity_value in ItemGenerator.RARITY_WEIGHTS.keys():
+		var rarity := String(rarity_value)
+		var food := ItemGenerator.normalize_item({
+			"uid": "legacy_food_" + rarity,
+			"item_type": "food",
+			"rarity": rarity,
+			"quality": "normal",
+			"properties": ["dense"],
+			"defects": [],
+		})
+		var growth := ItemGenerator.normalize_item({
+			"uid": "legacy_growth_" + rarity,
+			"item_type": "growth",
+			"rarity": rarity,
+			"quality": "good",
+			"properties": ["rapid"],
+			"defects": [],
+		})
+
+		_expect(
+			String(food.get("display_name", "")) == "Khẩu phần dinh dưỡng"
+			and String(food.get("rarity", "")) == rarity
+			and String(food.get("quality", "")) == "standard"
+			and not bool(food.get("is_junk", true))
+			and int(food.get("main_value_seconds", 0))
+				== int(ItemGenerator.FOOD_VALUE_SECONDS[rarity])
+			and (food.get("properties", []) as Array).is_empty()
+			and (food.get("defects", []) as Array).is_empty(),
+			"Food must use one fixed catalog name/value per rarity"
+		)
+
+		_expect(
+			String(growth.get("display_name", "")) == "Tinh chất tăng trưởng"
+			and String(growth.get("rarity", "")) == rarity
+			and String(growth.get("quality", "")) == "standard"
+			and not bool(growth.get("is_junk", true))
+			and int(growth.get("main_value_seconds", 0))
+				== int(ItemGenerator.GROWTH_VALUE_SECONDS[rarity])
+			and (growth.get("properties", []) as Array).is_empty()
+			and (growth.get("defects", []) as Array).is_empty(),
+			"Growth must use one fixed catalog name/value per rarity"
+		)
+
+	var stage2_food := generator.scale_for_stage(
+		ItemGenerator.normalize_item({
+			"uid": "legacy_food_stage2",
+			"item_type": "food",
+			"rarity": "rare",
+			"quality": "normal",
+			"properties": [],
+			"defects": [],
+		}),
+		2
+	)
+	_expect(
+		int(stage2_food.get("main_value_seconds", 0))
+			== int(ItemGenerator.FOOD_VALUE_SECONDS["rare"]) * 12,
+		"Stage 2 standardized food must retain the locked x12 scale"
+	)
+
+	var junk := ItemGenerator.normalize_item({
+		"uid": "legacy_junk",
+		"item_type": "food",
+		"rarity": "legendary",
+		"quality": "broken",
+		"properties": [],
+		"defects": ["rotten"],
+	})
+	_expect(
+		bool(junk.get("is_junk", false))
+		and String(junk.get("rarity", "not-empty")).is_empty()
+		and String(junk.get("quality", "")) == "junk"
+		and String(junk.get("display_name", "")) == "Thức ăn hỏng",
+		"Junk must have no rarity and one fixed junk identity"
+	)
+
+	var meta := {
+		"inventory": [junk],
+	}
+	var inventory := InventoryService.new()
+	inventory.setup(meta)
+	var stored := inventory.list_items()
+	_expect(
+		stored.size() == 1
+		and not inventory.can_use_in_stage(
+			stored[0],
+			2
+		),
+		"Junk must be salvage-only instead of a usable Common item"
+	)
+
+	var found_junk := false
+	var found_normal := false
+	for seed_value in range(1, 500):
+		var rolled := generator.generate(
+			ItemGenerator.TYPE_FOOD,
+			seed_value
+		)
+		if bool(rolled.get("is_junk", false)):
+			found_junk = true
+			_expect(
+				String(rolled.get("rarity", "x")).is_empty(),
+				"Rolled junk must not receive rarity"
+			)
+		else:
+			found_normal = true
+			_expect(
+				ItemGenerator.RARITY_WEIGHTS.has(
+					String(rolled.get("rarity", ""))
+				),
+				"Normal rolled food must receive a valid rarity"
+			)
+
+		if found_junk and found_normal:
+			break
+
+	_expect(
+		found_junk and found_normal,
+		"Consumable generator must be able to roll both normal and junk items"
+	)
 
 
 func _test_evolution_one_guarantees_stage2_gene() -> void:
