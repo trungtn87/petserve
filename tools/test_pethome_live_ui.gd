@@ -61,6 +61,27 @@ func run() -> void:
 		not home._section_tabs.visible,
 		"single-page pet info retained"
 	)
+	home._show_pet_detail(
+		"Hấp Thu Tốt",
+		"Trưởng thành nhận từ thức ăn +10%."
+	)
+	check(
+		home._pet_detail_popup != null
+		and home._pet_detail_popup.visible,
+		"skill detail uses compact PetHome popup"
+	)
+	check(
+		home._section_overlay.visible
+		and home._active_section == &"pet_info",
+		"skill popup keeps pet info section underneath"
+	)
+	home._hide_pet_detail_popup()
+	check(
+		not home._pet_detail_popup.visible
+		and home._section_overlay.visible
+		and home._active_section == &"pet_info",
+		"closing skill popup returns to pet info"
+	)
 	home._close_section()
 
 	home._on_drawer_action(
