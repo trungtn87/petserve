@@ -2859,12 +2859,9 @@ func _build_crystallization_slot_card(
 			)
 		)
 	elif running:
-		action.text = "HỦY"
-		action.pressed.connect(
-			_cancel_crystallization.bind(
-				slot_index
-			)
-		)
+		# Không cho hủy ô đang kết tinh. Khi hoàn thành, chính vị trí này
+		# sẽ hiện nút NHẬN THÀNH PHẨM.
+		action.visible = false
 	else:
 		action.text = "BẮT ĐẦU"
 		action.pressed.connect(
@@ -2886,6 +2883,7 @@ func _build_crystallization_slot_card(
 		"timer": timer,
 		"last_result": last_result,
 	}
+
 
 
 func _crystal_slot_status(
@@ -3203,8 +3201,15 @@ func _open_chest() -> void:
 
 func _use_item(uid: String) -> void:
 	var result := _game.use_item(uid)
-	_hud.show_message(str(result.get("message", "")))
-	_hud.open_inventory()
+	_hud.show_message(
+		str(
+			result.get(
+				"message",
+				""
+			)
+		)
+	)
+	_hud.refresh_inventory()
 	_refresh_gameplay()
 
 func _salvage_item(uid: String) -> void:
@@ -3217,9 +3222,8 @@ func _salvage_item(uid: String) -> void:
 			)
 		)
 	)
-	_hud.open_inventory()
+	_hud.refresh_inventory()
 	_refresh_gameplay()
-
 
 func _open_games() -> void:
 	_hub.pet_image_path = str((_data.get("current_visual", {}) as Dictionary).get("image_path", ""))
