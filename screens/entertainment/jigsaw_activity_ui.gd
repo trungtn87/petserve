@@ -114,10 +114,9 @@ func _build_ui() -> void:
 	board_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	board_panel.add_theme_stylebox_override(
 		"panel",
-		PetHomeTheme.panel_style(
+		_panel_style(
 			Color(0.06, 0.05, 0.10, 0.96),
-			palette.get("accent", Color("a98af4")),
-			14
+			palette.get("accent", Color("a98af4"))
 		)
 	)
 	root.add_child(board_panel)
@@ -667,3 +666,20 @@ func _claim_reward() -> void:
 		and str(result.get("message", "")).begins_with("Chưa lưu")
 	):
 		_message.text += " • Mở lại game để thử nhận lại."
+
+
+
+func _panel_style(
+	bg: Color,
+	border: Color
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = bg
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	return style
