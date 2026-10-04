@@ -17,7 +17,6 @@ var _session := JigsawSession.new()
 var _texture: Texture2D
 var _level: OptionButton
 var _reference: Button
-var _rotate: Button
 var _board: JigsawBoard
 var _scroll: ScrollContainer
 var _tray_scroll: ScrollContainer
@@ -105,10 +104,6 @@ func _build_ui() -> void:
 	)
 	mode_row.add_child(_reference)
 
-	_rotate = _button("↻ Xoay", _rotate_selected)
-	_rotate.disabled = true
-	mode_row.add_child(_rotate)
-
 	var board_panel := PanelContainer.new()
 	board_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	board_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -141,7 +136,7 @@ func _build_ui() -> void:
 	_board.drop_requested.connect(_place)
 	_scroll.add_child(_board)
 
-	var tray_label := _label("KHAY CHỜ • kéo mảnh vào ảnh", 9)
+	var tray_label := _label("KHAY CHỜ • chạm để xoay • kéo để xếp", 9)
 	tray_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	tray_label.add_theme_color_override(
 		"font_color",
@@ -312,14 +307,13 @@ func _sync() -> void:
 		_session.count(),
 		_session.reward_chests(),
 	]
-	_rotate.disabled = _selected < 0
 
 	if _session.complete():
 		_message.text = "Hoàn thành ảnh pet!"
 	elif _selected >= 0:
-		_message.text = "Kéo mảnh vào đúng vị trí • xoay đủ 4 hướng bằng nút ↻."
+		_message.text = "Chạm mảnh để xoay 90° • kéo vào đúng vị trí."
 	else:
-		_message.text = "Chọn mảnh trong khay • kéo để xếp • dùng 2 ngón để zoom."
+		_message.text = "Chạm để xoay • giữ và kéo để xếp • dùng 2 ngón để zoom."
 
 	_sync_tray()
 	call_deferred("_resize_board")
@@ -412,7 +406,6 @@ func _prepare_piece_press(
 	_pressed_piece = index
 	_press_position = global_position
 	_board.selected = index
-	_rotate.disabled = false
 	_sync_tray()
 	_board.queue_redraw()
 
@@ -511,7 +504,7 @@ func _input(event: InputEvent) -> void:
 					< DRAG_THRESHOLD
 			):
 				_selected = _pressed_piece
-				_message.text = "Mảnh đã chọn • dùng ↻ để xoay hoặc kéo vào ảnh."
+				_rotate_selected()
 			_pressed_piece = -1
 		return
 
@@ -536,6 +529,13 @@ func _input(event: InputEvent) -> void:
 		var release_position: Vector2 = get_global_mouse_position()
 		if _dragging:
 			_finish_drag(release_position)
+		elif (
+			_pressed_piece >= 0
+			and release_position.distance_to(_press_position)
+				< DRAG_THRESHOLD
+		):
+			_selected = _pressed_piece
+			_rotate_selected()
 		_pressed_piece = -1
 
 

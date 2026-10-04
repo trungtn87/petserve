@@ -8,6 +8,9 @@ const CaroActivityScript = preload(
 const ObstacleRunActivityScript = preload(
 	"res://screens/entertainment/obstacle_run_activity_ui.gd"
 )
+const ArcadeGameIconScript = preload(
+	"res://screens/entertainment/arcade_game_icon.gd"
+)
 
 
 signal closed
@@ -392,20 +395,20 @@ func _build_hub_screen(
 
 	grid.add_child(
 		_activity_card(
-			"Gomoku 15×15",
-			"1 người / 2 người",
+			"Caro",
+			"15×15",
 			true,
 			_open_caro,
-			"▦"
+			&"caro"
 		)
 	)
 
 	_obstacle_card = _activity_card(
-		"Ăn vật rơi",
-		"Vô hạn • Thưởng theo điểm • BXH",
+		"Đồ rơi",
+		"Vô hạn • BXH",
 		true,
 		_open_obstacle,
-		"◆"
+		&"obstacle"
 	)
 	grid.add_child(
 		_obstacle_card
@@ -415,24 +418,24 @@ func _build_hub_screen(
 	grid.add_child(
 		_activity_card(
 			"2048",
-			"Ghép ô • Thưởng hằng ngày",
+			"Ghép số",
 			true,
 			_open_energy_2048,
-			"▦"
+			&"2048"
 		)
 	)
 
-	grid.add_child(_activity_card("Phá gạch", "30 màn • Khó dần", true, _open_breakout, "▰"))
+	grid.add_child(_activity_card("Phá gạch", "30 màn", true, _open_breakout, &"breakout"))
 
-	grid.add_child(_activity_card("Ghép hình pet", "50 / 100 / 200 • thưởng 1–3 rương", true, _open_jigsaw, "▧"))
+	grid.add_child(_activity_card("Ghép hình", "50 • 100 • 200", true, _open_jigsaw, &"jigsaw"))
 
-	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
+	grid.add_child(_activity_card("Sudoku", "9×9", true, _open_sudoku, &"sudoku"))
 
-	grid.add_child(_activity_card("Tetris", "Vô hạn • Bảng xếp hạng", true, _open_tetris, "▥"))
+	grid.add_child(_activity_card("Tetris", "Vô hạn • BXH", true, _open_tetris, &"tetris"))
 
-	grid.add_child(_activity_card("Tank", "20 map • 1 hoặc 2 người", true, _open_tank, "✦"))
+	grid.add_child(_activity_card("Xe tăng", "20 map", true, _open_tank, &"tank"))
 
-	grid.add_child(_activity_card("Xếp tinh thể", "Map vô hạn • Càng về sau càng khó", true, _open_ball_sort, "●"))
+	grid.add_child(_activity_card("Tinh thể", "Map vô hạn", true, _open_ball_sort, &"crystal"))
 
 	_reward_label = Label.new()
 	_reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -504,12 +507,12 @@ func _activity_card(
 	subtitle_text: String,
 	enabled: bool,
 	callback: Callable,
-	icon_text: String
+	icon_kind: StringName
 ) -> Button:
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(
 		0,
-		84
+		72
 	)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
@@ -551,18 +554,21 @@ func _activity_card(
 		content
 	)
 
-	var icon := Label.new()
-	icon.text = icon_text
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon.add_theme_font_size_override(
-		"font_size",
-		18
+	var icon = ArcadeGameIconScript.new()
+	icon.custom_minimum_size = Vector2(
+		28,
+		28
 	)
-	icon.add_theme_color_override(
-		"font_color",
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.configure(
+		icon_kind,
 		palette.get(
 			"accent",
 			Color.WHITE
+		),
+		palette.get(
+			"muted",
+			Color(0.72, 0.68, 0.82)
 		)
 	)
 	content.add_child(

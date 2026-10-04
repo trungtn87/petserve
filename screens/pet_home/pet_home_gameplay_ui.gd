@@ -225,6 +225,29 @@ func open_inventory(filter_type: StringName = &"") -> void:
 		"_layout_overlay"
 	)
 
+func refresh_inventory() -> void:
+	if (
+		_facade == null
+		or _overlay == null
+		or not _overlay.visible
+	):
+		return
+
+	# Giữ nguyên bộ lọc đang mở và vẽ lại danh sách ngay sau khi
+	# dùng/phân giải vật phẩm. Tránh quay về tab "Tất cả".
+	_hide_item_detail()
+	_fill(
+		_facade.inventory(
+			_inventory_filter
+		),
+		true
+	)
+	_layout_overlay()
+	call_deferred(
+		"_layout_overlay"
+	)
+
+
 func show_chest_rewards(items: Array[Dictionary]) -> void:
 	if _chest_animating:
 		return
