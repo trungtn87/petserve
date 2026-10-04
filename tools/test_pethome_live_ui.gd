@@ -68,15 +68,19 @@ func run() -> void:
 	home._close_section()
 
 	home._on_drawer_action(
-		&"crystallization"
+		&"chest"
 	)
 	check(
 		home._section_overlay.visible,
-		"crystallization opens in live home"
+		"storage and crystallization open in one section"
+	)
+	check(
+		home._active_section == &"storage",
+		"combined section uses storage id"
 	)
 	check(
 		home._crystal_slot_views.size() == 4,
-		"running tab keeps all non-ready slots"
+		"combined section keeps all crystallization slots visible"
 	)
 	home._close_section()
 	check(
@@ -106,7 +110,7 @@ func run() -> void:
 	)
 
 	home._on_drawer_action(
-		&"crystallization"
+		&"chest"
 	)
 	check(
 		bool(
@@ -124,12 +128,24 @@ func run() -> void:
 			Time.get_unix_time_from_system()
 		) + 43200
 	)
-	home._crystal_show_ready = true
-	home._open_crystallization()
+	home._open_storage()
 
 	check(
-		home._crystal_slot_views.size() == 1,
-		"ready tab filters slots"
+		home._crystal_slot_views.size() == 4,
+		"ready product stays in its crystallization slot"
+	)
+	var ready_view: Dictionary = home._crystal_slot_views.get(
+		0,
+		{}
+	)
+	check(
+		bool(
+			ready_view.get(
+				"ready_to_claim",
+				false
+			)
+		),
+		"finished slot exposes claim state in place"
 	)
 	home._claim_crystallization(
 		0
@@ -141,8 +157,8 @@ func run() -> void:
 		"claim opens reward confirmation"
 	)
 	check(
-		home._crystal_slot_views.is_empty(),
-		"claimed slot leaves ready tab"
+		home._crystal_slot_views.size() == 4,
+		"claimed slot remains visible in combined section"
 	)
 
 	home.queue_free()
