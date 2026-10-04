@@ -50,15 +50,17 @@ Rarity changes strength, not the Gene direction.
 
 | Rarity | Gene score | Growth |
 | --- | ---: | ---: |
-| Common | +10 | +2% |
-| Uncommon | +20 | +5% |
-| Rare | +35 | +7% |
-| Epic | +55 | +10% |
-| Legendary | +80 | +15% |
+| Common | +25 | +2% |
+| Uncommon | +60 | +5% |
+| Rare | +120 | +7% |
+| Epic | +200 | +10% |
+| Legendary | +320 | +15% |
 
 Example: Common `tail_long` and Legendary `tail_long` are the same Gene direction. The Legendary instance contributes more score and reaches stronger visual expression faster.
 
-Hidden `influence_tags` scale with the same rarity multiplier so old weighted/Mythic-support data remains proportional to item strength.
+A single newly generated Gene Item must be visibly readable on the next evolution. Common starts at DEVELOPING instead of TRACE. Rarity controls intensity, not whether the Gene appears.
+
+Hidden `influence_tags` scale with the same rarity multiplier so old weighted/Mythic-support data remains proportional to item strength. Legacy Gene items are migrated to this score table when inventory data is loaded.
 
 ## 3. Unlimited use in growth stages
 
@@ -178,7 +180,7 @@ GenePromptResolver
     ↓ dominant + secondary directions per locus
 EvolutionEditCoordinator base stage/element/Mythic prompt
     ↓
-StageEvolutionService appends [ACCUMULATED GENE SCORE PHENOTYPE]
+EvolutionEditCoordinator adds [GENE VISIBILITY LOCK], then StageEvolutionService appends [ACCUMULATED GENE SCORE PHENOTYPE]
     ↓
 serialized pending render request
 ```
