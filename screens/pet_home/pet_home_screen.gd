@@ -53,7 +53,6 @@ var _hud_return_to_menu: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 var _crystal_ready_count: int = -1
-var _crystal_show_ready: bool = false
 var _claim_popup: Control
 
 
@@ -917,14 +916,9 @@ func _on_drawer_action(
 	match action_id:
 		&"inventory":
 			_hud.open_inventory()
-		&"crystallization":
-			_crystal_show_ready = int(
-				_crystallization_snapshot().get(
-					"ready_count",
-					0
-				)
-			) > 0
-			_open_crystallization()
+		&"crystallization", &"chest":
+			# crystallization giữ lại để tương thích với caller cũ.
+			_open_storage()
 		&"gene":
 			# Backward compatibility for older callers.
 			_hud.open_inventory(
@@ -932,8 +926,6 @@ func _on_drawer_action(
 			)
 		&"pet_info":
 			_open_pet_info()
-		&"chest":
-			_open_storage()
 		&"entertainment":
 			_open_games()
 		&"gene_evolution", &"evolution":
@@ -2395,32 +2387,65 @@ func _section_button(text: String, callback: Callable) -> Button:
 	return button
 
 func _open_storage() -> void:
-	_prepare_section("Rương", &"chest")
+	_prepare_section(
+		"Rương & Kết tinh",
+		&"storage"
+	)
 	var state := _game.snapshot()
 
+	_add_pet_info_heading(
+		"Rương",
+		"▣"
+	)
 	_add_info_row(
 		"Rương đang có",
-		str(state.get("pending_chests", 0))
+		str(
+			state.get(
+				"pending_chests",
+				0
+			)
+		)
 	)
 	_add_info_row(
 		"Mảnh rương",
 		"%d/%d" % [
-			int(state.get("chest_fragments", 0)),
-			int(state.get("chest_fragments_required", 10)),
+			int(
+				state.get(
+					"chest_fragments",
+					0
+				)
+			),
+			int(
+				state.get(
+					"chest_fragments_required",
+					10
+				)
+			),
 		]
 	)
-	_section_button(
+	var chest_button := _section_button(
 		"MỞ RƯƠNG KẾ TIẾP",
 		_open_chest
 	)
+	chest_button.disabled = (
+		int(
+			state.get(
+				"pending_chests",
+				0
+			)
+		) <= 0
+	)
+
+	_add_pet_info_heading(
+		"Kết tinh",
+		"◇"
+	)
+	_append_crystallization_slots()
+
 	_section_overlay.visible = true
 
 
-func _open_crystallization() -> void:
-	_prepare_section(
-		"Kết tinh nguyên tố",
-		&"crystallization"
-	)
+func _append_crystallization_slots() -> void:
 	var crystal := _crystallization_snapshot()
 	var element_id := StringName(
 		crystal.get(
@@ -2446,128 +2471,6 @@ func _open_crystallization() -> void:
 		)
 	)
 
-	var tabs := HBoxContainer.new()
-	tabs.add_theme_constant_override(
-		"separation",
-		6
-	)
-	_section_body.add_child(tabs)
-
-	for entry in [
-		["Đang kết tinh", false],
-		["Chờ nhận (%d)" % _crystal_ready_count, true],
-	]:
-		var tab := Button.new()
-		tab.text = String(entry[0])
-		tab.custom_minimum_size.y = 44
-		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tab.focus_mode = Control.FOCUS_NONE
-		tab.disabled = (
-			_crystal_show_ready
-			== bool(entry[1])
-		)
-		tab.pressed.connect(
-			func() -> void:
-				_crystal_show_ready = bool(entry[1])
-				_open_crystallization()
-		)
-		tabs.add_child(tab)
-
-	var banner := PanelContainer.new()
-	banner.custom_minimum_size.y = 116
-	var banner_bg: Color = _theme.get(
-		"panel",
-		Color("#171229")
-	)
-	banner_bg.a = 0.90
-	var banner_accent: Color = _theme.get(
-		"accent",
-		Color.WHITE
-	)
-	var banner_border := banner_accent
-	banner_border.a = 0.42
-	banner.add_theme_stylebox_override(
-		"panel",
-		PetHomeThemeScript.panel_style(
-			banner_bg,
-			banner_border,
-			16
-		)
-	)
-	_section_body.add_child(banner)
-
-	var banner_row := HBoxContainer.new()
-	banner_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	banner_row.add_theme_constant_override(
-		"separation",
-		12
-	)
-	banner.add_child(banner_row)
-
-	var banner_icon := TextureRect.new()
-	banner_icon.texture = PetHomeArtScript.icon(1)
-	banner_icon.custom_minimum_size = Vector2(
-		82,
-		82
-	)
-	banner_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	banner_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	banner_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner_row.add_child(banner_icon)
-
-	var banner_text := VBoxContainer.new()
-	banner_text.add_theme_constant_override(
-		"separation",
-		3
-	)
-	banner_row.add_child(banner_text)
-
-	var banner_title := Label.new()
-	banner_title.text = "KHU KẾT TINH"
-	banner_title.add_theme_font_size_override(
-		"font_size",
-		17
-	)
-	banner_title.add_theme_color_override(
-		"font_color",
-		_theme.get(
-			"text",
-			Color.WHITE
-		)
-	)
-	banner_text.add_child(banner_title)
-
-	var banner_hint := Label.new()
-	banner_hint.text = (
-		"Thành phẩm không tự thu hoạch. "
-		+ "Hãy vào đây để nhận."
-	)
-	banner_hint.autowrap_mode = (
-		TextServer.AUTOWRAP_WORD_SMART
-	)
-	banner_hint.custom_minimum_size.x = 175
-	banner_hint.add_theme_font_size_override(
-		"font_size",
-		10
-	)
-	banner_hint.add_theme_color_override(
-		"font_color",
-		_theme.get(
-			"muted",
-			Color.WHITE
-		)
-	)
-	banner_text.add_child(banner_hint)
-
-	if (
-		_crystal_show_ready
-		and _crystal_ready_count == 0
-	):
-		_add_info_row(
-			"Chờ nhận",
-			"Chưa có thành phẩm"
-		)
-
 	_add_info_row(
 		"Nguyên tố",
 		PetHomeThemeScript.element_label(
@@ -2578,7 +2481,7 @@ func _open_crystallization() -> void:
 	var hint := Label.new()
 	hint.text = (
 		"Mỗi giai đoạn thú cưng mở thêm 1 ô kết tinh. "
-		+ "Mỗi ô chạy và hủy độc lập."
+		+ "Khi hoàn thành, nút HỦY ngay dưới ô sẽ đổi thành NHẬN THÀNH PHẨM."
 	)
 	hint.autowrap_mode = (
 		TextServer.AUTOWRAP_WORD_SMART
@@ -2637,17 +2540,8 @@ func _open_crystallization() -> void:
 				as Dictionary
 			)
 
-		if (
-			_crystal_show_ready
-			!= bool(
-				slot.get(
-					"ready_to_claim",
-					false
-				)
-			)
-		):
-			continue
-
+		# Luôn hiển thị cả 4 ô. Thành phẩm chờ nhận nằm ngay trong ô,
+		# không chuyển sang khu/tab riêng.
 		_build_crystallization_slot_card(
 			grid,
 			slot_index,
@@ -2655,8 +2549,9 @@ func _open_crystallization() -> void:
 			slot_index < unlocked_slots
 		)
 
-	_section_overlay.visible = true
-
+func _open_crystallization() -> void:
+	# Giữ API cũ nhưng giao diện đã gộp vào Rương & Kết tinh.
+	_open_storage()
 
 func _build_crystallization_slot_card(
 	parent: GridContainer,
@@ -3048,9 +2943,8 @@ func _start_crystallization(
 	)
 
 	if bool(result.get("ok", false)):
-		_open_crystallization()
+		_open_storage()
 		_refresh_gameplay()
-
 
 func _claim_crystallization(
 	slot_index: int
@@ -3062,7 +2956,7 @@ func _claim_crystallization(
 		String(result.get("message", ""))
 	)
 	if bool(result.get("ok", false)):
-		_open_crystallization()
+		_open_storage()
 		_refresh_gameplay()
 		_show_claim_popup(
 			result.get(
@@ -3070,7 +2964,6 @@ func _claim_crystallization(
 				{}
 			)
 		)
-
 
 func _cancel_crystallization(
 	slot_index: int
@@ -3088,13 +2981,12 @@ func _cancel_crystallization(
 	)
 
 	if bool(result.get("ok", false)):
-		_open_crystallization()
+		_open_storage()
 		_refresh_gameplay()
-
 
 func _refresh_crystallization_section() -> void:
 	if (
-		_active_section != &"crystallization"
+		_active_section != &"storage"
 		or not _section_overlay.visible
 	):
 		return
@@ -3121,7 +3013,7 @@ func _refresh_crystallization_section() -> void:
 		) != _crystal_ready_count
 	):
 		call_deferred(
-			"_open_crystallization"
+			"_open_storage"
 		)
 		return
 
@@ -3181,7 +3073,7 @@ func _refresh_crystallization_section() -> void:
 			or bool(view.get("ready_to_claim", false)) != ready_to_claim
 		):
 			call_deferred(
-				"_open_crystallization"
+				"_open_storage"
 			)
 			return
 
@@ -3246,7 +3138,6 @@ func _refresh_crystallization_section() -> void:
 				if unlocked
 				else ""
 			)
-
 
 func _crystallization_snapshot() -> Dictionary:
 	var value: Variant = _game.snapshot().get(
