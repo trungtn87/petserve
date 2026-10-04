@@ -465,10 +465,8 @@ func generate_gene(
 		"properties": [],
 		"defects": [],
 		"salvage_type": "gene_dust",
-		"salvage_value": _salvage_value(
-			rarity,
-			quality,
-			rng
+		"salvage_value": _fixed_salvage_value(
+			rarity
 		),
 		"generated_seed": seed_value,
 		"usable_stage": "gene",
