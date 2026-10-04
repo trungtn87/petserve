@@ -59,34 +59,24 @@ func _build() -> void:
 	add_child(panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override(
-		"margin_left",
-		12
-	)
-	margin.add_theme_constant_override(
-		"margin_top",
-		10
-	)
-	margin.add_theme_constant_override(
-		"margin_right",
-		12
-	)
-	margin.add_theme_constant_override(
-		"margin_bottom",
-		12
-	)
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
+	column.name = "MenuColumn"
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override(
 		"separation",
-		12
+		6
 	)
 	margin.add_child(column)
 
 	var header := HBoxContainer.new()
+	header.custom_minimum_size.y = 44
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_child(header)
 
@@ -103,6 +93,7 @@ func _build() -> void:
 	title.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header.add_child(title)
 
 	var close := Button.new()
@@ -120,35 +111,6 @@ func _build() -> void:
 	close.pressed.connect(close_drawer)
 	header.add_child(close)
 
-	var scroll := ScrollContainer.new()
-	scroll.name = "MenuScroll"
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = (
-		ScrollContainer.SCROLL_MODE_DISABLED
-	)
-	column.add_child(scroll)
-
-	var grid := GridContainer.new()
-	grid.name = "MenuGrid"
-	grid.columns = 3
-	grid.size_flags_horizontal = (
-		Control.SIZE_EXPAND_FILL
-	)
-	grid.size_flags_vertical = (
-		Control.SIZE_SHRINK_BEGIN
-	)
-	grid.custom_minimum_size.y = 326.0
-	grid.add_theme_constant_override(
-		"h_separation",
-		7
-	)
-	grid.add_theme_constant_override(
-		"v_separation",
-		10
-	)
-	scroll.add_child(grid)
-
 	var entries := [
 		{"id": &"inventory", "label": "Kho đồ", "icon": 0},
 		{"id": &"crystallization", "label": "Kết tinh", "icon": 1},
@@ -162,13 +124,13 @@ func _build() -> void:
 
 	for entry in entries:
 		_add_entry(
-			grid,
+			column,
 			entry
 		)
 
 
 func _add_entry(
-	grid: GridContainer,
+	column: VBoxContainer,
 	entry: Dictionary
 ) -> void:
 	var action_id := StringName(
@@ -182,30 +144,66 @@ func _add_entry(
 		String(action_id).to_pascal_case()
 		+ "Button"
 	)
-	button.text = ""
+	button.text = String(
+		entry.get(
+			"label",
+			""
+		)
+	)
+	button.icon = PetHomeArtScript.icon(
+		int(
+			entry.get(
+				"icon",
+				0
+			)
+		)
+	)
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.expand_icon = false
 	button.focus_mode = Control.FOCUS_NONE
 	button.custom_minimum_size = Vector2(
-		78,
-		102
+		0,
+		43
 	)
 	button.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
 	)
+	button.add_theme_font_size_override(
+		"font_size",
+		15
+	)
+	button.add_theme_color_override(
+		"font_color",
+		Color("49331f")
+	)
+	button.add_theme_color_override(
+		"font_hover_color",
+		Color("49331f")
+	)
+	button.add_theme_color_override(
+		"font_pressed_color",
+		Color("49331f")
+	)
+	button.add_theme_constant_override(
+		"icon_max_width",
+		30
+	)
 	button.add_theme_stylebox_override(
 		"normal",
-		paper(
+		menu_row_style(
 			Color("fff4dd")
 		)
 	)
 	button.add_theme_stylebox_override(
 		"hover",
-		paper(
+		menu_row_style(
 			Color("ffe3a2")
 		)
 	)
 	button.add_theme_stylebox_override(
 		"pressed",
-		paper(
+		menu_row_style(
 			Color("eac78f")
 		)
 	)
@@ -214,91 +212,13 @@ func _add_entry(
 			action_id
 		)
 	)
-
-	var content := VBoxContainer.new()
-	content.set_anchors_and_offsets_preset(
-		Control.PRESET_FULL_RECT
-	)
-	content.offset_left = 4.0
-	content.offset_top = 6.0
-	content.offset_right = -4.0
-	content.offset_bottom = -6.0
-	content.alignment = BoxContainer.ALIGNMENT_CENTER
-	content.add_theme_constant_override(
-		"separation",
-		2
-	)
-	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	button.add_child(content)
-
-	var icon := TextureRect.new()
-	icon.name = "Icon"
-	icon.texture = PetHomeArtScript.icon(
-		int(
-			entry.get(
-				"icon",
-				0
-			)
-		)
-	)
-	icon.custom_minimum_size = Vector2(
-		44,
-		44
-	)
-	icon.size_flags_horizontal = (
-		Control.SIZE_SHRINK_CENTER
-	)
-	icon.expand_mode = (
-		TextureRect.EXPAND_IGNORE_SIZE
-	)
-	icon.stretch_mode = (
-		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	)
-	icon.mouse_filter = (
-		Control.MOUSE_FILTER_IGNORE
-	)
-	content.add_child(icon)
-
-	var caption := Label.new()
-	caption.name = "Caption"
-	caption.text = String(
-		entry.get(
-			"label",
-			""
-		)
-	)
-	caption.custom_minimum_size.y = 28
-	caption.size_flags_horizontal = (
-		Control.SIZE_EXPAND_FILL
-	)
-	caption.horizontal_alignment = (
-		HORIZONTAL_ALIGNMENT_CENTER
-	)
-	caption.vertical_alignment = (
-		VERTICAL_ALIGNMENT_CENTER
-	)
-	caption.autowrap_mode = (
-		TextServer.AUTOWRAP_WORD_SMART
-	)
-	caption.add_theme_font_size_override(
-		"font_size",
-		11
-	)
-	caption.add_theme_color_override(
-		"font_color",
-		Color("49331f")
-	)
-	caption.mouse_filter = (
-		Control.MOUSE_FILTER_IGNORE
-	)
-	content.add_child(caption)
+	column.add_child(button)
 
 	var badge := PetHomeArtScript.badge(
 		button
 	)
 	badge.hide()
 
-	grid.add_child(button)
 	_buttons[action_id] = button
 	_badges[action_id] = badge
 
@@ -315,6 +235,21 @@ static func paper(
 	style.content_margin_right = 10
 	style.content_margin_top = 10
 	style.content_margin_bottom = 10
+	return style
+
+
+static func menu_row_style(
+	color: Color
+) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.border_color = Color("c4a47b")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(12)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 5
+	style.content_margin_bottom = 5
 	return style
 
 
