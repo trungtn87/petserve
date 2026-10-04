@@ -202,6 +202,10 @@ func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
 
+	# Inventory is a modal destination. Always restore and front this Control
+	# instead of relying on the caller's sibling order.
+	show()
+	move_to_front()
 	_inventory_filter = filter_type
 	_hide_item_detail()
 	_title.text = "HÒM VẬT PHẨM"

@@ -88,13 +88,44 @@ func run() -> void:
 		"section X returns to menu"
 	)
 
-	home._on_drawer_action(
+	# Exercise the real drawer signal path, not only the destination handler.
+	home._drawer.open_drawer()
+	await get_tree().create_timer(0.22).timeout
+	home._drawer._emit_action(
 		&"inventory"
+	)
+	await get_tree().process_frame
+	check(
+		home._hud._overlay.visible,
+		"drawer Kho đồ opens inventory overlay"
+	)
+	check(
+		not home._drawer.visible,
+		"drawer is dismissed before inventory opens"
 	)
 	home._hud._close_overlay()
 	check(
 		home._drawer.is_open(),
 		"inventory X returns to menu"
+	)
+
+	home._drawer._emit_action(
+		&"entertainment"
+	)
+	await get_tree().process_frame
+	check(
+		home._hub.visible
+		and home._hub.is_open(),
+		"drawer Mini game opens entertainment hub"
+	)
+	check(
+		not home._drawer.visible,
+		"drawer is dismissed before mini game opens"
+	)
+	home._hub.close_hub()
+	check(
+		home._drawer.is_open(),
+		"mini game X returns to menu"
 	)
 
 	home._drawer.close_drawer()

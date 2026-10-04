@@ -3208,7 +3208,19 @@ func _salvage_item(uid: String) -> void:
 	_refresh_gameplay()
 
 func _open_games() -> void:
+	if _hub == null:
+		return
+
+	# Clear PetHome modal layers before opening the arcade hub.
+	if _section_overlay != null:
+		_section_overlay.visible = false
+		_active_section = &""
+
+	if _drawer != null and _drawer.is_open():
+		_drawer.close_drawer()
+
 	_hub.pet_image_path = str((_data.get("current_visual", {}) as Dictionary).get("image_path", ""))
+	_hub.move_to_front()
 	var state := _game.snapshot()
 	var stage_index := int(
 		state.get(

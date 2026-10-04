@@ -69,6 +69,10 @@ func open_hub(
 	stage2_max: int = 4,
 	stage2_enabled: bool = false
 ) -> void:
+	# The hub can be opened after inventory or the side drawer, both of which
+	# may have moved themselves to the front. Re-front the hub every time.
+	show()
+	move_to_front()
 	AudioService.play("open")
 	_caro_reward_claimed = caro_claimed
 	_caro_reward_max = maxi(

@@ -666,14 +666,18 @@ func _on_scrim_input(
 func _emit_action(
 	action_id: StringName
 ) -> void:
-	action_requested.emit(
-		action_id
-	)
-
+	# Dismiss the drawer before handing control to the destination.
+	# On Android, opening another full-screen Control while this drawer is still
+	# the front-most sibling can leave the new overlay visually/input-blocked
+	# until another frame. Hiding first makes navigation deterministic.
 	_is_open = false
 	_animating = false
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	action_requested.emit(
+		action_id
+	)
 
 
 func _on_open_finished() -> void:
