@@ -55,6 +55,9 @@ var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 var _crystal_ready_count: int = -1
 var _claim_popup: Control
+var _pet_detail_popup: Control
+var _pet_detail_title: Label
+var _pet_detail_text: Label
 
 
 func _ready() -> void:
@@ -80,6 +83,17 @@ func _ready() -> void:
 func _unhandled_input(
 	event: InputEvent
 ) -> void:
+	if (
+		event.is_action_pressed(
+			"ui_cancel"
+		)
+		and _pet_detail_popup != null
+		and _pet_detail_popup.visible
+	):
+		_hide_pet_detail_popup()
+		get_viewport().set_input_as_handled()
+		return
+
 	if (
 		event.is_action_pressed(
 			"ui_cancel"
@@ -902,6 +916,241 @@ func _build_section_overlay() -> void:
 	)
 	scroll.add_child(_section_body)
 
+	_build_pet_detail_popup()
+
+
+func _build_pet_detail_popup() -> void:
+	_pet_detail_popup = Control.new()
+	_pet_detail_popup.name = "PetDetailPopup"
+	_pet_detail_popup.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_pet_detail_popup.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+	_pet_detail_popup.z_index = 30
+	_pet_detail_popup.visible = false
+	_section_overlay.add_child(
+		_pet_detail_popup
+	)
+
+	var scrim := ColorRect.new()
+	scrim.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	scrim.color = Color(
+		0.01,
+		0.01,
+		0.02,
+		0.48
+	)
+	scrim.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+	_pet_detail_popup.add_child(
+		scrim
+	)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	center.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	_pet_detail_popup.add_child(
+		center
+	)
+
+	var card := PanelContainer.new()
+	card.name = "PetDetailCard"
+	card.custom_minimum_size = Vector2(
+		280,
+		210
+	)
+	card.size_flags_horizontal = (
+		Control.SIZE_SHRINK_CENTER
+	)
+	card.size_flags_vertical = (
+		Control.SIZE_SHRINK_CENTER
+	)
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = 0.995
+	var accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	card.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			accent,
+			18
+		)
+	)
+	center.add_child(
+		card
+	)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		14
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		16
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		14
+	)
+	card.add_child(
+		margin
+	)
+
+	var root := VBoxContainer.new()
+	root.add_theme_constant_override(
+		"separation",
+		10
+	)
+	margin.add_child(
+		root
+	)
+
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override(
+		"separation",
+		8
+	)
+	root.add_child(
+		header
+	)
+
+	var skill_icon := Label.new()
+	skill_icon.text = "★"
+	skill_icon.custom_minimum_size.x = 26
+	skill_icon.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	skill_icon.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	skill_icon.add_theme_font_size_override(
+		"font_size",
+		18
+	)
+	skill_icon.add_theme_color_override(
+		"font_color",
+		accent
+	)
+	header.add_child(
+		skill_icon
+	)
+
+	_pet_detail_title = Label.new()
+	_pet_detail_title.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_pet_detail_title.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	_pet_detail_title.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_pet_detail_title.add_theme_font_size_override(
+		"font_size",
+		17
+	)
+	_pet_detail_title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	header.add_child(
+		_pet_detail_title
+	)
+
+	var close := Button.new()
+	close.text = "×"
+	close.tooltip_text = "Đóng"
+	close.focus_mode = Control.FOCUS_NONE
+	close.custom_minimum_size = Vector2(
+		38,
+		38
+	)
+	close.add_theme_font_size_override(
+		"font_size",
+		18
+	)
+	close.pressed.connect(
+		_hide_pet_detail_popup
+	)
+	header.add_child(
+		close
+	)
+
+	var separator := HSeparator.new()
+	separator.modulate = accent
+	separator.modulate.a = 0.38
+	root.add_child(
+		separator
+	)
+
+	_pet_detail_text = Label.new()
+	_pet_detail_text.custom_minimum_size.y = 76
+	_pet_detail_text.size_flags_vertical = (
+		Control.SIZE_EXPAND_FILL
+	)
+	_pet_detail_text.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_pet_detail_text.vertical_alignment = (
+		VERTICAL_ALIGNMENT_TOP
+	)
+	_pet_detail_text.add_theme_font_size_override(
+		"font_size",
+		13
+	)
+	_pet_detail_text.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	root.add_child(
+		_pet_detail_text
+	)
+
+	var close_button := Button.new()
+	close_button.text = "Đóng"
+	close_button.focus_mode = Control.FOCUS_NONE
+	close_button.custom_minimum_size.y = 42
+	close_button.size_flags_horizontal = (
+		Control.SIZE_SHRINK_CENTER
+	)
+	close_button.add_theme_font_size_override(
+		"font_size",
+		13
+	)
+	close_button.pressed.connect(
+		_hide_pet_detail_popup
+	)
+	root.add_child(
+		close_button
+	)
+
 
 func _on_menu_pressed() -> void:
 	if _drawer == null:
@@ -1230,24 +1479,30 @@ func _show_pet_detail(
 	title: String,
 	detail: String
 ) -> void:
-	var dialog := AcceptDialog.new()
-	dialog.title = title
-	dialog.dialog_text = (
+	if (
+		_pet_detail_popup == null
+		or _pet_detail_title == null
+		or _pet_detail_text == null
+	):
+		return
+
+	_pet_detail_title.text = (
+		title
+		if not title.strip_edges().is_empty()
+		else "Thông tin kỹ năng"
+	)
+	_pet_detail_text.text = (
 		detail
-		if not detail.is_empty()
+		if not detail.strip_edges().is_empty()
 		else "Chưa có mô tả chi tiết."
 	)
-	dialog.ok_button_text = "Đóng"
-	_section_overlay.add_child(dialog)
-	dialog.popup_centered_ratio(0.72)
-	dialog.confirmed.connect(
-		dialog.queue_free,
-		CONNECT_ONE_SHOT
-	)
-	dialog.canceled.connect(
-		dialog.queue_free,
-		CONNECT_ONE_SHOT
-	)
+	_pet_detail_popup.visible = true
+	_pet_detail_popup.move_to_front()
+
+
+func _hide_pet_detail_popup() -> void:
+	if _pet_detail_popup != null:
+		_pet_detail_popup.visible = false
 
 
 func _add_pet_empty_text(text: String) -> void:
@@ -2115,6 +2370,7 @@ func _prepare_section(
 	title: String,
 	section_id: StringName = &""
 ) -> void:
+	_hide_pet_detail_popup()
 	AudioService.play("open")
 	_active_section = section_id
 	_crystal_slot_views.clear()
@@ -2188,6 +2444,7 @@ func _add_info_row(
 
 
 func _close_section() -> void:
+	_hide_pet_detail_popup()
 	AudioService.play("close")
 	_active_section = &""
 	_crystal_slot_views.clear()
