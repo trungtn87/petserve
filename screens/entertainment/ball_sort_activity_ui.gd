@@ -58,7 +58,7 @@ func _start_level(level: int) -> void:
 	_settled = false
 	_continue_button.visible = false
 	_continue_button.text = "MÀN TIẾP THEO"
-	_message_label.text = "Chạm một ống để chọn tinh thể trên cùng."
+	_message_label.text = "Giữ tinh thể trên cùng rồi kéo sang ống đích."
 	_sync()
 
 
@@ -130,7 +130,7 @@ func _build_ui() -> void:
 	_board.palette = palette
 	_board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_board.tube_pressed.connect(_on_tube_pressed)
+	_board.tube_drop_requested.connect(_on_tube_drop_requested)
 	root.add_child(_board)
 
 	_message_label = Label.new()
@@ -165,12 +165,23 @@ func _build_ui() -> void:
 	root.add_child(_continue_button)
 
 
-func _on_tube_pressed(index: int) -> void:
+func _on_tube_drop_requested(
+	source_index: int,
+	destination_index: int
+) -> void:
 	if _game == null:
 		return
 
-	var result := _game.tap_tube(index)
-	_message_label.text = String(result.get("message", ""))
+	var result := _game.move_ball(
+		source_index,
+		destination_index
+	)
+	_message_label.text = String(
+		result.get(
+			"message",
+			""
+		)
+	)
 	_board.queue_redraw()
 	_sync()
 
@@ -245,10 +256,7 @@ func _hint() -> void:
 	var result := _game.hint()
 	_message_label.text = String(result.get("message", ""))
 	if bool(result.get("ok", false)):
-		var source := int(result.get("from", -1))
-		if source >= 0:
-			_game.tap_tube(source)
-			_board.queue_redraw()
+		_board.queue_redraw()
 	_sync()
 
 
