@@ -397,18 +397,24 @@ func _test_hibernating_stage2_keeps_remaining_activity_rewards() -> void:
 
 	_expect(
 		int(
-			after_reward.get(
-				"stage2_activity_rewards_claimed",
-				-1
+			reward.get(
+				"fragments",
+				0
 			)
 		) == 1
 		and int(
 			after_reward.get(
-				"stage2_activity_rewards_remaining",
+				"chest_fragments",
+				0
+			)
+		) == 1
+		and int(
+			after_reward.get(
+				"stage2_activity_rewards_claimed",
 				-1
 			)
 		) == 0,
-		"daily obstacle chest has been claimed"
+		"Food Catch reward is score-based and does not consume the retired daily obstacle chest quota"
 	)
 
 	SaveManager.delete_meta()
