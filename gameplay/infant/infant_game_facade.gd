@@ -2062,13 +2062,77 @@ func claim_jigsaw_reward(match_id: String) -> Dictionary:
 	var session := JigsawSession.new()
 	if not session.restore(AtomicJson.read(JigsawSession.SAVE_PATH)) or not session.complete():
 		return {"ok": false, "message": "Chưa hoàn thành ghép hình."}
-	var expected := "%s:%s:%s" % [session.image_path, session.level, session.seed_value]
+
+	var expected := "%s:%s:%s" % [
+		session.image_path,
+		session.level,
+		session.seed_value,
+	]
 	if match_id != expected:
 		return {"ok": false, "message": "Ván ghép hình không hợp lệ."}
+
+	var ids_value: Variant = _meta.get("jigsaw_reward_ids_v2", [])
+	var ids: Array = (
+		(ids_value as Array).duplicate()
+		if typeof(ids_value) == TYPE_ARRAY
+		else []
+	)
+	if ids.has(match_id):
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Ván ghép hình này đã nhận thưởng.",
+		}
+
 	var before := _meta.duplicate(true)
-	var stage := int(_lifecycle.snapshot().get("stage_index", _stage_index))
-	var result := _entertainment.claim_game(_run_id, stage, "jigsaw", match_id)
-	if bool(result.get("ok", false)) and not save():
+	var stage := int(
+		_lifecycle.snapshot().get(
+			"stage_index",
+			_stage_index
+		)
+	)
+	var chest_count := session.reward_chests()
+	var granted := 0
+	var source_hash := absi(hash(match_id))
+
+	for reward_index in range(chest_count):
+		if _chests.grant_bonus_chest(
+			"jigsaw_%s_%s" % [
+				source_hash,
+				reward_index + 1,
+			],
+			stage
+		):
+			granted += 1
+
+	if granted != chest_count:
 		_restore(before)
-		return {"ok": false, "message": "Chưa lưu được thưởng. Hãy thử lại."}
-	return result
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Chưa tạo đủ rương thưởng. Hãy thử lại.",
+		}
+
+	ids.append(match_id)
+	if ids.size() > 100:
+		ids = ids.slice(ids.size() - 100)
+	_meta["jigsaw_reward_ids_v2"] = ids
+
+	if not save():
+		_restore(before)
+		return {
+			"ok": false,
+			"rewarded": false,
+			"message": "Chưa lưu được thưởng. Hãy thử lại.",
+		}
+
+	return {
+		"ok": true,
+		"rewarded": true,
+		"reward_type": "chest",
+		"chests": chest_count,
+		"message": "Hoàn thành %d mảnh • +%d rương." % [
+			session.count(),
+			chest_count,
+		],
+	}
