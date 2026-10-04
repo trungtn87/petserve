@@ -80,8 +80,8 @@ func run() -> void:
 	)
 	home._close_section()
 	check(
-		home._drawer.is_open(),
-		"section X returns to menu"
+		not home._drawer.is_open(),
+		"section X returns to PetHome"
 	)
 
 	# Exercise the real drawer signal path, not only the destination handler.
@@ -101,10 +101,13 @@ func run() -> void:
 	)
 	home._hud._close_overlay()
 	check(
-		home._drawer.is_open(),
-		"inventory X returns to menu"
+		not home._drawer.is_open(),
+		"inventory X returns to PetHome"
 	)
 
+	# Menu must only appear from an explicit Menu press/open.
+	home._drawer.open_drawer()
+	await get_tree().create_timer(0.22).timeout
 	home._drawer._emit_action(
 		&"entertainment"
 	)
@@ -120,11 +123,10 @@ func run() -> void:
 	)
 	home._hub.close_hub()
 	check(
-		home._drawer.is_open(),
-		"mini game X returns to menu"
+		not home._drawer.is_open(),
+		"mini game X returns to PetHome"
 	)
 
-	home._drawer.close_drawer()
 	home._open_food_shortcut()
 	check(
 		home._hud._overlay.visible,
@@ -134,6 +136,45 @@ func run() -> void:
 	check(
 		not home._drawer.is_open(),
 		"home shortcut returns home"
+	)
+
+	# Chest flow: storage -> opening effect -> rewards -> storage.
+	home._on_drawer_action(
+		&"chest"
+	)
+	check(
+		int(game.snapshot().get("pending_chests", 0)) > 0,
+		"test has a chest available"
+	)
+	home._open_chest()
+	check(
+		not home._section_overlay.visible,
+		"storage hides while chest animation/reward is shown"
+	)
+	check(
+		home._chest_result_return_to_storage,
+		"chest reward remembers storage return destination"
+	)
+	await get_tree().create_timer(1.35).timeout
+	check(
+		home._hud._overlay.visible,
+		"chest reward overlay appears after opening effect"
+	)
+	home._hud._close_overlay()
+	await get_tree().process_frame
+	check(
+		home._section_overlay.visible
+		and home._active_section == &"storage",
+		"closing chest reward returns to storage"
+	)
+	check(
+		not home._drawer.is_open(),
+		"chest reward return does not open menu"
+	)
+	home._close_section()
+	check(
+		not home._drawer.is_open(),
+		"closing storage after chest returns to PetHome"
 	)
 
 	home._on_drawer_action(
