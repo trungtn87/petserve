@@ -483,6 +483,16 @@ func build_composite_request(
 		mythic_resolution
 	)
 
+	if not deltas.is_empty():
+		positive_prompt += (
+			"\n\n[GENE VISIBILITY LOCK]\n"
+			+ "One or more Gene Items were consumed for this evolution. "
+			+ "Every code-selected Gene change must be visibly readable in the final pet. "
+			+ "Do not let generic age growth, fur maturation or elemental decoration hide the Gene effect. "
+			+ "The dominant current-stage Gene should be obvious at first glance while remaining anatomically believable. "
+			+ "Rarity and accumulated score control intensity; they do not control whether the Gene appears."
+		)
+
 	var mythic_mode := StringName(
 		mythic_resolution.get(
 			"mode",
