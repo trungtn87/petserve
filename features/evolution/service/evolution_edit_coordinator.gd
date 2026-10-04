@@ -944,7 +944,7 @@ func build_stage_regenerate_request(
 
 	if not deltas.is_empty():
 		positive_prompt += (
-			" Apply only these Gene changes selected by code. "
+			" Apply only these Gene changes selected by code: "
 			+ "These changes are mandatory visual requirements, not optional flavor:"
 		)
 
