@@ -1185,7 +1185,6 @@ func _generate_stage3_bad_resource(
 		if prefer_food
 		else ItemGenerator.TYPE_GROWTH
 	)
-	var fallback: Dictionary = {}
 
 	for offset in range(64):
 		var item := _generator.generate_for_stage(
@@ -1193,85 +1192,40 @@ func _generate_stage3_bad_resource(
 			seed_value + offset,
 			STAGE3_TIER
 		)
-
-		if item.is_empty():
-			continue
-
-		fallback = item
-		var defects_value: Variant = item.get(
-			"defects",
-			[]
-		)
-
-		if (
-			typeof(defects_value) == TYPE_ARRAY
-			and not (defects_value as Array).is_empty()
-		):
+		if bool(item.get("is_junk", false)):
 			return item
 
-	return fallback
-
+	return {}
 
 func _generate_stage3_tradeoff_resource(
 	seed_value: int,
 	prefer_food: bool
 ) -> Dictionary:
+	# Legacy Tier III "trade-off" slot now resolves to a normal standardized
+	# resource. Quality/properties/defects were retired; junk remains separate.
 	var item_type := (
 		ItemGenerator.TYPE_FOOD
 		if prefer_food
 		else ItemGenerator.TYPE_GROWTH
 	)
-	var fallback: Dictionary = {}
 
-	for offset in range(96):
+	for offset in range(64):
 		var item := _generator.generate_for_stage(
 			item_type,
 			seed_value + offset,
 			STAGE3_TIER
 		)
-
-		if item.is_empty():
-			continue
-
-		fallback = item
-		var effects_value: Variant = item.get(
-			"secondary_effects",
-			[]
-		)
-
-		if typeof(effects_value) != TYPE_ARRAY:
-			continue
-
-		var has_positive := false
-		var has_negative := false
-
-		for raw_effect in effects_value as Array:
-			if typeof(raw_effect) != TYPE_DICTIONARY:
-				continue
-
-			var polarity := String(
-				(raw_effect as Dictionary).get(
-					"polarity",
-					""
-				)
-			)
-
-			if polarity == "positive":
-				has_positive = true
-			elif polarity == "negative":
-				has_negative = true
-
-		if has_positive and has_negative:
+		if not item.is_empty() and not bool(item.get("is_junk", false)):
 			return item
 
-	if not fallback.is_empty():
-		return fallback
-
-	return _generate_stage3_bad_resource(
-		seed_value,
-		prefer_food
+	return _generator.scale_for_stage(
+		_generator.generate_resource_for_rarity(
+			item_type,
+			seed_value,
+			"common"
+		),
+		STAGE3_TIER
 	)
-
 
 func _generate_gene_fragment_for_stage(
 	stage_index: int,
