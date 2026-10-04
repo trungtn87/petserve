@@ -8,13 +8,16 @@ const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
 const TYPE_GENE_FRAGMENT: StringName = &"gene_fragment"
 const TYPE_MYTHIC_COMPONENT: StringName = &"mythic_component"
+
+const ITEM_SCHEMA_VERSION: int = 3
 const GENE_GROWTH_BONUS_PERCENT: float = 5.0
 const GENE_RARITY_STATS := {
-	"common": {"score": 10.0, "growth": 2.0},
-	"uncommon": {"score": 20.0, "growth": 5.0},
-	"rare": {"score": 35.0, "growth": 7.0},
-	"epic": {"score": 55.0, "growth": 10.0},
-	"legendary": {"score": 80.0, "growth": 15.0},
+	# Every Gene rarity must create a visible phenotype on the next evolution.
+	"common": {"score": 25.0, "growth": 2.0},
+	"uncommon": {"score": 60.0, "growth": 5.0},
+	"rare": {"score": 120.0, "growth": 7.0},
+	"epic": {"score": 200.0, "growth": 10.0},
+	"legendary": {"score": 320.0, "growth": 15.0},
 }
 
 const DUPLICATE_GENE_FRAGMENT_AMOUNT := {
@@ -46,100 +49,50 @@ const MYTHIC_COMPONENT_DEFINITIONS := [
 const RESOURCE_RARITY_STATS := {
 	"common": {
 		"food_min_seconds": 20 * 60,
-		"food_max_seconds": 30 * 60,
-		"growth_min_seconds": 6 * 60,
-		"growth_max_seconds": 12 * 60,
+		"food_max_seconds": 20 * 60,
+		"growth_min_seconds": 5 * 60,
+		"growth_max_seconds": 5 * 60,
 	},
 	"uncommon": {
-		"food_min_seconds": 30 * 60,
-		"food_max_seconds": 45 * 60,
-		"growth_min_seconds": 10 * 60,
-		"growth_max_seconds": 16 * 60,
+		"food_min_seconds": 25 * 60,
+		"food_max_seconds": 25 * 60,
+		"growth_min_seconds": 7 * 60,
+		"growth_max_seconds": 7 * 60,
 	},
 	"rare": {
-		"food_min_seconds": 45 * 60,
-		"food_max_seconds": 65 * 60,
-		"growth_min_seconds": 15 * 60,
-		"growth_max_seconds": 25 * 60,
+		"food_min_seconds": 30 * 60,
+		"food_max_seconds": 30 * 60,
+		"growth_min_seconds": 10 * 60,
+		"growth_max_seconds": 10 * 60,
 	},
 	"epic": {
-		"food_min_seconds": 60 * 60,
-		"food_max_seconds": 90 * 60,
-		"growth_min_seconds": 25 * 60,
-		"growth_max_seconds": 40 * 60,
+		"food_min_seconds": 40 * 60,
+		"food_max_seconds": 40 * 60,
+		"growth_min_seconds": 14 * 60,
+		"growth_max_seconds": 14 * 60,
 	},
 	"legendary": {
-		"food_min_seconds": 90 * 60,
-		"food_max_seconds": 120 * 60,
-		"growth_min_seconds": 40 * 60,
-		"growth_max_seconds": 60 * 60,
+		"food_min_seconds": 60 * 60,
+		"food_max_seconds": 60 * 60,
+		"growth_min_seconds": 20 * 60,
+		"growth_max_seconds": 20 * 60,
 	},
 }
 
 const FOOD_DEFINITIONS_BY_RARITY := {
-	"common": [
-		{"id": "food_small_fish", "display_name": "Cá nhỏ"},
-		{"id": "food_soft_meat", "display_name": "Thịt mềm"},
-		{"id": "food_warm_milk", "display_name": "Sữa ấm"},
-		{"id": "food_wild_berries", "display_name": "Quả mọng"},
-	],
-	"uncommon": [
-		{"id": "food_silver_fish", "display_name": "Cá bạc"},
-		{"id": "food_energy_meat", "display_name": "Thịt giàu năng lượng"},
-		{"id": "food_honey_root", "display_name": "Củ mật"},
-		{"id": "food_nutri_milk", "display_name": "Sữa hạt tinh lực"},
-	],
-	"rare": [
-		{"id": "food_moon_fish", "display_name": "Cá ánh trăng"},
-		{"id": "food_spirit_meat", "display_name": "Thịt Linh Thú"},
-		{"id": "food_vital_fruit", "display_name": "Quả sinh lực"},
-		{"id": "food_crystal_milk", "display_name": "Sữa pha lê"},
-	],
-	"epic": [
-		{"id": "food_nebula_fish", "display_name": "Cá Tinh Vân"},
-		{"id": "food_ancient_meat", "display_name": "Thịt Cổ Thú"},
-		{"id": "food_growth_fruit", "display_name": "Quả Tăng Trưởng"},
-		{"id": "food_spirit_nectar", "display_name": "Mật Linh"},
-	],
-	"legendary": [
-		{"id": "food_galaxy_fish", "display_name": "Cá Ngân Hà"},
-		{"id": "food_celestial_meat", "display_name": "Thịt Thiên Thú"},
-		{"id": "food_life_fruit", "display_name": "Quả Sinh Mệnh"},
-		{"id": "food_eternal_nectar", "display_name": "Mật Trường Sinh"},
-	],
+	"common": [{"id": "food_common", "display_name": "Khẩu phần dinh dưỡng"}],
+	"uncommon": [{"id": "food_uncommon", "display_name": "Khẩu phần dinh dưỡng"}],
+	"rare": [{"id": "food_rare", "display_name": "Khẩu phần dinh dưỡng"}],
+	"epic": [{"id": "food_epic", "display_name": "Khẩu phần dinh dưỡng"}],
+	"legendary": [{"id": "food_legendary", "display_name": "Khẩu phần dinh dưỡng"}],
 }
 
 const GROWTH_DEFINITIONS_BY_RARITY := {
-	"common": [
-		{"id": "growth_vitamin_gel", "display_name": "Gel vitamin"},
-		{"id": "growth_nutrient_serum", "display_name": "Dịch dinh dưỡng"},
-		{"id": "growth_metabolic_yeast", "display_name": "Men chuyển hóa"},
-		{"id": "growth_basic_tonic", "display_name": "Thuốc bổ tăng trưởng"},
-	],
-	"uncommon": [
-		{"id": "growth_concentrate", "display_name": "Tinh chất tăng trưởng"},
-		{"id": "growth_accelerator", "display_name": "Dung dịch tăng tốc"},
-		{"id": "growth_bio_catalyst", "display_name": "Xúc tác sinh học"},
-		{"id": "growth_absorption_serum", "display_name": "Dịch hấp thu"},
-	],
-	"rare": [
-		{"id": "growth_spirit_serum", "display_name": "Huyết thanh linh lực"},
-		{"id": "growth_crystal_extract", "display_name": "Tinh chất pha lê"},
-		{"id": "growth_adaptive_enzyme", "display_name": "Enzyme thích nghi"},
-		{"id": "growth_vital_core", "display_name": "Lõi sinh lực"},
-	],
-	"epic": [
-		{"id": "growth_nebula_serum", "display_name": "Huyết thanh Tinh Vân"},
-		{"id": "growth_ancient_catalyst", "display_name": "Xúc tác Cổ Đại"},
-		{"id": "growth_evolution_essence", "display_name": "Tinh chất Tiến Hóa"},
-		{"id": "growth_star_core", "display_name": "Lõi Sao"},
-	],
-	"legendary": [
-		{"id": "growth_life_core", "display_name": "Lõi Sinh Mệnh"},
-		{"id": "growth_celestial_essence", "display_name": "Tinh chất Thiên Thể"},
-		{"id": "growth_genesis_serum", "display_name": "Huyết thanh Khởi Nguyên"},
-		{"id": "growth_eternal_core", "display_name": "Lõi Trường Sinh"},
-	],
+	"common": [{"id": "growth_common", "display_name": "Tinh chất tăng trưởng"}],
+	"uncommon": [{"id": "growth_uncommon", "display_name": "Tinh chất tăng trưởng"}],
+	"rare": [{"id": "growth_rare", "display_name": "Tinh chất tăng trưởng"}],
+	"epic": [{"id": "growth_epic", "display_name": "Tinh chất tăng trưởng"}],
+	"legendary": [{"id": "growth_legendary", "display_name": "Tinh chất tăng trưởng"}],
 }
 
 const RARITY_WEIGHTS := {
@@ -149,6 +102,11 @@ const RARITY_WEIGHTS := {
 	"epic": 6.0,
 	"legendary": 1.0,
 }
+
+const JUNK_CHANCE: float = 0.12
+const BASIC_INFANT_JUNK_CHANCE: float = 0.05
+const JUNK_FOOD_SECONDS: int = 5 * 60
+const JUNK_GROWTH_SECONDS: int = 2 * 60
 
 const QUALITY_WEIGHTS := {
 	"broken": 15.0,
@@ -260,20 +218,35 @@ func generate(
 	var rng := RandomNumberGenerator.new()
 	rng.seed = max(1, abs(seed_value))
 
-	var rarity: String = _roll_weighted(rng, RARITY_WEIGHTS)
-	var quality: String = _roll_weighted(rng, QUALITY_WEIGHTS)
-
 	match item_type:
 		TYPE_FOOD:
-			return _generate_food(rng, rarity, quality, seed_value)
+			if rng.randf() <= JUNK_CHANCE:
+				return _generate_junk_food(seed_value)
+			return _generate_food(
+				rng,
+				_roll_weighted(rng, RARITY_WEIGHTS),
+				"standard",
+				seed_value
+			)
 		TYPE_GROWTH:
-			return _generate_growth(rng, rarity, quality, seed_value)
+			if rng.randf() <= JUNK_CHANCE:
+				return _generate_junk_growth(seed_value)
+			return _generate_growth(
+				rng,
+				_roll_weighted(rng, RARITY_WEIGHTS),
+				"standard",
+				seed_value
+			)
 		TYPE_FUTURE_FRAGMENT:
-			return _generate_future_fragment(rng, rarity, quality, seed_value)
+			return _generate_future_fragment(
+				rng,
+				_roll_weighted(rng, RARITY_WEIGHTS),
+				"standard",
+				seed_value
+			)
 		_:
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
 			return {}
-
 
 func generate_resource_for_rarity(
 	item_type: StringName,
@@ -282,39 +255,17 @@ func generate_resource_for_rarity(
 ) -> Dictionary:
 	var normalized_rarity := rarity.strip_edges().to_lower()
 
-	if not RESOURCE_RARITY_STATS.has(
-		normalized_rarity
-	):
+	if not RESOURCE_RARITY_STATS.has(normalized_rarity):
 		return {}
-
-	if (
-		item_type != TYPE_FOOD
-		and item_type != TYPE_GROWTH
-	):
+	if item_type != TYPE_FOOD and item_type != TYPE_GROWTH:
 		return {}
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = max(1, abs(seed_value))
-	var quality: String = _roll_weighted(
-		rng,
-		QUALITY_WEIGHTS
-	)
 
 	if item_type == TYPE_FOOD:
-		return _generate_food(
-			rng,
-			normalized_rarity,
-			quality,
-			seed_value
-		)
-
-	return _generate_growth(
-		rng,
-		normalized_rarity,
-		quality,
-		seed_value
-	)
-
+		return _generate_food(rng, normalized_rarity, "standard", seed_value)
+	return _generate_growth(rng, normalized_rarity, "standard", seed_value)
 
 func resource_definition_count(
 	item_type: StringName,
@@ -448,7 +399,6 @@ func generate_gene(
 		rng,
 		RARITY_WEIGHTS
 	)
-	var quality := "normal"
 	var stats: Dictionary = GENE_RARITY_STATS.get(
 		rarity,
 		GENE_RARITY_STATS["uncommon"]
@@ -491,9 +441,11 @@ func generate_gene(
 		),
 		"definition_id": String(definition.id()),
 		"item_type": String(TYPE_GENE),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
 		"display_name": definition.display_name(),
 		"rarity": rarity,
-		"quality": quality,
+		"quality": "standard",
+		"is_junk": false,
 		"gene_id": String(definition.id()),
 		"gene_locus": String(definition.locus()),
 		"gene_direction": String(definition.direction()),
@@ -513,10 +465,8 @@ func generate_gene(
 		"properties": [],
 		"defects": [],
 		"salvage_type": "gene_dust",
-		"salvage_value": _salvage_value(
-			rarity,
-			quality,
-			rng
+		"salvage_value": _fixed_salvage_value(
+			rarity
 		),
 		"generated_seed": seed_value,
 		"usable_stage": "gene",
@@ -756,17 +706,15 @@ func generate_basic_infant(
 	var rng := RandomNumberGenerator.new()
 	rng.seed = max(1, abs(seed_value))
 
-	var rarity := "common"
-	var quality: String = _roll_weighted(
-		rng,
-		BASIC_INFANT_QUALITY_WEIGHTS
-	)
-
 	match item_type:
 		TYPE_FOOD:
-			return _generate_food(rng, rarity, quality, seed_value)
+			if rng.randf() <= BASIC_INFANT_JUNK_CHANCE:
+				return _generate_junk_food(seed_value)
+			return _generate_food(rng, "common", "standard", seed_value)
 		TYPE_GROWTH:
-			return _generate_growth(rng, rarity, quality, seed_value)
+			if rng.randf() <= BASIC_INFANT_JUNK_CHANCE:
+				return _generate_junk_growth(seed_value)
+			return _generate_growth(rng, "common", "standard", seed_value)
 		_:
 			push_error(
 				"ItemGenerator: unsupported basic infant type: "
@@ -774,8 +722,10 @@ func generate_basic_infant(
 			)
 			return {}
 
-
 func describe(item: Dictionary) -> String:
+	if bool(item.get("is_junk", false)):
+		return "Phế phẩm • không có rarity • chỉ nên phân giải"
+
 	var item_type := StringName(item.get("item_type", ""))
 
 	match item_type:
@@ -915,6 +865,8 @@ func rarity_label(value: String) -> String:
 			return "HUYỀN THOẠI"
 		"mythic":
 			return "THẦN THOẠI"
+		"", "junk":
+			return ""
 		_:
 			return ViDisplay.rarity_label(
 				value
@@ -923,6 +875,10 @@ func rarity_label(value: String) -> String:
 
 func quality_label(value: String) -> String:
 	match value:
+		"standard":
+			return ""
+		"junk":
+			return "PHẾ PHẨM"
 		"broken":
 			return "Hỏng"
 		"poor":
@@ -1000,7 +956,7 @@ func defect_label(value: StringName) -> String:
 func _generate_food(
 	rng: RandomNumberGenerator,
 	rarity: String,
-	quality: String,
+	_quality: String,
 	seed_value: int
 ) -> Dictionary:
 	var stats: Dictionary = RESOURCE_RARITY_STATS.get(
@@ -1012,167 +968,39 @@ func _generate_food(
 		FOOD_DEFINITIONS_BY_RARITY,
 		rarity
 	)
-	var base_seconds := rng.randi_range(
-		int(stats.get("food_min_seconds", 20 * 60)),
-		int(stats.get("food_max_seconds", 30 * 60))
-	)
-	var main_seconds := int(round(
-		float(base_seconds) * float(QUALITY_MULTIPLIER[quality])
-	))
-	var growth_delta := 0
-
-	var properties := _roll_properties(
-		rng,
-		rarity,
-		FOOD_PROPERTIES
-	)
-
-	var defects := _roll_defects(
-		rng,
-		quality,
-		FOOD_DEFECTS
-	)
-	var secondary_effects := _build_secondary_effects(
-		rng,
-		properties,
-		defects,
-		rarity,
-		quality
-	)
-
-	for effect in secondary_effects:
-		var effect_id := StringName(
-			effect.get(
-				"id",
-				""
-			)
+	var main_seconds := int(
+		stats.get(
+			"food_min_seconds",
+			20 * 60
 		)
-		var level := clampi(
-			int(
-				effect.get(
-					"level",
-					1
-				)
-			),
-			1,
-			4
-		)
-
-		match effect_id:
-			&"fresh":
-				main_seconds = int(round(
-					float(main_seconds)
-					* (1.0 + 0.12 * level)
-				))
-			&"dense":
-				main_seconds += [
-					10, 20, 35, 55
-				][level - 1] * 60
-			&"nutritious":
-				growth_delta += [
-					2, 5, 10, 18
-				][level - 1] * 60
-			&"growth_rich":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.95, 0.90, 0.85, 0.80][level - 1]
-				))
-				growth_delta += [
-					5, 10, 18, 30
-				][level - 1] * 60
-			&"easy_digest":
-				growth_delta += [
-					1, 3, 6, 10
-				][level - 1] * 60
-			&"vitality":
-				main_seconds += [
-					5, 10, 20, 35
-				][level - 1] * 60
-				growth_delta += [
-					1, 3, 5, 8
-				][level - 1] * 60
-			&"spoiled":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.85, 0.70, 0.55, 0.40][level - 1]
-				))
-			&"stale":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.90, 0.80, 0.70, 0.60][level - 1]
-				))
-			&"heavy":
-				growth_delta -= [
-					2, 5, 10, 18
-				][level - 1] * 60
-			&"rotten":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.75, 0.50, 0.30, 0.15][level - 1]
-				))
-				growth_delta -= [
-					2, 6, 12, 20
-				][level - 1] * 60
-			&"bloated":
-				growth_delta -= [
-					1, 4, 8, 15
-				][level - 1] * 60
-			&"contaminated":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.92, 0.82, 0.68, 0.50][level - 1]
-				))
-				growth_delta -= [
-					3, 7, 14, 25
-				][level - 1] * 60
-
-	main_seconds = max(60, main_seconds)
+	)
 
 	return {
 		"uid": _make_uid(seed_value, TYPE_FOOD),
-		"definition_id": String(
-			definition.get(
-				"id",
-				"food"
-			)
-		),
+		"definition_id": String(definition.get("id", "food_" + rarity)),
 		"item_type": String(TYPE_FOOD),
-		"display_name": _food_name(
-			String(
-				definition.get(
-					"display_name",
-					"Khẩu phần"
-				)
-			),
-			quality,
-			properties,
-			defects
-		),
-		"base_display_name": String(
-			definition.get(
-				"display_name",
-				"Khẩu phần"
-			)
-		),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
+		"display_name": "Khẩu phần dinh dưỡng",
+		"base_display_name": "Khẩu phần dinh dưỡng",
 		"rarity": rarity,
-		"quality": quality,
+		"quality": "standard",
+		"is_junk": false,
 		"main_value_seconds": main_seconds,
-		"growth_delta_seconds": growth_delta,
+		"growth_delta_seconds": 0,
 		"food_delta_seconds": 0,
-		"properties": properties,
-		"defects": defects,
-		"secondary_effects": secondary_effects,
+		"properties": [],
+		"defects": [],
+		"secondary_effects": [],
 		"salvage_type": "food_dust",
-		"salvage_value": _salvage_value(rarity, quality, rng),
+		"salvage_value": _fixed_salvage_value(rarity),
 		"generated_seed": seed_value,
 		"usable_stage": "growth",
 	}
 
-
 func _generate_growth(
 	rng: RandomNumberGenerator,
 	rarity: String,
-	quality: String,
+	_quality: String,
 	seed_value: int
 ) -> Dictionary:
 	var stats: Dictionary = RESOURCE_RARITY_STATS.get(
@@ -1184,161 +1012,78 @@ func _generate_growth(
 		GROWTH_DEFINITIONS_BY_RARITY,
 		rarity
 	)
-	var base_seconds := rng.randi_range(
-		int(stats.get("growth_min_seconds", 6 * 60)),
-		int(stats.get("growth_max_seconds", 12 * 60))
-	)
-	var main_seconds := int(round(
-		float(base_seconds) * float(QUALITY_MULTIPLIER[quality])
-	))
-	var food_delta := 0
-
-	var properties := _roll_properties(
-		rng,
-		rarity,
-		GROWTH_PROPERTIES
-	)
-
-	var defects := _roll_defects(
-		rng,
-		quality,
-		GROWTH_DEFECTS
-	)
-	var secondary_effects := _build_secondary_effects(
-		rng,
-		properties,
-		defects,
-		rarity,
-		quality
-	)
-
-	for effect in secondary_effects:
-		var effect_id := StringName(
-			effect.get(
-				"id",
-				""
-			)
+	var main_seconds := int(
+		stats.get(
+			"growth_min_seconds",
+			5 * 60
 		)
-		var level := clampi(
-			int(
-				effect.get(
-					"level",
-					1
-				)
-			),
-			1,
-			4
-		)
-
-		match effect_id:
-			&"concentrated":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [1.15, 1.30, 1.50, 1.80][level - 1]
-				))
-			&"rapid":
-				main_seconds += [
-					3, 7, 12, 20
-				][level - 1] * 60
-			&"pure":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [1.10, 1.20, 1.35, 1.55][level - 1]
-				))
-			&"burst":
-				var burst_chance: float = [
-					0.10, 0.20, 0.35, 0.50
-				][level - 1]
-				if rng.randf() <= burst_chance:
-					main_seconds = int(round(
-						float(main_seconds)
-						* [1.25, 1.50, 1.75, 2.00][level - 1]
-					))
-			&"stable":
-				food_delta += [
-					3, 6, 12, 20
-				][level - 1] * 60
-			&"efficient":
-				main_seconds += [
-					2, 5, 9, 15
-				][level - 1] * 60
-				food_delta += [
-					2, 5, 10, 15
-				][level - 1] * 60
-			&"diluted":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.85, 0.70, 0.50, 0.35][level - 1]
-				))
-			&"expired":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.75, 0.55, 0.35, 0.20][level - 1]
-				))
-			&"appetite_drain":
-				food_delta -= [
-					5, 10, 20, 35
-				][level - 1] * 60
-			&"backfire":
-				var backfire_chance: float = [
-					0.15, 0.30, 0.55, 0.80
-				][level - 1]
-				if rng.randf() <= backfire_chance:
-					main_seconds = -[
-						2, 5, 12, 25
-					][level - 1] * 60
-			&"unstable":
-				main_seconds = int(round(
-					float(main_seconds)
-					* [0.92, 0.82, 0.68, 0.50][level - 1]
-				))
-			&"residue":
-				main_seconds -= [
-					1, 3, 6, 10
-				][level - 1] * 60
-				food_delta -= [
-					3, 8, 15, 25
-				][level - 1] * 60
-
-	if main_seconds == 0:
-		main_seconds = 60
+	)
 
 	return {
 		"uid": _make_uid(seed_value, TYPE_GROWTH),
-		"definition_id": String(
-			definition.get(
-				"id",
-				"growth"
-			)
-		),
+		"definition_id": String(definition.get("id", "growth_" + rarity)),
 		"item_type": String(TYPE_GROWTH),
-		"display_name": _growth_name(
-			String(
-				definition.get(
-					"display_name",
-					"Gel tăng trưởng"
-				)
-			),
-			quality,
-			properties,
-			defects
-		),
-		"base_display_name": String(
-			definition.get(
-				"display_name",
-				"Gel tăng trưởng"
-			)
-		),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
+		"display_name": "Tinh chất tăng trưởng",
+		"base_display_name": "Tinh chất tăng trưởng",
 		"rarity": rarity,
-		"quality": quality,
+		"quality": "standard",
+		"is_junk": false,
 		"main_value_seconds": main_seconds,
 		"growth_delta_seconds": 0,
-		"food_delta_seconds": food_delta,
-		"properties": properties,
-		"defects": defects,
-		"secondary_effects": secondary_effects,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"secondary_effects": [],
 		"salvage_type": "growth_dust",
-		"salvage_value": _salvage_value(rarity, quality, rng),
+		"salvage_value": _fixed_salvage_value(rarity),
+		"generated_seed": seed_value,
+		"usable_stage": "growth",
+	}
+
+func _generate_junk_food(seed_value: int) -> Dictionary:
+	return {
+		"uid": _make_uid(seed_value, TYPE_FOOD),
+		"definition_id": "food_junk",
+		"item_type": String(TYPE_FOOD),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
+		"display_name": "Thức ăn hỏng",
+		"base_display_name": "Thức ăn hỏng",
+		"rarity": "",
+		"quality": "junk",
+		"is_junk": true,
+		"main_value_seconds": JUNK_FOOD_SECONDS,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"secondary_effects": [],
+		"salvage_type": "food_dust",
+		"salvage_value": 1,
+		"generated_seed": seed_value,
+		"usable_stage": "growth",
+	}
+
+
+func _generate_junk_growth(seed_value: int) -> Dictionary:
+	return {
+		"uid": _make_uid(seed_value, TYPE_GROWTH),
+		"definition_id": "growth_junk",
+		"item_type": String(TYPE_GROWTH),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
+		"display_name": "Tinh chất lỗi",
+		"base_display_name": "Tinh chất lỗi",
+		"rarity": "",
+		"quality": "junk",
+		"is_junk": true,
+		"main_value_seconds": JUNK_GROWTH_SECONDS,
+		"growth_delta_seconds": 0,
+		"food_delta_seconds": 0,
+		"properties": [],
+		"defects": [],
+		"secondary_effects": [],
+		"salvage_type": "growth_dust",
+		"salvage_value": 1,
 		"generated_seed": seed_value,
 		"usable_stage": "growth",
 	}
@@ -1358,9 +1103,11 @@ func _generate_future_fragment(
 		"uid": _make_uid(seed_value, TYPE_FUTURE_FRAGMENT),
 		"definition_id": String(family),
 		"item_type": String(TYPE_FUTURE_FRAGMENT),
+		"item_schema_version": ITEM_SCHEMA_VERSION,
 		"display_name": _future_fragment_name(family),
 		"rarity": rarity,
-		"quality": quality,
+		"quality": "standard",
+		"is_junk": false,
 		"main_value_seconds": 0,
 		"growth_delta_seconds": 0,
 		"food_delta_seconds": 0,
@@ -1543,6 +1290,107 @@ func _roll_weighted(
 			return String(key)
 
 	return String(weights.keys().back())
+
+
+static func _fixed_salvage_value(rarity: String) -> int:
+	return int({
+		"common": 2,
+		"uncommon": 4,
+		"rare": 8,
+		"epic": 16,
+		"legendary": 36,
+	}.get(rarity.strip_edges().to_lower(), 1))
+
+
+static func normalize_item(item: Dictionary) -> Dictionary:
+	var result := item.duplicate(true)
+	if int(result.get("item_schema_version", 0)) >= ITEM_SCHEMA_VERSION:
+		return result
+
+	var item_type := StringName(result.get("item_type", ""))
+	var rarity := String(result.get("rarity", "common")).strip_edges().to_lower()
+	if not RARITY_WEIGHTS.has(rarity):
+		rarity = "common"
+
+	match item_type:
+		TYPE_FOOD, TYPE_GROWTH:
+			var defects_value: Variant = result.get("defects", [])
+			var has_legacy_defect := (
+				typeof(defects_value) == TYPE_ARRAY
+				and not (defects_value as Array).is_empty()
+			)
+			var junk := (
+				bool(result.get("is_junk", false))
+				or String(result.get("quality", "normal")) == "broken"
+				or has_legacy_defect
+			)
+			var stage_index := int(result.get("generated_for_stage", 1))
+			var multiplier := float(STAGE_VALUE_MULTIPLIERS.get(stage_index, 1.0))
+			result["properties"] = []
+			result["defects"] = []
+			result["secondary_effects"] = []
+			result["growth_delta_seconds"] = 0
+			result["food_delta_seconds"] = 0
+			result["is_junk"] = junk
+
+			if junk:
+				result["rarity"] = ""
+				result["quality"] = "junk"
+				result["salvage_value"] = 1
+				if item_type == TYPE_FOOD:
+					result["definition_id"] = "food_junk"
+					result["display_name"] = "Thức ăn hỏng"
+					result["base_display_name"] = "Thức ăn hỏng"
+					result["main_value_seconds"] = int(round(JUNK_FOOD_SECONDS * multiplier))
+				else:
+					result["definition_id"] = "growth_junk"
+					result["display_name"] = "Tinh chất lỗi"
+					result["base_display_name"] = "Tinh chất lỗi"
+					result["main_value_seconds"] = int(round(JUNK_GROWTH_SECONDS * multiplier))
+			else:
+				result["rarity"] = rarity
+				result["quality"] = "standard"
+				result["salvage_value"] = _fixed_salvage_value(rarity)
+				var stats: Dictionary = RESOURCE_RARITY_STATS.get(rarity, RESOURCE_RARITY_STATS["common"])
+				if item_type == TYPE_FOOD:
+					result["definition_id"] = "food_" + rarity
+					result["display_name"] = "Khẩu phần dinh dưỡng"
+					result["base_display_name"] = "Khẩu phần dinh dưỡng"
+					result["main_value_seconds"] = int(round(float(stats.get("food_min_seconds", 20 * 60)) * multiplier))
+				else:
+					result["definition_id"] = "growth_" + rarity
+					result["display_name"] = "Tinh chất tăng trưởng"
+					result["base_display_name"] = "Tinh chất tăng trưởng"
+					result["main_value_seconds"] = int(round(float(stats.get("growth_min_seconds", 5 * 60)) * multiplier))
+			result["stage_value_multiplier"] = multiplier
+
+		TYPE_GENE:
+			var stats: Dictionary = GENE_RARITY_STATS.get(rarity, GENE_RARITY_STATS["common"])
+			var old_score := maxf(1.0, float(result.get("gene_score", result.get("gene_influence", 1.0))))
+			var new_score := float(stats.get("score", 25.0))
+			var tag_scale := new_score / old_score
+			var tags_value: Variant = result.get("influence_tags", {})
+			if typeof(tags_value) == TYPE_DICTIONARY:
+				var scaled_tags: Dictionary = {}
+				for key_value in (tags_value as Dictionary).keys():
+					scaled_tags[String(key_value)] = float((tags_value as Dictionary)[key_value]) * tag_scale
+				result["influence_tags"] = scaled_tags
+			result["rarity"] = rarity
+			result["quality"] = "standard"
+			result["is_junk"] = false
+			result["gene_score"] = new_score
+			result["gene_influence"] = new_score
+			result["gene_expression_tier"] = String(GeneExpressionScale.tier_for_score(new_score))
+			result["growth_bonus_percent"] = float(stats.get("growth", GENE_GROWTH_BONUS_PERCENT))
+			result["properties"] = []
+			result["defects"] = []
+
+		_:
+			result["quality"] = "standard" if String(result.get("quality", "")).is_empty() else result.get("quality")
+			result["is_junk"] = false
+
+	result["item_schema_version"] = ITEM_SCHEMA_VERSION
+	return result
 
 
 func _salvage_value(

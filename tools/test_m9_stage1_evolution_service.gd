@@ -1035,6 +1035,9 @@ func _test_stage_two_gene_plan() -> void:
 			"[ACCUMULATED GENE SCORE PHENOTYPE]"
 		)
 		and request.positive_prompt.contains(
+			"[GENE VISIBILITY LOCK]"
+		)
+		and request.positive_prompt.contains(
 			"Natural maturation"
 		),
 		"Stage 2 Gene plan must edit the reference image from the lifetime Gene score plan"
