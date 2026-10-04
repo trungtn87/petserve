@@ -359,12 +359,6 @@ func _build_hub_screen(
 		intro
 	)
 
-	var connection_button := Button.new()
-	connection_button.text = "Kết nối 2 người • Wi-Fi / Bluetooth"
-	connection_button.custom_minimum_size.y = 44
-	connection_button.pressed.connect(_open_connection)
-	root.add_child(connection_button)
-
 	var game_label := Label.new()
 	game_label.text = "TRÒ CHƠI"
 	game_label.add_theme_font_size_override(
@@ -383,21 +377,18 @@ func _build_hub_screen(
 	)
 
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 3
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override(
 		"h_separation",
-		8
+		6
 	)
 	grid.add_theme_constant_override(
 		"v_separation",
-		8
+		6
 	)
-	var game_scroll := ScrollContainer.new()
-	game_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	game_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	root.add_child(game_scroll)
-	game_scroll.add_child(grid)
+	root.add_child(grid)
 
 	grid.add_child(
 		_activity_card(
@@ -518,7 +509,7 @@ func _activity_card(
 	var button := Button.new()
 	button.custom_minimum_size = Vector2(
 		0,
-		108
+		84
 	)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.focus_mode = Control.FOCUS_NONE
@@ -554,7 +545,7 @@ func _activity_card(
 	content.alignment = BoxContainer.ALIGNMENT_CENTER
 	content.add_theme_constant_override(
 		"separation",
-		4
+		2
 	)
 	button.add_child(
 		content
@@ -565,7 +556,7 @@ func _activity_card(
 	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	icon.add_theme_font_size_override(
 		"font_size",
-		24
+		18
 	)
 	icon.add_theme_color_override(
 		"font_color",
@@ -581,9 +572,12 @@ func _activity_card(
 	var title := Label.new()
 	title.text = title_text
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.custom_minimum_size.y = 20
 	title.add_theme_font_size_override(
 		"font_size",
-		12
+		10
 	)
 	content.add_child(
 		title
@@ -595,7 +589,7 @@ func _activity_card(
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override(
 		"font_size",
-		9
+		7
 	)
 	subtitle.add_theme_color_override(
 		"font_color",
