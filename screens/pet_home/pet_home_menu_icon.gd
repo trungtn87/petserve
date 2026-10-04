@@ -38,6 +38,12 @@ func _draw() -> void:
 	match action_id:
 		&"pet_info":
 			_draw_pet(center)
+		&"inventory":
+			_draw_inventory(center)
+		&"crystallization":
+			_draw_crystal(center)
+		&"gene":
+			_draw_gene(center)
 		&"food":
 			_draw_food(center)
 		&"chest":
@@ -47,7 +53,7 @@ func _draw() -> void:
 		&"menu":
 			_draw_menu_grid(center)
 		&"evolution":
-			_draw_crystal(center)
+			_draw_evolution(center)
 		&"achievement":
 			_draw_achievement(center)
 		&"settings":
@@ -88,6 +94,73 @@ func _draw_pet(center: Vector2) -> void:
 		center + Vector2(7, -9),
 		2.8,
 		s
+	)
+
+
+func _draw_inventory(center: Vector2) -> void:
+	var bag := Rect2(
+		center + Vector2(-10, -7),
+		Vector2(20, 18)
+	)
+	draw_style_box(
+		_box(
+			secondary,
+			accent,
+			5
+		),
+		bag
+	)
+	draw_arc(
+		center + Vector2(0, -7),
+		7.0,
+		PI,
+		TAU,
+		20,
+		accent,
+		2.0,
+		true
+	)
+	draw_circle(
+		center + Vector2(0, 2),
+		2.2,
+		Color("#FFF0A8")
+	)
+
+
+func _draw_gene(center: Vector2) -> void:
+	for step in range(7):
+		var t := float(step) / 6.0
+		var y := lerpf(-12.0, 12.0, t)
+		var x := sin(t * TAU) * 6.0
+		var left := center + Vector2(x, y)
+		var right := center + Vector2(-x, y)
+		draw_circle(left, 1.7, accent)
+		draw_circle(right, 1.7, secondary)
+		draw_line(left, right, Color("#FFF0A8"), 1.0, true)
+
+
+func _draw_evolution(center: Vector2) -> void:
+	_draw_pet(center + Vector2(-3, 1))
+	draw_line(
+		center + Vector2(9, 8),
+		center + Vector2(9, -8),
+		accent,
+		2.0,
+		true
+	)
+	draw_line(
+		center + Vector2(9, -8),
+		center + Vector2(5, -3),
+		accent,
+		2.0,
+		true
+	)
+	draw_line(
+		center + Vector2(9, -8),
+		center + Vector2(13, -3),
+		accent,
+		2.0,
+		true
 	)
 
 
