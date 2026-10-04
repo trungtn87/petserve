@@ -398,7 +398,9 @@ func _add_action(
 	badge.offset_top = 2.0
 	badge.offset_right = -6.0
 	badge.offset_bottom = 20.0
-	card.add_child(badge)
+	# Badge phải nằm trong Control tự do. Nếu thêm trực tiếp vào
+	# PanelContainer, Container sẽ kéo Label rộng toàn card thành thanh đỏ.
+	hitbox.add_child(badge)
 
 	_badges[action_id] = badge
 	_cards.append({
