@@ -62,6 +62,61 @@ func _test_rarity_score_contract() -> void:
 		return
 
 	var generator := ItemGenerator.new()
+	var expected_scores := {
+		"common": 25.0,
+		"uncommon": 60.0,
+		"rare": 120.0,
+		"epic": 200.0,
+		"legendary": 320.0,
+	}
+
+	for rarity_value in expected_scores.keys():
+		var rarity_key := String(rarity_value)
+		var score := generator.gene_score_for_rarity(
+			rarity_key
+		)
+		_expect(
+			is_equal_approx(
+				score,
+				float(expected_scores[rarity_key])
+			)
+			and GeneExpressionScale.tier_for_score(score)
+				!= GeneExpressionScale.TRACE,
+			"every new Gene rarity must be visually meaningful on first use: %s"
+			% rarity_key
+		)
+
+	var legacy_gene := ItemGenerator.normalize_item({
+		"uid": "legacy_gene_common",
+		"item_type": "gene",
+		"item_schema_version": 2,
+		"rarity": "common",
+		"quality": "standard",
+		"gene_score": 10.0,
+		"gene_influence": 10.0,
+		"growth_bonus_percent": 2.0,
+		"influence_tags": {
+			"mystic": 3.0,
+		},
+		"properties": [],
+		"defects": [],
+	})
+	_expect(
+		int(legacy_gene.get("item_schema_version", 0))
+			== ItemGenerator.ITEM_SCHEMA_VERSION
+		and is_equal_approx(
+			float(legacy_gene.get("gene_score", 0.0)),
+			25.0
+		)
+		and String(
+			legacy_gene.get(
+				"gene_expression_tier",
+				""
+			)
+		) == "developing",
+		"legacy Gene items in inventory must migrate to the visible-impact score table"
+	)
+
 	for seed_value in range(93000, 93120):
 		var item := generator.generate_gene(definition, seed_value)
 		var rarity := String(item.get("rarity", ""))
