@@ -133,6 +133,7 @@ func _build() -> void:
 		{"id": &"crystallization", "label": "Kết tinh"},
 		{"id": &"gene_evolution", "label": "Gene & Tiến hóa"},
 		{"id": &"entertainment", "label": "Mini game"},
+		{"id": &"achievement", "label": "Thành tích"},
 		{"id": &"settings", "label": "Cài đặt"},
 	]
 
