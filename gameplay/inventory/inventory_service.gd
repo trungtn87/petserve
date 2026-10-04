@@ -15,6 +15,29 @@ func setup(
 	):
 		_meta["inventory"] = []
 
+	_normalize_stored_items()
+
+
+func _normalize_stored_items() -> void:
+	var stored: Array = _meta.get(
+		"inventory",
+		[]
+	)
+	var normalized: Array = []
+
+	for raw_item in stored:
+		if typeof(raw_item) != TYPE_DICTIONARY:
+			normalized.append(raw_item)
+			continue
+
+		normalized.append(
+			ItemGenerator.normalize_item(
+				raw_item as Dictionary
+			)
+		)
+
+	_meta["inventory"] = normalized
+
 
 func add_items(
 	items: Array[Dictionary]
@@ -29,7 +52,9 @@ func add_items(
 			continue
 
 		stored.append(
-			item.duplicate(true)
+			ItemGenerator.normalize_item(
+				item
+			)
 		)
 
 	_meta["inventory"] = stored
@@ -141,6 +166,14 @@ func can_use_in_stage(
 	gene_policy: StageGenePolicy = null
 ) -> bool:
 	if stage_index < 1 or stage_index >= StageLifecycle.FINAL_STAGE:
+		return false
+
+	if bool(
+		item.get(
+			"is_junk",
+			false
+		)
+	):
 		return false
 
 	var item_type := StringName(

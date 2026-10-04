@@ -893,13 +893,13 @@ func _show_item_detail(
 	var rarity := String(
 		item.get(
 			"rarity",
-			"common"
+			""
 		)
 	)
-	var quality := String(
+	var is_junk := bool(
 		item.get(
-			"quality",
-			"normal"
+			"is_junk",
+			false
 		)
 	)
 
@@ -910,15 +910,15 @@ func _show_item_detail(
 		)
 	)
 	_detail_meta.text = (
-		"%s • %s"
-		% [
+		"PHẾ PHẨM"
+		if is_junk
+		else (
 			_facade.rarity_label(
 				rarity
-			),
-			_facade.quality_label(
-				quality
-			),
-		]
+			)
+			if not rarity.is_empty()
+			else "VẬT PHẨM"
+		)
 	)
 	_detail_meta.add_theme_color_override(
 		"font_color",
@@ -931,14 +931,20 @@ func _show_item_detail(
 	)
 
 	var detail_lines: Array[String] = []
-	var mods := _mods(
-		item
-	)
 
-	if not mods.is_empty():
+	if is_junk:
 		detail_lines.append(
-			mods
+			"Vật phẩm rác • không có rarity • chỉ dùng để phân giải."
 		)
+	else:
+		var mods := _mods(
+			item
+		)
+
+		if not mods.is_empty():
+			detail_lines.append(
+				mods
+			)
 
 	if StringName(
 		item.get(
@@ -973,9 +979,13 @@ func _show_item_detail(
 	_detail_use_button.visible = allow_use
 	_detail_use_button.disabled = not usable
 	_detail_use_button.text = (
-		"DÙNG"
-		if usable
-		else "CHƯA THỂ DÙNG"
+		"PHẾ PHẨM"
+		if is_junk
+		else (
+			"DÙNG"
+			if usable
+			else "CHƯA THỂ DÙNG"
+		)
 	)
 	_detail_salvage_button.visible = allow_use
 	_detail_salvage_button.disabled = not allow_use
