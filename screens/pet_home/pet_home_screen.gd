@@ -4647,7 +4647,6 @@ func _open_settings() -> void:
 	_audio_volume("Âm lượng nhạc", "music_volume", 0.45)
 	_section_button("Kết nối 2 người • Wi-Fi / Bluetooth", _open_local_connection)
 	_section_button("Dữ liệu • Sao lưu / Khôi phục", _open_backup)
-	_section_button("Lưu tiến trình", func(): _hud.show_message("Đã lưu" if _game.save() else "Chưa lưu được. Hãy thử lại."))
 	_section_overlay.visible = true
 
 
