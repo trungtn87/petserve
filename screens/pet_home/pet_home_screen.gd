@@ -2337,43 +2337,13 @@ func _section_button(text: String, callback: Callable) -> Button:
 	return button
 
 func _open_storage() -> void:
-	_prepare_section("Kho tài nguyên")
+	_prepare_section("Rương", &"chest")
 	var state := _game.snapshot()
-	var crystal := _crystallization_snapshot()
-	var unlocked_slots := int(
-		crystal.get(
-			"unlocked_slots",
-			1
-		)
-	)
-	var running_count := int(
-		crystal.get(
-			"running_count",
-			0
-		)
-	)
-	var ready_count := int(
-		crystal.get(
-			"ready_count",
-			0
-		)
-	)
-	var crystal_text := (
-		"%d thành phẩm chờ nhận" % ready_count
-		if ready_count > 0
-		else (
-			"Đang chạy %d/%d ô"
-			% [
-				running_count,
-				unlocked_slots,
-			]
-			if running_count > 0
-			else "Sẵn sàng • %d ô" % unlocked_slots
-		)
-	)
 
-	_add_info_row("Rương", str(state.get("pending_chests", 0)))
-	_add_info_row("Vật phẩm", str(state.get("inventory_count", 0)))
+	_add_info_row(
+		"Rương đang có",
+		str(state.get("pending_chests", 0))
+	)
 	_add_info_row(
 		"Mảnh rương",
 		"%d/%d" % [
@@ -2381,10 +2351,10 @@ func _open_storage() -> void:
 			int(state.get("chest_fragments_required", 10)),
 		]
 	)
-	_add_info_row("Kết tinh", crystal_text)
-	_section_button("RƯƠNG • Mở rương kế tiếp", _open_chest)
-	_section_button("HÒM VẬT PHẨM", func(): _close_section(); _hud.open_inventory())
-	_section_button("KẾT TINH NGUYÊN TỐ", _open_crystallization)
+	_section_button(
+		"MỞ RƯƠNG KẾ TIẾP",
+		_open_chest
+	)
 	_section_overlay.visible = true
 
 
