@@ -331,11 +331,50 @@ func _build_main_hud() -> void:
 		accent
 	)
 
-
-	_build_bottom_actions(
-		panel_color,
-		accent
+	_menu_button = Button.new()
+	_menu_button.name = "MenuButton"
+	_menu_button.text = "☰"
+	_menu_button.focus_mode = Control.FOCUS_NONE
+	_menu_button.anchor_left = 0.855
+	_menu_button.anchor_top = 0.900
+	_menu_button.anchor_right = 0.955
+	_menu_button.anchor_bottom = 0.965
+	_menu_button.add_theme_font_size_override(
+		"font_size",
+		19
 	)
+	_menu_button.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	var menu_bg := panel_color
+	menu_bg.a = 0.80
+
+	_menu_button.add_theme_stylebox_override(
+		"normal",
+		PetHomeThemeScript.panel_style(
+			menu_bg,
+			accent,
+			13
+		)
+	)
+	_menu_button.add_theme_stylebox_override(
+		"hover",
+		PetHomeThemeScript.panel_style(
+			panel_color.lightened(0.08),
+			accent,
+			13
+		)
+	)
+	_menu_button.pressed.connect(
+		_on_menu_pressed
+	)
+	add_child(_menu_button)
+
+
 
 func _build_bottom_actions(
 	panel_color: Color,
@@ -2297,6 +2336,13 @@ func _refresh_gameplay() -> void:
 	if _menu_notice_badge != null:
 		_menu_notice_badge.visible = menu_notice
 	if _menu_button != null:
+		# Giao diện d4 dùng nút Menu nổi; chấm nhỏ thay cho badge đỏ.
+		if _menu_notice_badge == null:
+			_menu_button.text = (
+				"☰ •"
+				if menu_notice
+				else "☰"
+			)
 		_menu_button.tooltip_text = (
 			"Có việc cần xử lý"
 			if menu_notice
@@ -2308,6 +2354,7 @@ func _refresh_gameplay() -> void:
 			evolution_ready
 		)
 	_refresh_crystallization_section()
+
 
 func _notification(what: int) -> void:
 	if _hud == null or _suppress_exit_save:
