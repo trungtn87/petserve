@@ -50,6 +50,7 @@ var _active_section: StringName = &""
 var _section_return_to_menu: bool = false
 var _hub_return_to_menu: bool = false
 var _hud_return_to_menu: bool = false
+var _chest_result_return_to_storage: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 var _crystal_ready_count: int = -1
@@ -909,8 +910,10 @@ func _on_menu_pressed() -> void:
 	if _drawer.is_open():
 		_drawer.close_drawer()
 	else:
+		# Menu chỉ mở khi người chơi chủ động bấm nút Menu.
 		_section_return_to_menu = false
 		_hub_return_to_menu = false
+		_hud_return_to_menu = false
 		_drawer.open_drawer()
 
 
@@ -918,22 +921,13 @@ func _on_drawer_action(
 	action_id: StringName
 ) -> void:
 	_drawer.close_drawer()
-	_section_return_to_menu = action_id in [
-		&"crystallization",
-		&"pet_info",
-		&"chest",
-		&"gene_evolution",
-		&"evolution",
-		&"achievement",
-		&"settings",
-	]
-	_hub_return_to_menu = (
-		action_id == &"entertainment"
-	)
-	_hud_return_to_menu = action_id in [
-		&"inventory",
-		&"gene",
-	]
+
+	# Mọi chức năng mở từ Menu đều đóng về PetHome.
+	# Drawer chỉ được hiện lại khi người chơi bấm nút Menu.
+	_section_return_to_menu = false
+	_hub_return_to_menu = false
+	_hud_return_to_menu = false
+	_chest_result_return_to_storage = false
 
 	match action_id:
 		&"inventory":
@@ -1026,11 +1020,11 @@ func _open_gene_evolution() -> void:
 
 
 func _open_gene_inventory_from_gene_evolution() -> void:
-	# Các màn mở từ Menu đóng bằng X sẽ quay lại Menu chính.
+	# Kho Gene là màn con; đóng bằng X vẫn trở về PetHome, không tự mở Menu.
 	_section_overlay.visible = false
 	_active_section = &""
 	_section_return_to_menu = false
-	_hud_return_to_menu = true
+	_hud_return_to_menu = false
 	_open_inventory_overlay(
 		ItemGenerator.TYPE_GENE
 	)
@@ -2199,11 +2193,7 @@ func _close_section() -> void:
 	_crystal_slot_views.clear()
 	_crystal_unlocked_slots = 0
 	_section_overlay.visible = false
-
-	if _section_return_to_menu:
-		_section_return_to_menu = false
-		if _drawer != null:
-			_drawer.open_drawer()
+	_section_return_to_menu = false
 
 
 func _setup_gameplay() -> void:
@@ -3173,11 +3163,20 @@ func _format_crystal_time(
 func _open_chest() -> void:
 	if _hud._chest_animating:
 		return
+
 	var items := _game.open_next_chest()
 	if items.is_empty():
 		_hud.show_message("Không có rương hoặc chưa lưu được. Hãy thử lại.")
 		return
-	_close_section()
+
+	# Luồng rương: Rương -> hiệu ứng -> kết quả -> quay lại Rương.
+	# Không dùng _close_section() ở đây vì màn kết quả có đích quay lại riêng.
+	_active_section = &""
+	_crystal_slot_views.clear()
+	_crystal_unlocked_slots = 0
+	_section_overlay.visible = false
+	_section_return_to_menu = false
+	_chest_result_return_to_storage = true
 	_hud.show_chest_rewards(items)
 	_refresh_gameplay()
 
@@ -3266,21 +3265,20 @@ func _open_games() -> void:
 
 
 func _on_entertainment_closed() -> void:
-	if not _hub_return_to_menu:
-		return
-
+	# Đóng Giải trí luôn trở về PetHome.
 	_hub_return_to_menu = false
-	if _drawer != null:
-		_drawer.open_drawer()
 
 
 func _on_hud_overlay_closed() -> void:
-	if not _hud_return_to_menu:
+	# Kết quả mở rương là ngoại lệ duy nhất: đóng kết quả quay lại Rương.
+	if _chest_result_return_to_storage:
+		_chest_result_return_to_storage = false
+		_hud_return_to_menu = false
+		_open_storage()
 		return
 
+	# Hòm vật phẩm / Gene đóng về PetHome; không tự mở Menu.
 	_hud_return_to_menu = false
-	if _drawer != null:
-		_drawer.open_drawer()
 
 
 func _reward(match_id: String) -> void:
