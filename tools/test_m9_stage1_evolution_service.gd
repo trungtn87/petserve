@@ -416,7 +416,7 @@ func _test_gene_stage_one_plan() -> void:
 			"gentle elemental glow"
 		)
 		and request.positive_prompt.contains(
-			"Apply only these Gene changes selected by code."
+			"Apply only these Gene changes selected by code:"
 		)
 		and request.positive_prompt.contains(
 			"Target phenotype from game code:"
