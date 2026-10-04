@@ -15,10 +15,9 @@ func _init() -> void:
 		for move in solution:
 			var source := int(move.get("from", -1))
 			var destination := int(move.get("to", -1))
-			var select_result := game.tap_tube(source)
-			_check(bool(select_result.get("ok", false)), "Không chọn được ống lời giải ở màn %d." % level)
-			var move_result := game.tap_tube(destination)
-			_check(bool(move_result.get("moved", false)), "Lời giải sinh ra có bước không hợp lệ ở màn %d." % level)
+			_check(game.can_move(source, destination), "Lời giải có bước kéo-thả không hợp lệ ở màn %d." % level)
+			var move_result := game.move_ball(source, destination)
+			_check(bool(move_result.get("moved", false)), "Không kéo-thả được tinh thể lời giải ở màn %d." % level)
 
 		_check(game.is_solved(), "Lời giải sinh ra không giải được màn %d." % level)
 
@@ -33,7 +32,7 @@ func _init() -> void:
 	_check(String(BallSortGame.config_for_level(30).get("rank", "")) == "EXPERT", "Mỗi 30 màn phải có Expert.")
 	_check(String(BallSortGame.config_for_level(20).get("rank", "")) == "HARD", "Mỗi 10 màn phải có Hard.")
 
-	print("PASS: Ball Sort generator, scaling and guaranteed solution")
+	print("PASS: Ball Sort drag-drop, generator, scaling and guaranteed solution")
 	quit()
 
 
