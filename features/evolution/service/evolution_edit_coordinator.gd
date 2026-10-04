@@ -980,6 +980,9 @@ func build_stage_regenerate_request(
 				]
 			)
 
+	if not deltas.is_empty():
+		positive_prompt += _gene_visibility_lock()
+
 	var mythic_mode := StringName(
 		mythic_resolution.get(
 			"mode",
@@ -1194,6 +1197,9 @@ func _build_reference_stage_request(
 					visual.preserve_hint(),
 				]
 			)
+
+	if not deltas.is_empty():
+		positive_prompt += _gene_visibility_lock()
 
 	var mythic_mode := StringName(
 		mythic_resolution.get(
@@ -1586,6 +1592,17 @@ func _local_edit_boundary(
 			+ "limb count, paw count, pose, face identity, markings, silhouette "
 			+ "and scene composition unchanged."
 		) % String(target_region)
+	)
+
+
+func _gene_visibility_lock() -> String:
+	return (
+		"\n\n[GENE VISIBILITY LOCK]\n"
+		+ "One or more Gene Items were consumed for this evolution. "
+		+ "Every code-selected Gene change must be visibly readable in the final pet. "
+		+ "Do not let natural maturation, fur growth, pose changes or elemental effects hide the Gene result. "
+		+ "The dominant current-stage Gene must be obvious at first glance while remaining anatomically believable. "
+		+ "Rarity and accumulated score control intensity; they do not control whether the Gene appears."
 	)
 
 
