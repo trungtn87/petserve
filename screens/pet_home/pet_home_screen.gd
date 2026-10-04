@@ -52,6 +52,9 @@ var _hub_return_to_menu: bool = false
 var _hud_return_to_menu: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
+var _crystal_ready_count: int = -1
+var _crystal_show_ready: bool = false
+var _claim_popup: Control
 
 
 func _ready() -> void:
@@ -887,6 +890,12 @@ func _on_drawer_action(
 		&"inventory":
 			_hud.open_inventory()
 		&"crystallization":
+			_crystal_show_ready = int(
+				_crystallization_snapshot().get(
+					"ready_count",
+					0
+				)
+			) > 0
 			_open_crystallization()
 		&"gene":
 			_hud.open_inventory(
@@ -2414,6 +2423,134 @@ func _open_crystallization() -> void:
 		4
 	)
 	_crystal_unlocked_slots = unlocked_slots
+	_crystal_ready_count = int(
+		crystal.get(
+			"ready_count",
+			0
+		)
+	)
+
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override(
+		"separation",
+		6
+	)
+	_section_body.add_child(tabs)
+
+	for entry in [
+		["Đang kết tinh", false],
+		["Chờ nhận (%d)" % _crystal_ready_count, true],
+	]:
+		var tab := Button.new()
+		tab.text = String(entry[0])
+		tab.custom_minimum_size.y = 44
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.focus_mode = Control.FOCUS_NONE
+		tab.disabled = (
+			_crystal_show_ready
+			== bool(entry[1])
+		)
+		tab.pressed.connect(
+			func() -> void:
+				_crystal_show_ready = bool(entry[1])
+				_open_crystallization()
+		)
+		tabs.add_child(tab)
+
+	var banner := PanelContainer.new()
+	banner.custom_minimum_size.y = 116
+	var banner_bg: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	banner_bg.a = 0.90
+	var banner_accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	var banner_border := banner_accent
+	banner_border.a = 0.42
+	banner.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			banner_bg,
+			banner_border,
+			16
+		)
+	)
+	_section_body.add_child(banner)
+
+	var banner_row := HBoxContainer.new()
+	banner_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	banner_row.add_theme_constant_override(
+		"separation",
+		12
+	)
+	banner.add_child(banner_row)
+
+	var banner_icon := TextureRect.new()
+	banner_icon.texture = PetHomeArtScript.icon(1)
+	banner_icon.custom_minimum_size = Vector2(
+		82,
+		82
+	)
+	banner_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	banner_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	banner_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner_row.add_child(banner_icon)
+
+	var banner_text := VBoxContainer.new()
+	banner_text.add_theme_constant_override(
+		"separation",
+		3
+	)
+	banner_row.add_child(banner_text)
+
+	var banner_title := Label.new()
+	banner_title.text = "KHU KẾT TINH"
+	banner_title.add_theme_font_size_override(
+		"font_size",
+		17
+	)
+	banner_title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	banner_text.add_child(banner_title)
+
+	var banner_hint := Label.new()
+	banner_hint.text = (
+		"Thành phẩm không tự thu hoạch. "
+		+ "Hãy vào đây để nhận."
+	)
+	banner_hint.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	banner_hint.custom_minimum_size.x = 175
+	banner_hint.add_theme_font_size_override(
+		"font_size",
+		10
+	)
+	banner_hint.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"muted",
+			Color.WHITE
+		)
+	)
+	banner_text.add_child(banner_hint)
+
+	if (
+		_crystal_show_ready
+		and _crystal_ready_count == 0
+	):
+		_add_info_row(
+			"Chờ nhận",
+			"Chưa có thành phẩm"
+		)
 
 	_add_info_row(
 		"Nguyên tố",
@@ -2483,6 +2620,17 @@ func _open_crystallization() -> void:
 				slots[slot_index]
 				as Dictionary
 			)
+
+		if (
+			_crystal_show_ready
+			!= bool(
+				slot.get(
+					"ready_to_claim",
+					false
+				)
+			)
+		):
+			continue
 
 		_build_crystallization_slot_card(
 			grid,
@@ -2591,6 +2739,27 @@ func _build_crystallization_slot_card(
 	)
 	margin.add_child(
 		box
+	)
+
+	var crystal_icon := TextureRect.new()
+	crystal_icon.texture = PetHomeArtScript.icon(1)
+	crystal_icon.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
+	)
+	crystal_icon.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	)
+	crystal_icon.custom_minimum_size.y = 54
+	crystal_icon.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	crystal_icon.modulate.a = (
+		1.0
+		if unlocked
+		else 0.35
+	)
+	box.add_child(
+		crystal_icon
 	)
 
 	var header := HBoxContainer.new()
@@ -2759,7 +2928,20 @@ func _build_crystallization_slot_card(
 		)
 		action.disabled = true
 	elif ready_to_claim:
-		action.text = "NHẬN THÀNH PHẨM"
+		action.text = "Nhận\nthành phẩm"
+		action.custom_minimum_size.y = 52
+		action.add_theme_color_override(
+			"font_color",
+			Color.WHITE
+		)
+		action.add_theme_stylebox_override(
+			"normal",
+			PetHomeThemeScript.panel_style(
+				Color("36951c"),
+				Color("87bd45"),
+				14
+			)
+		)
 		action.pressed.connect(
 			_claim_crystallization.bind(
 				slot_index
@@ -2866,6 +3048,12 @@ func _claim_crystallization(
 	if bool(result.get("ok", false)):
 		_open_crystallization()
 		_refresh_gameplay()
+		_show_claim_popup(
+			result.get(
+				"reward",
+				{}
+			)
+		)
 
 
 func _cancel_crystallization(
@@ -2907,7 +3095,15 @@ func _refresh_crystallization_section() -> void:
 		4
 	)
 
-	if unlocked_slots != _crystal_unlocked_slots:
+	if (
+		unlocked_slots != _crystal_unlocked_slots
+		or int(
+			crystal.get(
+				"ready_count",
+				0
+			)
+		) != _crystal_ready_count
+	):
 		call_deferred(
 			"_open_crystallization"
 		)
@@ -4599,3 +4795,190 @@ func _open_backup() -> void:
 	)
 	_section_body.add_child(panel)
 	_section_overlay.visible = true
+
+
+
+func _show_claim_popup(
+	item: Dictionary
+) -> void:
+	if is_instance_valid(
+		_claim_popup
+	):
+		_claim_popup.queue_free()
+
+	_claim_popup = Control.new()
+	_claim_popup.name = "CrystallizationClaimPopup"
+	_claim_popup.set_anchors_and_offsets_preset(
+		Control.PRESET_FULL_RECT
+	)
+	_claim_popup.mouse_filter = (
+		Control.MOUSE_FILTER_STOP
+	)
+	add_child(
+		_claim_popup
+	)
+
+	var shade := ColorRect.new()
+	shade.set_anchors_preset(
+		Control.PRESET_FULL_RECT
+	)
+	shade.color = Color(
+		0.02,
+		0.04,
+		0.04,
+		0.80
+	)
+	_claim_popup.add_child(
+		shade
+	)
+
+	var panel := PanelContainer.new()
+	panel.anchor_left = 0.08
+	panel.anchor_right = 0.92
+	panel.anchor_top = 0.22
+	panel.anchor_bottom = 0.78
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = 0.98
+	var accent: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			accent,
+			18
+		)
+	)
+	_claim_popup.add_child(
+		panel
+	)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		18
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		18
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		18
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		18
+	)
+	panel.add_child(
+		margin
+	)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override(
+		"separation",
+		12
+	)
+	margin.add_child(
+		box
+	)
+
+	var title := Label.new()
+	title.text = "Nhận thành phẩm"
+	title.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	title.add_theme_font_size_override(
+		"font_size",
+		23
+	)
+	title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	box.add_child(
+		title
+	)
+
+	var reward_icon := TextureRect.new()
+	reward_icon.texture = PetHomeArtScript.icon(1)
+	reward_icon.custom_minimum_size.y = 104
+	reward_icon.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
+	)
+	reward_icon.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	)
+	reward_icon.mouse_filter = (
+		Control.MOUSE_FILTER_IGNORE
+	)
+	box.add_child(
+		reward_icon
+	)
+
+	var display_name := String(
+		item.get(
+			"display_name",
+			item.get(
+				"name",
+				"Vật phẩm kết tinh"
+			)
+		)
+	)
+	var label := Label.new()
+	label.text = (
+		"Bạn đã nhận được:\n%s ×1"
+		% display_name
+	)
+	label.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	label.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	box.add_child(
+		label
+	)
+
+	var confirm := Button.new()
+	confirm.text = "Xác nhận"
+	confirm.custom_minimum_size.y = 50
+	confirm.focus_mode = Control.FOCUS_NONE
+	confirm.add_theme_color_override(
+		"font_color",
+		Color.WHITE
+	)
+	confirm.add_theme_stylebox_override(
+		"normal",
+		PetHomeThemeScript.panel_style(
+			Color("36951c"),
+			Color("87bd45"),
+			16
+		)
+	)
+	confirm.pressed.connect(
+		func() -> void:
+			if is_instance_valid(
+				_claim_popup
+			):
+				_claim_popup.queue_free()
+	)
+	box.add_child(
+		confirm
+	)
