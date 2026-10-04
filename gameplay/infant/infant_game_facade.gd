@@ -5,6 +5,9 @@ extends RefCounted
 const ElementCrystallizationServiceScript = preload(
 	"res://gameplay/crystallization/element_crystallization_service.gd"
 )
+const ObstacleRunRecordsScript = preload(
+	"res://gameplay/entertainment/obstacle_run_records.gd"
+)
 
 
 const META_SCHEMA: int = 5
@@ -402,52 +405,54 @@ func claim_caro_win_reward(match_id: String = "") -> Dictionary:
 
 	return result
 
+func obstacle_records() -> Dictionary:
+	if not _meta.has("food_catch_records"):
+		_meta["food_catch_records"] = ObstacleRunRecordsScript.load_archive()
+	var value: Variant = _meta.get("food_catch_records", {})
+	return (value as Dictionary).duplicate(true) if typeof(value) == TYPE_DICTIONARY else {}
+
+
 func claim_obstacle_run_reward(
 	score: int,
 	match_id: String
 ) -> Dictionary:
-	var lifecycle_state := (
-		_lifecycle.snapshot()
-	)
-	var stage_index := int(
-		lifecycle_state.get(
-			"stage_index",
-			1
-		)
-	)
-	var before := _meta.duplicate(
-		true
-	)
-	var result := (
-		_entertainment.claim_obstacle_run(
-			_run_id,
-			maxi(
-				0,
-				score
-			),
-			match_id,
-			stage_index
-		)
+	var lifecycle_state := _lifecycle.snapshot()
+	var stage_index := int(lifecycle_state.get("stage_index", 1))
+	var before := _meta.duplicate(true)
+
+	if not _meta.has("food_catch_records"):
+		_meta["food_catch_records"] = ObstacleRunRecordsScript.load_archive()
+	var records: Dictionary = _meta["food_catch_records"]
+	var record_result := ObstacleRunRecordsScript.record(
+		records,
+		maxi(0, score),
+		0,
+		match_id,
+		int(Time.get_unix_time_from_system())
 	)
 
-	if bool(
-		result.get(
-			"rewarded",
-			false
-		)
-	):
+	var result := _entertainment.claim_obstacle_run(
+		_run_id,
+		maxi(0, score),
+		match_id,
+		stage_index,
+		bool(record_result.get("new_top1", false))
+	)
+
+	if bool(result.get("rewarded", false)):
 		if not save():
-			_restore(
-				before
-			)
+			_restore(before)
 			return {
 				"ok": false,
 				"rewarded": false,
 				"message": "Chưa lưu được phần thưởng. Hãy thử lại.",
 			}
+		ObstacleRunRecordsScript.save_archive(records)
 
+	result["rank"] = int(record_result.get("rank", 0))
+	result["new_top1"] = bool(record_result.get("new_top1", false))
+	result["best_score"] = int(record_result.get("best_score", 0))
 	return result
-
 func inventory(
 	filter_type: StringName = &""
 ) -> Array[Dictionary]:

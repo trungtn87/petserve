@@ -1,45 +1,38 @@
-# Né vật rơi
+# Ăn vật rơi
 
-Thay gameplay chạy ngang cũ trong cùng slot `ObstacleRun` của PetHome. Tên class/save key được giữ để tương thích code và dữ liệu đã có.
+Giữ class/save key `ObstacleRun` để tương thích code cũ, nhưng gameplay đã chuyển từ **né vật rơi** sang **ăn vật rơi**.
 
 ## Gameplay
 
-- Màn chơi dọc 320x420.
-- Pet đứng ở vùng đáy và chỉ di chuyển trái/phải.
+- Màn chơi dọc 320×420.
+- Pet di chuyển trái/phải.
 - Mobile: chạm/kéo trực tiếp trên playfield.
 - Desktop: phím Trái/Phải.
-- Ván bắt đầu ở lần điều khiển đầu tiên.
-- Sống sót 40 giây với 3 mạng.
-- Đá, thùng và quả cầu rơi từ trên xuống.
-- Tốc độ rơi tăng dần từ 130 lên 205.
-- Tần suất sinh tăng dần từ khoảng 1,00 giây xuống 0,62 giây.
-- Nửa sau trận có thể xuất hiện 2 vật cùng hàng; hệ 5 lane luôn còn nhiều đường né.
-- Va chạm mất 1 mạng và có 1,15 giây bảo vệ.
-- Né một vật qua khỏi pet được cộng vào bộ đếm và điểm.
+- Không giới hạn thời gian; ván chỉ kết thúc khi mất đủ 3 mạng.
+- Vật viền xanh là đồ ăn: chạm vào để ăn và cộng điểm.
+- Vật viền đỏ là vật không ăn được: đá, lon, chất độc; chạm vào mất 1 mạng.
+- Độ khó tăng dần theo thời gian rồi giữ ở mức trần.
+- Đồ ăn có nhiều mức điểm; vật hiếm cho điểm cao hơn.
 
-## Điểm
+## Điểm và thưởng
 
-- 10 điểm mỗi giây sống.
-- 60 điểm mỗi vật né được.
-- Khi thắng: +500 và +400 cho mỗi mạng còn lại.
-- Reward tier vẫn dùng ngưỡng cũ 1000 / 2000 / 3000 để không làm thay đổi kinh tế Stage 2.
+- Điểm chỉ tăng khi ăn vật phẩm hợp lệ.
+- 500 điểm = 1 mảnh rương.
+- Tối đa 10 mảnh rương mỗi ván.
+- Ván rất ngắn vẫn nhận 1 mảnh tham gia.
+- Khi lập **Top 1 mới** trên bảng xếp hạng thiết bị: thưởng thêm 1 rương.
+- Match ID được lưu để chống nhận thưởng trùng.
 
-## Tương thích save
+## Bảng xếp hạng
 
-- Reward service vẫn dùng storage key legacy `maze_hunt`.
-- Claim cũ, match ID, shared cap 4 rương Stage 2 với Snake vẫn giữ nguyên.
-- Chỉ tên hiển thị đổi thành **Né vật rơi**.
+- Lưu Top 10 điểm cao nhất trên thiết bị.
+- Xếp theo điểm giảm dần; nếu bằng điểm thì ván hoàn thành trước đứng trên.
+- Dữ liệu có archive riêng để giữ qua vòng đời pet.
 
 ## Code boundaries
 
-- `gameplay/entertainment/obstacle_run_game.gd`: fixed-step simulation, điều khiển ngang, spawn vật rơi, collision, score/result.
-- `screens/entertainment/obstacle_run_board.gd`: board dọc, vẽ pet/vật rơi, touch/drag mapping.
-- `screens/entertainment/obstacle_run_activity_ui.gd`: HUD, keyboard axis, round lifecycle, reward request.
-- `MiniGameRewardService`: persistence, tier, dedup và shared reward cap.
-
-## Verification
-
-```sh
-godot --headless --editor --path . --import
-XDG_DATA_HOME=/tmp/petverse-falling-dodge godot --headless --path . tools/test_obstacle_run.tscn
-```
+- `gameplay/entertainment/obstacle_run_game.gd`: simulation, spawn, collision, score.
+- `gameplay/entertainment/obstacle_run_records.gd`: Top 10 và kỷ lục.
+- `screens/entertainment/obstacle_run_board.gd`: hiển thị pet, đồ ăn, vật cấm.
+- `screens/entertainment/obstacle_run_activity_ui.gd`: HUD, BXH, lifecycle và settle thưởng.
+- `MiniGameRewardService`: thưởng theo điểm và chống claim trùng.

@@ -7,6 +7,9 @@ const MAX_INFANT_CARO_REWARDS := 1
 const MAX_STAGE2_ACTIVITY_REWARDS := 1
 const MAX_DAILY_FRAGMENTS := 10
 const META_KEY := "daily_game_rewards_v2"
+const FOOD_CATCH_REWARD_KEY := "food_catch_score_rewards_v1"
+const FOOD_CATCH_SCORE_STEP := 500
+const FOOD_CATCH_MAX_FRAGMENTS := 10
 var _meta: Dictionary = {}
 var _chests: ChestService
 
@@ -70,11 +73,53 @@ func snapshot(_run_id: int) -> Dictionary:
 func claim_caro_win(run_id: int, stage_index: int = 1, _enabled: bool = true, match_id: String = "") -> Dictionary:
 	return claim_game(run_id, stage_index, "caro_3x3", match_id)
 
-func claim_obstacle_run(run_id: int, _score: int, match_id: String, stage_index: int = 2) -> Dictionary:
-	return claim_game(run_id, stage_index, "maze_hunt", match_id)
+func claim_obstacle_run(
+	run_id: int,
+	score: int,
+	match_id: String,
+	stage_index: int = 2,
+	top1_bonus: bool = false
+) -> Dictionary:
+	var clean_id := match_id.strip_edges()
+	if clean_id.is_empty():
+		return {"ok": false, "rewarded": false, "message": "Ván chơi không hợp lệ."}
+
+	var reward_state: Dictionary = _meta.get(FOOD_CATCH_REWARD_KEY, {})
+	var ids_value: Variant = reward_state.get("ids", [])
+	var ids: Array = (ids_value as Array).duplicate() if typeof(ids_value) == TYPE_ARRAY else []
+	if ids.has(clean_id):
+		return {"ok": false, "rewarded": false, "message": "Ván này đã chốt thưởng."}
+
+	var safe_score := maxi(0, score)
+	var fragments := obstacle_reward_tier(safe_score)
+	var crafted := _chests.add_salvage_fragments(fragments, run_id, stage_index)
+	var bonus_chests := 0
+	if top1_bonus and _chests.grant_bonus_chest("food_catch_top1_%s" % clean_id, stage_index):
+		bonus_chests = 1
+
+	ids.append(clean_id)
+	if ids.size() > 100:
+		ids = ids.slice(ids.size() - 100)
+	reward_state["ids"] = ids
+	reward_state["last_score"] = safe_score
+	reward_state["last_fragments"] = fragments
+	_meta[FOOD_CATCH_REWARD_KEY] = reward_state
+
+	var message := "%d điểm • +%d mảnh rương" % [safe_score, fragments]
+	if crafted > 0:
+		message += " • Ghép thêm %d rương" % crafted
+	if bonus_chests > 0:
+		message += " • TOP 1 mới: +1 rương"
+
+	return {
+		"ok": true, "rewarded": true, "reward_type": "score",
+		"score": safe_score, "fragments": fragments, "crafted": crafted,
+		"bonus_chests": bonus_chests, "chests": bonus_chests, "message": message,
+	}
+
 
 func obstacle_reward_tier(score: int) -> int:
-	return clampi(1 + score / 1000, 1, 4)
+	return clampi(int(ceil(float(maxi(1, score)) / float(FOOD_CATCH_SCORE_STEP))), 1, FOOD_CATCH_MAX_FRAGMENTS)
 
 func claim_energy_2048(run_id: int, stage_index: int, match_id: String) -> Dictionary:
 	var data: Dictionary = _meta.get("energy_2048", {})

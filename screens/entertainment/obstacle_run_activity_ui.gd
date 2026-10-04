@@ -416,18 +416,12 @@ func _show_ranking() -> void:
 				10
 			)
 			text += (
-				"%d. %d điểm • Ăn %d\n    %s\n"
+				"%d. %d điểm\n    %s\n"
 				% [
 					index + 1,
 					int(
 						entry.get(
 							"score",
-							0
-						)
-					),
-					int(
-						entry.get(
-							"eaten",
 							0
 						)
 					),

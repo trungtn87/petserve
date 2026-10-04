@@ -402,8 +402,8 @@ func _build_hub_screen(
 	)
 
 	_obstacle_card = _activity_card(
-		"Né vật rơi",
-		"Kéo pet trái/phải",
+		"Ăn vật rơi",
+		"Vô hạn • Thưởng theo điểm • BXH",
 		true,
 		_open_obstacle,
 		"◆"
@@ -627,6 +627,7 @@ func _open_obstacle() -> void:
 		_hub_screen.visible = false
 
 	if _obstacle_activity != null:
+		_obstacle_activity.game_api = energy_2048_api
 		_obstacle_activity.set_reward_status(
 			_stage2_reward_claimed,
 			_stage2_reward_max,
@@ -693,7 +694,10 @@ func _sync_reward_state() -> void:
 
 
 func _update_stage2_card_subtitles() -> void:
-	_set_card_subtitle(_obstacle_card, "1 rương/ngày • Tối đa 10 mảnh")
+	_set_card_subtitle(
+		_obstacle_card,
+		"500 điểm = 1 mảnh • Top 1 mới +1 rương"
+	)
 
 
 func _set_card_subtitle(
@@ -716,7 +720,10 @@ func _update_hub_reward_label() -> void:
 	if _reward_label == null:
 		return
 
-	_reward_label.text = "Mỗi game: 1 rương/ngày, dùng chung mọi chế độ.\nChơi thêm: 1 mảnh/ván, tối đa 10 mảnh/game/ngày. Không khóa Stage."
+	_reward_label.text = (
+		"Phần lớn mini game dùng thưởng hằng ngày.\n"
+		+ "Ăn vật rơi: thưởng riêng theo điểm, Top 1 mới +1 rương."
+	)
 
 
 func _on_caro_reward_requested(match_id: String) -> void:
