@@ -492,8 +492,8 @@ func _input(event: InputEvent) -> void:
 			_touches[event.index] = event.position
 			if _touches.size() >= 2:
 				_begin_pinch()
-		else:
-			_handle_piece_motion(event.position)
+			else:
+				_handle_piece_motion(event.position)
 		else:
 			if _pinching:
 				_touches.erase(event.index)
