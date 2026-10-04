@@ -46,6 +46,7 @@ var _detail_use_button: Button
 var _detail_salvage_button: Button
 var _detail_item: Dictionary = {}
 var _detail_allow_use: bool = false
+var _inventory_filter: StringName = &""
 var _evolve_button: Button
 var _stage_label: Label
 var _stage_index: int = 1
@@ -200,14 +201,24 @@ func refresh_status(s: Dictionary) -> void:
 func open_inventory(filter_type: StringName = &"") -> void:
 	if _facade == null:
 		return
+
+	_inventory_filter = filter_type
 	_hide_item_detail()
 	_title.text = "HÒM VẬT PHẨM"
 	_filters.visible = true
-	_fill(_facade.inventory(filter_type), true)
-	_layout_overlay()
-	_overlay.visible = true
+	_fill(
+		_facade.inventory(
+			_inventory_filter
+		),
+		true
+	)
 
-var _chest_animating := false
+	# Hiện overlay trước khi layout để Container có kích thước thật ngay lần mở đầu.
+	_overlay.visible = true
+	_layout_overlay()
+	call_deferred(
+		"_layout_overlay"
+	)
 
 func show_chest_rewards(items: Array[Dictionary]) -> void:
 	if _chest_animating:
@@ -739,13 +750,13 @@ func _item_tile(
 
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	center.custom_minimum_size.y = 64
+	center.custom_minimum_size.y = 52
 	box.add_child(center)
 
 	var icon = PetHomeItemIconScript.new()
 	icon.custom_minimum_size = Vector2(
-		58,
-		58
+		44,
+		44
 	)
 	icon.configure(
 		item,
@@ -1041,8 +1052,8 @@ func _show_item_detail(
 
 	var icon = PetHomeItemIconScript.new()
 	icon.custom_minimum_size = Vector2(
-		104,
-		104
+		86,
+		86
 	)
 	icon.configure(
 		item,
@@ -1144,9 +1155,13 @@ func _show_item_detail(
 	_detail_salvage_button.visible = allow_use
 	_detail_salvage_button.disabled = not allow_use
 
-	_layout_overlay()
+	# Lần bấm đầu trước đây detail còn hidden khi tính layout nên PanelContainer
+	# có thể lấy minimum-size và tràn màn hình. Hiện trước rồi layout lại 2 nhịp.
 	_detail_overlay.visible = true
-
+	_layout_overlay()
+	call_deferred(
+		"_layout_overlay"
+	)
 
 func _hide_item_detail() -> void:
 	if _detail_overlay != null:
