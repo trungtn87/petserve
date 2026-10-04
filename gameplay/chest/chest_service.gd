@@ -1429,3 +1429,46 @@ func ensure_game_daily_chest(game_id: String, day: String, stage: int) -> void:
 	queue.append({"uid": uid, "chest_type": String(CHEST_RECYCLED), "game_id": game_id,
 		"day_key": day, "stage_index": clampi(stage, 1, StageLifecycle.FINAL_STAGE), "opened": false})
 	_meta["chest_queue"] = queue
+
+
+func grant_bonus_chest(
+	source_id: String,
+	stage: int
+) -> bool:
+	var clean_id := source_id.strip_edges()
+	if clean_id.is_empty():
+		return false
+
+	var uid := "bonus_%s" % clean_id
+	var queue: Array = _meta.get(
+		"chest_queue",
+		[]
+	)
+
+	for chest in queue:
+		if (
+			chest is Dictionary
+			and str(
+				chest.get(
+					"uid",
+					""
+				)
+			) == uid
+		):
+			return false
+
+	queue.append({
+		"uid": uid,
+		"chest_type": String(
+			CHEST_RECYCLED
+		),
+		"source_id": clean_id,
+		"stage_index": clampi(
+			stage,
+			1,
+			StageLifecycle.FINAL_STAGE
+		),
+		"opened": false,
+	})
+	_meta["chest_queue"] = queue
+	return true
