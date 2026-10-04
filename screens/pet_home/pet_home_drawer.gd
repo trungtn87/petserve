@@ -19,7 +19,7 @@ signal action_requested(action_id: StringName)
 # Giữ ngôn ngữ giao diện của commit d4d7ae57:
 # panel tối, card lớn, khoảng thở rõ và mở ngay phía trên nút Menu.
 const PANEL_WIDTH: float = 164.0
-const PANEL_HEIGHT: float = 526.0
+const PANEL_HEIGHT: float = 474.0
 const PANEL_TOP: float = 14.0
 const PANEL_RIGHT: float = 8.0
 const PANEL_GAP: float = 8.0
@@ -243,8 +243,7 @@ func _build() -> void:
 
 	_add_action(&"pet_info", "Thông tin pet")
 	_add_action(&"inventory", "Kho đồ")
-	_add_action(&"chest", "Rương")
-	_add_action(&"crystallization", "Kết tinh")
+	_add_action(&"chest", "Rương & Kết tinh")
 	_add_action(&"gene_evolution", "Gene & Tiến hóa")
 	_add_action(&"entertainment", "Mini game")
 	_add_action(&"achievement", "Thành tích")
@@ -543,8 +542,9 @@ func set_notifications(
 	crystallization_count: int,
 	evolution_ready: bool
 ) -> void:
-	if _badges.has(&"crystallization"):
-		_badges[&"crystallization"].visible = (
+	# Rương và Kết tinh dùng chung một mục menu.
+	if _badges.has(&"chest"):
+		_badges[&"chest"].visible = (
 			crystallization_count > 0
 		)
 
@@ -552,7 +552,6 @@ func set_notifications(
 		_badges[&"gene_evolution"].visible = (
 			evolution_ready
 		)
-
 
 func _layout_panel() -> void:
 	if _panel == null:
