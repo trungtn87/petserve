@@ -424,7 +424,7 @@ func _build_hub_screen(
 
 	grid.add_child(_activity_card("Phá gạch", "30 màn • Khó dần", true, _open_breakout, "▰"))
 
-	grid.add_child(_activity_card("Ghép hình pet", "20 / 50 / 100 mảnh", true, _open_jigsaw, "▧"))
+	grid.add_child(_activity_card("Ghép hình pet", "50 / 100 / 200 • thưởng 1–3 rương", true, _open_jigsaw, "▧"))
 
 	grid.add_child(_activity_card("Sudoku", "9×9 • Dễ / Vừa / Khó", true, _open_sudoku, "▦"))
 
