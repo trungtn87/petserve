@@ -862,6 +862,7 @@ func _on_drawer_action(
 		&"crystallization",
 		&"pet_info",
 		&"chest",
+		&"gene_evolution",
 		&"evolution",
 		&"achievement",
 		&"settings",
@@ -886,6 +887,7 @@ func _on_drawer_action(
 			) > 0
 			_open_crystallization()
 		&"gene":
+			# Backward compatibility for older callers.
 			_hud.open_inventory(
 				ItemGenerator.TYPE_GENE
 			)
@@ -895,15 +897,12 @@ func _on_drawer_action(
 			_open_storage()
 		&"entertainment":
 			_open_games()
-		&"evolution":
-			_open_pet_info_tab(
-				&"evolution"
-			)
+		&"gene_evolution", &"evolution":
+			_open_gene_evolution()
 		&"achievement":
 			_open_achievements()
 		&"settings":
 			_open_settings()
-
 
 func _add_pet_info_tab_button(
 	label_text: String,
@@ -949,27 +948,39 @@ func _open_pet_info() -> void:
 		PetHomeThemeScript.element_label(identity.element())
 	)
 
-	_add_pet_info_heading("Trạng thái", "▥")
-	_add_pet_status_meter(
-		"Độ no",
-		_pet_info_fullness_percent(state)
-	)
-	_add_pet_status_meter(
-		"Trưởng thành",
-		clampi(int(state.get("growth_percent", 0)), 0, 100)
-	)
-
 	_add_pet_info_heading("Kỹ năng", "★")
 	_add_pet_skill_rows(state)
 
+	_section_overlay.visible = true
+
+
+func _open_gene_evolution() -> void:
+	var state := _game.snapshot()
+
+	_prepare_section("Gene & Tiến hóa", &"gene_evolution")
+
 	_add_pet_info_heading("Gene", "⌘")
 	_add_pet_gene_rows(state)
+	_section_button(
+		"MỞ KHO GENE",
+		_open_gene_inventory_from_gene_evolution
+	)
 
 	_add_pet_info_heading("Tiến hóa", "↑")
-	_add_pet_evolution_button(state)
+	_populate_pet_evolution_tab()
 
 	_section_overlay.visible = true
 
+
+func _open_gene_inventory_from_gene_evolution() -> void:
+	# Các màn mở từ Menu đóng bằng X sẽ quay lại Menu chính.
+	_section_overlay.visible = false
+	_active_section = &""
+	_section_return_to_menu = false
+	_hud_return_to_menu = true
+	_hud.open_inventory(
+		ItemGenerator.TYPE_GENE
+	)
 
 func _add_pet_info_heading(
 	title: String,

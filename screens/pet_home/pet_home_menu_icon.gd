@@ -44,6 +44,8 @@ func _draw() -> void:
 			_draw_crystal(center)
 		&"gene":
 			_draw_gene(center)
+		&"gene_evolution":
+			_draw_gene_evolution(center)
 		&"food":
 			_draw_food(center)
 		&"chest":
@@ -137,6 +139,25 @@ func _draw_gene(center: Vector2) -> void:
 		draw_circle(left, 1.7, accent)
 		draw_circle(right, 1.7, secondary)
 		draw_line(left, right, Color("#FFF0A8"), 1.0, true)
+
+
+func _draw_gene_evolution(center: Vector2) -> void:
+	_draw_gene(center + Vector2(-4, 0))
+	var arrow_center := center + Vector2(9, 0)
+	draw_line(
+		arrow_center + Vector2(-3, -5),
+		arrow_center + Vector2(2, 0),
+		accent,
+		1.8,
+		true
+	)
+	draw_line(
+		arrow_center + Vector2(2, 0),
+		arrow_center + Vector2(-3, 5),
+		accent,
+		1.8,
+		true
+	)
 
 
 func _draw_evolution(center: Vector2) -> void:

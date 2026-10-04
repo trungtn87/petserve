@@ -46,10 +46,10 @@ func _build() -> void:
 
 	var panel := PanelContainer.new()
 	panel.name = "MenuPanel"
-	panel.anchor_left = 0.64
-	panel.anchor_top = 0.12
+	panel.anchor_left = 0.49
+	panel.anchor_top = 0.255
 	panel.anchor_right = 0.985
-	panel.anchor_bottom = 0.755
+	panel.anchor_bottom = 0.84
 	panel.offset_left = 0.0
 	panel.offset_top = 0.0
 	panel.offset_right = 0.0
@@ -131,8 +131,7 @@ func _build() -> void:
 		{"id": &"inventory", "label": "Kho đồ"},
 		{"id": &"chest", "label": "Rương"},
 		{"id": &"crystallization", "label": "Kết tinh"},
-		{"id": &"gene", "label": "Gene"},
-		{"id": &"evolution", "label": "Tiến hóa"},
+		{"id": &"gene_evolution", "label": "Gene & Tiến hóa"},
 		{"id": &"entertainment", "label": "Mini game"},
 		{"id": &"settings", "label": "Cài đặt"},
 	]
@@ -331,6 +330,11 @@ func set_notifications(
 		_badges[&"crystallization"].visible = (
 			crystallization_count > 0
 		)
+	if _badges.has(&"gene_evolution"):
+		_badges[&"gene_evolution"].visible = (
+			evolution_ready
+		)
+	# Backward compatibility for older drawer variants.
 	if _badges.has(&"evolution"):
 		_badges[&"evolution"].visible = (
 			evolution_ready
