@@ -399,16 +399,6 @@ func _prepare_resolved_stage(
 		target_stage
 	)
 
-	if mode == StageEvolutionResolver.MODE_GENE:
-		request.positive_prompt += (
-			"\n\n[GENE VISIBILITY LOCK]\n"
-			+ "One or more Gene Items were consumed for this evolution. "
-			+ "Every code-selected Gene change must be visibly readable in the final pet. "
-			+ "Do not let generic age growth, fur maturation or elemental decoration hide the Gene effect. "
-			+ "The dominant current-stage Gene should be obvious at first glance while remaining anatomically believable. "
-			+ "Rarity and accumulated score control intensity; they do not control whether the Gene appears."
-		)
-
 	if not gene_score_prompt.is_empty():
 		request.positive_prompt += (
 			"\n\n[ACCUMULATED GENE SCORE PHENOTYPE]\n"
