@@ -46,10 +46,10 @@ func _build() -> void:
 
 	var panel := PanelContainer.new()
 	panel.name = "MenuPanel"
-	panel.anchor_left = 0.62
-	panel.anchor_top = 0.105
+	panel.anchor_left = 0.64
+	panel.anchor_top = 0.12
 	panel.anchor_right = 0.985
-	panel.anchor_bottom = 0.855
+	panel.anchor_bottom = 0.755
 	panel.offset_left = 0.0
 	panel.offset_top = 0.0
 	panel.offset_right = 0.0
@@ -61,10 +61,10 @@ func _build() -> void:
 	add_child(panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 7)
-	margin.add_theme_constant_override("margin_top", 7)
-	margin.add_theme_constant_override("margin_right", 7)
-	margin.add_theme_constant_override("margin_bottom", 7)
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_top", 5)
+	margin.add_theme_constant_override("margin_right", 5)
+	margin.add_theme_constant_override("margin_bottom", 5)
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
@@ -73,12 +73,12 @@ func _build() -> void:
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override(
 		"separation",
-		4
+		3
 	)
 	margin.add_child(column)
 
 	var header := HBoxContainer.new()
-	header.custom_minimum_size.y = 36
+	header.custom_minimum_size.y = 30
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_theme_constant_override("separation", 3)
 	column.add_child(header)
@@ -91,7 +91,7 @@ func _build() -> void:
 	)
 	title.add_theme_font_size_override(
 		"font_size",
-		18
+		16
 	)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -101,8 +101,8 @@ func _build() -> void:
 	close.name = "Close"
 	close.text = "×"
 	close.focus_mode = Control.FOCUS_NONE
-	close.custom_minimum_size = Vector2(32, 32)
-	close.add_theme_font_size_override("font_size", 18)
+	close.custom_minimum_size = Vector2(28, 28)
+	close.add_theme_font_size_override("font_size", 16)
 	close.add_theme_color_override(
 		"font_color",
 		Color("f7d879")
@@ -156,7 +156,7 @@ func _add_entry(
 	)
 	button.text = ""
 	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(0, 46)
+	button.custom_minimum_size = Vector2(0, 39)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.add_theme_stylebox_override(
 		"normal",
@@ -181,9 +181,9 @@ func _add_entry(
 	icon_holder.anchor_top = 0.0
 	icon_holder.anchor_right = 0.0
 	icon_holder.anchor_bottom = 1.0
-	icon_holder.offset_left = 4.0
+	icon_holder.offset_left = 3.0
 	icon_holder.offset_top = 4.0
-	icon_holder.offset_right = 38.0
+	icon_holder.offset_right = 31.0
 	icon_holder.offset_bottom = -4.0
 	icon_holder.add_theme_stylebox_override(
 		"panel",
@@ -201,6 +201,7 @@ func _add_entry(
 		Color("f7d879"),
 		Color("c69745")
 	)
+	icon.custom_minimum_size = Vector2.ZERO
 	icon_holder.add_child(icon)
 
 	var caption := Label.new()
@@ -211,16 +212,17 @@ func _add_entry(
 	caption.anchor_top = 0.0
 	caption.anchor_right = 1.0
 	caption.anchor_bottom = 1.0
-	caption.offset_left = 43.0
-	caption.offset_right = -16.0
+	caption.offset_left = 35.0
+	caption.offset_right = -11.0
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	caption.add_theme_font_size_override("font_size", 10)
+	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
+	caption.add_theme_font_size_override("font_size", 9)
 	caption.add_theme_color_override(
 		"font_color",
 		Color("49331f")
 	)
+	caption.clip_text = true
 	button.add_child(caption)
 
 	var chevron := Label.new()
@@ -230,11 +232,11 @@ func _add_entry(
 	chevron.anchor_top = 0.0
 	chevron.anchor_right = 1.0
 	chevron.anchor_bottom = 1.0
-	chevron.offset_left = -15.0
-	chevron.offset_right = -3.0
+	chevron.offset_left = -10.0
+	chevron.offset_right = -1.0
 	chevron.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	chevron.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	chevron.add_theme_font_size_override("font_size", 20)
+	chevron.add_theme_font_size_override("font_size", 16)
 	chevron.add_theme_color_override(
 		"font_color",
 		Color("9b6f3f")
@@ -256,11 +258,11 @@ func _make_badge(parent: Control) -> Label:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.anchor_left = 1.0
 	label.anchor_right = 1.0
-	label.offset_left = -28.0
-	label.offset_right = -14.0
-	label.offset_top = 3.0
-	label.offset_bottom = 17.0
-	label.add_theme_font_size_override("font_size", 9)
+	label.offset_left = -25.0
+	label.offset_right = -13.0
+	label.offset_top = 2.0
+	label.offset_bottom = 14.0
+	label.add_theme_font_size_override("font_size", 8)
 	label.add_theme_color_override("font_color", Color.WHITE)
 
 	var bg := StyleBoxFlat.new()
@@ -279,10 +281,10 @@ static func _drawer_style() -> StyleBoxFlat:
 	style.bg_color = Color("f7e5bd")
 	style.border_color = Color("b78f58")
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(18)
+	style.set_corner_radius_all(16)
 	style.shadow_color = Color(0, 0, 0, 0.30)
-	style.shadow_size = 7
-	style.shadow_offset = Vector2(-3, 3)
+	style.shadow_size = 5
+	style.shadow_offset = Vector2(-2, 2)
 	return style
 
 
@@ -293,7 +295,7 @@ static func _menu_row_style(
 	style.bg_color = color
 	style.border_color = Color("d7b77b")
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(11)
+	style.set_corner_radius_all(7)
 	style.content_margin_left = 4
 	style.content_margin_right = 4
 	style.content_margin_top = 3
