@@ -128,6 +128,9 @@ jobs:
       - name: Breakout 30 maps, collisions, persistence, rewards and touch UI
         run: XDG_DATA_HOME=/tmp/petverse-test-breakout timeout 90 godot --headless --path . res://tools/test_breakout.tscn
 
+      - name: Jigsaw current pet, rotations, pinch zoom and rewards
+        run: XDG_DATA_HOME=/tmp/petverse-test-jigsaw timeout 120 godot --headless --path . res://tools/test_jigsaw.tscn
+
       - name: Breakout defensive playthrough for all 30 maps
         run: XDG_DATA_HOME=/tmp/petverse-test-breakout_playthrough timeout 90 godot --headless --path . --script tools/test_breakout_playthrough.gd
 
