@@ -177,15 +177,33 @@ func tap_tube(index: int) -> Dictionary:
 		return {"ok": true, "message": "Đã bỏ chọn."}
 
 	var source := _selected
-	if not _can_move(source, index):
+	return move_ball(source, index)
+
+
+func can_move(source: int, destination: int) -> bool:
+	if _result == RESULT_WON:
+		return false
+	return _can_move(source, destination)
+
+
+func move_ball(source: int, destination: int) -> Dictionary:
+	if source < 0 or source >= _tubes.size():
+		return {"ok": false, "message": "Ống nguồn không hợp lệ."}
+	if destination < 0 or destination >= _tubes.size():
+		return {"ok": false, "message": "Hãy thả tinh thể vào một ống đích."}
+	if _result == RESULT_WON:
+		return {"ok": false, "message": "Màn này đã hoàn thành."}
+	if source == destination:
+		return {"ok": false, "message": "Hãy kéo tinh thể sang một ống khác."}
+	if not _can_move(source, destination):
 		return {
 			"ok": false,
-			"message": "Chỉ đặt được lên màu giống nhau hoặc ống trống.",
+			"message": "Chỉ thả được lên màu giống nhau hoặc ống trống.",
 		}
 
 	var ball: int = int((_tubes[source] as Array).pop_back())
-	(_tubes[index] as Array).append(ball)
-	_history.append({"from": source, "to": index, "ball": ball})
+	(_tubes[destination] as Array).append(ball)
+	_history.append({"from": source, "to": destination, "ball": ball})
 	_moves += 1
 	_selected = -1
 
