@@ -574,9 +574,31 @@ func _open_food_shortcut() -> void:
 	if _drawer != null and _drawer.is_open():
 		_drawer.close_drawer()
 	if _hud != null:
-		_hud.open_inventory(
+		_open_inventory_overlay(
 			ItemGenerator.TYPE_FOOD
 		)
+
+
+func _open_inventory_overlay(
+	filter_type: StringName = &""
+) -> void:
+	if _hud == null:
+		return
+
+	# Bảo đảm Hòm vật phẩm luôn nằm trên các lớp PetHome khác.
+	# Đây cũng xử lý trường hợp mở từ Menu sau khi vừa đóng một section.
+	if _section_overlay != null:
+		_section_overlay.visible = false
+		_active_section = &""
+
+	if _drawer != null and _drawer.is_open():
+		_drawer.close_drawer()
+
+	_hud.show()
+	_hud.move_to_front()
+	_hud.open_inventory(
+		filter_type
+	)
 
 
 func _open_play_shortcut() -> void:
@@ -763,9 +785,9 @@ func _build_section_overlay() -> void:
 
 	var panel := PanelContainer.new()
 	panel.anchor_left = 0.07
-	panel.anchor_top = 0.10
+	panel.anchor_top = 0.06
 	panel.anchor_right = 0.93
-	panel.anchor_bottom = 0.90
+	panel.anchor_bottom = 0.94
 
 	var panel_color: Color = _theme.get(
 		"panel",
@@ -915,13 +937,13 @@ func _on_drawer_action(
 
 	match action_id:
 		&"inventory":
-			_hud.open_inventory()
+			_open_inventory_overlay()
 		&"crystallization", &"chest":
 			# crystallization giữ lại để tương thích với caller cũ.
 			_open_storage()
 		&"gene":
 			# Backward compatibility for older callers.
-			_hud.open_inventory(
+			_open_inventory_overlay(
 				ItemGenerator.TYPE_GENE
 			)
 		&"pet_info":
@@ -1009,7 +1031,7 @@ func _open_gene_inventory_from_gene_evolution() -> void:
 	_active_section = &""
 	_section_return_to_menu = false
 	_hud_return_to_menu = true
-	_hud.open_inventory(
+	_open_inventory_overlay(
 		ItemGenerator.TYPE_GENE
 	)
 
@@ -2478,29 +2500,6 @@ func _append_crystallization_slots() -> void:
 		)
 	)
 
-	var hint := Label.new()
-	hint.text = (
-		"Mỗi giai đoạn thú cưng mở thêm 1 ô kết tinh. "
-		+ "Khi hoàn thành, nút HỦY ngay dưới ô sẽ đổi thành NHẬN THÀNH PHẨM."
-	)
-	hint.autowrap_mode = (
-		TextServer.AUTOWRAP_WORD_SMART
-	)
-	hint.add_theme_font_size_override(
-		"font_size",
-		11
-	)
-	hint.add_theme_color_override(
-		"font_color",
-		_theme.get(
-			"muted",
-			Color.WHITE
-		)
-	)
-	_section_body.add_child(
-		hint
-	)
-
 	var grid := GridContainer.new()
 	grid.name = "CrystallizationSlots"
 	grid.columns = 2
@@ -2585,7 +2584,7 @@ func _build_crystallization_slot_card(
 	)
 	panel.custom_minimum_size = Vector2(
 		0,
-		178
+		132
 	)
 	panel.size_flags_horizontal = (
 		Control.SIZE_EXPAND_FILL
@@ -2629,7 +2628,7 @@ func _build_crystallization_slot_card(
 	)
 	margin.add_theme_constant_override(
 		"margin_top",
-		9
+		6
 	)
 	margin.add_theme_constant_override(
 		"margin_right",
@@ -2637,7 +2636,7 @@ func _build_crystallization_slot_card(
 	)
 	margin.add_theme_constant_override(
 		"margin_bottom",
-		9
+		6
 	)
 	panel.add_child(
 		margin
@@ -2646,31 +2645,10 @@ func _build_crystallization_slot_card(
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override(
 		"separation",
-		5
+		3
 	)
 	margin.add_child(
 		box
-	)
-
-	var crystal_icon := TextureRect.new()
-	crystal_icon.texture = PetHomeArtScript.icon(1)
-	crystal_icon.expand_mode = (
-		TextureRect.EXPAND_IGNORE_SIZE
-	)
-	crystal_icon.stretch_mode = (
-		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	)
-	crystal_icon.custom_minimum_size.y = 54
-	crystal_icon.mouse_filter = (
-		Control.MOUSE_FILTER_IGNORE
-	)
-	crystal_icon.modulate.a = (
-		1.0
-		if unlocked
-		else 0.35
-	)
-	box.add_child(
-		crystal_icon
 	)
 
 	var header := HBoxContainer.new()
@@ -2689,7 +2667,7 @@ func _build_crystallization_slot_card(
 	)
 	title.add_theme_font_size_override(
 		"font_size",
-		15
+		13
 	)
 	title.add_theme_color_override(
 		"font_color",
@@ -2753,7 +2731,7 @@ func _build_crystallization_slot_card(
 	)
 	stage_label.add_theme_font_size_override(
 		"font_size",
-		11
+		10
 	)
 	stage_label.add_theme_color_override(
 		"font_color",
@@ -2781,7 +2759,7 @@ func _build_crystallization_slot_card(
 	)
 	timer.add_theme_font_size_override(
 		"font_size",
-		16
+		14
 	)
 	timer.add_theme_color_override(
 		"font_color",
@@ -2802,11 +2780,11 @@ func _build_crystallization_slot_card(
 		if unlocked
 		else ""
 	)
-	last_result.custom_minimum_size.y = 18
+	last_result.custom_minimum_size.y = 15
 	last_result.clip_text = true
 	last_result.add_theme_font_size_override(
 		"font_size",
-		9
+		8
 	)
 	last_result.add_theme_color_override(
 		"font_color",
@@ -2829,7 +2807,7 @@ func _build_crystallization_slot_card(
 
 	var action := Button.new()
 	action.focus_mode = Control.FOCUS_NONE
-	action.custom_minimum_size.y = 38
+	action.custom_minimum_size.y = 34
 	if not unlocked:
 		action.text = (
 			"KHÓA • STAGE %s"
@@ -2839,8 +2817,12 @@ func _build_crystallization_slot_card(
 		)
 		action.disabled = true
 	elif ready_to_claim:
-		action.text = "Nhận\nthành phẩm"
-		action.custom_minimum_size.y = 52
+		action.text = "NHẬN THÀNH PHẨM"
+		action.custom_minimum_size.y = 38
+		action.add_theme_font_size_override(
+			"font_size",
+			10
+		)
 		action.add_theme_color_override(
 			"font_color",
 			Color.WHITE
