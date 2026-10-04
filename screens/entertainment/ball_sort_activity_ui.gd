@@ -14,10 +14,8 @@ var _board: BallSortBoard
 var _level_label: Label
 var _status_label: Label
 var _message_label: Label
-var _prev_button: Button
-var _next_button: Button
 var _undo_button: Button
-var _continue_button: Button
+var _hint_button: Button
 var _level := 1
 var _unlocked := 1
 var _settled := false
@@ -51,14 +49,13 @@ func close_activity() -> void:
 
 
 func _start_level(level: int) -> void:
-	_level = clampi(level, 1, maxi(1, _unlocked))
+	_level = maxi(1, level)
+	_unlocked = maxi(_unlocked, _level)
 	_game = BallSortGame.new()
 	_game.start_level(_level)
 	_board.set_game(_game)
 	_settled = false
-	_continue_button.visible = false
-	_continue_button.text = "MÀN TIẾP THEO"
-	_message_label.text = "Giữ tinh thể trên cùng rồi kéo sang ống đích."
+	_message_label.text = "Kéo tinh thể trên cùng sang ống phù hợp."
 	_sync()
 
 
@@ -69,57 +66,49 @@ func _build_ui() -> void:
 	add_child(root)
 
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
 	root.add_child(header)
 
 	var back := Button.new()
 	back.text = "‹"
-	back.custom_minimum_size = Vector2(44, 42)
+	back.tooltip_text = "Quay lại"
+	back.custom_minimum_size = Vector2(42, 42)
 	back.focus_mode = Control.FOCUS_NONE
 	back.pressed.connect(func() -> void: back_requested.emit())
 	header.add_child(back)
 
+	var title_box := VBoxContainer.new()
+	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_box.add_theme_constant_override("separation", 0)
+	header.add_child(title_box)
+
 	var title := Label.new()
 	title.text = "XẾP TINH THỂ"
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 15)
-	header.add_child(title)
+	title_box.add_child(title)
+
+	_level_label = Label.new()
+	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_level_label.add_theme_font_size_override("font_size", 11)
+	_level_label.add_theme_color_override(
+		"font_color",
+		palette.get("accent", Color.WHITE)
+	)
+	title_box.add_child(_level_label)
 
 	var restart := Button.new()
 	restart.text = "↻"
-	restart.custom_minimum_size = Vector2(44, 42)
+	restart.tooltip_text = "Chơi lại màn"
+	restart.custom_minimum_size = Vector2(42, 42)
 	restart.focus_mode = Control.FOCUS_NONE
 	restart.pressed.connect(_restart)
 	header.add_child(restart)
 
-	var level_row := HBoxContainer.new()
-	level_row.add_theme_constant_override("separation", 8)
-	root.add_child(level_row)
-
-	_prev_button = Button.new()
-	_prev_button.text = "‹"
-	_prev_button.custom_minimum_size = Vector2(48, 40)
-	_prev_button.pressed.connect(func() -> void: _change_level(-1))
-	level_row.add_child(_prev_button)
-
-	_level_label = Label.new()
-	_level_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_level_label.add_theme_font_size_override("font_size", 13)
-	level_row.add_child(_level_label)
-
-	_next_button = Button.new()
-	_next_button.text = "›"
-	_next_button.custom_minimum_size = Vector2(48, 40)
-	_next_button.pressed.connect(func() -> void: _change_level(1))
-	level_row.add_child(_next_button)
-
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_status_label.add_theme_font_size_override("font_size", 11)
+	_status_label.add_theme_font_size_override("font_size", 10)
 	_status_label.add_theme_color_override(
 		"font_color",
 		palette.get("muted", Color.WHITE)
@@ -136,52 +125,38 @@ func _build_ui() -> void:
 	_message_label = Label.new()
 	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_message_label.custom_minimum_size.y = 36
+	_message_label.custom_minimum_size.y = 30
+	_message_label.add_theme_font_size_override("font_size", 10)
 	root.add_child(_message_label)
 
 	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 6)
+	actions.add_theme_constant_override("separation", 8)
 	root.add_child(actions)
 
 	_undo_button = Button.new()
 	_undo_button.text = "↶ Hoàn tác"
 	_undo_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_undo_button.custom_minimum_size.y = 44
+	_undo_button.custom_minimum_size.y = 42
 	_undo_button.pressed.connect(_undo)
 	actions.add_child(_undo_button)
 
-	var hint_button := Button.new()
-	hint_button.text = "💡 Gợi ý"
-	hint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hint_button.custom_minimum_size.y = 44
-	hint_button.pressed.connect(_hint)
-	actions.add_child(hint_button)
-
-	_continue_button = Button.new()
-	_continue_button.text = "MÀN TIẾP THEO"
-	_continue_button.custom_minimum_size.y = 46
-	_continue_button.visible = false
-	_continue_button.pressed.connect(_continue)
-	root.add_child(_continue_button)
+	_hint_button = Button.new()
+	_hint_button.text = "💡 Gợi ý"
+	_hint_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_hint_button.custom_minimum_size.y = 42
+	_hint_button.pressed.connect(_hint)
+	actions.add_child(_hint_button)
 
 
 func _on_tube_drop_requested(
 	source_index: int,
 	destination_index: int
 ) -> void:
-	if _game == null:
+	if _game == null or _settled:
 		return
 
-	var result := _game.move_ball(
-		source_index,
-		destination_index
-	)
-	_message_label.text = String(
-		result.get(
-			"message",
-			""
-		)
-	)
+	var result := _game.move_ball(source_index, destination_index)
+	_message_label.text = String(result.get("message", ""))
 	_board.queue_redraw()
 	_sync()
 
@@ -193,56 +168,50 @@ func _settle_completed_level() -> void:
 	if _settled or _game == null or not _game.is_solved():
 		return
 
+	var completed_level := _level
+	var completed_moves := _game.moves()
+
 	if game_api == null:
 		_settled = true
-		_unlocked = maxi(_unlocked, _level + 1)
-		_message_label.text = "Hoàn thành màn %d • %d bước." % [_level, _game.moves()]
-		_continue_button.visible = true
+		_unlocked = maxi(_unlocked, completed_level + 1)
 		match_finished.emit(BallSortGame.RESULT_WON)
-		_sync()
+		_start_level(completed_level + 1)
 		return
 
-	var result := game_api.complete_ball_sort_level(_level, _game.moves())
-	_message_label.text = String(result.get("message", ""))
+	var result := game_api.complete_ball_sort_level(
+		completed_level,
+		completed_moves
+	)
 
 	if not bool(result.get("ok", false)):
-		_continue_button.text = "THỬ LƯU LẠI"
-		_continue_button.visible = true
+		_message_label.text = (
+			String(result.get("message", "Chưa lưu được tiến trình."))
+			+ " • Kéo thêm lần nữa để thử lưu lại."
+		)
 		return
 
 	_settled = true
 	var progress: Dictionary = result.get("progress", {})
-	_unlocked = maxi(_unlocked, int(progress.get("unlocked", _level + 1)))
+	_unlocked = maxi(
+		_unlocked,
+		int(progress.get("unlocked", completed_level + 1))
+	)
 	var best_raw: Variant = progress.get("best_moves", {})
 	if typeof(best_raw) == TYPE_DICTIONARY:
 		_best_moves = (best_raw as Dictionary).duplicate(true)
-	_continue_button.text = "MÀN TIẾP THEO"
-	_continue_button.visible = true
+
 	match_finished.emit(BallSortGame.RESULT_WON)
-	_sync()
+	call_deferred("_advance_after_complete", completed_level)
 
 
-func _continue() -> void:
-	if _game == null:
+func _advance_after_complete(completed_level: int) -> void:
+	if not is_visible_in_tree():
 		return
-
-	if not _settled:
-		_settle_completed_level()
-		if not _settled:
-			return
-
-	_start_level(mini(_unlocked, _level + 1))
-
-
-func _change_level(offset: int) -> void:
-	var target := _level + offset
-	if target < 1 or target > _unlocked:
-		return
-	_start_level(target)
+	_start_level(completed_level + 1)
 
 
 func _undo() -> void:
-	if _game == null:
+	if _game == null or _settled:
 		return
 	var result := _game.undo()
 	_message_label.text = String(result.get("message", ""))
@@ -251,12 +220,11 @@ func _undo() -> void:
 
 
 func _hint() -> void:
-	if _game == null:
+	if _game == null or _settled:
 		return
 	var result := _game.hint()
 	_message_label.text = String(result.get("message", ""))
-	if bool(result.get("ok", false)):
-		_board.queue_redraw()
+	_board.queue_redraw()
 	_sync()
 
 
@@ -265,8 +233,6 @@ func _restart() -> void:
 		return
 	_game.restart()
 	_settled = false
-	_continue_button.visible = false
-	_continue_button.text = "MÀN TIẾP THEO"
 	_message_label.text = "Đã chơi lại màn %d." % _level
 	_board.queue_redraw()
 	_sync()
@@ -279,16 +245,11 @@ func _sync() -> void:
 	var config := _game.config()
 	var rank := String(config.get("rank", "NORMAL"))
 	var best := int(_best_moves.get(str(_level), 0))
-	_level_label.text = "MÀN %d • %s" % [_level, rank]
-	_status_label.text = "%d màu • %d ống trống • Độ khó %d • %d bước%s" % [
+	_level_label.text = "Màn %d • %s" % [_level, rank]
+	_status_label.text = "%d màu • %d bước%s" % [
 		int(config.get("color_count", 3)),
-		int(config.get("empty_tubes", 2)),
-		_game.difficulty_score(),
 		_game.moves(),
 		(" • Kỷ lục %d" % best) if best > 0 else "",
 	]
-	_prev_button.disabled = _level <= 1
-	_next_button.disabled = _level >= _unlocked
-	_undo_button.disabled = not _game.can_undo()
-	if _game.is_solved():
-		_continue_button.visible = true
+	_undo_button.disabled = not _game.can_undo() or _settled
+	_hint_button.disabled = _settled
