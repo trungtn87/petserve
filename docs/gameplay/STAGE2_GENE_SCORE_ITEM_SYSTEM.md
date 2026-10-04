@@ -50,15 +50,17 @@ Rarity changes strength, not the Gene direction.
 
 | Rarity | Gene score | Growth |
 | --- | ---: | ---: |
-| Common | +10 | +2% |
-| Uncommon | +20 | +5% |
-| Rare | +35 | +7% |
-| Epic | +55 | +10% |
-| Legendary | +80 | +15% |
+| Common | +25 | +2% |
+| Uncommon | +60 | +5% |
+| Rare | +120 | +7% |
+| Epic | +200 | +10% |
+| Legendary | +320 | +15% |
 
 Example: Common `tail_long` and Legendary `tail_long` are the same Gene direction. The Legendary instance contributes more score and reaches stronger visual expression faster.
 
-Hidden `influence_tags` scale with the same rarity multiplier so old weighted/Mythic-support data remains proportional to item strength.
+A single newly generated Gene Item must now be visually readable at the next evolution. Common starts at DEVELOPING instead of TRACE; higher rarities jump directly into stronger expression tiers. Rarity controls intensity, not whether the Gene appears.
+
+Hidden `influence_tags` scale with the same rarity multiplier so old weighted/Mythic-support data remains proportional to item strength. Inventory Gene Items from the previous item schema are migrated to the new rarity score table when loaded.
 
 ## 3. Unlimited use in growth stages
 
@@ -122,6 +124,8 @@ Thresholds are centralized in `GeneExpressionScale`.
 
 A Gene definition supplies its own `prompt_stem` and `preserve_hint`. The tier supplies the intensity language.
 
+TRACE remains only as a compatibility state for old accumulated scores. Even TRACE prompt language must be visibly unambiguous; it may be subtle, but it must not disappear. New Common-or-better Gene items begin at DEVELOPING or higher.
+
 Therefore the threshold system is shared, while anatomy/surface meaning remains specific to each Gene.
 
 ## 6. Multiple directions in one locus
@@ -178,7 +182,7 @@ GenePromptResolver
     ↓ dominant + secondary directions per locus
 EvolutionEditCoordinator base stage/element/Mythic prompt
     ↓
-StageEvolutionService appends [ACCUMULATED GENE SCORE PHENOTYPE]
+StageEvolutionService appends [GENE VISIBILITY LOCK] + [ACCUMULATED GENE SCORE PHENOTYPE]
     ↓
 serialized pending render request
 ```
