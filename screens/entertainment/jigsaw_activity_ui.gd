@@ -501,7 +501,7 @@ func _input(event: InputEvent) -> void:
 					_end_pinch()
 				return
 
-			var release_position := event.position
+			var release_position: Vector2 = event.position
 			_touches.erase(event.index)
 			if _dragging:
 				_finish_drag(release_position)
@@ -533,7 +533,7 @@ func _input(event: InputEvent) -> void:
 		and event.button_index == MOUSE_BUTTON_LEFT
 		and not event.pressed
 	):
-		var release_position := get_global_mouse_position()
+		var release_position: Vector2 = get_global_mouse_position()
 		if _dragging:
 			_finish_drag(release_position)
 		_pressed_piece = -1
