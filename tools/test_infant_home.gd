@@ -98,6 +98,24 @@ func run() -> void:
 	await get_tree().create_timer(0.3).timeout
 	check(not home._drawer.is_open(), "hamburger closes drawer")
 	home._on_drawer_action(&"pet_info")
+	check(not home._section_tabs.visible, "single page hides tabs")
+	var headings: Array[String] = []
+	var meters := 0
+	for child in home._section_body.get_children():
+		if child is HBoxContainer:
+			for label in child.get_children():
+				if label is Label:
+					headings.append(label.text)
+		if child is VBoxContainer:
+			for bar in child.get_children():
+				if bar is ProgressBar:
+					meters += 1
+	check(meters == 2, "two status meters")
+	for heading in ["Thông tin", "Trạng thái", "Kỹ năng", "Gene", "Tiến hóa"]:
+		check(headings.has(heading), "single-page heading: " + heading)
+	home._close_section()
+	await get_tree().create_timer(0.3).timeout
+	check(home._drawer.is_open(), "close info returns to menu")
 	home._on_drawer_action(&"evolution")
 	home._on_drawer_action(&"settings")
 	home._on_drawer_action(&"chest")

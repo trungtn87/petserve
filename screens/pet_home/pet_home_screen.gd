@@ -831,19 +831,6 @@ func _build_section_overlay() -> void:
 	)
 	root.add_child(_section_tabs)
 
-	_add_pet_info_tab_button(
-		"THÔNG TIN",
-		&"info"
-	)
-	_add_pet_info_tab_button(
-		"KỸ NĂNG & GEN",
-		&"skills_gene"
-	)
-	_add_pet_info_tab_button(
-		"TIẾN HÓA",
-		&"evolution"
-	)
-
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = (
 		Control.SIZE_EXPAND_FILL
@@ -949,40 +936,338 @@ func _add_pet_info_tab_button(
 
 
 func _open_pet_info() -> void:
-	_open_pet_info_tab(
-		&"info"
+	var identity = _data.get("_identity_object")
+	var state := _game.snapshot()
+
+	_prepare_section("Thông tin thú cưng", &"pet_info")
+
+	_add_pet_info_heading("Thông tin", "●")
+	_add_info_row("Tên", str(_data.get("pet_name", "PET")))
+	_add_info_row(
+		"Loài",
+		ViDisplay.species_label(identity.species())
+	)
+	_add_info_row(
+		"Hệ",
+		PetHomeThemeScript.element_label(identity.element())
 	)
 
-
-func _open_pet_info_tab(
-	tab_id: StringName
-) -> void:
-	_prepare_section(
-		"Thông tin thú cưng",
-		&"pet_info"
+	_add_pet_info_heading("Trạng thái", "▥")
+	_add_pet_status_meter(
+		"Độ no",
+		_pet_info_fullness_percent(state)
 	)
-	_section_tabs.visible = true
+	_add_pet_status_meter(
+		"Trưởng thành",
+		clampi(int(state.get("growth_percent", 0)), 0, 100)
+	)
 
-	for key in _section_tab_buttons:
-		var button := (
-			_section_tab_buttons[key]
-			as Button
-		)
-		if button != null:
-			button.disabled = (
-				StringName(key)
-				== tab_id
-			)
+	_add_pet_info_heading("Kỹ năng", "★")
+	_add_pet_skill_rows(state)
 
-	match tab_id:
-		&"skills_gene":
-			_populate_pet_skills_gene_tab()
-		&"evolution":
-			_populate_pet_evolution_tab()
-		_:
-			_populate_pet_info_tab()
+	_add_pet_info_heading("Gene", "⌘")
+	_add_pet_gene_rows(state)
+
+	_add_pet_info_heading("Tiến hóa", "↑")
+	_add_pet_evolution_button(state)
 
 	_section_overlay.visible = true
+
+
+func _add_pet_info_heading(
+	title: String,
+	icon_text: String
+) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.custom_minimum_size.y = 34
+	_section_body.add_child(row)
+
+	var icon := Label.new()
+	icon.text = icon_text
+	icon.custom_minimum_size.x = 24
+	icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon.add_theme_font_size_override("font_size", 17)
+	icon.add_theme_color_override(
+		"font_color",
+		_theme.get("accent", Color.WHITE)
+	)
+	row.add_child(icon)
+
+	var label := Label.new()
+	label.text = title
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get("text", Color.WHITE)
+	)
+	row.add_child(label)
+
+
+func _pet_info_fullness_percent(state: Dictionary) -> int:
+	return clampi(int(state.get("food_percent", 0)), 0, 100)
+
+
+func _add_pet_status_meter(
+	label_text: String,
+	percent: int
+) -> void:
+	var wrap := VBoxContainer.new()
+	wrap.add_theme_constant_override("separation", 4)
+	_section_body.add_child(wrap)
+
+	var row := HBoxContainer.new()
+	wrap.add_child(row)
+
+	var label := Label.new()
+	label.text = label_text
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get("muted", Color.WHITE)
+	)
+	row.add_child(label)
+
+	var value := Label.new()
+	value.text = "%d%%" % percent
+	value.add_theme_color_override(
+		"font_color",
+		_theme.get("text", Color.WHITE)
+	)
+	row.add_child(value)
+
+	var bar := ProgressBar.new()
+	bar.min_value = 0
+	bar.max_value = 100
+	bar.value = percent
+	bar.show_percentage = false
+	bar.custom_minimum_size.y = 12
+
+	var track := PetHomeThemeScript.panel_style(
+		Color(0.02, 0.02, 0.04, 0.48),
+		Color(0, 0, 0, 0),
+		7
+	)
+	bar.add_theme_stylebox_override("background", track)
+
+	var fill_color: Color = _theme.get("accent", Color.WHITE)
+	fill_color.a = 0.92
+	bar.add_theme_stylebox_override(
+		"fill",
+		PetHomeThemeScript.panel_style(
+			fill_color,
+			fill_color,
+			7
+		)
+	)
+	wrap.add_child(bar)
+
+
+func _add_pet_skill_rows(state: Dictionary) -> void:
+	var skills_value: Variant = state.get("skills", [])
+	var added := 0
+
+	if typeof(skills_value) == TYPE_ARRAY:
+		for raw_value in skills_value as Array:
+			if typeof(raw_value) != TYPE_DICTIONARY:
+				continue
+			var skill := raw_value as Dictionary
+			var name := String(
+				skill.get(
+					"display_name",
+					skill.get("name", skill.get("id", "Kỹ năng"))
+				)
+			).strip_edges()
+			var detail := String(
+				skill.get(
+					"description",
+					skill.get("detail", "")
+				)
+			).strip_edges()
+			_add_pet_detail_button("★", name, detail)
+			added += 1
+
+	if bool(state.get("instant_evolution_talent", false)):
+		_add_pet_detail_button(
+			"★",
+			"Tiến hóa ngay",
+			"Thiên phú cho phép bỏ qua thời gian chờ tiến hóa."
+		)
+		added += 1
+
+	if added == 0:
+		_add_pet_empty_text("Chưa có kỹ năng")
+
+
+func _add_pet_gene_rows(state: Dictionary) -> void:
+	var development_value: Variant = state.get("gene_development", {})
+	var added := 0
+	var catalog := GeneCatalog.new()
+	var definitions := catalog.load_default()
+
+	if typeof(development_value) == TYPE_DICTIONARY:
+		var items_value: Variant = (
+			development_value as Dictionary
+		).get("gene_items", [])
+
+		if typeof(items_value) == TYPE_ARRAY:
+			for raw_value in items_value as Array:
+				if typeof(raw_value) != TYPE_DICTIONARY:
+					continue
+				var item := raw_value as Dictionary
+				var locus := StringName(str(item.get("locus", "")))
+				var direction := StringName(str(item.get("direction", "")))
+				var influence := float(item.get("influence", 0.0))
+				var name := String(
+					item.get(
+						"display_name",
+						item.get(
+							"name",
+							"%s → %s" % [
+								_trait_label(locus),
+								_trait_value(direction),
+							]
+						)
+					)
+				)
+				var definition := catalog.find_by_id(definitions, StringName(item.get("gene_id", "")))
+				if definition != null:
+					name = definition.display_name()
+				var detail := "%s • tác động +%.0f" % [
+					"%s → %s" % [
+						_trait_label(locus),
+						_trait_value(direction),
+					],
+					influence,
+				]
+				_add_pet_detail_button("⌘", name, detail)
+				added += 1
+
+	if added == 0:
+		_add_pet_empty_text("Chưa dùng Gene")
+
+
+func _add_pet_detail_button(
+	icon_text: String,
+	title: String,
+	detail: String
+) -> void:
+	var button := Button.new()
+	button.text = "%s   %s  ›" % [
+		icon_text,
+		title,
+	]
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	button.custom_minimum_size.y = 46
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 13)
+	button.pressed.connect(
+		_show_pet_detail.bind(title, detail)
+	)
+	_section_body.add_child(button)
+
+
+func _show_pet_detail(
+	title: String,
+	detail: String
+) -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = title
+	dialog.dialog_text = (
+		detail
+		if not detail.is_empty()
+		else "Chưa có mô tả chi tiết."
+	)
+	dialog.ok_button_text = "Đóng"
+	_section_overlay.add_child(dialog)
+	dialog.popup_centered_ratio(0.72)
+	dialog.confirmed.connect(
+		dialog.queue_free,
+		CONNECT_ONE_SHOT
+	)
+	dialog.canceled.connect(
+		dialog.queue_free,
+		CONNECT_ONE_SHOT
+	)
+
+
+func _add_pet_empty_text(text: String) -> void:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_color_override(
+		"font_color",
+		_theme.get("muted", Color.WHITE)
+	)
+	_section_body.add_child(label)
+
+
+func _add_pet_evolution_button(state: Dictionary) -> void:
+	var stage_index := int(state.get("stage_index", 1))
+	var naturally_ready := bool(state.get("ready_to_evolve", false))
+	var can_evolve := bool(
+		state.get("can_evolve", naturally_ready)
+	)
+
+	if stage_index >= StageLifecycle.FINAL_STAGE:
+		_add_pet_empty_text("Đã đạt hình thái cuối")
+		return
+
+	var button := Button.new()
+	button.text = "TIẾN HÓA → %s" % PetHomeTheme.stage_label(
+		stage_index + 1
+	)
+	button.custom_minimum_size.y = 52
+	button.focus_mode = Control.FOCUS_NONE
+	button.disabled = not can_evolve
+
+	if can_evolve:
+		button.pressed.connect(_evolve)
+	else:
+		button.tooltip_text = "Chưa đủ điều kiện tiến hóa"
+		var disabled_color := Color(0.30, 0.30, 0.30, 0.88)
+		var border := Color(0.52, 0.52, 0.52, 0.72)
+		button.add_theme_stylebox_override(
+			"disabled",
+			PetHomeThemeScript.panel_style(
+				disabled_color,
+				border,
+				14
+			)
+		)
+		button.add_theme_color_override(
+			"font_disabled_color",
+			Color(0.72, 0.72, 0.72, 1.0)
+		)
+
+	_section_body.add_child(button)
+
+	if not can_evolve:
+		var growth_remaining := maxi(
+			0,
+			int(state.get("growth_remaining_seconds", 0))
+		)
+		var hint := Label.new()
+		hint.text = (
+			"Chưa đủ điều kiện"
+			if growth_remaining <= 0
+			else "Còn thiếu %s trưởng thành"
+				% _format_stage_time(growth_remaining)
+		)
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		hint.add_theme_font_size_override("font_size", 11)
+		hint.add_theme_color_override(
+			"font_color",
+			_theme.get("muted", Color.WHITE)
+		)
+		_section_body.add_child(hint)
+
+
+func _open_pet_info_tab(_tab_id: StringName) -> void:
+	_open_pet_info()
 
 
 func _populate_pet_info_tab() -> void:
