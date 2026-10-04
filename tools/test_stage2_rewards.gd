@@ -71,14 +71,70 @@ func _test_stage2_activity_shared_pool_and_gene_guarantee() -> void:
 	chests.setup(meta, ItemGenerator.new())
 	var rewards := MiniGameRewardService.new()
 	rewards.setup(meta, chests, 4100)
-	_expect(rewards.claim_obstacle_run(4100, 100, "first").chests == 1, "first obstacle daily chest")
-	_expect(rewards.claim_game(4100, 2, "tank", "first").chests == 1, "games have independent daily quotas")
-	for i in 10:
-		_expect(rewards.claim_obstacle_run(4101, 100, "extra_%d" % i).fragments == 1, "additional matches grant one fragment")
+
+	var food_catch := rewards.claim_obstacle_run(
+		4100,
+		100,
+		"first"
+	)
+	_expect(
+		int(food_catch.get("fragments", 0)) == 1
+		and int(food_catch.get("chests", 0)) == 0,
+		"Food Catch pays by score instead of the retired daily obstacle chest"
+	)
+	_expect(
+		not bool(
+			rewards.claim_obstacle_run(
+				4100,
+				100,
+				"first"
+			).get(
+				"rewarded",
+				true
+			)
+		),
+		"Food Catch match ID cannot claim twice"
+	)
+
+	var tank := rewards.claim_game(
+		4100,
+		2,
+		"tank",
+		"tank_first"
+	)
+	_expect(
+		int(tank.get("chests", 0)) == 1,
+		"standard mini-games keep their independent daily chest quota"
+	)
+
+	var high_score := rewards.claim_obstacle_run(
+		4100,
+		2500,
+		"high_score"
+	)
+	_expect(
+		int(high_score.get("fragments", 0)) == 5,
+		"Food Catch score tier converts every 500 points to one chest fragment"
+	)
+
 	meta = meta.duplicate(true)
 	chests.setup(meta, ItemGenerator.new())
 	rewards.setup(meta, chests, 4101)
-	_expect(not rewards.claim_obstacle_run(4101, 100, "capped").rewarded, "quota survives reload and new life")
+
+	_expect(
+		not bool(
+			rewards.claim_game(
+				4101,
+				2,
+				"tank",
+				"tank_first"
+			).get(
+				"rewarded",
+				true
+			)
+		),
+		"standard game daily reward state survives reload and new life"
+	)
 
 
 func _is_valid_stage2_gene(
