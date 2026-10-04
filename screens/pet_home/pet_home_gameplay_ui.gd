@@ -17,6 +17,7 @@ signal item_salvage_requested(uid: String)
 signal entertainment_requested
 signal evolution_requested
 
+var _chest_animating: bool = false
 var _facade: InfantGameFacade
 var _pet_name_label: Label
 var _growth_bar: ProgressBar

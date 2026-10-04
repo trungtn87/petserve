@@ -41,5 +41,13 @@ func _ready() -> void:
 		"score reward uses 500 point steps"
 	)
 
+	var rewards := MiniGameRewardService.new()
+	check(rewards.obstacle_reward_tier(0) == 0, "zero score gives no fragments")
+	check(rewards.obstacle_reward_tier(-100) == 0, "negative score gives no fragments")
+	check(rewards.obstacle_reward_tier(1) == 1, "positive score starts rewards")
+	check(rewards.obstacle_reward_tier(500) == 1, "500 point boundary")
+	check(rewards.obstacle_reward_tier(501) == 2, "next reward threshold")
+	check(rewards.obstacle_reward_tier(100000) == 10, "score rewards stay capped")
+
 	print("FOOD CATCH failures=", failures)
 	get_tree().quit(1 if failures else 0)

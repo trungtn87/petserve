@@ -119,7 +119,7 @@ func claim_obstacle_run(
 
 
 func obstacle_reward_tier(score: int) -> int:
-	return clampi(int(ceil(float(maxi(1, score)) / float(FOOD_CATCH_SCORE_STEP))), 1, FOOD_CATCH_MAX_FRAGMENTS)
+	return clampi(int(ceil(float(maxi(0, score)) / float(FOOD_CATCH_SCORE_STEP))), 0, FOOD_CATCH_MAX_FRAGMENTS)
 
 func claim_energy_2048(run_id: int, stage_index: int, match_id: String) -> Dictionary:
 	var data: Dictionary = _meta.get("energy_2048", {})

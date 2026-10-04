@@ -79,7 +79,9 @@ jobs:
       - name: Parse project
         shell: bash
         run: |
-          godot --headless --editor --path . --quit
+          set -o pipefail
+          godot --headless --editor --path . --quit 2>&1 | tee /tmp/pethome-parse.log
+          if rg "SCRIPT ERROR:|Parse Error:|Compile Error:" /tmp/pethome-parse.log; then exit 1; fi
 
       - name: Exact source prompt assembly and transport for twelve species
         run: XDG_DATA_HOME=/tmp/petverse-test-source_prompt_contract timeout 90 godot --headless --path . --script tools/test_source_prompt_contract.gd
@@ -149,6 +151,15 @@ jobs:
 
       - name: Portable backup, corruption checks and crash recovery
         run: XDG_DATA_HOME=/tmp/petverse-test-backup timeout 60 godot --headless --path . res://tools/test_backup.tscn
+
+      - name: Live PetHome storage and navigation
+        run: XDG_DATA_HOME=/tmp/petverse-test-live-pethome timeout 90 godot --headless --path . res://tools/test_pethome_live_ui.tscn
+
+      - name: Food catch score rewards
+        run: XDG_DATA_HOME=/tmp/petverse-test-food-catch timeout 60 godot --headless --path . res://tools/test_obstacle_run.tscn
+
+      - name: Ball sort progressive levels
+        run: XDG_DATA_HOME=/tmp/petverse-test-ball-sort timeout 60 godot --headless --path . --script tools/test_ball_sort.gd
 
       - name: Export Android debug APK
         shell: bash

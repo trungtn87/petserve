@@ -28,13 +28,9 @@ func run() -> void:
 	var visual := PetVisualRecord.new()
 	visual.pet_id = identity.pet_id()
 
-	var fixture_texture := (
-		load("res://assets/ui/menu_icons.png")
-		as Texture2D
-	)
-	fixture_texture.get_image().save_png(
-		"user://design_fixture.png"
-	)
+	var fixture_image := Image.create(32, 48, false, Image.FORMAT_RGBA8)
+	fixture_image.fill(Color("252139"))
+	check(fixture_image.save_png("user://design_fixture.png") == OK, "fixture image saved")
 	visual.image_path = "user://design_fixture.png"
 	visual.source_mode = (
 		&"initial_pethome_v5_text_to_image"
