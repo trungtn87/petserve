@@ -419,6 +419,15 @@ func _test_gene_stage_one_plan() -> void:
 			"Apply only these Gene changes selected by code:"
 		)
 		and request.positive_prompt.contains(
+			"Target phenotype from game code:"
+		)
+		and request.positive_prompt.contains(
+			"[GENE VISIBILITY LOCK]"
+		)
+		and request.positive_prompt.contains(
+			"must be visibly readable in the final pet"
+		)
+		and request.positive_prompt.contains(
 			"30 to 34 percent"
 		)
 		and request.negative_prompt.contains(
@@ -968,8 +977,14 @@ func _test_stage_two_gene_plan() -> void:
 		and request.source_image_path.is_empty()
 		and request.positive_prompt.contains(
 			"elongated"
+		)
+		and request.positive_prompt.contains(
+			"[GENE VISIBILITY LOCK]"
+		)
+		and request.positive_prompt.contains(
+			"score controls intensity, not whether it appears"
 		),
-		"Stage 2 Gene plan must full-regenerate using resolved phenotype"
+		"Stage 2 Gene plan must full-regenerate with a mandatory visible Gene phenotype"
 	)
 
 	if request != null:

@@ -935,9 +935,17 @@ func build_stage_regenerate_request(
 			+ "."
 		)
 
+	if target_stage == 2:
+		positive_prompt += (
+			" Target phenotype from game code: "
+			+ phenotype
+			+ "."
+		)
+
 	if not deltas.is_empty():
 		positive_prompt += (
-			" Apply only these Gene changes selected by code:"
+			" Apply only these Gene changes selected by code: "
+			+ "These changes are mandatory visual requirements, not optional flavor:"
 		)
 
 		for delta in deltas:
@@ -964,6 +972,16 @@ func build_stage_regenerate_request(
 					),
 				]
 			)
+
+	if not deltas.is_empty():
+		positive_prompt += (
+			"\n\n[GENE VISIBILITY LOCK]\n"
+			+ "One or more Gene Items were consumed for this evolution. "
+			+ "Every code-selected Gene change must be visibly readable in the final pet. "
+			+ "Do not let generic age growth, fur maturation or elemental decoration hide the Gene effect. "
+			+ "The dominant current-stage Gene should be obvious at first glance while remaining anatomically believable. "
+			+ "Rarity and accumulated score control intensity; they do not control whether the Gene appears."
+		)
 
 	var mythic_mode := StringName(
 		mythic_resolution.get(

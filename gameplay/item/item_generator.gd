@@ -7,7 +7,7 @@ const TYPE_GROWTH: StringName = &"growth"
 const TYPE_GENE: StringName = &"gene"
 const TYPE_FUTURE_FRAGMENT: StringName = &"future_fragment"
 
-const ITEM_SCHEMA_VERSION: int = 2
+const ITEM_SCHEMA_VERSION: int = 3
 const GENE_GROWTH_BONUS_PERCENT: float = 5.0
 
 # Rarity is now the only strength tier for normal consumables.
@@ -45,11 +45,13 @@ const JUNK_FOOD_SECONDS: int = 5 * 60
 const JUNK_GROWTH_SECONDS: int = 2 * 60
 
 const GENE_RARITY_STATS := {
-	"common": {"score": 10.0, "growth": 2.0},
-	"uncommon": {"score": 20.0, "growth": 5.0},
-	"rare": {"score": 35.0, "growth": 7.0},
-	"epic": {"score": 55.0, "growth": 10.0},
-	"legendary": {"score": 80.0, "growth": 15.0},
+	# A single Gene must be visually readable at the next evolution.
+	# Rarity controls how strongly it expresses, not whether it is visible.
+	"common": {"score": 25.0, "growth": 2.0},
+	"uncommon": {"score": 60.0, "growth": 5.0},
+	"rare": {"score": 120.0, "growth": 7.0},
+	"epic": {"score": 200.0, "growth": 10.0},
+	"legendary": {"score": 320.0, "growth": 15.0},
 }
 
 const STAGE_VALUE_MULTIPLIERS := {
@@ -660,10 +662,73 @@ static func normalize_item(
 			result["stage_value_multiplier"] = multiplier
 
 		TYPE_GENE:
+			var gene_rarity := _normalized_rarity(
+				String(
+					result.get(
+						"rarity",
+						"common"
+					)
+				)
+			)
+			var gene_stats: Dictionary = GENE_RARITY_STATS.get(
+				gene_rarity,
+				GENE_RARITY_STATS["common"]
+			)
+			var old_score := maxf(
+				1.0,
+				float(
+					result.get(
+						"gene_score",
+						result.get(
+							"gene_influence",
+							1.0
+						)
+					)
+				)
+			)
+			var new_score := float(
+				gene_stats.get(
+					"score",
+					25.0
+				)
+			)
+			var influence_scale := new_score / old_score
+			var tags_value: Variant = result.get(
+				"influence_tags",
+				{}
+			)
+
+			if typeof(tags_value) == TYPE_DICTIONARY:
+				var scaled_tags: Dictionary = {}
+
+				for key_value in (tags_value as Dictionary).keys():
+					scaled_tags[String(key_value)] = (
+						float(
+							(tags_value as Dictionary)[key_value]
+						)
+						* influence_scale
+					)
+
+				result["influence_tags"] = scaled_tags
+
+			result["rarity"] = gene_rarity
 			result["quality"] = "standard"
 			result["is_junk"] = false
 			result["properties"] = []
 			result["defects"] = []
+			result["gene_score"] = new_score
+			result["gene_influence"] = new_score
+			result["gene_expression_tier"] = String(
+				GeneExpressionScale.tier_for_score(
+					new_score
+				)
+			)
+			result["growth_bonus_percent"] = float(
+				gene_stats.get(
+					"growth",
+					GENE_GROWTH_BONUS_PERCENT
+				)
+			)
 
 		TYPE_FUTURE_FRAGMENT:
 			result["quality"] = "standard"
