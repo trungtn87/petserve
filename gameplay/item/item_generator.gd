@@ -248,6 +248,51 @@ func generate(
 			push_error("ItemGenerator: unsupported item type: " + String(item_type))
 			return {}
 
+func generate_junk_resource(
+	item_type: StringName,
+	seed_value: int,
+	stage_index: int = 1
+) -> Dictionary:
+	var item: Dictionary = {}
+
+	if item_type == TYPE_FOOD:
+		item = _generate_junk_food(seed_value)
+	elif item_type == TYPE_GROWTH:
+		item = _generate_junk_growth(seed_value)
+	else:
+		return {}
+
+	return scale_for_stage(
+		item,
+		stage_index
+	)
+
+
+func generate_future_fragment_for_rarity(
+	seed_value: int,
+	rarity: String
+) -> Dictionary:
+	var normalized_rarity := rarity.strip_edges().to_lower()
+
+	if not RARITY_WEIGHTS.has(
+		normalized_rarity
+	):
+		return {}
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = max(
+		1,
+		absi(seed_value)
+	)
+
+	return _generate_future_fragment(
+		rng,
+		normalized_rarity,
+		"standard",
+		seed_value
+	)
+
+
 func generate_resource_for_rarity(
 	item_type: StringName,
 	seed_value: int,
