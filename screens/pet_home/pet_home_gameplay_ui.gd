@@ -259,13 +259,45 @@ func show_chest_rewards(items: Array[Dictionary]) -> void:
 	effect.finished.connect(func() -> void:
 		_chest_animating = false
 		_hide_item_detail()
-		_title.text = "RƯƠNG"
+		var chest_rarity := (
+			String(
+				items[0].get(
+					"chest_rarity",
+					""
+				)
+			)
+			if not items.is_empty()
+			else ""
+		)
+		_title.text = (
+			"RƯƠNG %s • %d VẬT PHẨM"
+			% [
+				_chest_rarity_label(
+					chest_rarity
+				),
+				items.size(),
+			]
+		)
 		_filters.visible = false
 		_fill(items, false)
 		_layout_overlay()
 		_overlay.visible = true
 		refresh_status(_facade.snapshot())
 	)
+
+func _chest_rarity_label(
+	rarity: String
+) -> String:
+	match rarity.strip_edges().to_lower():
+		"rare":
+			return "HIẾM"
+		"epic":
+			return "SỬ THI"
+		"legendary":
+			return "HUYỀN THOẠI"
+		_:
+			return "THƯỜNG"
+
 
 func show_message(message: String) -> void:
 	_toast.text = message
