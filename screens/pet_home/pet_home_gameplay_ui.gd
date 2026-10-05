@@ -47,6 +47,7 @@ var _detail_use_button: Button
 var _detail_salvage_button: Button
 var _detail_item: Dictionary = {}
 var _detail_allow_use: bool = false
+var _detail_layout_token: int = 0
 var _inventory_filter: StringName = &""
 var _evolve_button: Button
 var _stage_label: Label
@@ -688,13 +689,118 @@ func _fill(items: Array[Dictionary], allow_use: bool) -> void:
 		_list.add_child(empty)
 		return
 
+	# Chỉ sắp xếp ở lớp hiển thị, không thay đổi thứ tự lưu trong inventory.
+	# Rarity cao nằm trước; phế phẩm/không rarity luôn nằm cuối.
+	var sorted_items: Array[Dictionary] = []
 	for item in items:
+		sorted_items.append(
+			item.duplicate(true)
+		)
+	sorted_items.sort_custom(
+		_item_sort_by_rarity
+	)
+
+	for item in sorted_items:
 		_list.add_child(
 			_item_tile(
 				item,
 				allow_use
 			)
 		)
+
+
+func _item_sort_by_rarity(
+	a: Dictionary,
+	b: Dictionary
+) -> bool:
+	var rank_a := _item_rarity_rank(a)
+	var rank_b := _item_rarity_rank(b)
+
+	if rank_a != rank_b:
+		return rank_a > rank_b
+
+	var type_a := String(
+		a.get(
+			"item_type",
+			""
+		)
+	)
+	var type_b := String(
+		b.get(
+			"item_type",
+			""
+		)
+	)
+	var type_compare := type_a.nocasecmp_to(
+		type_b
+	)
+	if type_compare != 0:
+		return type_compare < 0
+
+	var name_a := String(
+		a.get(
+			"display_name",
+			""
+		)
+	)
+	var name_b := String(
+		b.get(
+			"display_name",
+			""
+		)
+	)
+	var name_compare := name_a.nocasecmp_to(
+		name_b
+	)
+	if name_compare != 0:
+		return name_compare < 0
+
+	return String(
+		a.get(
+			"uid",
+			""
+		)
+	).nocasecmp_to(
+		String(
+			b.get(
+				"uid",
+				""
+			)
+		)
+	) < 0
+
+
+func _item_rarity_rank(
+	item: Dictionary
+) -> int:
+	if bool(
+		item.get(
+			"is_junk",
+			false
+		)
+	):
+		return -1
+
+	match String(
+		item.get(
+			"rarity",
+			""
+		)
+	).strip_edges().to_lower():
+		"mythic":
+			return 6
+		"legendary":
+			return 5
+		"epic":
+			return 4
+		"rare":
+			return 3
+		"uncommon":
+			return 2
+		"common":
+			return 1
+		_:
+			return 0
 
 
 func _item_tile(
@@ -1187,17 +1293,68 @@ func _show_item_detail(
 	_detail_salvage_button.visible = allow_use
 	_detail_salvage_button.disabled = not allow_use
 
-	# Lần bấm đầu trước đây detail còn hidden khi tính layout nên PanelContainer
-	# có thể lấy minimum-size và tràn màn hình. Hiện trước rồi layout lại 2 nhịp.
+	# Minimum-size của các Label thay đổi sau khi gán nội dung. Ở lần xem đầu
+	# mỗi lần mở Hòm, Godot có thể chưa hoàn tất layout và làm popup nhảy/tràn.
+	# Giữ popup trong suốt 2 frame để Container ổn định rồi mới hiện.
+	_detail_layout_token += 1
+	var layout_token := _detail_layout_token
+	_detail_overlay.modulate.a = 0.0
 	_detail_overlay.visible = true
 	_layout_overlay()
-	call_deferred(
-		"_layout_overlay"
+	_queue_item_detail_layout_stabilization(
+		layout_token,
+		0
 	)
 
+
+func _queue_item_detail_layout_stabilization(
+	layout_token: int,
+	pass_index: int
+) -> void:
+	if (
+		_detail_overlay == null
+		or not _detail_overlay.visible
+		or layout_token != _detail_layout_token
+	):
+		return
+
+	get_tree().process_frame.connect(
+		_stabilize_item_detail_layout.bind(
+			layout_token,
+			pass_index
+		),
+		CONNECT_ONE_SHOT
+	)
+
+
+func _stabilize_item_detail_layout(
+	layout_token: int,
+	pass_index: int
+) -> void:
+	if (
+		_detail_overlay == null
+		or not _detail_overlay.visible
+		or layout_token != _detail_layout_token
+	):
+		return
+
+	_layout_overlay()
+
+	if pass_index < 1:
+		_queue_item_detail_layout_stabilization(
+			layout_token,
+			pass_index + 1
+		)
+		return
+
+	_detail_overlay.modulate.a = 1.0
+
+
 func _hide_item_detail() -> void:
+	_detail_layout_token += 1
 	if _detail_overlay != null:
 		_detail_overlay.visible = false
+		_detail_overlay.modulate.a = 1.0
 
 	_detail_item = {}
 	_detail_allow_use = false
