@@ -37,8 +37,17 @@ func run() -> void:
 	check(chests.fragment_count() == 0, "fragments consumed by craft")
 	check(chests.pending_count() == 1, "recycled chest queued")
 
+	var queued := chests.peek_next()
+	check(
+		StringName(queued.get("chest_type", "")) == ChestService.CHEST_MYSTERY
+		and String(queued.get("source", "")) == String(ChestService.CHEST_RECYCLED),
+		"crafted chest uses shared mystery type and keeps recycled source"
+	)
 	var rewards := chests.open_next()
-	check(rewards.size() == 1, "recycled chest opens through normal queue")
+	check(
+		rewards.size() >= 2 and rewards.size() <= 5,
+		"crafted chest opens through Chest v2 item-count rules"
+	)
 	check(chests.pending_count() == 0, "recycled chest marked opened")
 
 	print("ITEM SALVAGE failures=", failures)
