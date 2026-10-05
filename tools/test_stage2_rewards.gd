@@ -36,32 +36,57 @@ func _test_evolution_one_guarantees_stage2_gene() -> void:
 			1,
 			2
 		),
-		"Evolution I chest must be queued"
+		"Evolution reward must queue a chest"
+	)
+
+	var queued := chests.peek_next()
+	_expect(
+		StringName(
+			queued.get(
+				"chest_type",
+				""
+			)
+		) == ChestService.CHEST_MYSTERY
+		and String(
+			queued.get(
+				"source",
+				""
+			)
+		) == String(
+			ChestService.CHEST_EVOLUTION
+		)
+		and int(
+			queued.get(
+				"stage_granted",
+				0
+			)
+		) == 2,
+		"Evolution source only records metadata; chest quality is still unknown"
 	)
 
 	var rewards := chests.open_next()
-	var gene_count := 0
-
-	for item in rewards:
-		if StringName(
-			item.get(
-				"item_type",
-				""
-			)
-		) != ItemGenerator.TYPE_GENE:
-			continue
-
-		gene_count += 1
-		_expect(
-			_is_valid_stage2_gene(
-				item
-			),
-			"Evolution I Gene must be valid for Stage 2"
-		)
-
 	_expect(
-		gene_count >= 1,
-		"Evolution I must guarantee at least one Stage 2 Gene"
+		rewards.size() >= 2
+		and rewards.size() <= 5,
+		"Evolution reward opens through the shared Chest v2 table"
+	)
+	if rewards.is_empty():
+		return
+
+	var rarity := String(
+		rewards[0].get(
+			"chest_rarity",
+			""
+		)
+	)
+	_expect(
+		[
+			"common",
+			"rare",
+			"epic",
+			"legendary",
+		].has(rarity),
+		"Evolution reward reveals one of the four Chest v2 rarities"
 	)
 
 
