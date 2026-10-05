@@ -282,22 +282,36 @@ func _test_stage4_entry_gene_reward() -> void:
 		"Evolution III must create the Stage 4 entry chest"
 	)
 
-	var rewards := chests.open_next()
-	var has_gene := false
-
-	for item in rewards:
-		if StringName(
-			item.get(
-				"item_type",
+	var queued := chests.peek_next()
+	_expect(
+		StringName(
+			queued.get(
+				"chest_type",
 				""
 			)
-		) == ItemGenerator.TYPE_GENE:
-			has_gene = true
-			break
+		) == ChestService.CHEST_MYSTERY
+		and String(
+			queued.get(
+				"source",
+				""
+			)
+		) == String(
+			ChestService.CHEST_EVOLUTION
+		)
+		and int(
+			queued.get(
+				"stage_granted",
+				0
+			)
+		) == 4,
+		"Stage 4 entry uses the shared Chest v2 pool at acquisition Stage 4"
+	)
 
+	var rewards := chests.open_next()
 	_expect(
-		has_gene,
-		"Stage 4 entry chest must provide a supplemental Gene item"
+		rewards.size() >= 2
+		and rewards.size() <= 5,
+		"Stage 4 entry chest no longer guarantees a source-specific Gene"
 	)
 	_expect(
 		chests.ensure_evolution_chest(
@@ -305,7 +319,7 @@ func _test_stage4_entry_gene_reward() -> void:
 			4,
 			StageLifecycle.FINAL_STAGE
 		),
-		"Final Evolution grants one chest"
+		"Final Evolution grants one shared mystery chest"
 	)
 
 
