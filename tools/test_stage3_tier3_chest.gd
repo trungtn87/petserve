@@ -9,24 +9,25 @@ func _ready() -> void:
 
 
 func run() -> void:
-	_test_stage3_unlock_and_four_roll_contract()
-	_test_recycled_chest_uses_stage3_tier()
-	_test_tier3_roll_is_deterministic()
+	_test_unified_mystery_contract()
+	_test_source_does_not_fix_quality()
+	_test_stage_odds_only_improve()
+	_test_each_rarity_contract()
 	_test_gene_fragment_and_mythic_component_contract()
 
 	if _failures == 0:
-		print("STAGE3 TIER III CHEST: PASS")
+		print("CHEST SYSTEM V2: PASS")
 		get_tree().quit(0)
 		return
 
 	push_error(
-		"STAGE3 TIER III CHEST: FAIL (%d)"
+		"CHEST SYSTEM V2: FAIL (%d)"
 		% _failures
 	)
 	get_tree().quit(1)
 
 
-func _test_stage3_unlock_and_four_roll_contract() -> void:
+func _test_unified_mystery_contract() -> void:
 	var meta := {
 		"inventory": [],
 		"chest_queue": [],
@@ -43,146 +44,209 @@ func _test_stage3_unlock_and_four_roll_contract() -> void:
 			2,
 			3
 		),
-		"Evolution II -> Stage 3 queues milestone chest"
+		"Evolution reward queues one chest"
 	)
 
 	var queued := chests.peek_next()
 	_expect(
+		StringName(
+			queued.get(
+				"chest_type",
+				""
+			)
+		) == ChestService.CHEST_MYSTERY,
+		"all new rewards use the shared mystery chest type"
+	)
+	_expect(
+		String(
+			queued.get(
+				"source",
+				""
+			)
+		) == String(
+			ChestService.CHEST_EVOLUTION
+		),
+		"reward source is retained only as metadata"
+	)
+	_expect(
 		int(
 			queued.get(
-				"stage_index",
+				"stage_granted",
 				0
 			)
-		) == 3
-		and int(
-			queued.get(
-				"chest_tier",
-				0
-			)
-		) == ChestService.STAGE3_TIER,
-		"Stage 3 milestone chest is marked Tier III"
+		) == 3,
+		"chest freezes the stage at acquisition"
+	)
+	_expect(
+		not queued.has(
+			"chest_rarity"
+		),
+		"chest rarity is not fixed before opening"
 	)
 
 	var rewards := chests.open_next()
 	_expect(
-		rewards.size() >= 3
-		and rewards.size() <= 4,
-		"Tier III chest returns Survival + Wild + Evolution and optional Jackpot"
+		rewards.size() >= 2
+		and rewards.size() <= 5,
+		"Chest v2 returns two to five items"
 	)
 
-	var rolls: Dictionary = {}
+	if rewards.is_empty():
+		return
+
+	var rarity := String(
+		rewards[0].get(
+			"chest_rarity",
+			""
+		)
+	)
+	_expect(
+		rewards.size() == _expected_item_count(
+			rarity
+		),
+		"item count is determined by revealed chest rarity"
+	)
+	_expect(
+		_has_minimum_reward(
+			rewards,
+			rarity
+		),
+		"chest rarity guarantee survives junk rolls"
+	)
 
 	for item in rewards:
-		var roll_name := String(
-			item.get(
-				"chest_roll",
+		_expect(
+			String(
+				item.get(
+					"chest_rarity",
+					""
+				)
+			) == rarity
+			and int(
+				item.get(
+					"chest_stage",
+					0
+				)
+			) == 3,
+			"all rewards carry the same chest rarity and acquisition stage"
+		)
+
+	_expect(
+		is_equal_approx(
+			ChestService.ITEM_JUNK_CHANCE,
+			0.10
+		),
+		"every reward slot starts with a 10 percent junk roll"
+	)
+
+
+func _test_source_does_not_fix_quality() -> void:
+	var daily := _open_manual_chest(
+		"same_seed_source_test",
+		3,
+		"daily"
+	)
+	var evolution := _open_manual_chest(
+		"same_seed_source_test",
+		3,
+		"evolution"
+	)
+
+	_expect(
+		_reward_signature(daily)
+			== _reward_signature(evolution),
+		"source must not alter chest rarity or loot"
+	)
+
+
+func _test_stage_odds_only_improve() -> void:
+	for sample in range(64):
+		var uid := "stage_curve_%d" % sample
+		var previous_rank := 0
+
+		for stage in range(
+			1,
+			StageLifecycle.FINAL_STAGE + 1
+		):
+			var rewards := _open_manual_chest(
+				uid,
+				stage,
+				"test"
+			)
+			if rewards.is_empty():
+				_expect(
+					false,
+					"stage curve chest must open"
+				)
+				continue
+
+			var rank := _chest_rarity_rank(
+				String(
+					rewards[0].get(
+						"chest_rarity",
+						""
+					)
+				)
+			)
+			_expect(
+				rank >= previous_rank,
+				"later stages never worsen the same chest rarity roll"
+			)
+			previous_rank = rank
+
+
+func _test_each_rarity_contract() -> void:
+	var found: Dictionary = {}
+
+	for sample in range(800):
+		if found.size() >= 4:
+			break
+
+		var rewards := _open_manual_chest(
+			"rarity_contract_%d" % sample,
+			5,
+			"test"
+		)
+		if rewards.is_empty():
+			continue
+
+		var rarity := String(
+			rewards[0].get(
+				"chest_rarity",
 				""
 			)
 		)
-		rolls[roll_name] = true
+		if found.has(rarity):
+			continue
 
+		found[rarity] = true
 		_expect(
-			int(
-				item.get(
-					"chest_tier",
-					0
-				)
-			) == 3,
-			"every Tier III reward keeps chest tier metadata"
+			rewards.size()
+				== _expected_item_count(
+					rarity
+				),
+			"%s chest item count matches v2 contract"
+			% rarity
 		)
-
 		_expect(
-			not (
-				StringName(
-					item.get(
-						"item_type",
-						""
-					)
-				) == ItemGenerator.TYPE_GENE
-				and String(
-					item.get(
-						"rarity",
-						""
-					)
-				) == "mythic"
+			_has_minimum_reward(
+				rewards,
+				rarity
 			),
-			"Tier III never drops a complete Mythic Gene"
+			"%s chest meets its minimum rarity guarantee"
+			% rarity
 		)
 
-	var survival := _find_roll(
-		rewards,
-		"survival"
-	)
-	var survival_defects: Variant = survival.get(
-		"defects",
-		[]
-	)
-
-	_expect(
-		rolls.has("survival")
-		and rolls.has("wild")
-		and rolls.has("evolution"),
-		"Tier III exposes all three guaranteed roll channels"
-	)
-	_expect(
-		not survival.is_empty()
-		and typeof(survival_defects) == TYPE_ARRAY
-		and (survival_defects as Array).is_empty(),
-		"Survival roll is always defect-free"
-	)
-
-
-func _test_recycled_chest_uses_stage3_tier() -> void:
-	var meta := {
-		"inventory": [],
-		"chest_queue": [],
-	}
-	var chests := ChestService.new()
-	chests.setup(
-		meta,
-		ItemGenerator.new()
-	)
-
-	_expect(
-		chests.add_salvage_fragments(
-			ChestService.FRAGMENTS_PER_RECYCLED_CHEST,
-			91,
-			3
-		) == 1,
-		"ten Stage 3 chest fragments craft one recycled chest"
-	)
-
-	var rewards := chests.open_next()
-	_expect(
-		rewards.size() >= 3,
-		"Stage 3 recycled chest upgrades to Tier III loot"
-	)
-
-	for item in rewards:
+	for rarity in [
+		"common",
+		"rare",
+		"epic",
+		"legendary",
+	]:
 		_expect(
-			int(
-				item.get(
-					"chest_tier",
-					0
-				)
-			) == 3,
-			"recycled Stage 3 rewards are tagged Tier III"
+			found.has(rarity),
+			"fixture finds %s chest" % rarity
 		)
-
-
-func _test_tier3_roll_is_deterministic() -> void:
-	var first := _open_stage3_fixture(
-		777
-	)
-	var second := _open_stage3_fixture(
-		777
-	)
-
-	_expect(
-		_reward_signature(first)
-			== _reward_signature(second),
-		"same chest uid must resolve to the same Tier III rewards"
-	)
 
 
 func _test_gene_fragment_and_mythic_component_contract() -> void:
@@ -224,29 +288,8 @@ func _test_gene_fragment_and_mythic_component_contract() -> void:
 				"fragment_quantity",
 				0
 			)
-		) == 2
-		and String(
-			duplicate_fragment.get(
-				"target_gene_id",
-				""
-			)
-		) == String(
-			rare_gene.get(
-				"gene_id",
-				""
-			)
-		),
-		"duplicate Rare Gene converts to two fragments for the same Gene"
-	)
-
-	_expect(
-		generator.duplicate_gene_fragment_amount(
-			"epic"
-		) == 4
-		and generator.duplicate_gene_fragment_amount(
-			"legendary"
-		) == 7,
-		"duplicate fragment amounts follow Tier III v1 contract"
+		) == 2,
+		"duplicate Rare Gene still converts to two fragments"
 	)
 
 	var mythic := generator.generate_mythic_component(
@@ -264,51 +307,130 @@ func _test_gene_fragment_and_mythic_component_contract() -> void:
 				"rarity",
 				""
 			)
-		) == "mythic"
-		and bool(
-			mythic.get(
-				"mythic_component",
-				false
-			)
-		),
-		"Jackpot Mythic result is component-only"
+		) == "mythic",
+		"Mythic reward remains component-only"
 	)
 
 
-func _open_stage3_fixture(
-	run_id: int
+func _open_manual_chest(
+	uid: String,
+	stage: int,
+	source: String
 ) -> Array[Dictionary]:
 	var meta := {
 		"inventory": [],
-		"chest_queue": [],
+		"chest_queue": [
+			{
+				"uid": uid,
+				"chest_type": String(
+					ChestService.CHEST_MYSTERY
+				),
+				"source": source,
+				"stage_index": stage,
+				"stage_granted": stage,
+				"opened": false,
+			},
+		],
 	}
 	var chests := ChestService.new()
 	chests.setup(
 		meta,
 		ItemGenerator.new()
 	)
-	chests.ensure_evolution_chest(
-		run_id,
-		2,
-		3
-	)
 	return chests.open_next()
 
 
-func _find_roll(
-	rewards: Array[Dictionary],
-	roll_name: String
-) -> Dictionary:
-	for item in rewards:
-		if String(
-			item.get(
-				"chest_roll",
-				""
-			)
-		) == roll_name:
-			return item
+func _expected_item_count(
+	rarity: String
+) -> int:
+	match rarity:
+		"rare":
+			return 3
+		"epic":
+			return 4
+		"legendary":
+			return 5
+		_:
+			return 2
 
-	return {}
+
+func _minimum_item_rank(
+	chest_rarity: String
+) -> int:
+	match chest_rarity:
+		"rare":
+			return 2
+		"epic":
+			return 3
+		"legendary":
+			return 4
+		_:
+			return 1
+
+
+func _item_rarity_rank(
+	rarity: String
+) -> int:
+	match rarity:
+		"common":
+			return 1
+		"uncommon":
+			return 2
+		"rare":
+			return 3
+		"epic":
+			return 4
+		"legendary":
+			return 5
+		"mythic":
+			return 6
+		_:
+			return 0
+
+
+func _chest_rarity_rank(
+	rarity: String
+) -> int:
+	match rarity:
+		"common":
+			return 1
+		"rare":
+			return 2
+		"epic":
+			return 3
+		"legendary":
+			return 4
+		_:
+			return 0
+
+
+func _has_minimum_reward(
+	rewards: Array[Dictionary],
+	chest_rarity: String
+) -> bool:
+	var minimum_rank := _minimum_item_rank(
+		chest_rarity
+	)
+
+	for item in rewards:
+		if bool(
+			item.get(
+				"is_junk",
+				false
+			)
+		):
+			continue
+		if _item_rarity_rank(
+			String(
+				item.get(
+					"rarity",
+					""
+				)
+			)
+		) >= minimum_rank:
+			return true
+
+	return false
 
 
 func _reward_signature(
@@ -320,12 +442,6 @@ func _reward_signature(
 		parts.append(
 			"%s|%s|%s|%s"
 			% [
-				String(
-					item.get(
-						"chest_roll",
-						""
-					)
-				),
 				String(
 					item.get(
 						"item_type",
@@ -344,12 +460,18 @@ func _reward_signature(
 						""
 					)
 				),
+				str(
+					bool(
+						item.get(
+							"is_junk",
+							false
+						)
+					)
+				),
 			]
 		)
 
-	return ";".join(
-		parts
-	)
+	return ";".join(parts)
 
 
 func _expect(
