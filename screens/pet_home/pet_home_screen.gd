@@ -54,6 +54,9 @@ var _chest_result_return_to_storage: bool = false
 var _crystal_slot_views: Dictionary = {}
 var _crystal_unlocked_slots: int = 0
 var _crystal_ready_count: int = -1
+var _crystal_activity_message: String = ""
+var _crystal_activity_panel: PanelContainer
+var _crystal_activity_label: Label
 var _claim_popup: Control
 var _pet_detail_popup: Control
 var _pet_detail_title: Label
@@ -2375,6 +2378,8 @@ func _prepare_section(
 	_active_section = section_id
 	_crystal_slot_views.clear()
 	_crystal_unlocked_slots = 0
+	_crystal_activity_panel = null
+	_crystal_activity_label = null
 	_section_title.text = title
 	if _section_tabs != null:
 		_section_tabs.visible = false
@@ -2449,6 +2454,8 @@ func _close_section() -> void:
 	_active_section = &""
 	_crystal_slot_views.clear()
 	_crystal_unlocked_slots = 0
+	_crystal_activity_panel = null
+	_crystal_activity_label = null
 	_section_overlay.visible = false
 	_section_return_to_menu = false
 
@@ -2710,6 +2717,7 @@ func _open_storage() -> void:
 		"◇"
 	)
 	_append_crystallization_slots()
+	_append_crystallization_activity()
 
 	_section_overlay.visible = true
 
@@ -2794,6 +2802,108 @@ func _append_crystallization_slots() -> void:
 			slot,
 			slot_index < unlocked_slots
 		)
+
+
+func _append_crystallization_activity() -> void:
+	_crystal_activity_panel = PanelContainer.new()
+	_crystal_activity_panel.name = "CrystallizationActivity"
+	_crystal_activity_panel.custom_minimum_size.y = 42
+	_crystal_activity_panel.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+
+	var panel_color: Color = _theme.get(
+		"panel",
+		Color("#171229")
+	)
+	panel_color.a = 0.78
+	var border: Color = _theme.get(
+		"accent",
+		Color.WHITE
+	)
+	border.a = 0.32
+	_crystal_activity_panel.add_theme_stylebox_override(
+		"panel",
+		PetHomeThemeScript.panel_style(
+			panel_color,
+			border,
+			10
+		)
+	)
+	_section_body.add_child(
+		_crystal_activity_panel
+	)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override(
+		"margin_left",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_top",
+		7
+	)
+	margin.add_theme_constant_override(
+		"margin_right",
+		10
+	)
+	margin.add_theme_constant_override(
+		"margin_bottom",
+		7
+	)
+	_crystal_activity_panel.add_child(
+		margin
+	)
+
+	_crystal_activity_label = Label.new()
+	_crystal_activity_label.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	_crystal_activity_label.vertical_alignment = (
+		VERTICAL_ALIGNMENT_CENTER
+	)
+	_crystal_activity_label.autowrap_mode = (
+		TextServer.AUTOWRAP_WORD_SMART
+	)
+	_crystal_activity_label.add_theme_font_size_override(
+		"font_size",
+		10
+	)
+	_crystal_activity_label.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	margin.add_child(
+		_crystal_activity_label
+	)
+
+	_update_crystallization_activity_view()
+
+
+func _show_crystallization_activity(
+	message: String
+) -> void:
+	_crystal_activity_message = message.strip_edges()
+	_update_crystallization_activity_view()
+
+
+func _update_crystallization_activity_view() -> void:
+	if (
+		_crystal_activity_panel == null
+		or _crystal_activity_label == null
+	):
+		return
+
+	_crystal_activity_label.text = (
+		_crystal_activity_message
+	)
+	_crystal_activity_panel.visible = (
+		not _crystal_activity_message.is_empty()
+	)
+
 
 func _open_crystallization() -> void:
 	# Giữ API cũ nhưng giao diện đã gộp vào Rương & Kết tinh.
@@ -3160,7 +3270,7 @@ func _start_crystallization(
 	var result := _game.start_crystallization(
 		slot_index
 	)
-	_hud.show_message(
+	_show_crystallization_activity(
 		String(
 			result.get(
 				"message",
@@ -3179,7 +3289,7 @@ func _claim_crystallization(
 	var result := _game.claim_crystallization(
 		slot_index
 	)
-	_hud.show_message(
+	_show_crystallization_activity(
 		String(result.get("message", ""))
 	)
 	if bool(result.get("ok", false)):
@@ -3198,7 +3308,7 @@ func _cancel_crystallization(
 	var result := _game.cancel_crystallization(
 		slot_index
 	)
-	_hud.show_message(
+	_show_crystallization_activity(
 		String(
 			result.get(
 				"message",
