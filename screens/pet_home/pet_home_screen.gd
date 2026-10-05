@@ -1410,51 +1410,241 @@ func _add_pet_skill_rows(state: Dictionary) -> void:
 
 
 func _add_pet_gene_rows(state: Dictionary) -> void:
-	var development_value: Variant = state.get("gene_development", {})
-	var added := 0
+	# Gene ở đây là lịch sử toàn đời của pet, không chỉ Gene đang dùng
+	# trong giai đoạn hiện tại. Lấy các Gene đã khóa ở evolution_history
+	# rồi nối thêm Gene của stage hiện tại.
+	var items := _pet_lifetime_gene_items(state)
 	var catalog := GeneCatalog.new()
 	var definitions := catalog.load_default()
 
-	if typeof(development_value) == TYPE_DICTIONARY:
-		var items_value: Variant = (
-			development_value as Dictionary
-		).get("gene_items", [])
+	if items.is_empty():
+		_add_pet_empty_text("Chưa dùng Gene")
+		return
 
-		if typeof(items_value) == TYPE_ARRAY:
-			for raw_value in items_value as Array:
-				if typeof(raw_value) != TYPE_DICTIONARY:
-					continue
-				var item := raw_value as Dictionary
-				var locus := StringName(str(item.get("locus", "")))
-				var direction := StringName(str(item.get("direction", "")))
-				var influence := float(item.get("influence", 0.0))
-				var name := String(
-					item.get(
-						"display_name",
-						item.get(
-							"name",
-							"%s → %s" % [
-								_trait_label(locus),
-								_trait_value(direction),
-							]
-						)
-					)
+	for item in items:
+		var locus := StringName(
+			str(
+				item.get(
+					"locus",
+					""
 				)
-				var definition := catalog.find_by_id(definitions, StringName(item.get("gene_id", "")))
-				if definition != null:
-					name = definition.display_name()
-				var detail := "%s • tác động +%.0f" % [
+			)
+		)
+		var direction := StringName(
+			str(
+				item.get(
+					"direction",
+					""
+				)
+			)
+		)
+		var influence := float(
+			item.get(
+				"score",
+				item.get(
+					"influence",
+					0.0
+				)
+			)
+		)
+		var gene_id := StringName(
+			item.get(
+				"gene_id",
+				""
+			)
+		)
+		var name := String(
+			item.get(
+				"display_name",
+				item.get(
+					"name",
 					"%s → %s" % [
 						_trait_label(locus),
 						_trait_value(direction),
-					],
-					influence,
-				]
-				_add_pet_detail_button("⌘", name, detail)
-				added += 1
+					]
+				)
+			)
+		)
+		var definition := catalog.find_by_id(
+			definitions,
+			gene_id
+		)
+		if definition != null:
+			name = definition.display_name()
+		elif not String(gene_id).is_empty():
+			name = _gene_display_name(
+				String(gene_id)
+			)
 
-	if added == 0:
-		_add_pet_empty_text("Chưa dùng Gene")
+		var stage_used := int(
+			item.get(
+				"stage_used",
+				0
+			)
+		)
+		var detail_parts: Array[String] = []
+		if stage_used > 0:
+			detail_parts.append(
+				"Giai đoạn %d" % stage_used
+			)
+		detail_parts.append(
+			"%s → %s" % [
+				_trait_label(locus),
+				_trait_value(direction),
+			]
+		)
+		if influence > 0.0:
+			detail_parts.append(
+				"tác động +%.0f" % influence
+			)
+
+		_add_pet_detail_button(
+			"⌘",
+			name,
+			" • ".join(detail_parts)
+		)
+
+
+func _pet_lifetime_gene_items(
+	state: Dictionary
+) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var seen_item_uids: Dictionary = {}
+
+	var history_value: Variant = _data.get(
+		"evolution_history",
+		[]
+	)
+	if typeof(history_value) == TYPE_ARRAY:
+		for raw_plan in history_value as Array:
+			if typeof(raw_plan) != TYPE_DICTIONARY:
+				continue
+			var plan := raw_plan as Dictionary
+			var fallback_stage := int(
+				plan.get(
+					"from_stage",
+					0
+				)
+			)
+			_append_gene_items_for_history(
+				result,
+				seen_item_uids,
+				plan.get(
+					"gene_items_used",
+					[]
+				),
+				fallback_stage
+			)
+
+	var development_value: Variant = state.get(
+		"gene_development",
+		{}
+	)
+	if typeof(development_value) == TYPE_DICTIONARY:
+		var development := development_value as Dictionary
+		var current_stage := int(
+			development.get(
+				"stage_index",
+				state.get(
+					"stage_index",
+					0
+				)
+			)
+		)
+		_append_gene_items_for_history(
+			result,
+			seen_item_uids,
+			development.get(
+				"gene_items",
+				[]
+			),
+			current_stage
+		)
+
+	result.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			var stage_a := int(
+				a.get(
+					"stage_used",
+					0
+				)
+			)
+			var stage_b := int(
+				b.get(
+					"stage_used",
+					0
+				)
+			)
+			if stage_a != stage_b:
+				return stage_a < stage_b
+			return int(
+				a.get(
+					"_gene_display_order",
+					0
+				)
+			) < int(
+				b.get(
+					"_gene_display_order",
+					0
+				)
+			)
+	)
+
+	for item in result:
+		item.erase(
+			"_gene_display_order"
+		)
+
+	return result
+
+
+func _append_gene_items_for_history(
+	target: Array[Dictionary],
+	seen_item_uids: Dictionary,
+	items_value: Variant,
+	fallback_stage: int
+) -> void:
+	if typeof(items_value) != TYPE_ARRAY:
+		return
+
+	for raw_value in items_value as Array:
+		if typeof(raw_value) != TYPE_DICTIONARY:
+			continue
+
+		var item := (
+			raw_value as Dictionary
+		).duplicate(true)
+		var uid := String(
+			item.get(
+				"item_uid",
+				item.get(
+					"uid",
+					""
+				)
+			)
+		).strip_edges()
+
+		if (
+			not uid.is_empty()
+			and seen_item_uids.has(uid)
+		):
+			continue
+
+		if not uid.is_empty():
+			seen_item_uids[uid] = true
+
+		if int(
+			item.get(
+				"stage_used",
+				0
+			)
+		) <= 0:
+			item["stage_used"] = fallback_stage
+
+		item["_gene_display_order"] = (
+			target.size()
+		)
+		target.append(item)
 
 
 func _add_pet_detail_button(
