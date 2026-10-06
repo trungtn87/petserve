@@ -227,6 +227,9 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _begin_drag(position: Vector2) -> bool:
+	if _game == null or _game.result() != BallSortGame.RESULT_PLAYING:
+		return false
+
 	var source := _tube_at(position)
 	if source < 0:
 		return false
