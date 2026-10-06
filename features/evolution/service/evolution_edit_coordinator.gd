@@ -29,6 +29,19 @@ const ANATOMY_NEGATIVE_PROMPT: String = (
 	+ "detached appendage, anatomy inconsistent with the species"
 )
 
+const PET_VISIBILITY_PROMPT: String = (
+	"Render the pet itself fully visible and fully shaded, never as a silhouette. "
+	+ "Keep the face, eyes, muzzle, ears, torso, legs, paws, fur layers, markings and tail visually readable. "
+	+ "Use soft front or three-quarter fill light on the pet even when the environment is bright behind it. "
+	+ "Preserve the element palette and dark fur where appropriate, but keep internal color separation, fur texture and facial detail. "
+	+ "Do not turn the body into a flat black shape, featureless shadow, cutout or backlit outline."
+)
+const PET_VISIBILITY_NEGATIVE_PROMPT: String = (
+	"silhouette, solid black body, pure black fill, featureless black pet, black cutout, "
+	+ "underexposed pet, backlit-only subject, crushed shadows, lost facial detail, "
+	+ "featureless fur, unreadable face, missing eye detail"
+)
+
 
 func build_request(
 	identity: PetIdentity,
@@ -1246,6 +1259,16 @@ func _build_reference_stage_request(
 	positive_prompt += _pethome_scale_lock_section()
 
 	positive_prompt += (
+		"\n\n[PET VISIBILITY LOCK]\n"
+		+ PET_VISIBILITY_PROMPT
+		+ (
+			" This is the final life stage: make the finished form especially clear, polished and fully readable."
+			if target_stage >= 5
+			else ""
+		)
+	)
+
+	positive_prompt += (
 		" Keep the pet physically grounded with a soft natural contact shadow. "
 		+ "Return ONE complete pet + habitat portrait with no text, UI, logo or watermark."
 	)
@@ -1258,6 +1281,8 @@ func _build_reference_stage_request(
 
 	if not mythic_active:
 		negative_prompt += ", unauthorized mythical branch anatomy, unearned appendage"
+
+	negative_prompt += ", " + PET_VISIBILITY_NEGATIVE_PROMPT
 
 	var request := PetRenderRequest.new()
 	request.mode = PetRenderRequest.RenderMode.EVOLUTION_IMAGE_EDIT
