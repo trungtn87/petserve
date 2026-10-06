@@ -16,6 +16,7 @@ var _status_label: Label
 var _message_label: Label
 var _undo_button: Button
 var _hint_button: Button
+var _retry_button: Button
 var _level := 1
 var _unlocked := 1
 var _settled := false
@@ -55,7 +56,7 @@ func _start_level(level: int) -> void:
 	_game.start_level(_level)
 	_board.set_game(_game)
 	_settled = false
-	_message_label.text = "Kéo tinh thể trên cùng sang ống phù hợp."
+	_message_label.text = "Kéo tinh thể trên cùng sang ống phù hợp • Hoàn thành trước khi hết bước."
 	_sync()
 
 
@@ -129,6 +130,13 @@ func _build_ui() -> void:
 	_message_label.add_theme_font_size_override("font_size", 10)
 	root.add_child(_message_label)
 
+	_retry_button = Button.new()
+	_retry_button.text = "CHƠI LẠI MÀN"
+	_retry_button.custom_minimum_size.y = 42
+	_retry_button.visible = false
+	_retry_button.pressed.connect(_restart)
+	root.add_child(_retry_button)
+
 	var actions := HBoxContainer.new()
 	actions.add_theme_constant_override("separation", 8)
 	root.add_child(actions)
@@ -162,6 +170,17 @@ func _on_tube_drop_requested(
 
 	if bool(result.get("complete", false)):
 		_settle_completed_level()
+	elif bool(result.get("failed", false)) or _game.result() == BallSortGame.RESULT_LOST:
+		_settle_failed_level()
+
+
+func _settle_failed_level() -> void:
+	if _settled or _game == null or _game.result() != BallSortGame.RESULT_LOST:
+		return
+	_settled = true
+	_message_label.text = "THẤT BẠI • Đã hết bước. Chơi lại màn để thử lại."
+	match_finished.emit(BallSortGame.RESULT_LOST)
+	_sync()
 
 
 func _settle_completed_level() -> void:
@@ -245,11 +264,14 @@ func _sync() -> void:
 	var config := _game.config()
 	var rank := String(config.get("rank", "NORMAL"))
 	var best := int(_best_moves.get(str(_level), 0))
+	var failed := _game.result() == BallSortGame.RESULT_LOST
 	_level_label.text = "Màn %d • %s" % [_level, rank]
-	_status_label.text = "%d màu • %d bước%s" % [
+	_status_label.text = "%d màu • Còn %d/%d bước%s" % [
 		int(config.get("color_count", 3)),
-		_game.moves(),
+		_game.moves_remaining(),
+		_game.move_limit(),
 		(" • Kỷ lục %d" % best) if best > 0 else "",
 	]
+	_retry_button.visible = failed
 	_undo_button.disabled = not _game.can_undo() or _settled
-	_hint_button.disabled = _settled
+	_hint_button.disabled = _settled or _game.result() != BallSortGame.RESULT_PLAYING
