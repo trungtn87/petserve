@@ -1,6 +1,18 @@
 # Xếp tinh thể (Ball Sort)
 
-Mini game dùng luật Ball Sort: chọn tinh thể trên cùng của một ống và chuyển sang ống trống hoặc ống có tinh thể trên cùng cùng màu. Mỗi ống chứa tối đa 4 tinh thể.
+Mini game dùng luật Ball Sort: kéo tinh thể trên cùng của một ống sang ống trống hoặc ống có tinh thể trên cùng cùng màu. Mỗi ống chứa tối đa 4 tinh thể.
+
+## Cơ chế số bước
+
+- Không giới hạn thời gian; mỗi màn dùng **số bước còn lại**.
+- Chỉ một lần di chuyển tinh thể hợp lệ mới trừ 1 bước. Kéo sai, thả sai vị trí hoặc chọn thao tác không làm đổi bàn chơi không trừ bước.
+- Gợi ý không trừ bước.
+- Hoàn tác trả lại bước vừa đi vì bàn chơi được khôi phục đúng trạng thái trước đó.
+- Hoàn thành ở bước cuối cùng vẫn tính thắng.
+- Nếu về 0 bước mà bàn chưa hoàn thành, màn chuyển sang **Thất bại** và người chơi phải chọn **Chơi lại màn**.
+- Khi thắng, tiến trình vẫn tự chuyển sang màn tiếp theo như trước.
+
+Giới hạn bước được tính từ số bước của lời giải bảo đảm do generator tạo ra cộng thêm biên sai số. Màn đầu có biên rộng hơn; càng về sau biên càng chặt. Màn HARD và EXPERT được siết thêm, nhưng giới hạn luôn lớn hơn số bước của lời giải bảo đảm nên map không bị tạo ở trạng thái bất khả thi do giới hạn bước.
 
 ## Tiến trình map
 
