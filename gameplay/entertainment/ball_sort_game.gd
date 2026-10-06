@@ -6,6 +6,7 @@ const CAPACITY := 4
 const MAX_COLORS := 10
 const RESULT_PLAYING: StringName = &"playing"
 const RESULT_WON: StringName = &"won"
+const RESULT_LOST: StringName = &"lost"
 
 var _rng := RandomNumberGenerator.new()
 var _level := 1
@@ -14,6 +15,8 @@ var _tubes: Array = []
 var _initial_tubes: Array = []
 var _selected := -1
 var _moves := 0
+var _move_limit := 0
+var _solution_steps := 0
 var _history: Array[Dictionary] = []
 var _generated_solution: Array[Dictionary] = []
 var _result: StringName = RESULT_PLAYING
@@ -55,6 +58,8 @@ func start_level(level: int) -> void:
 	_tubes = chosen_tubes
 	_initial_tubes = _tubes.duplicate(true)
 	_generated_solution = chosen_solution
+	_solution_steps = maxi(1, _generated_solution.size())
+	_move_limit = _calculate_move_limit(_solution_steps)
 	_difficulty_score = maxi(1, chosen_score)
 	_selected = -1
 	_moves = 0
@@ -133,6 +138,18 @@ func moves() -> int:
 	return _moves
 
 
+func move_limit() -> int:
+	return _move_limit
+
+
+func moves_remaining() -> int:
+	return maxi(0, _move_limit - _moves)
+
+
+func solution_steps() -> int:
+	return _solution_steps
+
+
 func result() -> StringName:
 	return _result
 
@@ -181,7 +198,7 @@ func tap_tube(index: int) -> Dictionary:
 
 
 func can_move(source: int, destination: int) -> bool:
-	if _result == RESULT_WON:
+	if _result != RESULT_PLAYING:
 		return false
 	return _can_move(source, destination)
 
@@ -191,8 +208,18 @@ func move_ball(source: int, destination: int) -> Dictionary:
 		return {"ok": false, "message": "Ống nguồn không hợp lệ."}
 	if destination < 0 or destination >= _tubes.size():
 		return {"ok": false, "message": "Hãy thả tinh thể vào một ống đích."}
-	if _result == RESULT_WON:
-		return {"ok": false, "message": "Màn này đã hoàn thành."}
+	if _result != RESULT_PLAYING:
+		return {
+			"ok": false,
+			"message": (
+				"Đã hết bước. Chơi lại màn để thử lại."
+				if _result == RESULT_LOST
+				else "Màn này đã hoàn thành."
+			),
+		}
+	if moves_remaining() <= 0:
+		_result = RESULT_LOST
+		return {"ok": false, "failed": true, "message": "Đã hết bước. Chơi lại màn để thử lại."}
 	if source == destination:
 		return {"ok": false, "message": "Hãy kéo tinh thể sang một ống khác."}
 	if not _can_move(source, destination):
@@ -214,6 +241,15 @@ func move_ball(source: int, destination: int) -> Dictionary:
 			"moved": true,
 			"complete": true,
 			"message": "Hoàn thành!",
+		}
+
+	if moves_remaining() <= 0:
+		_result = RESULT_LOST
+		return {
+			"ok": true,
+			"moved": true,
+			"failed": true,
+			"message": "Hết bước! Chơi lại màn để thử lại.",
 		}
 
 	return {
@@ -249,8 +285,15 @@ func undo() -> Dictionary:
 
 
 func hint() -> Dictionary:
-	if _result == RESULT_WON:
-		return {"ok": false, "message": "Màn đã hoàn thành."}
+	if _result != RESULT_PLAYING:
+		return {
+			"ok": false,
+			"message": (
+				"Đã hết bước. Chơi lại màn để nhận gợi ý mới."
+				if _result == RESULT_LOST
+				else "Màn đã hoàn thành."
+			),
+		}
 
 	var fallback: Dictionary = {}
 
@@ -307,6 +350,34 @@ func _can_move(source: int, destination: int) -> bool:
 		return true
 
 	return int(source_tube.back()) == int(destination_tube.back())
+
+
+func _calculate_move_limit(solution_steps: int) -> int:
+	var safe_steps := maxi(1, solution_steps)
+	var buffer_ratio := 0.35
+
+	if _level <= 10:
+		buffer_ratio = 0.35
+	elif _level <= 30:
+		buffer_ratio = 0.30
+	elif _level <= 60:
+		buffer_ratio = 0.25
+	elif _level <= 100:
+		buffer_ratio = 0.20
+	else:
+		buffer_ratio = 0.16
+
+	match String(_config.get("rank", "NORMAL")):
+		"HARD":
+			buffer_ratio = minf(buffer_ratio, 0.18)
+		"EXPERT":
+			buffer_ratio = minf(buffer_ratio, 0.12)
+
+	var buffer := maxi(
+		3,
+		int(ceil(float(safe_steps) * buffer_ratio))
+	)
+	return safe_steps + buffer
 
 
 func _generate_candidate(attempt: int) -> Dictionary:
