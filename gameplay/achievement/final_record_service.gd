@@ -140,6 +140,25 @@ func register_record(
 			else record.duplicate(true)
 		)
 
+		if String(
+			existing.get(
+				"gallery_path",
+				""
+			)
+		).is_empty():
+			var retry_gallery_path := (
+				_auto_save_final_image_to_gallery(
+					existing
+				)
+			)
+			if not retry_gallery_path.is_empty():
+				existing["gallery_path"] = (
+					retry_gallery_path
+				)
+				records[record_id] = existing
+				archive["records"] = records
+				_save_archive(archive)
+
 		return {
 			"ok": true,
 			"is_new": false,
@@ -169,6 +188,11 @@ func register_record(
 			record
 		) as Dictionary
 	).duplicate(true)
+	stored["gallery_path"] = (
+		_auto_save_final_image_to_gallery(
+			stored
+		)
+	)
 	records[record_id] = stored
 
 	var entry: Dictionary = {}
@@ -222,7 +246,7 @@ func register_record(
 	entry["completion_count"] = count
 	entry["latest_record_id"] = record_id
 	entry["thumbnail_path"] = String(
-		record.get(
+		stored.get(
 			"final_image_path",
 			""
 		)
@@ -543,6 +567,57 @@ func _archive_record_snapshots(
 		"ok": true,
 		"record": stored,
 	}
+
+
+func _auto_save_final_image_to_gallery(
+	record: Dictionary
+) -> String:
+	if (
+		not OS.has_feature("android")
+		or not Engine.has_singleton(
+			"PetVerseBackup"
+		)
+	):
+		return ""
+
+	var source_path := String(
+		record.get(
+			"final_image_path",
+			""
+		)
+	).strip_edges()
+	if (
+		source_path.is_empty()
+		or not FileAccess.file_exists(
+			source_path
+		)
+	):
+		return ""
+
+	var record_id := String(
+		record.get(
+			"record_id",
+			"pet"
+		)
+	).validate_filename()
+	var file_name := (
+		"PetVerse_%s_Final.png"
+		% record_id
+	)
+	var native := Engine.get_singleton(
+		"PetVerseBackup"
+	)
+	if native == null:
+		return ""
+
+	return String(
+		native.save_image_to_gallery(
+			ProjectSettings.globalize_path(
+				source_path
+			),
+			file_name
+		)
+	)
 
 
 func _collect_snapshots(

@@ -1,8 +1,13 @@
 package com.petverse.bluetooth;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.UsedByGodot;
@@ -21,6 +26,44 @@ public final class PetVerseBackup extends GodotPlugin {
     @UsedByGodot public synchronized String take_result() { String r = result; result = ""; return r; }
     @UsedByGodot public boolean export_file(String path, String name) { return picker(path, name, EXPORT); }
     @UsedByGodot public boolean import_file(String path) { return picker(path, "", IMPORT); }
+
+    /** Saves a PNG into Pictures/PetVerse using scoped-storage MediaStore on Android 10+. */
+    @UsedByGodot public String save_image_to_gallery(String path, String name) {
+        Activity activity = getActivity();
+        if (activity == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return "";
+        File source = new File(path);
+        if (!source.isFile()) return "";
+        String safeName = (name == null ? "PetVerse_Final.png" : name)
+            .replace("/", "_").replace("\\", "_");
+        if (!safeName.toLowerCase().endsWith(".png")) safeName += ".png";
+
+        ContentResolver resolver = activity.getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, safeName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/PetVerse");
+        values.put(MediaStore.Images.Media.IS_PENDING, 1);
+
+        Uri uri = null;
+        try {
+            uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) return "";
+            try (InputStream input = new FileInputStream(source);
+                 OutputStream output = resolver.openOutputStream(uri, "w")) {
+                if (output == null) throw new IOException("No gallery output stream");
+                copy(input, output);
+            }
+            ContentValues ready = new ContentValues();
+            ready.put(MediaStore.Images.Media.IS_PENDING, 0);
+            resolver.update(uri, ready, null, null);
+            return uri.toString();
+        } catch (Exception e) {
+            if (uri != null) {
+                try { resolver.delete(uri, null, null); } catch (Exception ignored) {}
+            }
+            return "";
+        }
+    }
     private synchronized boolean picker(String path, String name, int request) {
         Activity activity = getActivity();
         if (busy || activity == null || !new File(path).isAbsolute()) return false;

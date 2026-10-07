@@ -5,7 +5,7 @@ const MAX_TOTAL := 128 * 1024 * 1024
 const MAX_FILE := 16 * 1024 * 1024
 const MAX_FILES := 512
 const DATA_FILES := ["save_v11.json", "meta_v1.json", "hatch_v11.json", "evolution_pet_v1.json", "legacy_inheritance_v1.json", "final_record_archive_v1.json", "tetris_records_v1.json", "food_catch_records_v1.json", "tank_records_solo.json", "tank_records_duo.json", "settings_v1.json", "jigsaw_v1.json", "jigsaw_v2.json", "daily_rewards_v2.json"]
-const IMAGE_DIRS := ["pet_renders", "final_records", "mock"]
+const IMAGE_DIRS := ["pet_renders", "final_records", "final_record_media", "mock"]
 const JOURNAL := "user://backups/restore_pending.json"
 const ROLLBACK := "user://backups/before_restore.petbackup"
 var recovery_ok := true
@@ -32,7 +32,12 @@ func _allowed(path: String) -> bool:
 			return false
 	if path in DATA_FILES:
 		return true
-	return path.get_base_dir() in IMAGE_DIRS and path.get_extension().to_lower() in ["png", "jpg", "jpeg", "webp"]
+	if path.get_extension().to_lower() not in ["png", "jpg", "jpeg", "webp"]:
+		return false
+	for folder in IMAGE_DIRS:
+		if path.begins_with(folder + "/"):
+			return true
+	return false
 
 func _paths() -> PackedStringArray:
 	var paths := PackedStringArray()
@@ -40,14 +45,44 @@ func _paths() -> PackedStringArray:
 		if AtomicJson.exists("user://" + path):
 			paths.append(path)
 	for folder in IMAGE_DIRS:
-		if not DirAccess.dir_exists_absolute("user://" + folder):
-			continue
-		for name in DirAccess.get_files_at("user://" + folder):
-			var path: String = folder + "/" + name
-			if _allowed(path):
-				paths.append(path)
+		_append_image_paths(
+			folder,
+			paths
+		)
 	paths.sort()
 	return paths
+
+
+func _append_image_paths(
+	relative_dir: String,
+	paths: PackedStringArray
+) -> void:
+	var absolute_dir := "user://" + relative_dir
+	if not DirAccess.dir_exists_absolute(
+		absolute_dir
+	):
+		return
+
+	for name in DirAccess.get_files_at(
+		absolute_dir
+	):
+		var path := (
+			relative_dir
+			+ "/"
+			+ name
+		)
+		if _allowed(path):
+			paths.append(path)
+
+	for name in DirAccess.get_directories_at(
+		absolute_dir
+	):
+		_append_image_paths(
+			relative_dir
+			+ "/"
+			+ name,
+			paths
+		)
 
 func _hash(bytes: PackedByteArray) -> String:
 	var hash := HashingContext.new()
