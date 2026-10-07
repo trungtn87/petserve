@@ -270,13 +270,10 @@ func show_chest_rewards(items: Array[Dictionary]) -> void:
 			else ""
 		)
 		_title.text = (
-			"RƯƠNG %s • %d VẬT PHẨM"
-			% [
-				_chest_rarity_label(
-					chest_rarity
-				),
-				items.size(),
-			]
+			"RƯƠNG %s"
+			% _chest_rarity_label(
+				chest_rarity
+			)
 		)
 		_filters.visible = false
 		_fill(items, false)
