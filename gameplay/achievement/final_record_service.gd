@@ -3,6 +3,7 @@ extends RefCounted
 
 
 const ARCHIVE_PATH: String = "user://final_record_archive_v1.json"
+const RECORD_MEDIA_ROOT: String = "user://final_record_media"
 const ARCHIVE_SCHEMA: int = 1
 const CARD_STAGE_COUNT: int = 4
 
@@ -151,7 +152,23 @@ func register_record(
 			).duplicate(true),
 		}
 
-	var stored := record.duplicate(true)
+	var archive_result := _archive_record_snapshots(
+		record
+	)
+	if not bool(
+		archive_result.get(
+			"ok",
+			false
+		)
+	):
+		return archive_result
+
+	var stored := (
+		archive_result.get(
+			"record",
+			record
+		) as Dictionary
+	).duplicate(true)
 	records[record_id] = stored
 
 	var entry: Dictionary = {}
@@ -263,6 +280,40 @@ func get_record(
 	).duplicate(true)
 
 
+func list_records() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var archive := _load_archive()
+	var records_value: Variant = archive.get(
+		"records",
+		{}
+	)
+
+	if typeof(records_value) != TYPE_DICTIONARY:
+		return result
+
+	for raw in (
+		records_value as Dictionary
+	).values():
+		if typeof(raw) == TYPE_DICTIONARY:
+			result.append(
+				(raw as Dictionary).duplicate(
+					true
+				)
+			)
+
+	result.sort_custom(
+		Callable(
+			self,
+			"_record_newer_than"
+		)
+	)
+	return result
+
+
+func record_count() -> int:
+	return list_records().size()
+
+
 func list_collection() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	var archive := _load_archive()
@@ -348,6 +399,150 @@ func _update_record_field(
 	records[record_id] = record
 	archive["records"] = records
 	return _save_archive(archive)
+
+
+func _archive_record_snapshots(
+	record: Dictionary
+) -> Dictionary:
+	var record_id := String(
+		record.get(
+			"record_id",
+			""
+		)
+	).strip_edges()
+	var snapshots_value: Variant = record.get(
+		"all_stage_snapshots",
+		[]
+	)
+
+	if (
+		record_id.is_empty()
+		or typeof(snapshots_value) != TYPE_ARRAY
+	):
+		return _error(
+			"Final Record không có danh sách ảnh giai đoạn hợp lệ."
+		)
+
+	var source_snapshots := snapshots_value as Array
+	if source_snapshots.is_empty():
+		return _error(
+			"Final Record không có ảnh giai đoạn để lưu."
+		)
+
+	var record_dir := RECORD_MEDIA_ROOT.path_join(
+		record_id.validate_filename()
+	)
+	var make_error := (
+		DirAccess.make_dir_recursive_absolute(
+			ProjectSettings.globalize_path(
+				record_dir
+			)
+		)
+	)
+
+	if (
+		make_error != OK
+		and make_error != ERR_ALREADY_EXISTS
+	):
+		return _error(
+			"Không tạo được thư mục lưu ảnh đời thú cưng."
+		)
+
+	var archived: Array[Dictionary] = []
+
+	for raw in source_snapshots:
+		if typeof(raw) != TYPE_DICTIONARY:
+			continue
+
+		var snapshot := (
+			raw as Dictionary
+		).duplicate(true)
+		var stage_index := int(
+			snapshot.get(
+				"stage_index",
+				0
+			)
+		)
+		var source_path := String(
+			snapshot.get(
+				"image_path",
+				""
+			)
+		).strip_edges()
+
+		if (
+			stage_index <= 0
+			or source_path.is_empty()
+			or not FileAccess.file_exists(
+				source_path
+			)
+		):
+			return _error(
+				"Thiếu ảnh giai đoạn %d, chưa thể chốt đời thú cưng."
+				% stage_index
+			)
+
+		var image := Image.load_from_file(
+			source_path
+		)
+		if image == null or image.is_empty():
+			return _error(
+				"Không đọc được ảnh giai đoạn %d."
+				% stage_index
+			)
+
+		var archive_path := record_dir.path_join(
+			"stage_%02d.png"
+			% stage_index
+		)
+		if image.save_png(
+			archive_path
+		) != OK:
+			return _error(
+				"Không lưu được ảnh giai đoạn %d."
+				% stage_index
+			)
+
+		snapshot["image_path"] = archive_path
+		archived.append(
+			snapshot
+		)
+
+	if archived.is_empty():
+		return _error(
+			"Không có ảnh giai đoạn nào được lưu."
+		)
+
+	var stored := record.duplicate(true)
+	stored["all_stage_snapshots"] = archived
+	stored["card_snapshots"] = _select_card_snapshots(
+		archived
+	)
+
+	var final_stage := -1
+	var final_image_path := ""
+	for snapshot in archived:
+		var stage_index := int(
+			snapshot.get(
+				"stage_index",
+				0
+			)
+		)
+		if stage_index > final_stage:
+			final_stage = stage_index
+			final_image_path = String(
+				snapshot.get(
+					"image_path",
+					""
+				)
+			)
+
+	stored["final_image_path"] = final_image_path
+
+	return {
+		"ok": true,
+		"record": stored,
+	}
 
 
 func _collect_snapshots(
@@ -593,6 +788,39 @@ func _empty_archive() -> Dictionary:
 		"records": {},
 		"collection": {},
 	}
+
+
+func _record_newer_than(
+	a: Dictionary,
+	b: Dictionary
+) -> bool:
+	var completed_a := int(
+		a.get(
+			"completed_at_unix",
+			0
+		)
+	)
+	var completed_b := int(
+		b.get(
+			"completed_at_unix",
+			0
+		)
+	)
+
+	if completed_a != completed_b:
+		return completed_a > completed_b
+
+	return int(
+		a.get(
+			"generation",
+			0
+		)
+	) > int(
+		b.get(
+			"generation",
+			0
+		)
+	)
 
 
 func _collection_less_than(

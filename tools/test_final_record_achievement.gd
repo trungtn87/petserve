@@ -7,6 +7,7 @@ var _checks: int = 0
 
 func _ready() -> void:
 	_cleanup()
+	_prepare_fixture_images()
 	_test_build_four_panel_record()
 	_test_idempotent_collection()
 	_cleanup()
@@ -192,6 +193,40 @@ func _test_idempotent_collection() -> void:
 		"same final form across different lives must keep one collection tile"
 	)
 
+	_expect(
+		service.record_count() == 2,
+		"each completed life must keep its own achievement record"
+	)
+
+	var records := service.list_records()
+	_expect(
+		records.size() == 2,
+		"achievement history must list every completed life"
+	)
+	if records.size() == 2:
+		var snapshots_value: Variant = records[0].get(
+			"all_stage_snapshots",
+			[]
+		)
+		if typeof(snapshots_value) == TYPE_ARRAY:
+			var snapshots := snapshots_value as Array
+			_expect(
+				snapshots.size() == StageLifecycle.FINAL_STAGE,
+				"each life record must archive every stage image"
+			)
+			if not snapshots.is_empty():
+				_expect(
+					String(
+						(snapshots[0] as Dictionary).get(
+							"image_path",
+							""
+						)
+					).begins_with(
+						FinalRecordService.RECORD_MEDIA_ROOT
+					),
+					"stage images must be copied into durable final-record media"
+				)
+
 	var entries := service.list_collection()
 	if entries.size() == 1:
 		_expect(
@@ -227,6 +262,35 @@ func _test_idempotent_collection() -> void:
 		),
 		"saved Final Card path must persist"
 	)
+
+
+func _prepare_fixture_images() -> void:
+	for stage_index in range(
+		1,
+		StageLifecycle.FINAL_STAGE + 1
+	):
+		var image := Image.create(
+			8,
+			8,
+			false,
+			Image.FORMAT_RGBA8
+		)
+		image.fill(
+			Color(
+				0.1 * float(stage_index),
+				0.2,
+				0.3,
+				1.0
+			)
+		)
+		var error := image.save_png(
+			"user://pet_stage_%d.png"
+			% stage_index
+		)
+		_expect(
+			error == OK,
+			"fixture image must be writable"
+		)
 
 
 func _fixture(

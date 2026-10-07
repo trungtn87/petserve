@@ -24,7 +24,6 @@ const PetSceneProfileScript = preload(
 
 var _game := InfantGameFacade.new()
 var _final_record_service := FinalRecordService.new()
-var _final_record_renderer := FinalRecordRenderer.new()
 var _hud: PetHomeGameplayUI
 var _hub: EntertainmentHubUI
 var _game_tick: float = 0.0
@@ -4812,80 +4811,22 @@ func _show_final_record(
 		)
 	)
 
-	var loading := Label.new()
-	loading.text = "Đang dựng ảnh kỷ niệm 4 giai đoạn..."
-	loading.horizontal_alignment = (
-		HORIZONTAL_ALIGNMENT_CENTER
+	var snapshots_value: Variant = record.get(
+		"all_stage_snapshots",
+		[]
 	)
-	loading.add_theme_color_override(
-		"font_color",
-		_theme.get(
-			"muted",
-			Color.WHITE
-		)
-	)
-	_section_body.add_child(
-		loading
-	)
-	_section_overlay.visible = true
-
-	var preview := await _final_record_renderer.render_preview(
-		record,
-		self,
-		Vector2i(
-			960,
-			540
-		)
-	)
-
-	if _active_section != &"final_record":
-		return
-
-	if is_instance_valid(loading):
-		loading.queue_free()
-
-	if preview == null or preview.is_empty():
-		_add_info_row(
-			"Ảnh",
-			"Không dựng được ảnh xem trước."
-		)
-	else:
-		var texture_rect := TextureRect.new()
-		texture_rect.custom_minimum_size = Vector2(
-			0,
-			168
-		)
-		texture_rect.size_flags_horizontal = (
-			Control.SIZE_EXPAND_FILL
-		)
-		texture_rect.expand_mode = (
-			TextureRect.EXPAND_IGNORE_SIZE
-		)
-		texture_rect.stretch_mode = (
-			TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		)
-		texture_rect.texture = (
-			ImageTexture.create_from_image(
-				preview
+	if typeof(snapshots_value) == TYPE_ARRAY:
+		for raw in snapshots_value as Array:
+			if typeof(raw) != TYPE_DICTIONARY:
+				continue
+			_add_final_record_stage_snapshot(
+				raw as Dictionary
 			)
-		)
-		_section_body.add_child(
-			texture_rect
-		)
 
 	var record_id := String(
 		record.get(
 			"record_id",
 			""
-		)
-	)
-	_section_button(
-		"LƯU ẢNH 16:9",
-		Callable(
-			self,
-			"_save_final_record"
-		).bind(
-			record_id
 		)
 	)
 	_section_button(
@@ -4913,56 +4854,76 @@ func _show_final_record(
 		)
 
 
-func _save_final_record(
-	record_id: String
+func _add_final_record_stage_snapshot(
+	snapshot: Dictionary
 ) -> void:
-	var record := _final_record_service.get_record(
-		record_id
-	)
-
-	if record.is_empty():
-		_hud.show_message(
-			"Không tìm thấy thành tích cuối đời."
+	var stage_index := int(
+		snapshot.get(
+			"stage_index",
+			0
 		)
-		return
-
-	_hud.show_message(
-		"Đang lưu ảnh 16:9..."
 	)
-	var result := await _final_record_renderer.export_png(
-		record,
-		self
-	)
-
-	if not bool(
-		result.get(
-			"ok",
-			false
-		)
-	):
-		_hud.show_message(
-			String(
-				result.get(
-					"error",
-					"Không lưu được ảnh."
-				)
-			)
-		)
-		return
-
-	var gallery_path := String(
-		result.get(
-			"gallery_path",
+	var path := String(
+		snapshot.get(
+			"image_path",
 			""
 		)
+	).strip_edges()
+
+	var title := Label.new()
+	title.text = "Giai đoạn %d" % stage_index
+	title.horizontal_alignment = (
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	title.add_theme_color_override(
+		"font_color",
+		_theme.get(
+			"text",
+			Color.WHITE
+		)
+	)
+	_section_body.add_child(
+		title
 	)
 
-	_hud.show_message(
-		(
-			"Đã lưu vào thư mục Pictures/PetVerse."
-			if not gallery_path.is_empty()
-			else "Đã lưu thành tích cuối đời trong dữ liệu PetVerse."
+	if path.is_empty():
+		_add_info_row(
+			"Ảnh",
+			"Không có ảnh giai đoạn này."
 		)
+		return
+
+	var image := Image.load_from_file(
+		path
+	)
+	if image == null or image.is_empty():
+		_add_info_row(
+			"Ảnh",
+			"Không đọc được ảnh giai đoạn này."
+		)
+		return
+
+	var texture_rect := TextureRect.new()
+	texture_rect.custom_minimum_size = Vector2(
+		0,
+		220
+	)
+	texture_rect.size_flags_horizontal = (
+		Control.SIZE_EXPAND_FILL
+	)
+	texture_rect.expand_mode = (
+		TextureRect.EXPAND_IGNORE_SIZE
+	)
+	texture_rect.stretch_mode = (
+		TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	)
+	texture_rect.texture = (
+		ImageTexture.create_from_image(
+			image
+		)
+	)
+	_section_body.add_child(
+		texture_rect
 	)
 
 
@@ -4972,11 +4933,11 @@ func _open_achievements() -> void:
 		&"achievements"
 	)
 	var entries := (
-		_final_record_service.list_collection()
+		_final_record_service.list_records()
 	)
 
 	_add_info_row(
-		"Đã mở",
+		"Đã lưu",
 		str(entries.size())
 	)
 
@@ -5088,7 +5049,7 @@ func _add_achievement_tile(
 	thumb.texture = _achievement_thumbnail(
 		String(
 			entry.get(
-				"thumbnail_path",
+				"final_image_path",
 				""
 			)
 		)
@@ -5128,12 +5089,15 @@ func _add_achievement_tile(
 
 	var count_label := Label.new()
 	count_label.text = (
-		"Hoàn thành ×%d"
-		% int(
-			entry.get(
-				"completion_count",
-				1
+		"Đời #%d"
+		% (
+			int(
+				entry.get(
+					"generation",
+					0
+				)
 			)
+			+ 1
 		)
 	)
 	count_label.add_theme_color_override(
@@ -5149,7 +5113,7 @@ func _add_achievement_tile(
 
 	var record_id := String(
 		entry.get(
-			"latest_record_id",
+			"record_id",
 			""
 		)
 	)
